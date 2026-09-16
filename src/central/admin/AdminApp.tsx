@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Icone } from "@/central/components/Icone";
 import { FaixaDemonstracao } from "@/central/components/FaixaDemonstracao";
@@ -35,9 +35,20 @@ export function AdminApp() {
   const { pathname } = useLocation();
   const navegar = useNavigate();
   const { acesso, sair, configuracoes } = useSessao();
+  const barraDeAbas = useRef<HTMLElement>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+  }, [pathname]);
+
+  // A régua de abas rola de lado no celular, e não cabe inteira: com sete
+  // abas, estando em "Rastreabilidade" ou "Configurações" a aba ativa ficava
+  // fora da tela. A régua mostrava "Painel" no começo, e não havia como saber
+  // em que seção ela estava. Trazer a ativa para o centro resolve, e no
+  // computador — onde tudo cabe — não muda nada.
+  useEffect(() => {
+    const ativa = barraDeAbas.current?.querySelector(".ativo");
+    ativa?.scrollIntoView({ block: "nearest", inline: "center" });
   }, [pathname]);
 
   return (
@@ -63,7 +74,7 @@ export function AdminApp() {
               </button>
             </div>
           </div>
-          <nav className="c-admin-abas" aria-label="Seções administrativas">
+          <nav className="c-admin-abas" aria-label="Seções administrativas" ref={barraDeAbas}>
             {ABAS.map((aba) => (
               <NavLink
                 key={aba.rota}

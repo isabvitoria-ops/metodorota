@@ -482,24 +482,20 @@ function FormularioRegistro({
       {registro ? (
         <p className="c-dica">{registro.itemNome}</p>
       ) : (
-        <label className="c-campo" style={{ display: "block" }}>
-          <span className="c-rotulo">Qual alimento?</span>
-          {escolhendoNome ? (
-            <>
+        <>
+          {/* O botão fica FORA do <label>: dentro dele, tocar em "Foi outro
+              alimento" também acionava o campo e abria a lista do celular
+              junto — dois efeitos num toque só. */}
+          <label className="c-campo" style={{ display: "block" }}>
+            <span className="c-rotulo">Qual alimento?</span>
+            {escolhendoNome ? (
               <input
                 className="c-input"
                 value={nomeNovo}
                 onChange={(e) => definirNomeNovo(e.target.value)}
                 placeholder="Ex.: pão da padaria"
               />
-              {itens.length > 0 && (
-                <button type="button" className="c-link" onClick={() => definirOutro(false)}>
-                  Escolher da minha lista
-                </button>
-              )}
-            </>
-          ) : (
-            <>
+            ) : (
               <select
                 className="c-select"
                 value={itemId}
@@ -511,18 +507,27 @@ function FormularioRegistro({
                   </option>
                 ))}
               </select>
-              <button type="button" className="c-link" onClick={() => definirOutro(true)}>
-                Foi outro alimento
-              </button>
-            </>
-          )}
-          {item?.porcaoReferencia && (
-            <span className="c-dica">
-              Porção de referência do seu material: {item.porcaoReferencia}. Se aparecer
-              sintoma, sua nutricionista pode pedir para reduzir pela metade e observar de novo.
-            </span>
-          )}
-        </label>
+            )}
+            {!escolhendoNome && item?.porcaoReferencia && (
+              <span className="c-dica">
+                Porção de referência do seu material: {item.porcaoReferencia}. Se der sintoma,
+                sua nutricionista pode pedir para reduzir pela metade.
+              </span>
+            )}
+          </label>
+
+          {escolhendoNome
+            ? itens.length > 0 && (
+                <button type="button" className="c-link" onClick={() => definirOutro(false)}>
+                  Escolher da minha lista
+                </button>
+              )
+            : (
+                <button type="button" className="c-link" onClick={() => definirOutro(true)}>
+                  Foi outro alimento
+                </button>
+              )}
+        </>
       )}
 
       {/* 2. Quando você consumiu? */}
@@ -559,7 +564,7 @@ function FormularioRegistro({
           />
         </label>
         <label className="c-campo" style={{ display: "block" }}>
-          <span className="c-rotulo">Como foi preparado? (opcional)</span>
+          <span className="c-rotulo">Preparo (opcional)</span>
           <input
             className="c-input"
             value={preparo}
@@ -569,42 +574,49 @@ function FormularioRegistro({
         </label>
       </div>
 
-      {/* 4 e 5. Teve algum sintoma? Qual? */}
-      <span className="c-rotulo">Teve algum sintoma depois?</span>
-      <div className="c-chips" style={{ marginBottom: 10 }}>
-        <button
-          type="button"
-          className="c-chip"
-          aria-pressed={!teveSintoma}
-          onClick={() => definirTeveSintoma(false)}
-        >
-          Nenhum sintoma
-        </button>
-        <button
-          type="button"
-          className="c-chip"
-          aria-pressed={teveSintoma}
-          onClick={() => definirTeveSintoma(true)}
-        >
-          Sim, tive sintoma
-        </button>
+      {/* 4 e 5. Teve algum sintoma? Qual?
+          Envolvido em `c-campo` para ganhar o mesmo respiro dos outros: solto,
+          o rótulo encostava no campo de cima e a pergunta parecia legenda do
+          "Preparo". */}
+      <div className="c-campo">
+        <span className="c-rotulo">Teve algum sintoma depois?</span>
+        <div className="c-chips">
+          <button
+            type="button"
+            className="c-chip"
+            aria-pressed={!teveSintoma}
+            onClick={() => definirTeveSintoma(false)}
+          >
+            Nenhum sintoma
+          </button>
+          <button
+            type="button"
+            className="c-chip"
+            aria-pressed={teveSintoma}
+            onClick={() => definirTeveSintoma(true)}
+          >
+            Sim, tive sintoma
+          </button>
+        </div>
       </div>
 
       {teveSintoma && (
         <>
-          <span className="c-rotulo">Quais? (pode marcar mais de um)</span>
-          <div className="c-chips" style={{ marginBottom: 10 }}>
-            {SINTOMAS.filter((s) => s.chave !== "nenhum").map((s) => (
-              <button
-                key={s.chave}
-                type="button"
-                className="c-chip"
-                aria-pressed={sintomas.includes(s.chave)}
-                onClick={() => alternar(s.chave)}
-              >
-                {s.rotulo}
-              </button>
-            ))}
+          <div className="c-campo">
+            <span className="c-rotulo">Quais? (pode marcar mais de um)</span>
+            <div className="c-chips">
+              {SINTOMAS.filter((s) => s.chave !== "nenhum").map((s) => (
+                <button
+                  key={s.chave}
+                  type="button"
+                  className="c-chip"
+                  aria-pressed={sintomas.includes(s.chave)}
+                  onClick={() => alternar(s.chave)}
+                >
+                  {s.rotulo}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* 6. Intensidade */}
@@ -613,12 +625,12 @@ function FormularioRegistro({
               Intensidade: {intensidade} — {faixaDaIntensidade(intensidade)}
             </span>
             <input
+              className="c-faixa"
               type="range"
               min={0}
               max={10}
               value={intensidade}
               onChange={(e) => definirIntensidade(Number(e.target.value))}
-              style={{ width: "100%" }}
               aria-label="Intensidade do sintoma, de 0 a 10"
             />
             <span className="c-dica">0 nenhum · 1 a 3 leve · 4 a 6 moderado · 7 a 10 intenso</span>
@@ -644,7 +656,7 @@ function FormularioRegistro({
 
       {/* 7. Observações */}
       <label className="c-campo" style={{ display: "block" }}>
-        <span className="c-rotulo">Quer anotar mais alguma coisa? (opcional)</span>
+        <span className="c-rotulo">Quer anotar mais alguma coisa?</span>
         <textarea
           className="c-textarea"
           rows={2}

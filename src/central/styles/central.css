@@ -491,6 +491,10 @@ body:has(.central) {
 .c-input,
 .c-select {
   width: 100%;
+  /* Junto com o `min-width: 0` do item de grid: campo de data e de hora têm
+     largura natural própria no iOS e precisam poder encolher. */
+  min-width: 0;
+  box-sizing: border-box;
   height: 52px;
   padding: 0 16px;
   border: 1px solid var(--border-campo);
@@ -1823,6 +1827,10 @@ body:has(.central) {
 }
 
 .c-dica {
+  /* `block` porque a dica também é usada em <span>, dentro de <label>. Sem
+     isto ela emenda no elemento anterior e vira "Foi outro alimentoPorção de
+     referência..." — que foi exatamente o que apareceu no celular dela. */
+  display: block;
   font-size: 13px;
   color: var(--text-subtle);
   margin-top: 7px;
@@ -1986,7 +1994,7 @@ body:has(.central) {
 
 .c-cartoes {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
   gap: 12px;
 }
 
@@ -2103,7 +2111,9 @@ body:has(.central) {
   max-height: 92dvh;
   overflow-y: auto;
   border-radius: var(--radius) var(--radius) 0 0;
-  padding: 10px 20px calc(24px + env(safe-area-inset-bottom));
+  /* Sem espaço em cima: quem dá o respiro é a pega, e o título precisa
+     encostar no topo para poder grudar nele ao rolar. */
+  padding: 0 20px calc(24px + env(safe-area-inset-bottom));
   box-shadow: var(--shadow-forte);
   animation: c-subir 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -2120,10 +2130,25 @@ body:has(.central) {
   height: 4px;
   border-radius: 99px;
   background: var(--border-strong);
-  margin: 6px auto 14px;
+  margin: 16px auto 14px;
 }
 
+/* O título gruda no topo enquanto o formulário rola.
+   Num formulário longo de celular — registrar alimento tem sete perguntas —
+   o título saía de cena no primeiro deslize e ficava cortado pela borda, e
+   quem rolasse um pouco não sabia mais em que tela estava. As margens
+   negativas fazem o fundo cobrir a largura toda, senão o conteúdo passaria
+   por baixo aparecendo nas beiradas. */
 .c-modal h2 {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0 -20px;
+  padding: 2px 20px 12px;
+  background: var(--surface);
+  /* Acompanha o arredondamento do modal: grudado no topo, um fundo quadrado
+     cobriria os cantos e o modal pareceria outro componente. */
+  border-radius: var(--radius) var(--radius) 0 0;
   font-size: 22px;
   line-height: 1.2;
 }
@@ -2140,6 +2165,8 @@ body:has(.central) {
 
 .c-textarea {
   width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   min-height: 92px;
   padding: 12px 16px;
   border: 1px solid var(--border-campo);
@@ -2157,10 +2184,36 @@ body:has(.central) {
   box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
+/* Duas colunas quando cabem duas; uma quando não cabem.
+   O `minmax(200px, 1fr)` é o que faz o par virar lista no celular estreito —
+   antes as duas colunas eram impostas, o rótulo comprido quebrava em duas
+   linhas e empurrava só um dos campos para baixo, deixando a dupla torta.
+   `align-items: start` impede que o campo de um lado estique para acompanhar
+   o rótulo alto do outro. */
 .c-duas-colunas {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
+  align-items: start;
+}
+
+/* Item de grid nasce com `min-width: auto`, e por isso não encolhe abaixo do
+   tamanho natural do conteúdo. Um <input type="date"> no iPhone é largo por
+   natureza: sem esta linha ele estoura a coluna e passa por cima do campo do
+   lado — o empilhamento que ela viu na tela de registrar alimento. */
+.c-duas-colunas > * {
+  min-width: 0;
+}
+
+/* Quem dá o espaço entre as duas é o `gap`. Sem zerar aqui, cada campo somava
+   a própria margem e a dupla ficava afastada demais do que vem antes — e, ao
+   empilhar no celular, com dois espaçamentos diferentes entre as linhas. */
+.c-duas-colunas {
+  margin-top: 18px;
+}
+
+.c-duas-colunas > .c-campo {
+  margin-top: 0;
 }
 
 .c-bloco {
@@ -2190,6 +2243,11 @@ body:has(.central) {
 
   .c-modal-pega {
     display: none;
+  }
+
+  /* No computador não há pega para dar o respiro de cima. */
+  .c-modal h2 {
+    padding-top: 20px;
   }
 }
 
@@ -2257,4 +2315,56 @@ body:has(.central) {
   letter-spacing: 0.01em;
   color: var(--text-muted);
   opacity: 0.85;
+}
+
+/* Controle de intensidade do sintoma.
+   Sem isto o navegador desenha o dele, azul — o único azul num app verde, e
+   logo na pergunta mais delicada do formulário. A trilha e o botão precisam
+   dos dois prefixos: cada motor desenha essa peça do seu jeito. */
+.c-faixa {
+  width: 100%;
+  height: 34px;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.c-faixa::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--border-strong);
+}
+
+.c-faixa::-moz-range-track {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--border-strong);
+}
+
+.c-faixa::-webkit-slider-thumb {
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  margin-top: -10px;
+  border-radius: 99px;
+  border: 2px solid var(--surface);
+  background: var(--primary);
+  box-shadow: 0 1px 4px rgba(31, 29, 27, 0.28);
+}
+
+.c-faixa::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 99px;
+  border: 2px solid var(--surface);
+  background: var(--primary);
+  box-shadow: 0 1px 4px rgba(31, 29, 27, 0.28);
+}
+
+.c-faixa:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.c-faixa:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px var(--primary-soft);
 }
