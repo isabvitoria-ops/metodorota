@@ -120,7 +120,14 @@ export function RastreabilidadeAdmin() {
               </button>
             ))}
           </div>
+          {/* `key` pelo id da paciente, e isso é correção de defeito, não
+              enfeite. Sem ela o painel não remonta na troca: o campo de
+              orientação continuaria com o texto da paciente anterior, e
+              salvar gravaria o recado de uma na ficha da outra. A mesma
+              armadilha que já apareceu em "Lançar pontos" — aqui ela
+              custaria mais caro, porque a paciente lê esse texto. */}
           <PainelDaPaciente
+            key={paciente.id}
             paciente={paciente}
             aba={aba}
             aoMudarRastreio={() => void carregarLigados()}

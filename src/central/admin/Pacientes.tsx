@@ -126,7 +126,12 @@ export function Pacientes() {
       )}
 
       {aberto && (
+        // Mesma armadilha da Rastreabilidade: trocar de paciente com a ficha
+        // aberta (pelo endereço ou pelo voltar do navegador) não remontava,
+        // e os campos de "Editar" continuariam com o nome e o e-mail da
+        // paciente anterior. Salvar ali gravaria os dados de uma na outra.
         <FichaPaciente
+          key={aberto.id}
           paciente={aberto}
           planos={planos}
           aoFechar={() => navegar(rotas.adminPacientes)}
