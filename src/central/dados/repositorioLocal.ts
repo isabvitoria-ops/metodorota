@@ -18,6 +18,7 @@ import type {
   NovoRegistroDeReintroducao,
   Paciente,
   Plano,
+  MarcadorDoAlimento,
   Reintroducao,
   RegistroDeReintroducao,
   ItemDeReintroducao,
@@ -550,6 +551,7 @@ export const repositorioLocal: Repositorio = {
           status: "em_teste",
           notaNutri: null,
           ordem: 900,
+          marcacao: MARCACAO_DEMO[nome.toLowerCase()] ?? [],
           totalDeRegistros: 0,
           ultimoRegistro: null,
         },
@@ -571,6 +573,7 @@ export const repositorioLocal: Repositorio = {
         intensidade: registro.intensidade ?? null,
         bristol: registro.bristol ?? null,
         observacao: registro.observacao ?? null,
+        marcacao: MARCACAO_DEMO[itemNome.toLowerCase()] ?? [],
         criadoEm: new Date().toISOString(),
       },
     ]);
@@ -681,6 +684,7 @@ function itensDoMaterialDemo(): ItemDeReintroducao[] {
     status: "nao_iniciado" as StatusReintroducao,
     notaNutri: null,
     ordem: i + 1,
+    marcacao: MARCACAO_DEMO[a.nome.toLowerCase()] ?? [],
     totalDeRegistros: 0,
     ultimoRegistro: null,
   }));
@@ -778,6 +782,21 @@ const ACOES_DEMO = [
     descricao: "Os pontos entram quando ela começa o acompanhamento.", pontos: 100,
     periodicidade: "evento" as const, maxPorSemana: 1 },
 ];
+
+/**
+ * A marcação dos quatro alimentos da demonstração, copiada da tabela dela.
+ * No banco de verdade são 283 alimentos; aqui bastam estes para a tela
+ * mostrar como a linha aparece quando há sintoma.
+ */
+const MARCACAO_DEMO: Record<string, MarcadorDoAlimento[]> = {
+  "abacate / avocado": [
+    { nome: "Histamina", nivel: "muito_alta" },
+    { nome: "Oxalato", nivel: "muito_alta" },
+  ],
+  manga: [{ nome: "Oxalato", nivel: "alta" }],
+  "pêra": [{ nome: "Histamina", nivel: "media" }],
+  // Pêssego é baixo nos três: fica sem marcação, e é assim que deve ser.
+};
 
 /** A escada de benefícios da indicação (0013_desafio_ajustes.sql). */
 const BENEFICIOS_DEMO = [

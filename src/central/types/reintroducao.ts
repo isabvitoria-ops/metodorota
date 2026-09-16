@@ -49,6 +49,24 @@ export type CategoriaReintroducao =
   | "vegetais"
   | "outros";
 
+/** Quão presente está o marcador, na escala do material dela. */
+export type NivelDoMarcador = "muito_baixa" | "baixa" | "media" | "alta" | "muito_alta";
+
+/**
+ * Um marcador alto naquele alimento — oxalato, histamina ou lectina.
+ *
+ * Só chega aqui o que está em média ou acima: o material serve para responder
+ * "o que este alimento tem de alto", e listar o que é baixo esconderia isso.
+ *
+ * Não é diagnóstico. A introdução do material dela diz para que serve: se um
+ * alimento que caiu mal é muito alto em oxalato, outros alimentos altos em
+ * oxalato merecem atenção. É pista de comparação, e quem compara é a dupla.
+ */
+export interface MarcadorDoAlimento {
+  nome: "Oxalato" | "Histamina" | "Lectina";
+  nivel: NivelDoMarcador;
+}
+
 /** Um alimento do material dela, como referência para montar a lista. */
 export interface AlimentoDoMaterial {
   id: string;
@@ -74,6 +92,8 @@ export interface ItemDeReintroducao {
   status: StatusReintroducao;
   notaNutri: string | null;
   ordem: number;
+  /** Vazio quando o alimento não está na tabela de oxalato/histamina/lectina. */
+  marcacao: MarcadorDoAlimento[];
   totalDeRegistros: number;
   ultimoRegistro: string | null;
 }
@@ -94,6 +114,11 @@ export interface RegistroDeReintroducao {
   /** Escala de Bristol, 1 a 7, do protocolo de rastreio dela. */
   bristol: number | null;
   observacao: string | null;
+  /**
+   * A marcação do alimento. Vem sempre; quem decide mostrar é a tela, e só
+   * quando este registro tem sintoma — foi o que ela pediu.
+   */
+  marcacao: MarcadorDoAlimento[];
   criadoEm: string;
 }
 

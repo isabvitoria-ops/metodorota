@@ -20,9 +20,12 @@ import {
   faixaDaIntensidade,
   fraseDoHistorico,
   itensParaRegistrar,
+  mostrarMarcacao,
   porSemana,
   rotuloSintoma,
   status,
+  temSintoma,
+  textoDaMarcacao,
 } from "@/central/utils/reintroducao";
 import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { rotas } from "@/central/rotas";
@@ -169,6 +172,14 @@ export function Rastreabilidade() {
             </div>
           )}
 
+          {registros.some(mostrarMarcacao) && (
+            <p className="c-dica" style={{ marginTop: 10 }}>
+              As linhas em cinza vêm da tabela de oxalato, histamina e lectina da sua
+              nutricionista. Elas não dizem que o alimento faz mal — servem para vocês duas
+              compararem com outros alimentos parecidos.
+            </p>
+          )}
+
           {visiveis.map((grupo) => (
             <div key={grupo.semana} style={{ marginTop: 16 }}>
               <h3 className="c-secao-titulo" style={{ fontSize: 14 }}>
@@ -257,8 +268,28 @@ function CartaoItem({
         <span className={`c-selo ${seloDoTom(info.tom)}`}>{info.paciente}</span>
       </div>
 
-      {podeEscolher && (
-        <div className="c-acao-estado">
+      <div className="c-acao-estado">
+        {/* Caminho rápido para o caso mais comum: comeu e passou bem. Um toque
+            grava o registro de hoje sem abrir formulário — o registro que não
+            acontece por preguiça de preencher não ajuda ninguém. */}
+        {!naoRelevante && (
+          <button
+            type="button"
+            className="c-botao c-botao-secundario c-botao-pequeno"
+            disabled={ocupado}
+            onClick={() =>
+              void aoMudar(() =>
+                repositorio.registrarReintroducao({
+                  itemId: item.id,
+                  sintomas: ["nenhum"],
+                }),
+              )
+            }
+          >
+            Nenhum sintoma
+          </button>
+        )}
+        {podeEscolher && (
           <button
             type="button"
             className="c-link"
@@ -273,8 +304,8 @@ function CartaoItem({
               ? "Voltar para a minha lista"
               : "Não faz parte da minha alimentação"}
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </article>
   );
 }
@@ -300,7 +331,7 @@ function CartaoRegistro({
   aoEditar: () => void;
   aoApagar: () => void;
 }) {
-  const semSintoma = registro.sintomas.length === 0 || registro.sintomas[0] === "nenhum";
+  const semSintoma = !temSintoma(registro);
 
   return (
     <article className="c-acao">
@@ -331,6 +362,13 @@ function CartaoRegistro({
         <p className="c-dica">Escala de Bristol: tipo {registro.bristol}</p>
       )}
       {registro.observacao && <p className="c-dica">“{registro.observacao}”</p>}
+
+      {/* A marcação do material dela. Só aparece quando houve sintoma — é a
+          regra que ela deu, e é a que mantém a tela leve: alimento que caiu
+          bem não ganha rótulo nenhum. */}
+      {mostrarMarcacao(registro) && (
+        <p className="c-marcacao">{textoDaMarcacao(registro.marcacao)}</p>
+      )}
 
       {podeMexer && (
         <div className="c-acao-estado">
@@ -522,7 +560,7 @@ function FormularioRegistro({
           aria-pressed={!teveSintoma}
           onClick={() => definirTeveSintoma(false)}
         >
-          Não, nenhum
+          Nenhum sintoma
         </button>
         <button
           type="button"
@@ -530,7 +568,7 @@ function FormularioRegistro({
           aria-pressed={teveSintoma}
           onClick={() => definirTeveSintoma(true)}
         >
-          Sim, tive
+          Sim, tive sintoma
         </button>
       </div>
 

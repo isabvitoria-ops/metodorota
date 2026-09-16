@@ -11,9 +11,12 @@ import {
   CATEGORIAS,
   STATUS,
   faixaDaIntensidade,
+  mostrarMarcacao,
   porSemana,
   rotuloSintoma,
   status as infoStatus,
+  temSintoma,
+  textoDaMarcacao,
 } from "@/central/utils/reintroducao";
 import { dataBonita } from "@/central/utils/situacao";
 import { Campo, Selecao, Texto, AreaTexto } from "./componentes/Campos";
@@ -218,7 +221,7 @@ function LinhaDoTempo({ dados }: { dados: ReturnType<typeof useReintroducao>["da
             <strong style={{ fontSize: 14 }}>Semana {grupo.semana}</strong>
             <div className="c-acoes" style={{ marginTop: 8 }}>
               {grupo.registros.map((r) => {
-                const semSintoma = r.sintomas.length === 0 || r.sintomas[0] === "nenhum";
+                const semSintoma = !temSintoma(r);
                 return (
                   <article className="c-acao" key={r.id}>
                     <div className="c-acao-topo">
@@ -245,6 +248,11 @@ function LinhaDoTempo({ dados }: { dados: ReturnType<typeof useReintroducao>["da
                     )}
                     {r.bristol != null && <p className="c-dica">Bristol tipo {r.bristol}</p>}
                     {r.observacao && <p className="c-dica">“{r.observacao}”</p>}
+                    {/* Mesma regra da tela da paciente: só com sintoma. Aqui
+                        é onde a comparação entre alimentos acontece de fato. */}
+                    {mostrarMarcacao(r) && (
+                      <p className="c-marcacao">{textoDaMarcacao(r.marcacao)}</p>
+                    )}
                   </article>
                 );
               })}

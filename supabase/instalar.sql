@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql
 -- =============================================================================
 
 
@@ -4652,3 +4652,615 @@ grant execute on function definir_status_reintroducao(uuid, text, text) to authe
 grant execute on function reordenar_reintroducao(uuid[]) to authenticated;
 grant execute on function definir_acompanhamento_reintroducao(uuid, date, text) to authenticated;
 grant execute on function reintroducao_do_paciente(uuid) to authenticated;
+
+
+-- ###########################################################################
+-- 0018_marcadores.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0018: oxalato, histamina e lectina
+--
+-- A tabela dela ("Tabela Oxalato, Histamina e Lectina — Semana Desinflama")
+-- vira dado aqui. Serve para uma coisa só, e é a que ela pediu: quando a
+-- paciente registra um SINTOMA com um alimento, aparece embaixo, pequeno, o
+-- que aquele alimento tem de alto.
+--
+-- O porquê está na introdução do material dela: "se o alimento que te faz mal
+-- é muito alto em oxalato, provavelmente outros alimentos altos em oxalato
+-- também farão mal". É pista para comparar, não veredito.
+--
+-- Por isso, duas regras que o resto do módulo já seguia e que continuam:
+--
+--   * a marcação NÃO aparece quando o registro é sem sintoma. Alimento que
+--     caiu bem não precisa de rótulo nenhum;
+--   * a marcação NÃO muda status, não sugere exclusão e não entra em conta
+--     nenhuma. Ela é texto ao lado do que a paciente escreveu.
+--
+-- Nada aqui altera o catálogo de reintrodução nem o que já estava gravado.
+-- =============================================================================
+
+create table if not exists alimentos_marcadores (
+  id text primary key,
+  nome text not null,
+  -- Nome em minúsculas e sem acento, para casar com o que a paciente digita
+  -- quando o alimento não está na lista dela.
+  nome_busca text not null,
+  categoria text not null
+    check (categoria in ('carboidratos', 'frutas', 'vegetais', 'proteinas', 'gorduras', 'outros')),
+  -- Nulo = o material traz um traço naquela coluna, ou seja, sem informação.
+  -- Sem informação e "baixa" são coisas diferentes, e o nulo preserva isso.
+  oxalato text check (oxalato is null or oxalato in ('muito_baixa','baixa','media','alta','muito_alta')),
+  histamina text check (histamina is null or histamina in ('muito_baixa','baixa','media','alta','muito_alta')),
+  lectina text check (lectina is null or lectina in ('muito_baixa','baixa','media','alta','muito_alta')),
+  -- As notas de rodapé do material: "grandes chances de fermentar" e afins.
+  observacao text
+);
+
+create index if not exists alimentos_marcadores_busca_idx
+  on alimentos_marcadores (nome_busca);
+
+-- O alimento do Mapa de Reintrodução aponta para a linha da tabela quando os
+-- dois materiais falam do mesmo alimento. Fica explícito, um a um, em vez de
+-- adivinhado por semelhança de nome: "manteiga de búfala" e "manteiga" são
+-- parecidos e não são a mesma linha.
+alter table reintroducao_alimentos
+  add column if not exists marcador_id text references alimentos_marcadores (id) on delete set null;
+
+
+-- ###########################################################################
+-- 0019_marcadores_tabela.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0019: a tabela dela, alimento por alimento
+--
+-- Transcrição do material "Tabela Oxalato, Histamina e Lectina". Nada foi
+-- acrescentado de fora e nada foi arredondado: onde o material traz um traço,
+-- aqui vai nulo — porque "não sei" não é "baixa".
+-- =============================================================================
+
+insert into alimentos_marcadores
+  (id, nome, nome_busca, categoria, oxalato, histamina, lectina, observacao) values
+
+-- ------------------------------------------------------------- carboidratos
+('arroz','Arroz','arroz','carboidratos','media','muito_baixa','muito_alta',null),
+('arroz-selvagem','Arroz selvagem','arroz selvagem','carboidratos','media','muito_baixa','alta',null),
+('aveia','Aveia','aveia','carboidratos','muito_baixa','muito_baixa','muito_alta',null),
+('acucar','Açúcar','acucar','carboidratos','muito_baixa','muito_baixa','muito_alta',null),
+('batata','Batata','batata','carboidratos','muito_alta','muito_baixa','muito_alta',null),
+('m-batata-doce','Batata doce','batata doce','carboidratos','muito_alta','muito_baixa','baixa','Grandes chances de fermentar.'),
+('centeio','Centeio','centeio','carboidratos','muito_alta','media','muito_alta',null),
+('chufa','Chufa','chufa','carboidratos',null,'muito_baixa',null,null),
+('espelta','Espelta','espelta','carboidratos','media','muito_baixa','muito_alta',null),
+('favas','Favas','favas','carboidratos','muito_alta','muito_alta','muito_alta',null),
+('m-feijao','Feijão','feijao','carboidratos','muito_alta','muito_alta','muito_alta',null),
+('feijao-borlotti','Feijão Borlotti','feijao borlotti','carboidratos','muito_alta','alta','muito_alta',null),
+('feijao-mungo','Feijão Mungo (germinado)','feijao mungo','carboidratos','alta','alta','alta',null),
+('flocos-de-milho','Flocos de Milho','flocos de milho','carboidratos','muito_baixa','muito_baixa','muito_alta',null),
+('germen-de-trigo','Gérmen de trigo','germen de trigo','carboidratos','muito_alta','muito_alta','muito_alta',null),
+('m-grao-de-bico','Grão-de-Bico','grao-de-bico','carboidratos','media','alta','muito_alta',null),
+('m-inhame','Inhame','inhame','carboidratos','muito_alta','muito_baixa','muito_baixa',null),
+('leguminosas','Leguminosas','leguminosas','carboidratos','muito_alta','muito_alta','muito_alta',null),
+('leite-de-arroz','Leite de arroz','leite de arroz','carboidratos','media','baixa','muito_alta',null),
+('m-lentilha','Lentilha','lentilha','carboidratos','baixa','alta','muito_alta',null),
+('macarrao','Macarrão','macarrao','carboidratos',null,null,'alta','A depender da farinha usada para fazer a massa.'),
+('macarrao-de-arroz','Macarrão de arroz','macarrao de arroz','carboidratos','media','muito_baixa','muito_alta',null),
+('mandioca','Mandioca','mandioca','carboidratos','alta','muito_baixa','muito_baixa',null),
+('m-mel','Mel','mel','carboidratos','muito_baixa','muito_baixa','muito_baixa','Grandes chances de fermentar.'),
+('milho','Milho','milho','carboidratos','muito_baixa','muito_baixa',null,null),
+('milho-doce','Milho doce','milho doce','carboidratos','media','muito_baixa','muito_alta',null),
+('painco','Painço','painco','carboidratos','muito_alta','muito_baixa','muito_baixa',null),
+('m-pao','Pão','pao','carboidratos','alta','media','muito_alta','Vale para pães feitos com farinha de trigo.'),
+('pastinaga','Pastinaga','pastinaga','carboidratos','alta','muito_baixa','muito_baixa',null),
+('m-quinoa','Quinoa','quinoa','carboidratos','muito_alta','muito_baixa','muito_alta',null),
+('soja','Soja (grãos ou farinha)','soja','carboidratos','muito_alta','muito_alta','muito_alta',null),
+('trigo','Trigo','trigo','carboidratos','muito_alta','media','muito_alta',null),
+('trigo-sarraceno','Trigo Sarraceno','trigo sarraceno','carboidratos','muito_alta','alta','alta',null),
+
+-- -------------------------------------------------------------------- frutas
+('m-abacate','Abacate','abacate','frutas','muito_alta','muito_alta','baixa',null),
+('abacaxi','Abacaxi','abacaxi','frutas','muito_alta','muito_alta','muito_baixa',null),
+('m-acerola','Acerola','acerola','frutas','baixa','baixa','media',null),
+('ameixa','Ameixa','ameixa','frutas','muito_baixa','alta','muito_baixa',null),
+('ameixa-seca','Ameixa seca','ameixa seca','frutas','alta','baixa','muito_baixa','Apesar de ser segura, é fruta seca e pode fermentar.'),
+('amora','Amora','amora','frutas','media','muito_baixa','media',null),
+('amora-silvestre','Amora Silvestre','amora silvestre','frutas','muito_alta','alta','media',null),
+('m-banana','Banana','banana','frutas','baixa','alta','media',null),
+('boysenberry','Boysenberry','boysenberry','frutas','baixa','media','media',null),
+('cereja','Cereja','cereja','frutas','baixa','baixa','muito_baixa',null),
+('cereja-azeda','Cereja azeda','cereja azeda','frutas',null,'baixa',null,null),
+('cerejas-morello','Cerejas Morello','cerejas morello','frutas','baixa','baixa','baixa',null),
+('coco','Coco e derivados','coco','frutas','muito_baixa','baixa','muito_baixa',null),
+('damasco','Damasco','damasco','frutas','muito_baixa','muito_baixa','muito_baixa','Apesar de ser segura, é fruta seca e pode fermentar.'),
+('figo','Figo (fresco ou seco)','figo','frutas','media','baixa','muito_baixa',null),
+('figueira-da-india','Figueira da Índia','figueira da india','frutas',null,'media',null,null),
+('framboesa','Framboesa','framboesa','frutas','muito_alta','alta','baixa',null),
+('frutas-citricas','Frutas Cítricas','frutas citricas','frutas','media','muito_alta','media',null),
+('frutas-secas','Frutas secas','frutas secas','frutas','media',null,'media','Apesar de ser segura, é fruta seca e pode fermentar.'),
+('m-goiaba','Goiaba','goiaba','frutas','muito_alta','alta','media',null),
+('gojiberry','Gojiberry','gojiberry','frutas','muito_alta','muito_baixa','muito_alta',null),
+('groselha','Groselha','groselha','frutas','alta','muito_baixa','alta',null),
+('groselhas-vermelhas','Groselhas vermelhas','groselhas vermelhas','frutas','muito_alta','muito_baixa','alta',null),
+('kiwi','Kiwi','kiwi','frutas','muito_alta','alta','muito_baixa',null),
+('laranja','Laranja','laranja','frutas','muito_alta','muito_alta','media',null),
+('m-lichia','Lichia','lichia','frutas','muito_baixa','muito_baixa','alta',null),
+('lima','Lima','lima','frutas','media','muito_alta','media',null),
+('limao','Limão','limao','frutas','media',null,'media',null),
+('mamao','Mamão','mamao','frutas','muito_baixa','muito_alta','muito_baixa',null),
+('mandarim','Mandarim orange','mandarim orange','frutas','muito_alta',null,'media',null),
+('m-manga','Manga','manga','frutas','alta','baixa','muito_baixa','Pela alta quantidade de beta-caroteno pode causar irritações na pele e espinhas.'),
+('maracuja','Maracujá','maracuja','frutas','muito_baixa','muito_baixa','muito_baixa',null),
+('maca','Maçã','maca','frutas','muito_baixa','muito_baixa','muito_baixa',null),
+('m-melancia','Melancia','melancia','frutas','muito_baixa','muito_alta','alta',null),
+('melao','Melão','melao','frutas','muito_baixa','baixa','muito_alta',null),
+('mirtilo','Mirtilo','mirtilo','frutas',null,'muito_baixa',null,null),
+('morango','Morango','morango','frutas','muito_baixa','muito_alta','muito_baixa',null),
+('nectarina','Nectarina','nectarina','frutas','muito_baixa','alta','muito_baixa',null),
+('m-pera','Pera','pera','frutas','baixa','media','muito_baixa',null),
+('m-pessego','Pêssego','pessego','frutas','baixa','muito_baixa','muito_baixa',null),
+('pinhoes','Pinhões','pinhoes','frutas',null,'media',null,null),
+('pitaia','Pitaia','pitaia','frutas','muito_alta','muito_baixa','media',null),
+('roma','Romã','roma','frutas','muito_alta','muito_baixa','muito_baixa',null),
+('tamara','Tâmara','tamara','frutas','alta','media','media',null),
+('toranja','Toranja','toranja','frutas','muito_alta','muito_alta','media',null),
+('uva','Uva','uva','frutas','muito_baixa','media','media',null),
+('uvas-passas','Uvas Passas','uvas passas','frutas','baixa','muito_baixa','media','Se não tiver enxofre. Apesar de segura, é fruta seca e pode fermentar.'),
+
+-- ------------------------------------------------------------------ vegetais
+('abobora','Abóbora','abobora','vegetais','media','muito_baixa','alta','Pela alta quantidade de beta-caroteno pode causar irritações na pele e espinhas.'),
+('abobrinha','Abobrinha','abobrinha','vegetais','muito_baixa','muito_baixa','alta',null),
+('acelga','Acelga','acelga','vegetais','muito_alta','media','muito_baixa',null),
+('acelga-chinesa','Acelga Chinesa','acelga chinesa','vegetais','muito_baixa','muito_baixa','muito_baixa',null),
+('agriao','Agrião','agriao','vegetais','muito_alta','muito_baixa','muito_baixa',null),
+('agriao-de-jardim','Agrião de Jardim','agriao de jardim','vegetais','muito_alta','baixa','media',null),
+('airela','Airela ou Oxicoco','airela','vegetais','muito_baixa','muito_baixa','muito_baixa',null),
+('alcachofra','Alcachofra','alcachofra','vegetais','alta','muito_baixa','baixa',null),
+('alecrim','Alecrim','alecrim','vegetais','muito_baixa','muito_baixa','muito_baixa',null),
+('alface','Alface','alface','vegetais','muito_baixa','muito_baixa','muito_baixa',null),
+('alga','Alga','alga','vegetais','baixa','muito_alta','baixa',null),
+('m-alho','Alho','alho','vegetais','baixa','baixa','muito_baixa','Alto risco de aumentar a fermentação intestinal.'),
+('m-alho-poro','Alho-poró','alho-poro','vegetais','baixa','baixa','baixa',null),
+('amoreira','Amoreira','amoreira','vegetais','alta','media','muito_alta',null),
+('anis','Anis','anis','vegetais',null,'media',null,null),
+('m-aspargos','Aspargo','aspargo','vegetais','media','muito_baixa','media',null),
+('berinjela','Berinjela','berinjela','vegetais','muito_alta','alta','muito_alta',null),
+('beterraba','Beterraba','beterraba','vegetais','muito_alta','muito_baixa','muito_baixa',null),
+('m-brocolis','Brócolis','brocolis','vegetais','media','muito_baixa','muito_baixa',null),
+('broto-de-bambu','Broto de Bambu','broto de bambu','vegetais','muito_alta','media','muito_baixa',null),
+('broto-de-ervilha','Broto de ervilha','broto de ervilha','vegetais','media','muito_baixa','muito_alta',null),
+('m-cebola','Cebola','cebola','vegetais','muito_baixa','baixa','muito_baixa',null),
+('cebola-branca','Cebola Branca','cebola branca','vegetais',null,'baixa',null,'Grandes chances de fermentar.'),
+('cebolinha','Cebolinha','cebolinha','vegetais','muito_baixa','baixa','muito_baixa',null),
+('cenoura','Cenoura','cenoura','vegetais','alta','muito_baixa','muito_baixa','Pela alta quantidade de beta-caroteno pode causar irritações na pele e espinhas.'),
+('chicoria','Chicória','chicoria','vegetais','muito_alta','muito_baixa','muito_baixa',null),
+('coentro','Coentro','coentro','vegetais','baixa','baixa','muito_baixa',null),
+('cogumelo-branco','Cogumelo Branco','cogumelo branco','vegetais','baixa','alta','muito_baixa','Grandes chances de fermentar.'),
+('cogumelo-morel','Cogumelo Morel','cogumelo morel','vegetais','alta','alta','muito_baixa','Grandes chances de fermentar.'),
+('cogumelo-porcino','Cogumelo Porcino','cogumelo porcino','vegetais','baixa','alta','muito_baixa','Grandes chances de fermentar.'),
+('m-cogumelos','Cogumelos','cogumelos','vegetais','baixa',null,'muito_baixa','Grandes chances de fermentar.'),
+('couve','Couve','couve','vegetais','muito_baixa','muito_baixa','muito_baixa','Grandes chances de fermentar.'),
+('m-couve-bruxelas','Couve de Bruxelas','couve de bruxelas','vegetais','media','media','muito_baixa',null),
+('couve-pak-choi','Couve pak choi','couve pak choi','vegetais',null,'muito_baixa',null,null),
+('m-couve-flor','Couve-Flor','couve-flor','vegetais','muito_baixa','muito_baixa','muito_baixa','Grandes chances de fermentar.'),
+('endivia','Endívia','endivia','vegetais','muito_baixa','muito_baixa','muito_baixa',null),
+('endro','Endro','endro','vegetais','baixa','baixa','baixa',null),
+('m-ervilha','Ervilhas verdes','ervilhas verdes','vegetais','muito_baixa','media','media',null),
+('espinafre','Espinafre','espinafre','vegetais','muito_alta','muito_alta','muito_baixa',null),
+('flor-de-sabugueiro','Flor de Sabugueiro','flor de sabugueiro','vegetais','muito_alta','muito_baixa','alta',null),
+('m-nabo','Nabo','nabo','vegetais','muito_alta','baixa','muito_baixa',null),
+('nabo-rebolho','Nabo-rebolho','nabo-rebolho','vegetais','muito_baixa','baixa','muito_baixa',null),
+('opuntia','Opuntia','opuntia','vegetais','alta','media','muito_baixa',null),
+('pepino','Pepino','pepino','vegetais','muito_baixa','muito_baixa','alta',null),
+('pimentao-apimentado','Pimentão Apimentado','pimentao apimentado','vegetais','muito_alta','alta','muito_alta',null),
+('pimentao-doce','Pimentão Doce','pimentao doce','vegetais','media','muito_baixa','muito_alta',null),
+('rabanete','Rabanete','rabanete','vegetais','muito_baixa','muito_baixa','muito_baixa',null),
+('m-repolho','Repolho','repolho','vegetais','muito_baixa','muito_baixa','muito_baixa','Grandes chances de fermentar.'),
+('repolho-napa','Repolho napa','repolho napa','vegetais','muito_baixa','muito_baixa','muito_baixa',null),
+('repolho-roxo','Repolho roxo','repolho roxo','vegetais','muito_baixa','muito_baixa','muito_baixa','Grandes chances de fermentar.'),
+('repolho-savoy','Repolho Savoy','repolho savoy','vegetais','muito_baixa','baixa','muito_baixa',null),
+('ruibarbo','Ruibarbo','ruibarbo','vegetais','muito_alta','baixa','baixa',null),
+('salsao','Salsão','salsao','vegetais','muito_alta','muito_baixa','muito_baixa',null),
+('salvia','Sálvia','salvia','vegetais','muito_alta','muito_baixa','muito_baixa',null),
+('sauerkraut','Sauerkraut','sauerkraut','vegetais','baixa',null,null,null),
+('tomate','Tomate','tomate','vegetais','muito_alta','muito_alta','muito_alta',null),
+('urtiga','Urtiga','urtiga','vegetais','media','muito_alta','muito_alta',null),
+
+-- ----------------------------------------------------------------- proteínas
+('anchova','Anchova','anchova','proteinas','baixa','muito_alta','muito_baixa',null),
+('atum','Atum','atum','proteinas','muito_baixa',null,'muito_baixa',null),
+('avestruz','Avestruz','avestruz','proteinas','muito_baixa','muito_baixa','muito_baixa',null),
+('bufalo','Búfalo','bufalo','proteinas','muito_baixa','muito_baixa','muito_baixa',null),
+('camarao','Camarão','camarao','proteinas','muito_baixa','muito_alta','alta',null),
+('caranguejo','Caranguejo','caranguejo','proteinas','muito_baixa','muito_alta','muito_baixa',null),
+('m-carne-vermelha','Carne Bovina','carne bovina','proteinas','muito_baixa','muito_baixa','muito_baixa',null),
+('carne-de-aves','Carne de aves','carne de aves','proteinas','muito_baixa','muito_baixa','muito_baixa',null),
+('carne-de-caca','Carne de Caça','carne de caca','proteinas','muito_baixa','baixa','muito_baixa',null),
+('m-carne-porco','Carne de porco','carne de porco','proteinas','muito_baixa','muito_baixa','muito_baixa',null),
+('carne-defumada','Carne defumada','carne defumada','proteinas','muito_baixa','muito_alta','muito_baixa',null),
+('carne-moida','Carne moída','carne moida','proteinas','muito_baixa','baixa','muito_baixa',null),
+('carne-seca','Carne Seca','carne seca','proteinas','muito_baixa','muito_alta','muito_baixa',null),
+('carnes-defumadas','Carnes Defumadas','carnes defumadas','proteinas','muito_baixa','muito_alta','muito_baixa',null),
+('codorna','Codorna','codorna','proteinas',null,'muito_baixa',null,null),
+('coelho','Coelho','coelho','proteinas','muito_baixa','muito_baixa','muito_baixa',null),
+('cordeiro','Cordeiro','cordeiro','proteinas','muito_baixa','muito_baixa','muito_baixa',null),
+('frutos-do-mar','Frutos do mar','frutos do mar','proteinas','muito_baixa','muito_alta','media',null),
+('galinha','Galinha','galinha','proteinas','muito_baixa','muito_baixa','muito_baixa',null),
+('ganso','Ganso','ganso','proteinas','muito_baixa','muito_baixa','muito_baixa',null),
+('lagosta','Lagosta','lagosta','proteinas','muito_baixa','muito_alta','muito_baixa',null),
+('lagostim','Lagostim','lagostim','proteinas','muito_baixa','muito_alta','muito_alta',null),
+('mariscos','Mariscos','mariscos','proteinas','muito_baixa','muito_alta','alta',null),
+('moluscos','Moluscos','moluscos','proteinas','muito_baixa','muito_alta','media',null),
+('ostra','Ostra','ostra','proteinas','muito_baixa','muito_alta','media',null),
+('pato','Pato','pato','proteinas','muito_baixa','muito_baixa','muito_baixa',null),
+('peixe','Peixe','peixe','proteinas','muito_baixa','muito_alta','media',null),
+('peixe-defumado','Peixe defumado','peixe defumado','proteinas','muito_baixa','muito_alta','muito_baixa',null),
+('peru','Peru','peru','proteinas','muito_baixa','muito_baixa','muito_baixa',null),
+('salmao','Salmão','salmao','proteinas','muito_baixa','muito_alta','muito_baixa',null),
+('truta','Truta','truta','proteinas','muito_baixa','muito_alta','alta',null),
+('veado','Veado','veado','proteinas','muito_baixa','baixa','muito_baixa',null),
+
+-- ------------------------------------------------------------------ gorduras
+('amendoas','Amêndoas','amendoas','gorduras','muito_alta','media','media','Dentre todas as castanhas, tende a ser a mais segura.'),
+('m-amendoim','Amendoim','amendoim','gorduras','muito_alta','muito_alta','muito_alta','Altas chances de fermentar.'),
+('m-avela','Avelã','avela','gorduras','muito_alta','media','muito_baixa',null),
+('azeite-de-oliva','Azeite de oliva','azeite de oliva','gorduras','muito_baixa','muito_baixa','baixa',null),
+('m-azeitona','Azeitonas','azeitonas','gorduras','alta','alta','baixa',null),
+('castanha-europeia','Castanha Européia','castanha europeia','gorduras',null,'muito_baixa',null,null),
+('castanha-de-caju','Castanha-de-Caju','castanha-de-caju','gorduras','muito_alta','alta','muito_alta',null),
+('castanha-do-para','Castanha-do-Pará','castanha-do-para','gorduras','muito_alta','baixa','muito_baixa',null),
+('m-chocolate','Chocolate 70%','chocolate','gorduras','muito_alta','alta','baixa',null),
+('cream-cheese','Cream Cheese','cream cheese','gorduras','muito_baixa','media','media',null),
+('gema-do-ovo','Gema do Ovo','gema do ovo','gorduras','muito_baixa','media','media',null),
+('gergelim','Gergelim','gergelim','gorduras','muito_alta','baixa','muito_alta',null),
+('m-iogurte','Iogurte Integral','iogurte integral','gorduras','muito_baixa','muito_alta','media',null),
+('m-kefir','Kefir','kefir','gorduras','muito_baixa','muito_alta','muito_alta',null),
+('leite','Leite','leite','gorduras','muito_baixa','muito_baixa','media',null),
+('leite-cru','Leite cru','leite cru','gorduras','muito_baixa','muito_baixa',null,null),
+('leite-de-cabra','Leite de cabra','leite de cabra','gorduras','muito_baixa','muito_baixa','muito_baixa',null),
+('leite-de-ovelha','Leite de ovelha','leite de ovelha','gorduras','muito_baixa','muito_baixa','muito_baixa',null),
+('linhaca','Linhaça','linhaca','gorduras','media','muito_baixa','muito_baixa',null),
+('macadamia','Macadâmia','macadamia','gorduras','muito_alta','baixa','muito_baixa',null),
+('m-manteiga','Manteiga','manteiga','gorduras','muito_baixa','muito_baixa','baixa',null),
+('manteiga-de-cacau','Manteiga de Cacau','manteiga de cacau','gorduras','muito_alta','alta','baixa',null),
+('margarina','Margarina','margarina','gorduras','muito_baixa','muito_alta','muito_alta',null),
+('nata-azeda','Nata azeda','nata azeda','gorduras','muito_baixa','media',null,null),
+('noz','Noz','noz','gorduras','muito_alta','muito_alta','media',null),
+('noz-moscada','Noz-moscada','noz-moscada','gorduras','alta','alta','media',null),
+('m-nozes','Nozes','nozes','gorduras','muito_alta',null,'media',null),
+('oleo-de-canola','Óleo de Canola','oleo de canola','gorduras','muito_baixa','baixa','muito_alta',null),
+('oleo-de-girassol','Óleo de girassol','oleo de girassol','gorduras','baixa','alta','muito_alta',null),
+('oleo-de-palma','Óleo de palma','oleo de palma','gorduras',null,'muito_baixa',null,null),
+('oleo-semente-abobora','Óleo de semente de abóbora','oleo de semente de abobora','gorduras','media','muito_baixa','muito_alta',null),
+('oleo-semente-palmeira','Óleo de semente de Palmeira','oleo de semente de palmeira','gorduras',null,'muito_baixa',null,null),
+('ovo-branco','Ovo Branco','ovo branco','gorduras','muito_baixa','baixa','media',null),
+('ovos-de-codorna','Ovos de codorna','ovos de codorna','gorduras',null,'muito_baixa',null,null),
+('m-pistache','Pistache','pistache','gorduras','muito_alta','baixa','media',null),
+('queijo-cheddar','Queijo Cheddar','queijo cheddar','gorduras','muito_baixa','muito_alta','muito_alta','Deve ser zero lactose, sempre que possível.'),
+('m-queijo-feta','Queijo feta','queijo feta','gorduras','muito_baixa','media','media','Deve ser zero lactose, sempre que possível.'),
+('queijo-gouda','Queijo Gouda','queijo gouda','gorduras','muito_baixa','muito_alta','muito_alta','Deve ser zero lactose, sempre que possível.'),
+('queijo-macio','Queijo Macio','queijo macio','gorduras','muito_baixa','media','media','Deve ser zero lactose, sempre que possível.'),
+('queijo-mascarpone','Queijo mascarpone','queijo mascarpone','gorduras',null,'media','media','Deve ser zero lactose, sempre que possível.'),
+('m-queijo-mucarela','Queijo mussarela','queijo mussarela','gorduras','muito_baixa','baixa','media','Deve ser zero lactose, sempre que possível.'),
+('queijo-processado','Queijo processado','queijo processado','gorduras',null,'muito_alta','alta','Deve ser zero lactose, sempre que possível.'),
+('queijo-raclette','Queijo Raclette','queijo raclette','gorduras','muito_baixa','muito_alta','baixa','Deve ser zero lactose, sempre que possível.'),
+('m-queijo-ricota','Queijo ricota','queijo ricota','gorduras','muito_baixa','baixa','media','Deve ser zero lactose, sempre que possível.'),
+('queijo-roquefort','Queijo Roquefort','queijo roquefort','gorduras','muito_baixa','alta','media','Deve ser zero lactose, sempre que possível.'),
+('m-queijos-azuis','Queijos Azuis','queijos azuis','gorduras','alta','muito_alta','media','Deve ser zero lactose, sempre que possível.'),
+('m-queijos-curados','Queijos Curados','queijos curados','gorduras','muito_baixa','muito_alta',null,'Deve ser zero lactose, sempre que possível.'),
+('queijos-nao-pasteurizados','Queijos feitos de leite não pasteurizado','queijos feitos de leite nao pasteurizado','gorduras','muito_baixa','muito_alta','media','Deve ser zero lactose, sempre que possível.'),
+('semente-de-chia','Semente de Chia','semente de chia','gorduras','muito_alta','muito_baixa','muito_alta',null),
+('sementes-de-abobora','Sementes de abóbora','sementes de abobora','gorduras','media','baixa','muito_alta',null),
+('sementes-de-canhamo','Sementes de cânhamo','sementes de canhamo','gorduras','baixa','muito_baixa','muito_baixa',null),
+('sementes-de-girassol','Sementes de girassol','sementes de girassol','gorduras','baixa','alta','muito_alta',null),
+('sementes-de-papoula','Sementes de Papoula','sementes de papoula','gorduras','muito_alta','baixa','muito_alta',null),
+('m-whey','Soro de leite','soro de leite','gorduras',null,'baixa',null,null),
+('sour-cream','Sour cream','sour cream','gorduras',null,null,'media',null),
+
+-- -------------------------------------------------------------------- outros
+('adocante','Adoçante','adocante','outros','muito_baixa','muito_baixa','muito_alta',null),
+('agua-de-torneira','Água de torneira','agua de torneira','outros',null,'muito_baixa',null,null),
+('alcool','Álcool ou Bebidas Alcoólicas','alcool','outros','baixa','muito_alta',null,null),
+('alimentos-em-conserva','Alimentos em conserva','alimentos em conserva','outros','muito_alta','muito_alta','muito_baixa',null),
+('baunilha','Baunilha','baunilha','outros','muito_alta','media','muito_baixa',null),
+('cafe','Café','cafe','outros','muito_baixa','media','media',null),
+('camomila','Camomila e Chá de Camomila','camomila','outros','muito_baixa','muito_baixa','muito_baixa',null),
+('canela','Canela','canela','outros','muito_alta','alta','muito_baixa',null),
+('cardamomo','Cardamomo','cardamomo','outros','muito_alta','muito_baixa','media',null),
+('casca-physallis','Casca de semente de physallis','casca de semente de physallis','outros',null,'muito_baixa',null,null),
+('cha-de-ervas','Chá de ervas','cha de ervas','outros','media','media','muito_baixa',null),
+('cha-de-hortela','Chá de Hortelã','cha de hortela','outros','muito_baixa','muito_baixa','muito_baixa',null),
+('cha-de-urtiga','Chá de urtiga','cha de urtiga','outros','media','alta','muito_alta',null),
+('cha-mate','Chá mate','cha mate','outros','alta','muito_alta','muito_baixa',null),
+('cha-preto','Chá preto','cha preto','outros','muito_alta','muito_alta','muito_baixa',null),
+('cha-rooibos','Chá Rooibos','cha rooibos','outros','muito_baixa','muito_baixa','muito_baixa',null),
+('cha-verde','Chá verde','cha verde','outros','alta','media','baixa',null),
+('champagne','Champagne','champagne','outros','baixa','muito_alta','media',null),
+('cominho','Cominho','cominho','outros','muito_alta','media','baixa',null),
+('cominho-preto','Cominho Preto','cominho preto','outros','muito_alta','muito_baixa','alta',null),
+('cravo','Cravo','cravo','outros','muito_alta','alta','muito_alta',null),
+('curcuma','Cúrcuma','curcuma','outros','muito_alta','muito_baixa','muito_baixa',null),
+('curry','Curry','curry','outros','media','media','baixa',null),
+('cacau-em-po','Cacau em pó','cacau em po','outros','muito_alta','muito_alta','baixa',null),
+('erva-benta','Erva Benta','erva benta','outros','muito_baixa','muito_baixa','muito_alta',null),
+('expresso','Expresso','expresso','outros','muito_baixa','media','baixa',null),
+('extrato-de-levedura','Extrato de levedura','extrato de levedura','outros',null,'muito_alta',null,null),
+('extrato-de-malte','Extrato de malte','extrato de malte','outros','muito_alta','muito_alta','muito_alta',null),
+('feno-grego','Feno-grego','feno-grego','outros','alta','alta','media',null),
+('feno-grego-azul','Feno-grego azul','feno-grego azul','outros','muito_alta','alta','media',null),
+('fermento','Fermento','fermento','outros','alta','alta','muito_alta',null),
+('frutose','Frutose','frutose','outros','media','muito_baixa','alta',null),
+('funcho','Funcho','funcho','outros','muito_alta','muito_baixa','muito_baixa',null),
+('gengibre','Gengibre','gengibre','outros','muito_alta','baixa','muito_baixa',null),
+('hortela','Hortelã','hortela','outros','baixa','muito_baixa','muito_baixa',null),
+('louro','Louro','louro','outros','muito_alta','media',null,null),
+('maltodextrina','Maltodextrina','maltodextrina','outros','media','media','muito_alta',null),
+('manjericao','Manjericão','manjericao','outros','baixa','muito_baixa','muito_baixa',null),
+('mostarda','Mostarda e sementes de mostarda','mostarda','outros','muito_baixa','alta','muito_baixa',null),
+('oregano','Orégano','oregano','outros','media','muito_baixa','alta',null),
+('paprica-doce','Páprica Doce','paprica doce','outros',null,'muito_baixa',null,null),
+('paprica-picante','Páprica Picante','paprica picante','outros',null,'muito_alta',null,null),
+('pimenta','Pimenta','pimenta','outros',null,'alta',null,null),
+('pimenta-malagueta','Pimenta Malagueta','pimenta malagueta','outros','media','alta','muito_alta',null),
+('presunto','Presunto','presunto','outros','muito_baixa','muito_alta','muito_baixa',null),
+('salame','Salame','salame','outros','muito_baixa','muito_alta','muito_baixa',null),
+('salsa','Salsa','salsa','outros','alta','muito_baixa','alta',null),
+('salsichas','Salsichas de todo tipo','salsichas','outros','muito_baixa','muito_alta','muito_baixa',null),
+('stevia','Stevia','stevia','outros','muito_alta','muito_baixa','baixa',null),
+('tomilho','Tomilho','tomilho','outros','baixa','muito_baixa','baixa',null),
+('tutano','Tutano','tutano','outros','muito_baixa','muito_baixa','alta',null),
+('vinagre-balsamico','Vinagre balsâmico','vinagre balsamico','outros','muito_baixa','muito_alta','muito_baixa',null),
+('vinagre-branco','Vinagre branco destilado','vinagre branco destilado','outros','muito_baixa','muito_alta','muito_baixa',null),
+('vinagre-de-maca','Vinagre de Maçã','vinagre de maca','outros','muito_baixa','media','muito_baixa',null),
+('vinagre-vinho-branco','Vinagre de vinho branco','vinagre de vinho branco','outros',null,'muito_alta',null,null),
+('vinagre-vinho-tinto','Vinagre de vinho tinto','vinagre de vinho tinto','outros','muito_baixa','muito_alta','baixa',null),
+('xarope-de-acer','Xarope de Ácer (bordo)','xarope de acer','outros','media','muito_baixa','muito_alta',null),
+('xarope-de-agave','Xarope de Agave','xarope de agave','outros','alta','muito_baixa','muito_alta',null),
+('zimbro','Zimbro','zimbro','outros','muito_baixa','muito_baixa','media',null)
+
+on conflict (id) do update set
+  nome = excluded.nome, nome_busca = excluded.nome_busca, categoria = excluded.categoria,
+  oxalato = excluded.oxalato, histamina = excluded.histamina, lectina = excluded.lectina,
+  observacao = excluded.observacao;
+
+
+-- ###########################################################################
+-- 0020_marcadores_ligacao.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0020: ligar os dois materiais e mostrar a marcação
+--
+-- O Mapa de Reintrodução e a Tabela de Oxalato são documentos diferentes, e
+-- os nomes nem sempre batem. A ligação é feita um a um, à mão, e só onde os
+-- dois falam do mesmo alimento.
+--
+-- O que NÃO foi ligado, e por quê: cará, jabuticaba, vagem, ervilha torta,
+-- cottage, manteiga de búfala, queijo brie, queijos de búfala, coalhada e
+-- "todas as folhas e brotos" não existem na tabela de marcadores. Ficam sem
+-- marcação — que é honesto. Inventar um valor "parecido" seria pior do que
+-- não mostrar nada, porque a paciente leria como informação.
+-- =============================================================================
+
+update reintroducao_alimentos a set marcador_id = v.marcador
+from (values
+  ('abacate','m-abacate'),
+  ('pera','m-pera'),
+  ('pessego','m-pessego'),
+  ('manga','m-manga'),
+  ('inhame','m-inhame'),
+  ('avela','m-avela'),
+  ('azeitona','m-azeitona'),
+  -- "Chocolate 60% ou mais" do Mapa cobre o "Chocolate 70%" da Tabela.
+  ('chocolate-60','m-chocolate'),
+  ('nozes','m-nozes'),
+  ('acerola','m-acerola'),
+  ('goiaba','m-goiaba'),
+  ('lichia','m-lichia'),
+  ('aspargos','m-aspargos'),
+  ('cogumelos','m-cogumelos'),
+  ('nabo','m-nabo'),
+  ('mel','m-mel'),
+  ('batata-doce','m-batata-doce'),
+  ('manteiga','m-manteiga'),
+  ('pistache','m-pistache'),
+  ('carne-vermelha','m-carne-vermelha'),
+  ('carne-porco','m-carne-porco'),
+  -- Whey é o soro do leite; é a mesma linha da Tabela.
+  ('whey','m-whey'),
+  -- Água de coco entra por "Coco e derivados".
+  ('agua-de-coco','coco'),
+  ('banana-da-terra','m-banana'),
+  ('melancia','m-melancia'),
+  ('alho-poro','m-alho-poro'),
+  ('brocolis','m-brocolis'),
+  ('couve-flor','m-couve-flor'),
+  ('couve-bruxelas','m-couve-bruxelas'),
+  ('repolho','m-repolho'),
+  ('lentilha','m-lentilha'),
+  ('quinoa','m-quinoa'),
+  ('ervilha','m-ervilha'),
+  ('feijao','m-feijao'),
+  ('grao-de-bico','m-grao-de-bico'),
+  ('alho','m-alho'),
+  ('cebola','m-cebola'),
+  ('amendoim','m-amendoim'),
+  -- A Tabela separa por tipo de laticínio, não por teor de gordura: o que
+  -- pesa na histamina é a fermentação, e ela vale para os dois iogurtes.
+  ('iogurte-2-3','m-iogurte'),
+  ('iogurte-desnatado','m-iogurte'),
+  ('kefir-integral','m-kefir'),
+  ('kefir-desnatado','m-kefir'),
+  ('queijo-mucarela','m-queijo-mucarela'),
+  ('queijo-ricota','m-queijo-ricota'),
+  ('queijo-curado','m-queijos-curados'),
+  ('queijo-gorgonzola','m-queijos-azuis')
+) as v(alimento, marcador)
+where a.id = v.alimento;
+
+-- -----------------------------------------------------------------------------
+-- O alimento que a paciente digitou
+--
+-- Quando ela registra "pão da padaria", não existe ligação nenhuma: o jeito
+-- de achar é pelo nome. A comparação é sem acento e em minúsculas, e só casa
+-- com nome IGUAL — nada de "parecido". Um palpite errado aqui viraria uma
+-- informação errada na tela dela.
+-- -----------------------------------------------------------------------------
+
+-- `translate` em vez de `unaccent`: a extensão existe no Supabase e não no
+-- Postgres cru da bateria de testes, e uma função que só roda em um dos dois
+-- é uma função que ninguém testa. Esta aqui é português puro e roda igual nos
+-- dois lugares.
+create or replace function normalizar_nome(p_nome text)
+returns text
+language sql
+immutable
+set search_path = public
+as $$
+  select lower(translate(trim(coalesce(p_nome, '')),
+    'ÁÀÂÃÄáàâãäÉÈÊËéèêëÍÌÎÏíìîïÓÒÔÕÖóòôõöÚÙÛÜúùûüÇçÑñ',
+    'AAAAAaaaaaEEEEeeeeIIIIiiiiOOOOOoooooUUUUuuuuCcNn'));
+$$;
+
+create or replace function marcador_por_nome(p_nome text)
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select m.id from alimentos_marcadores m
+  where m.nome_busca = normalizar_nome(p_nome)
+  limit 1;
+$$;
+
+revoke all on function normalizar_nome(text) from anon, public;
+grant execute on function normalizar_nome(text) to authenticated;
+
+revoke all on function marcador_por_nome(text) from anon, public;
+grant execute on function marcador_por_nome(text) to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- Como a marcação chega à tela
+--
+-- Devolve só o que está em MÉDIA ou acima. O material existe para responder
+-- "o que este alimento tem de alto"; listar "oxalato muito baixa" encheria o
+-- cartão de ruído e esconderia justamente o que interessa.
+-- -----------------------------------------------------------------------------
+
+create or replace function marcacao_do_alimento(p_marcador text)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(jsonb_agg(x order by
+    -- Muito alta primeiro: é o que a paciente precisa ver antes.
+    case x ->> 'nivel' when 'muito_alta' then 1 when 'alta' then 2 else 3 end,
+    x ->> 'nome'
+  ), '[]'::jsonb)
+  from alimentos_marcadores m,
+  lateral (values
+    ('Oxalato', m.oxalato), ('Histamina', m.histamina), ('Lectina', m.lectina)
+  ) as c(nome, nivel),
+  lateral (select jsonb_build_object('nome', c.nome, 'nivel', c.nivel) as x) as j
+  where m.id = p_marcador
+    and c.nivel in ('media', 'alta', 'muito_alta');
+$$;
+
+revoke all on function marcacao_do_alimento(text) from anon, public;
+grant execute on function marcacao_do_alimento(text) to authenticated;
+
+-- Leitura do catálogo de marcadores: mesma regra do resto do conteúdo.
+alter table alimentos_marcadores enable row level security;
+
+drop policy if exists alimentos_marcadores_leitura on alimentos_marcadores;
+create policy alimentos_marcadores_leitura on alimentos_marcadores for select
+  using (e_admin() or tem_acesso());
+
+drop policy if exists alimentos_marcadores_admin on alimentos_marcadores;
+create policy alimentos_marcadores_admin on alimentos_marcadores for all
+  using (e_admin()) with check (e_admin());
+
+grant select, insert, update, delete on alimentos_marcadores to authenticated;
+revoke all on table alimentos_marcadores from anon;
+
+-- -----------------------------------------------------------------------------
+-- `reintroducao_json` passa a carregar a marcação
+--
+-- Vai no ITEM, e não no registro: é característica do alimento, não do dia.
+-- Quem decide se aparece é a tela, pela única regra que ela deu — só quando
+-- aquele registro tem sintoma.
+-- -----------------------------------------------------------------------------
+
+create or replace function reintroducao_json(p_paciente uuid, p_previa boolean default false)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'previa', p_previa,
+    'inicio', inicio_da_reintroducao(p_paciente),
+    'semanaAtual', semana_da_reintroducao(p_paciente, hoje_sp()),
+    'semanasComRegistro', (
+      select coalesce(jsonb_agg(distinct semana_da_reintroducao(p_paciente, r.data)), '[]'::jsonb)
+      from reintroducao_registros r where r.paciente_id = p_paciente
+    ),
+    'itens', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+        'id', i.id,
+        'alimentoId', i.alimento_id,
+        'nome', coalesce(a.nome, i.nome_livre),
+        'categoria', coalesce(a.categoria, 'outros'),
+        'semanaSugerida', a.semana_sugerida,
+        'porcaoReferencia', a.porcao_referencia,
+        'observacaoMaterial', a.observacao,
+        'doCatalogo', i.alimento_id is not null,
+        'status', i.status,
+        'notaNutri', i.nota_nutri,
+        'ordem', i.ordem,
+        -- Do catálogo quando existe ligação; pelo nome quando a paciente
+        -- digitou o alimento.
+        'marcacao', marcacao_do_alimento(
+          coalesce(a.marcador_id, marcador_por_nome(i.nome_livre))
+        ),
+        'totalDeRegistros', (
+          select count(*) from reintroducao_registros r where r.item_id = i.id
+        ),
+        'ultimoRegistro', (
+          select max(r.data) from reintroducao_registros r where r.item_id = i.id
+        )
+      ) order by i.ordem, coalesce(a.nome, i.nome_livre)), '[]'::jsonb)
+      from reintroducao_itens i
+      left join reintroducao_alimentos a on a.id = i.alimento_id
+      where i.paciente_id = p_paciente
+    ),
+    'registros', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+        'id', r.id,
+        'itemId', r.item_id,
+        'itemNome', coalesce(a.nome, i.nome_livre),
+        'data', r.data,
+        'horario', to_char(r.horario, 'HH24:MI'),
+        'semana', semana_da_reintroducao(p_paciente, r.data),
+        'quantidade', r.quantidade,
+        'preparo', r.preparo,
+        'sintomas', to_jsonb(r.sintomas),
+        'intensidade', r.intensidade,
+        'bristol', r.bristol,
+        'observacao', r.observacao,
+        'marcacao', marcacao_do_alimento(
+          coalesce(a.marcador_id, marcador_por_nome(i.nome_livre))
+        ),
+        'criadoEm', r.criado_em
+      ) order by r.data desc, r.horario desc nulls last, r.criado_em desc), '[]'::jsonb)
+      from reintroducao_registros r
+      join reintroducao_itens i on i.id = r.item_id
+      left join reintroducao_alimentos a on a.id = i.alimento_id
+      where r.paciente_id = p_paciente
+    )
+  );
+$$;

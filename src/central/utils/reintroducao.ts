@@ -1,5 +1,7 @@
 import type {
   ItemDeReintroducao,
+  MarcadorDoAlimento,
+  NivelDoMarcador,
   RegistroDeReintroducao,
   SintomaReintroducao,
   StatusReintroducao,
@@ -156,4 +158,62 @@ export function fraseDoHistorico(registros: number, alimentos: number): string {
   const r = registros === 1 ? "1 registro" : `${registros} registros`;
   const a = alimentos === 1 ? "1 alimento" : `${alimentos} alimentos`;
   return `${r} até agora, em ${a}.`;
+}
+
+// --------------------------------------- oxalato, histamina e lectina
+
+/**
+ * O símbolo de cada nível.
+ *
+ * Seta dupla para "muito alta", simples para "alta", nenhuma para "média" —
+ * a intensidade se lê de relance, sem precisar comparar palavras. Nenhum
+ * ícone de alerta, nenhum vermelho: isto não é aviso de perigo.
+ */
+const SIMBOLO: Partial<Record<NivelDoMarcador, string>> = {
+  muito_alta: "↑↑",
+  alta: "↑",
+};
+
+const NIVEL: Record<NivelDoMarcador, string> = {
+  muito_baixa: "muito baixa",
+  baixa: "baixa",
+  media: "média",
+  alta: "alta",
+  muito_alta: "muito alta",
+};
+
+/**
+ * A linha que aparece embaixo do registro com sintoma.
+ *
+ * Exemplo: "↑↑ Histamina muito alta · ↑↑ Oxalato muito alta".
+ *
+ * Devolve string vazia quando não há nada em média ou acima — e a tela não
+ * desenha nada nesse caso. Um espaço reservado que fica em branco chamaria
+ * atenção para a ausência, que é justamente o contrário do pedido.
+ */
+export function textoDaMarcacao(marcacao: MarcadorDoAlimento[]): string {
+  return marcacao
+    .map((m) => {
+      const simbolo = SIMBOLO[m.nivel];
+      return `${simbolo ? `${simbolo} ` : ""}${m.nome} ${NIVEL[m.nivel]}`;
+    })
+    .join(" · ");
+}
+
+/**
+ * Se aquele registro deve mostrar a marcação.
+ *
+ * A regra é dela e é uma só: aparece apenas quando a paciente sentiu algum
+ * sintoma. Registro sem sintoma não ganha rótulo nenhum — o alimento caiu
+ * bem, e não há o que investigar.
+ */
+export function mostrarMarcacao(registro: RegistroDeReintroducao): boolean {
+  return temSintoma(registro) && registro.marcacao.length > 0;
+}
+
+/** Se o registro tem algum sintoma de verdade. */
+export function temSintoma(registro: {
+  sintomas: SintomaReintroducao[] | string[];
+}): boolean {
+  return registro.sintomas.length > 0 && registro.sintomas[0] !== "nenhum";
 }

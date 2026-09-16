@@ -8,9 +8,12 @@ import {
   faixaDaIntensidade,
   fraseDoHistorico,
   itensParaRegistrar,
+  mostrarMarcacao,
   porSemana,
   rotuloSintoma,
   status,
+  temSintoma,
+  textoDaMarcacao,
 } from "./reintroducao";
 
 function item(parcial: Partial<ItemDeReintroducao>): ItemDeReintroducao {
@@ -26,6 +29,7 @@ function item(parcial: Partial<ItemDeReintroducao>): ItemDeReintroducao {
     status: "nao_iniciado",
     notaNutri: null,
     ordem: 1,
+    marcacao: [],
     totalDeRegistros: 0,
     ultimoRegistro: null,
     ...parcial,
@@ -46,6 +50,7 @@ function registro(parcial: Partial<RegistroDeReintroducao>): RegistroDeReintrodu
     intensidade: null,
     bristol: null,
     observacao: null,
+    marcacao: [],
     criadoEm: "2026-09-01T10:00:00Z",
     ...parcial,
   };
@@ -178,4 +183,69 @@ test("sem registro e sem lista, a frase convida em vez de cobrar", () => {
 test("com registros, a frase conta o que existe", () => {
   assert.equal(fraseDoHistorico(1, 1), "1 registro até agora, em 1 alimento.");
   assert.equal(fraseDoHistorico(7, 3), "7 registros até agora, em 3 alimentos.");
+});
+
+// ------------------------------------- oxalato, histamina e lectina
+
+test("a marcação alta ganha seta, e a média não", () => {
+  assert.equal(
+    textoDaMarcacao([
+      { nome: "Histamina", nivel: "muito_alta" },
+      { nome: "Oxalato", nivel: "alta" },
+      { nome: "Lectina", nivel: "media" },
+    ]),
+    "↑↑ Histamina muito alta · ↑ Oxalato alta · Lectina média",
+  );
+});
+
+test("sem marcador nenhum, a linha some em vez de ficar vazia", () => {
+  assert.equal(textoDaMarcacao([]), "");
+});
+
+// A regra que ela deu, e a única que decide se a linha aparece.
+test("a marcação NÃO aparece quando o registro não teve sintoma", () => {
+  const semSintoma = registro({
+    sintomas: ["nenhum"],
+    marcacao: [{ nome: "Histamina", nivel: "muito_alta" }],
+  });
+  assert.equal(mostrarMarcacao(semSintoma), false);
+});
+
+test("nem quando a paciente não marcou sintoma nenhum", () => {
+  const vazio = registro({
+    sintomas: [],
+    marcacao: [{ nome: "Oxalato", nivel: "muito_alta" }],
+  });
+  assert.equal(mostrarMarcacao(vazio), false);
+});
+
+test("aparece quando teve sintoma e o alimento tem marcador alto", () => {
+  const comSintoma = registro({
+    sintomas: ["gases", "distensao"],
+    marcacao: [{ nome: "Histamina", nivel: "muito_alta" }],
+  });
+  assert.equal(mostrarMarcacao(comSintoma), true);
+});
+
+test("com sintoma mas sem marcador, não desenha uma linha vazia", () => {
+  const semMarcador = registro({ sintomas: ["gases"], marcacao: [] });
+  assert.equal(mostrarMarcacao(semMarcador), false);
+});
+
+test("temSintoma separa o registro tranquilo do que precisa de olhar", () => {
+  assert.equal(temSintoma({ sintomas: [] }), false);
+  assert.equal(temSintoma({ sintomas: ["nenhum"] }), false);
+  assert.equal(temSintoma({ sintomas: ["colica"] }), true);
+});
+
+// O mesmo cuidado dos status: a marcação é pista, nunca veredito.
+test("nenhum texto de marcação acusa o alimento", () => {
+  const todos = textoDaMarcacao([
+    { nome: "Oxalato", nivel: "muito_alta" },
+    { nome: "Histamina", nivel: "alta" },
+    { nome: "Lectina", nivel: "media" },
+  ]).toLowerCase();
+  for (const palavra of ["evite", "cuidado", "perigo", "faz mal", "proib", "exclua"]) {
+    assert.ok(!todos.includes(palavra), `a marcação diz "${palavra}"`);
+  }
 });

@@ -448,6 +448,95 @@ $$;
 commit;
 
 -- -----------------------------------------------------------------------------
+-- Oxalato, histamina e lectina (0018 a 0020)
+-- -----------------------------------------------------------------------------
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+select teste('a tabela dela veio inteira, nas seis categorias',
+  (select count(distinct categoria) from alimentos_marcadores) = 6);
+
+select teste('o tomate está alto nos três, como no material',
+  (select oxalato = 'muito_alta' and histamina = 'muito_alta' and lectina = 'muito_alta'
+     from alimentos_marcadores where id = 'tomate'));
+
+-- Traço no material vira nulo, não "baixa": não saber e saber que é baixo são
+-- coisas diferentes, e misturar as duas inventaria informação.
+select teste('onde o material traz um traço, o banco guarda nulo',
+  (select histamina is null from alimentos_marcadores where id = 'atum'));
+
+select teste('só entra na marcação o que está em média ou acima',
+  jsonb_array_length(marcacao_do_alimento('m-pessego')) = 0);
+
+select teste('e o abacate traz os dois marcadores altos dele',
+  jsonb_array_length(marcacao_do_alimento('m-abacate')) = 2);
+
+select teste('muito alta aparece antes de alta',
+  (marcacao_do_alimento('m-goiaba') -> 0 ->> 'nivel') = 'muito_alta');
+
+select teste('o alimento digitado é encontrado pelo nome, sem acento',
+  marcador_por_nome('PÃO') = 'm-pao');
+select teste('e nome que não existe não casa com nada parecido',
+  marcador_por_nome('bolo de fubá da vó') is null);
+
+select teste('os alimentos do Mapa que existem na Tabela estão ligados',
+  (select count(*) from reintroducao_alimentos where marcador_id is not null) = 46);
+select teste('e o que não existe na Tabela fica sem marcação, em vez de chutar',
+  (select marcador_id is null from reintroducao_alimentos where id = 'jabuticaba'));
+commit;
+
+-- Na leitura da paciente, a marcação acompanha o registro.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+
+select teste('o registro do inhame carrega a marcação do alimento',
+  (select jsonb_array_length(r -> 'marcacao')
+     from jsonb_array_elements(minha_reintroducao() -> 'registros') r
+    where r ->> 'itemNome' = 'Inhame') = 1);
+
+select teste('e é o oxalato muito alto do material',
+  (select r -> 'marcacao' -> 0 ->> 'nome'
+     from jsonb_array_elements(minha_reintroducao() -> 'registros') r
+    where r ->> 'itemNome' = 'Inhame') = 'Oxalato');
+
+-- O pão que ela digitou não estava na lista, e mesmo assim é reconhecido.
+select teste('o alimento digitado pela paciente também recebe marcação',
+  (select jsonb_array_length(r -> 'marcacao')
+     from jsonb_array_elements(minha_reintroducao() -> 'registros') r
+    where r ->> 'itemNome' = 'Pão da padaria') = 0);
+
+select teste('o item também traz a marcação, para a nutricionista comparar',
+  (select jsonb_array_length(i -> 'marcacao')
+     from jsonb_array_elements(minha_reintroducao() -> 'itens') i
+    where i ->> 'nome' = 'Inhame') = 1);
+
+-- O que a marcação NÃO faz. Esta é a parte que precisa continuar verdadeira.
+select teste('a marcação não mexeu em status nenhum',
+  (select status from reintroducao_itens
+    where id = current_setting('teste.inhame')::uuid) = 'em_teste');
+commit;
+
+-- E nada disso chega ao visitante sem login.
+begin;
+set local role anon;
+do $$
+declare v_erro boolean := false;
+begin
+  begin perform count(*) from alimentos_marcadores;
+  exception when others then v_erro := true; end;
+  perform teste('visitante sem login NÃO lê a tabela de marcadores', v_erro);
+
+  v_erro := false;
+  begin perform marcador_por_nome('tomate');
+  exception when others then v_erro := true; end;
+  perform teste('visitante sem login NÃO consulta marcador por nome', v_erro);
+end;
+$$;
+commit;
+
+-- -----------------------------------------------------------------------------
 -- Resultado
 -- -----------------------------------------------------------------------------
 select

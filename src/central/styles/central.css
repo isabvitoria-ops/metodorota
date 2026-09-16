@@ -2245,3 +2245,16 @@ body:has(.central) {
   opacity: 0.62;
   border-style: dashed;
 }
+
+/* A marcação de oxalato, histamina e lectina.
+   "Bem sutil e pequeno embaixo" — menor que a dica comum, cinza, sem caixa e
+   sem cor de alerta. Não é aviso de perigo: é uma pista para a nutricionista
+   comparar alimentos parecidos, e só aparece quando houve sintoma. */
+.c-marcacao {
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
