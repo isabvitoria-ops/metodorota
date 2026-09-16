@@ -1,6 +1,7 @@
 import type {
   AcaoAdmin,
   Alimento,
+  AlimentoDoMaterial,
   CategoriaComerFora,
   Configuracoes,
   DesafioAdmin,
@@ -11,10 +12,13 @@ import type {
   IndicacaoPendente,
   MeuDesafio,
   NovoPaciente,
+  NovoRegistroDeReintroducao,
   Paciente,
   PainelDoDesafio,
   Plano,
+  Reintroducao,
   ResumoIndicacao,
+  StatusReintroducao,
 } from "@/central/types";
 import { semanaDoDesafio, situacaoDoDesafio, totalDeSemanas } from "@/central/utils/desafio";
 import { exigirSupabase } from "@/central/supabase/cliente";
@@ -531,5 +535,135 @@ export const repositorioSupabase: Repositorio = {
       p_motivo: motivo ?? null,
     });
     erro("recusar a indicação", error);
+  },
+  // ------------------------------------------------- rastreabilidade alimentar
+
+  async minhaReintroducao() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("minha_reintroducao");
+    erro("carregar a rastreabilidade", error);
+    return data as Reintroducao;
+  },
+
+  async registrarReintroducao(registro: NovoRegistroDeReintroducao) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("registrar_reintroducao", {
+      p_item: registro.itemId ?? null,
+      p_nome_novo: registro.nomeNovo ?? null,
+      p_data: registro.data ?? null,
+      p_horario: registro.horario ?? null,
+      p_quantidade: registro.quantidade ?? null,
+      p_preparo: registro.preparo ?? null,
+      p_sintomas: registro.sintomas ?? [],
+      p_intensidade: registro.intensidade ?? null,
+      p_bristol: registro.bristol ?? null,
+      p_observacao: registro.observacao ?? null,
+    });
+    erro("registrar o alimento", error);
+  },
+
+  async editarRegistroReintroducao(registroId: string, registro: NovoRegistroDeReintroducao) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("editar_registro_reintroducao", {
+      p_registro: registroId,
+      p_data: registro.data ?? null,
+      p_horario: registro.horario ?? null,
+      p_quantidade: registro.quantidade ?? null,
+      p_preparo: registro.preparo ?? null,
+      p_sintomas: registro.sintomas ?? [],
+      p_intensidade: registro.intensidade ?? null,
+      p_bristol: registro.bristol ?? null,
+      p_observacao: registro.observacao ?? null,
+    });
+    erro("salvar o registro", error);
+  },
+
+  async excluirRegistroReintroducao(registroId: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("excluir_registro_reintroducao", { p_registro: registroId });
+    erro("apagar o registro", error);
+  },
+
+  async marcarRelevanciaReintroducao(itemId: string, relevante: boolean) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("marcar_relevancia_reintroducao", {
+      p_item: itemId,
+      p_relevante: relevante,
+    });
+    erro("guardar essa escolha", error);
+  },
+
+  async listarAlimentosDoMaterial() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb
+      .from("reintroducao_alimentos")
+      .select("id, nome, categoria, semana_sugerida, porcao_referencia, observacao")
+      .eq("ativo", true)
+      .order("ordem", { ascending: true });
+    erro("carregar o material de reintrodução", error);
+    return (data ?? []).map((l: Linha) => ({
+      id: texto(l.id),
+      nome: texto(l.nome),
+      categoria: (l.categoria as AlimentoDoMaterial["categoria"]) ?? "outros",
+      semanaSugerida: l.semana_sugerida === null ? null : numero(l.semana_sugerida),
+      porcaoReferencia: textoOuNulo(l.porcao_referencia),
+      observacao: textoOuNulo(l.observacao),
+    }));
+  },
+
+  async reintroducaoDoPaciente(pacienteId: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("reintroducao_do_paciente", { p_paciente: pacienteId });
+    erro("carregar o acompanhamento", error);
+    return data as Reintroducao;
+  },
+
+  async adicionarItensReintroducao(pacienteId: string, alimentos: string[]) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("adicionar_itens_reintroducao", {
+      p_paciente: pacienteId,
+      p_alimentos: alimentos,
+    });
+    erro("adicionar os alimentos", error);
+    return numero(data);
+  },
+
+  async adicionarItemLivreReintroducao(pacienteId: string, nome: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("adicionar_item_livre_reintroducao", {
+      p_paciente: pacienteId,
+      p_nome: nome,
+    });
+    erro("adicionar o alimento", error);
+  },
+
+  async removerItemReintroducao(itemId: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("remover_item_reintroducao", { p_item: itemId });
+    erro("tirar o alimento da lista", error);
+  },
+
+  async definirStatusReintroducao(itemId: string, status: StatusReintroducao, nota?: string | null) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("definir_status_reintroducao", {
+      p_item: itemId,
+      p_status: status,
+      p_nota: nota ?? null,
+    });
+    erro("salvar a classificação", error);
+  },
+
+  async definirAcompanhamentoReintroducao(
+    pacienteId: string,
+    inicio: string | null,
+    orientacao: string | null,
+  ) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("definir_acompanhamento_reintroducao", {
+      p_paciente: pacienteId,
+      p_inicio: inicio,
+      p_orientacao: orientacao,
+    });
+    erro("salvar o acompanhamento", error);
   },
 };

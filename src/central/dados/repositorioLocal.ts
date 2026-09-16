@@ -1,6 +1,7 @@
 import type {
   AcaoAdmin,
   AcaoDoDesafio,
+  AlimentoDoMaterial,
   Alimento,
   CategoriaComerFora,
   Configuracoes,
@@ -14,9 +15,14 @@ import type {
   LinhaDoRanking,
   MeuDesafio,
   NovoPaciente,
+  NovoRegistroDeReintroducao,
   Paciente,
   Plano,
+  Reintroducao,
+  RegistroDeReintroducao,
+  ItemDeReintroducao,
   ResumoIndicacao,
+  StatusReintroducao,
 } from "@/central/types";
 import {
   semanaDoDesafio,
@@ -57,6 +63,10 @@ const guardaFavoritos = armazenamentoLocal<Favorito>("central:favoritos:v1");
 const guardaPacientes = armazenamentoLocal<Paciente>("central:demo:pacientes:v1");
 const guardaHistorico = armazenamentoLocal<EventoHistorico>("central:demo:historico:v1");
 const guardaConfiguracoes = armazenamentoLocal<[string, unknown]>("central:demo:config:v1");
+const guardaItensReintroducao =
+  armazenamentoLocal<ItemDeReintroducao>("central:demo:reintroducao-itens:v1");
+const guardaRegistrosReintroducao =
+  armazenamentoLocal<RegistroDeReintroducao>("central:demo:reintroducao-registros:v1");
 
 /** Combina a semente com o que foi editado no navegador, sem duplicar. */
 function mesclar<T extends { id: string }>(semente: T[], salvos: T[]): T[] {
@@ -483,7 +493,220 @@ export const repositorioLocal: Repositorio = {
       ),
     );
   },
+  // ------------------------------------------------- rastreabilidade alimentar
+  //
+  // Na demonstração a lista já vem montada com a semana 1 do material, para a
+  // tela ter o que mostrar. No banco de verdade quem monta é a nutricionista,
+  // paciente por paciente — e é essa a diferença que a faixa amarela do topo
+  // avisa o tempo todo.
+
+  async minhaReintroducao(): Promise<Reintroducao> {
+    const itens = itensDemo();
+    const registros = guardaRegistrosReintroducao.ler();
+    return {
+      previa: false,
+      orientacao: ORIENTACAO_DEMO,
+      inicio: registros.length > 0 ? menorData(registros) : null,
+      semanaAtual: semanaDaReintroducaoDemo(hojeSaoPaulo(), registros),
+      semanasComRegistro: [
+        ...new Set(registros.map((r) => semanaDaReintroducaoDemo(r.data, registros))),
+      ],
+      itens: itens.map((i) => ({
+        ...i,
+        totalDeRegistros: registros.filter((r) => r.itemId === i.id).length,
+        ultimoRegistro:
+          registros
+            .filter((r) => r.itemId === i.id)
+            .map((r) => r.data)
+            .sort()
+            .at(-1) ?? null,
+      })),
+      registros: registros
+        .map((r) => ({ ...r, semana: semanaDaReintroducaoDemo(r.data, registros) }))
+        .sort((a, b) => (a.data === b.data ? 0 : a.data < b.data ? 1 : -1)),
+    };
+  },
+
+  async registrarReintroducao(registro: NovoRegistroDeReintroducao) {
+    let itemId = registro.itemId ?? null;
+    let itemNome = itensDemo().find((i) => i.id === itemId)?.nome ?? "";
+
+    if (!itemId) {
+      const nome = registro.nomeNovo?.trim();
+      if (!nome) throw new Error("Escolha um alimento ou escreva o nome.");
+      itemId = `livre-${Date.now()}`;
+      itemNome = nome;
+      guardaItensReintroducao.escrever([
+        ...guardaItensReintroducao.ler(),
+        {
+          id: itemId,
+          alimentoId: null,
+          nome,
+          categoria: "outros",
+          semanaSugerida: null,
+          porcaoReferencia: null,
+          observacaoMaterial: null,
+          doCatalogo: false,
+          status: "em_teste",
+          notaNutri: null,
+          ordem: 900,
+          totalDeRegistros: 0,
+          ultimoRegistro: null,
+        },
+      ]);
+    }
+
+    guardaRegistrosReintroducao.escrever([
+      ...guardaRegistrosReintroducao.ler(),
+      {
+        id: `reg-${Date.now()}`,
+        itemId,
+        itemNome,
+        data: registro.data ?? hojeSaoPaulo(),
+        horario: registro.horario ?? null,
+        semana: 1,
+        quantidade: registro.quantidade ?? null,
+        preparo: registro.preparo ?? null,
+        sintomas: registro.sintomas ?? [],
+        intensidade: registro.intensidade ?? null,
+        bristol: registro.bristol ?? null,
+        observacao: registro.observacao ?? null,
+        criadoEm: new Date().toISOString(),
+      },
+    ]);
+  },
+
+  async editarRegistroReintroducao(registroId: string, registro: NovoRegistroDeReintroducao) {
+    guardaRegistrosReintroducao.escrever(
+      guardaRegistrosReintroducao.ler().map((r) =>
+        r.id === registroId
+          ? {
+              ...r,
+              data: registro.data ?? r.data,
+              horario: registro.horario ?? null,
+              quantidade: registro.quantidade ?? null,
+              preparo: registro.preparo ?? null,
+              sintomas: registro.sintomas ?? [],
+              intensidade: registro.intensidade ?? null,
+              bristol: registro.bristol ?? null,
+              observacao: registro.observacao ?? null,
+            }
+          : r,
+      ),
+    );
+  },
+
+  async excluirRegistroReintroducao(registroId: string) {
+    guardaRegistrosReintroducao.escrever(
+      guardaRegistrosReintroducao.ler().filter((r) => r.id !== registroId),
+    );
+  },
+
+  async marcarRelevanciaReintroducao(itemId: string, relevante: boolean) {
+    const guardados = guardaItensReintroducao.ler();
+    const jaGuardado = guardados.some((i) => i.id === itemId);
+    const proximo: StatusReintroducao = relevante ? "nao_iniciado" : "nao_relevante";
+    guardaItensReintroducao.escrever(
+      jaGuardado
+        ? guardados.map((i) => (i.id === itemId ? { ...i, status: proximo } : i))
+        : [
+            ...guardados,
+            ...itensDoMaterialDemo()
+              .filter((i) => i.id === itemId)
+              .map((i) => ({ ...i, status: proximo })),
+          ],
+    );
+  },
+
+  async listarAlimentosDoMaterial(): Promise<AlimentoDoMaterial[]> {
+    return MATERIAL_DEMO.map((a) => ({ ...a }));
+  },
+
+  async reintroducaoDoPaciente(): Promise<Reintroducao> {
+    return repositorioLocal.minhaReintroducao();
+  },
+
+  async adicionarItensReintroducao() {
+    throw new Error("Montar a lista de uma paciente precisa do banco. Configure o Supabase.");
+  },
+
+  async adicionarItemLivreReintroducao() {
+    throw new Error("Montar a lista de uma paciente precisa do banco. Configure o Supabase.");
+  },
+
+  async removerItemReintroducao() {
+    throw new Error("Mexer na lista de uma paciente precisa do banco. Configure o Supabase.");
+  },
+
+  async definirStatusReintroducao() {
+    throw new Error("Classificar um alimento precisa do banco. Configure o Supabase.");
+  },
+
+  async definirAcompanhamentoReintroducao() {
+    throw new Error("Definir o acompanhamento precisa do banco. Configure o Supabase.");
+  },
 };
+
+// ------------------------------------------------- rastreabilidade: demonstração
+
+const ORIENTACAO_DEMO =
+  "Você não precisa conseguir reintroduzir todos os alimentos de uma vez. Esse processo é " +
+  "individual e pode acontecer no seu ritmo, de acordo com a sua tolerância e com a orientação " +
+  "da sua nutricionista.\n\nSe você não conseguir testar todos os alimentos nesta semana, tudo " +
+  "bem. Podemos continuar na próxima.\n\nVocê também não precisa testar alimentos que não fazem " +
+  "parte da sua alimentação ou que você não gosta.";
+
+/** A semana 1 do material dela, que é o que a demonstração mostra. */
+const MATERIAL_DEMO: AlimentoDoMaterial[] = [
+  { id: "abacate", nome: "Abacate / avocado", categoria: "gorduras", semanaSugerida: 1,
+    porcaoReferencia: "60g", observacao: null },
+  { id: "pera", nome: "Pêra", categoria: "frutas", semanaSugerida: 1,
+    porcaoReferencia: "175g", observacao: null },
+  { id: "pessego", nome: "Pêssego", categoria: "frutas", semanaSugerida: 1,
+    porcaoReferencia: "250g", observacao: null },
+  { id: "manga", nome: "Manga", categoria: "frutas", semanaSugerida: 1,
+    porcaoReferencia: "160g", observacao: null },
+];
+
+function itensDoMaterialDemo(): ItemDeReintroducao[] {
+  return MATERIAL_DEMO.map((a, i) => ({
+    id: a.id,
+    alimentoId: a.id,
+    nome: a.nome,
+    categoria: a.categoria,
+    semanaSugerida: a.semanaSugerida,
+    porcaoReferencia: a.porcaoReferencia,
+    observacaoMaterial: a.observacao,
+    doCatalogo: true,
+    status: "nao_iniciado" as StatusReintroducao,
+    notaNutri: null,
+    ordem: i + 1,
+    totalDeRegistros: 0,
+    ultimoRegistro: null,
+  }));
+}
+
+/** O material mais o que a paciente tiver acrescentado ou marcado na sessão. */
+function itensDemo(): ItemDeReintroducao[] {
+  const guardados = guardaItensReintroducao.ler();
+  const base = itensDoMaterialDemo().map(
+    (i) => guardados.find((g) => g.id === i.id) ?? i,
+  );
+  return [...base, ...guardados.filter((g) => !g.doCatalogo)];
+}
+
+function menorData(registros: RegistroDeReintroducao[]): string {
+  return registros.map((r) => r.data).sort()[0] ?? hojeSaoPaulo();
+}
+
+/** A mesma conta do banco: só agrupa o tempo, não cobra nada. */
+function semanaDaReintroducaoDemo(data: string, registros: RegistroDeReintroducao[]): number {
+  if (registros.length === 0) return 1;
+  const inicio = Date.parse(`${menorData(registros)}T00:00:00Z`);
+  const dia = Date.parse(`${data}T00:00:00Z`);
+  if (dia < inicio) return 1;
+  return Math.floor((dia - inicio) / 86400000 / 7) + 1;
+}
 
 // ---------------------------------------------------------------- dados da demonstração
 

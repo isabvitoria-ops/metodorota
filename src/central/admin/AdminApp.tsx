@@ -11,6 +11,7 @@ import { Equivalencias } from "./Equivalencias";
 import { Conteudos } from "./Conteudos";
 import { ConfiguracoesAdmin } from "./Configuracoes";
 import { Desafios } from "./Desafios";
+import { RastreabilidadeAdmin } from "./Rastreabilidade";
 
 /**
  * Área da nutricionista.
@@ -26,6 +27,7 @@ const ABAS = [
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
   { rota: rotas.adminConteudos, rotulo: "Conteúdos" },
   { rota: rotas.adminDesafios, rotulo: "Desafio" },
+  { rota: rotas.adminRastreabilidade, rotulo: "Rastreabilidade" },
   { rota: rotas.adminConfiguracoes, rotulo: "Configurações" },
 ];
 
@@ -87,6 +89,7 @@ export function AdminApp() {
               <Route path="equivalencias" element={<Equivalencias />} />
               <Route path="conteudos" element={<Conteudos />} />
               <Route path="desafios" element={<Desafios />} />
+              <Route path="rastreabilidade" element={<RastreabilidadeAdmin />} />
               <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
               <Route path="*" element={<Navigate to={rotas.admin} replace />} />
             </Routes>

@@ -1,6 +1,7 @@
 import type {
   AcaoAdmin,
   Alimento,
+  AlimentoDoMaterial,
   CategoriaComerFora,
   Configuracoes,
   DesafioAdmin,
@@ -14,10 +15,13 @@ import type {
   LinhaDoRanking,
   MeuDesafio,
   NovoPaciente,
+  NovoRegistroDeReintroducao,
   Paciente,
   PainelDoDesafio,
   Plano,
+  Reintroducao,
   ResumoIndicacao,
+  StatusReintroducao,
   Unidade,
 } from "@/central/types";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
@@ -114,6 +118,41 @@ export interface Repositorio {
   listarIndicacoes(): Promise<IndicacaoPendente[]>;
   /** Quantas indicações cada paciente já fez, somando desde sempre. */
   resumoIndicacoes(): Promise<ResumoIndicacao[]>;
+
+  // ------------------------------------------------- rastreabilidade alimentar
+  //
+  // Repare no que não existe: nenhum método pergunta se "pode" registrar.
+  // O módulo registra o que aconteceu — quem decide o ritmo é a dupla
+  // paciente/nutricionista, não o aplicativo.
+
+  /** Tudo que a tela da paciente mostra, numa chamada só. */
+  minhaReintroducao(): Promise<Reintroducao>;
+  registrarReintroducao(registro: NovoRegistroDeReintroducao): Promise<void>;
+  editarRegistroReintroducao(
+    registroId: string,
+    registro: NovoRegistroDeReintroducao,
+  ): Promise<void>;
+  excluirRegistroReintroducao(registroId: string): Promise<void>;
+  /** "Esse alimento não faz parte da minha alimentação." */
+  marcarRelevanciaReintroducao(itemId: string, relevante: boolean): Promise<void>;
+
+  // Área da nutricionista
+  /** O material dela, para montar a lista de cada paciente. */
+  listarAlimentosDoMaterial(): Promise<AlimentoDoMaterial[]>;
+  reintroducaoDoPaciente(pacienteId: string): Promise<Reintroducao>;
+  adicionarItensReintroducao(pacienteId: string, alimentos: string[]): Promise<number>;
+  adicionarItemLivreReintroducao(pacienteId: string, nome: string): Promise<void>;
+  removerItemReintroducao(itemId: string): Promise<void>;
+  definirStatusReintroducao(
+    itemId: string,
+    status: StatusReintroducao,
+    nota?: string | null,
+  ): Promise<void>;
+  definirAcompanhamentoReintroducao(
+    pacienteId: string,
+    inicio: string | null,
+    orientacao: string | null,
+  ): Promise<void>;
   validarIndicacao(indicacaoId: string): Promise<void>;
   recusarIndicacao(indicacaoId: string, motivo?: string | null): Promise<void>;
 }

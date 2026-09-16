@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql
 -- =============================================================================
 
 
@@ -3611,3 +3611,1044 @@ begin
   end loop;
 end;
 $$;
+
+
+-- ###########################################################################
+-- 0014_reintroducao.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0014: Rastreabilidade alimentar e reintrodução
+--
+-- O material dela é o "Mapa de Reintrodução — Rota da Regulação Intestinal".
+-- Este arquivo é a tradução dele para o banco, com UMA regra acima de todas:
+--
+--   O APLICATIVO REGISTRA O PROCESSO. ELE NÃO DITA O PROCESSO.
+--
+-- Por isso, repare no que NÃO existe aqui:
+--
+--   * nenhuma trava de tempo entre um alimento e o seguinte. O material
+--     sugere "um alimento novo a cada 2 dias", e sugestão é o que continua
+--     sendo: a paciente pode registrar três alimentos no mesmo dia se foi
+--     isso que ela combinou com a nutricionista;
+--   * nenhuma lista obrigatória. A lista de cada paciente é montada pela
+--     nutricionista, e a própria paciente pode tirar da frente o que não come;
+--   * nenhuma conclusão automática. Sintoma registrado NÃO vira "intolerante
+--     a este alimento": vira uma linha no histórico, e quem lê é a
+--     nutricionista;
+--   * nenhuma cobrança. Não há prazo, meta, contagem regressiva nem alerta de
+--     atraso. Um alimento não testado fica 'nao_iniciado' e pronto.
+--
+-- A semana aqui é só uma forma de agrupar o histórico no tempo. Ela não
+-- fecha, não vence e não exige nada: o que sobrou da semana 1 continua
+-- disponível na semana 2 sem virar pendência.
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- O catálogo do material
+--
+-- Conteúdo, como os alimentos e os guias: é a referência dela, não dado de
+-- paciente. `semana_sugerida` é a etapa em que o alimento aparece no PDF —
+-- uma sugestão de ordem, nada que o sistema faça valer.
+-- -----------------------------------------------------------------------------
+
+create table if not exists reintroducao_alimentos (
+  id text primary key,
+  nome text not null,
+  categoria text not null
+    check (categoria in ('carboidratos', 'gorduras', 'proteinas', 'frutas', 'vegetais', 'outros')),
+  -- 1 a 4 conforme o material; nulo para o que ela cadastrar fora dele.
+  semana_sugerida integer check (semana_sugerida is null or semana_sugerida between 1 and 5),
+  -- Texto, não número: o material tem "60g", "600ml" e "livre".
+  porcao_referencia text,
+  observacao text,
+  ordem integer not null default 0,
+  ativo boolean not null default true
+);
+
+create index if not exists reintroducao_alimentos_idx
+  on reintroducao_alimentos (semana_sugerida, categoria, ordem);
+
+-- -----------------------------------------------------------------------------
+-- O acompanhamento de cada paciente
+--
+-- `inicio` existe só para a semana do histórico ter uma âncora. Quando está
+-- nulo, a âncora é o primeiro registro da paciente — assim ninguém precisa
+-- "abrir" nada para começar a usar.
+-- -----------------------------------------------------------------------------
+
+create table if not exists reintroducao_acompanhamento (
+  paciente_id uuid primary key references pacientes (id) on delete cascade,
+  inicio date,
+  -- Recado da nutricionista para aquela paciente, no topo da tela dela.
+  orientacao text,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+
+-- -----------------------------------------------------------------------------
+-- A lista daquela paciente
+--
+-- Personalizada de propósito (§5 do pedido dela): não existe "a lista", só a
+-- lista de cada uma. Um item pode vir do catálogo ou ser um nome digitado —
+-- o material diz que o que não está na lista entra na semana 5, e é esse o
+-- caminho.
+-- -----------------------------------------------------------------------------
+
+create table if not exists reintroducao_itens (
+  id uuid primary key default gen_random_uuid(),
+  paciente_id uuid not null references pacientes (id) on delete cascade,
+  alimento_id text references reintroducao_alimentos (id) on delete set null,
+  nome_livre text,
+  -- Estados neutros (§10 e §12). Nenhum deles significa "proibido", e nenhum
+  -- é atribuído automaticamente por causa de um sintoma.
+  status text not null default 'nao_iniciado'
+    check (status in (
+      'nao_iniciado', 'em_teste', 'bem_tolerado', 'tolerancia_parcial',
+      'sintomas_observados', 'necessita_reavaliacao', 'pausado', 'nao_relevante'
+    )),
+  nota_nutri text,
+  ordem integer not null default 0,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now(),
+  constraint item_precisa_de_nome
+    check (alimento_id is not null or coalesce(trim(nome_livre), '') <> '')
+);
+
+create index if not exists reintroducao_itens_paciente_idx
+  on reintroducao_itens (paciente_id, ordem);
+
+-- O mesmo alimento do catálogo não entra duas vezes na lista da mesma
+-- paciente. Nome livre pode repetir: "pão da padaria" e "pão sem glúten" são
+-- testes diferentes.
+create unique index if not exists reintroducao_item_sem_repeticao_idx
+  on reintroducao_itens (paciente_id, alimento_id)
+  where alimento_id is not null;
+
+-- -----------------------------------------------------------------------------
+-- Os registros
+--
+-- Um por vez que a paciente comeu o alimento. O mesmo item pode ter quantos
+-- registros forem precisos — é assim que "tapioca no dia 1, dia 2 e dia 3"
+-- acontece, sem que o terceiro dia seja obrigatório.
+-- -----------------------------------------------------------------------------
+
+create table if not exists reintroducao_registros (
+  id uuid primary key default gen_random_uuid(),
+  item_id uuid not null references reintroducao_itens (id) on delete cascade,
+  -- Repetido de propósito: a política de leitura da paciente fica direta, sem
+  -- precisar visitar a tabela de itens a cada linha.
+  paciente_id uuid not null references pacientes (id) on delete cascade,
+  data date not null,
+  horario time,
+  quantidade text,
+  preparo text,
+  -- Vários ao mesmo tempo, porque é assim que sintoma acontece.
+  sintomas text[] not null default '{}',
+  intensidade integer check (intensidade is null or intensidade between 0 and 10),
+  -- Escala de Bristol, que está no protocolo de rastreio do material dela.
+  bristol integer check (bristol is null or bristol between 1 and 7),
+  observacao text,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+
+create index if not exists reintroducao_registros_paciente_idx
+  on reintroducao_registros (paciente_id, data desc, horario);
+create index if not exists reintroducao_registros_item_idx
+  on reintroducao_registros (item_id, data);
+
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'reintroducao_acompanhamento', 'reintroducao_itens', 'reintroducao_registros'
+  ] loop
+    execute format('drop trigger if exists tocar_atualizado on %I', t);
+    execute format(
+      'create trigger tocar_atualizado before update on %I for each row execute function tocar_atualizado_em()',
+      t
+    );
+  end loop;
+end;
+$$;
+
+
+-- ###########################################################################
+-- 0015_reintroducao_catalogo.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0015: o catálogo do Mapa de Reintrodução
+--
+-- Alimento por alimento do material dela, com a porção de referência que está
+-- escrita no PDF. Nada foi acrescentado de fora: o que não está no documento
+-- não está aqui.
+--
+-- `semana_sugerida` é a etapa em que o alimento aparece no material. É
+-- sugestão de ordem, e o sistema não a faz valer: a nutricionista monta a
+-- lista de cada paciente na ordem que quiser, e a paciente registra quando
+-- acontecer.
+--
+-- A porção também é referência, não regra. O próprio material explica o
+-- limiar de tolerância: testar a porção proposta, e se houver sintoma,
+-- reduzir pela metade e observar de novo — o objetivo não é excluir o
+-- alimento, é achar a quantidade que cabe.
+-- =============================================================================
+
+insert into reintroducao_alimentos
+  (id, nome, categoria, semana_sugerida, porcao_referencia, observacao, ordem) values
+
+-- ------------------------------------------------------------------ semana 1
+  ('abacate',        'Abacate / avocado',        'gorduras',     1, '60g',   null, 101),
+  ('pera',           'Pêra',                     'frutas',       1, '175g',  null, 102),
+  ('pessego',        'Pêssego',                  'frutas',       1, '250g',  null, 103),
+  ('manga',          'Manga',                    'frutas',       1, '160g',  null, 104),
+
+-- ------------------------------------------------------------------ semana 2
+  ('cara',           'Cará',                     'carboidratos', 2, '160g',  null, 201),
+  ('inhame',         'Inhame',                   'carboidratos', 2, '90g',   null, 202),
+  ('avela',          'Avelã',                    'gorduras',     2, '13g',   null, 203),
+  ('azeitona',       'Azeitona',                 'gorduras',     2, '25g',   null, 204),
+  ('chocolate-60',   'Chocolate 60% ou mais',    'gorduras',     2, '15g',   null, 205),
+  ('nozes',          'Nozes',                    'gorduras',     2, '15g',   null, 206),
+  ('cottage-vaca',   'Queijo cottage de vaca',   'proteinas',    2, '150g',
+   'Prefira sem lactose.', 207),
+  ('cottage-bufala', 'Queijo cottage de búfala', 'proteinas',    2, '150g',
+   'Prefira sem lactose.', 208),
+  ('acerola',        'Acerola',                  'frutas',       2, '310g',  null, 209),
+  ('goiaba',         'Goiaba',                   'frutas',       2, '150g',  null, 210),
+  ('jabuticaba',     'Jabuticaba',               'frutas',       2, '170g',  null, 211),
+  ('lichia',         'Lichia',                   'frutas',       2, '140g',  null, 212),
+  ('aspargos',       'Aspargos',                 'vegetais',     2, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 213),
+  ('cogumelos',      'Cogumelos',                'vegetais',     2, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 214),
+  ('ervilha-torta',  'Ervilha torta',            'vegetais',     2, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 215),
+  ('nabo',           'Nabo',                     'vegetais',     2, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 216),
+  ('vagem',          'Vagem',                    'vegetais',     2, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 217),
+
+-- ------------------------------------------------------------------ semana 3
+  ('mel',            'Mel',                      'carboidratos', 3, '30g',   null, 301),
+  ('batata-doce',    'Batata doce',              'carboidratos', 3, '160g',  null, 302),
+  ('manteiga',       'Manteiga',                 'gorduras',     3, '10g',   null, 303),
+  ('manteiga-bufala','Manteiga de búfala',       'gorduras',     3, '10g',   null, 304),
+  ('queijo-brie',    'Queijo brie',              'gorduras',     3, '25g',   null, 305),
+  ('pistache',       'Pistache torrado',         'gorduras',     3, '15g',   null, 306),
+  ('queijos-bufala', 'Queijos de búfala',        'gorduras',     3, '30g',   null, 307),
+  ('carne-vermelha', 'Carne vermelha',           'proteinas',    3, '70g',   null, 308),
+  ('carne-porco',    'Carne de porco',           'proteinas',    3, '70g',   null, 309),
+  ('whey',           'Proteína em pó — whey',    'proteinas',    3, '40g',   null, 310),
+  ('agua-de-coco',   'Água de coco',             'frutas',       3, '600ml',
+   'Da fruta.', 311),
+  ('banana-da-terra','Banana da terra',          'frutas',       3, '80g',   null, 312),
+  ('melancia',       'Melancia',                 'frutas',       3, '330g',  null, 313),
+  ('alho-poro',      'Alho poró',                'vegetais',     3, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 314),
+  ('brocolis',       'Brócolis',                 'vegetais',     3, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 315),
+  ('couve-flor',     'Couve-flor',               'vegetais',     3, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 316),
+  ('couve-bruxelas', 'Couve-de-bruxelas',        'vegetais',     3, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 317),
+  ('repolho',        'Repolho',                  'vegetais',     3, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 318),
+  ('folhas-e-brotos','Todas as folhas e brotos', 'vegetais',     3, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 319),
+
+-- ------------------------------------------------------------------ semana 4
+  ('lentilha',       'Lentilha',                 'carboidratos', 4, '130g',  null, 401),
+  ('quinoa',         'Quinoa',                   'carboidratos', 4, '100g',  null, 402),
+  ('ervilha',        'Ervilha',                  'carboidratos', 4, '150g',  null, 403),
+  ('feijao',         'Feijão cozido',            'carboidratos', 4, '160g',  null, 404),
+  ('grao-de-bico',   'Grão-de-bico cozido',      'carboidratos', 4, '75g',   null, 405),
+  ('alho',           'Alho',                     'vegetais',     4, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 406),
+  ('cebola',         'Cebola',                   'vegetais',     4, 'Livre',
+   'Vegetais em quantidade livre, com porção mínima de 200g no almoço e no jantar.', 407),
+  ('amendoim',       'Amendoim',                 'gorduras',     4, '15g',   null, 408),
+  ('iogurte-2-3',    'Iogurte de 2 ou 3 ingredientes', 'gorduras', 4, '165g',
+   'Prefira sem lactose. Em industrializado, leia a tabela nutricional.', 409),
+  ('coalhada',       'Coalhada',                 'gorduras',     4, '90g',
+   'Prefira sem lactose.', 410),
+  ('kefir-integral', 'Kefir integral',           'gorduras',     4, '135g',
+   'Prefira sem lactose.', 411),
+  ('iogurte-desnatado', 'Iogurte desnatado de 2 ingredientes ou 0% gordura',
+   'proteinas', 4, '250g', 'Prefira sem lactose.', 412),
+  ('kefir-desnatado','Kefir desnatado',          'proteinas',    4, '250g',
+   'Prefira sem lactose.', 413),
+
+  -- Os queijos de vaca do material vêm um a um, com a porção de cada: é assim
+  -- que estão listados nas dicas extras, e é assim que dá para descobrir que
+  -- um cai bem e outro não.
+  ('queijo-coalho',  'Queijo coalho (normal ou light)', 'gorduras', 4, '25g',
+   'Queijo de vaca. Prefira sem lactose.', 414),
+  ('queijo-canastra','Queijo canastra',          'gorduras',     4, '20g',
+   'Queijo de vaca. Prefira sem lactose.', 415),
+  ('queijo-curado',  'Queijo curado',            'gorduras',     4, '20g',
+   'Queijo de vaca. Prefira sem lactose.', 416),
+  ('queijo-gorgonzola', 'Gorgonzola',            'gorduras',     4, '25g',
+   'Queijo de vaca. Prefira sem lactose.', 417),
+  ('queijo-meia-cura', 'Queijo meia cura',       'gorduras',     4, '25g',
+   'Queijo de vaca. Prefira sem lactose.', 418),
+  ('queijo-minas-frescal', 'Minas frescal',      'gorduras',     4, '35g',
+   'Queijo de vaca. Prefira sem lactose.', 419),
+  ('queijo-minas-padrao', 'Minas padrão',        'gorduras',     4, '30g',
+   'Queijo de vaca. Prefira sem lactose.', 420),
+  ('queijo-mucarela','Muçarela',                 'gorduras',     4, '30g',
+   'Queijo de vaca. Prefira sem lactose.', 421),
+  ('queijo-parmesao','Parmesão',                 'gorduras',     4, '20g',
+   'Queijo de vaca. Prefira sem lactose.', 422),
+  ('queijo-prato',   'Queijo prato',             'gorduras',     4, '20g',
+   'Queijo de vaca. Prefira sem lactose.', 423),
+  ('queijo-ricota',  'Ricota fresca',            'gorduras',     4, '60g',
+   'Queijo de vaca. Prefira sem lactose.', 424)
+
+on conflict (id) do update set
+  nome = excluded.nome,
+  categoria = excluded.categoria,
+  semana_sugerida = excluded.semana_sugerida,
+  porcao_referencia = excluded.porcao_referencia,
+  observacao = excluded.observacao,
+  ordem = excluded.ordem;
+
+-- -----------------------------------------------------------------------------
+-- O texto que abre a tela da paciente
+--
+-- Sai do material dela e do que ela pediu: linguagem que acolhe, sem prazo e
+-- sem cobrança. Fica em `configuracoes` para ela reescrever sem publicar o
+-- site de novo.
+-- -----------------------------------------------------------------------------
+
+insert into configuracoes (chave, valor, descricao) values
+  ('reintroducao_orientacao',
+   to_jsonb(
+     'Você não precisa conseguir reintroduzir todos os alimentos de uma vez. '
+     'Esse processo é individual e pode acontecer no seu ritmo, de acordo com '
+     'a sua tolerância e com a orientação da sua nutricionista.'
+     || chr(10) || chr(10) ||
+     'Se você não conseguir testar todos os alimentos nesta semana, tudo bem. '
+     'Podemos continuar na próxima.'
+     || chr(10) || chr(10) ||
+     'Você também não precisa testar alimentos que não fazem parte da sua '
+     'alimentação ou que você não gosta. O objetivo é entender quais alimentos '
+     'fazem sentido para você e como o seu corpo responde a eles.'
+   ),
+   'Texto de abertura da Rastreabilidade alimentar, na tela da paciente.')
+on conflict (chave) do nothing;
+
+
+-- ###########################################################################
+-- 0016_reintroducao_funcoes.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0016: as regras da rastreabilidade
+--
+-- Vale a pena dizer de novo o que NÃO tem neste arquivo, porque é a parte
+-- mais importante dele:
+--
+--   * nenhuma função recusa um registro por causa do intervalo desde o
+--     anterior. Três alimentos às 10h, 15h e 20h do mesmo dia entram os três;
+--   * nenhuma função olha um sintoma e muda o status para algo que signifique
+--     "não pode". O único status que o sistema atribui sozinho é 'em_teste',
+--     e só porque passou a existir registro — é fato, não julgamento;
+--   * nenhuma função devolve pendência, atraso ou meta. Item não testado é
+--     'nao_iniciado', e ficar assim para sempre é um resultado válido.
+--
+-- Quem conclui é a nutricionista, na tela dela, com o histórico na frente.
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- Vocabulário dos sintomas
+--
+-- Em função e não espalhado pelo código: a tela, o registro e a edição
+-- conferem contra a mesma lista. Os cinco primeiros vêm do protocolo de
+-- rastreio do material dela; 'manchas_pele' também é dele.
+-- -----------------------------------------------------------------------------
+
+create or replace function sintomas_da_reintroducao()
+returns text[]
+language sql
+immutable
+-- `search_path` fixo mesmo sem ser `security definer`: sem ele, quem chama
+-- escolhe qual `sintomas_da_reintroducao` a conferência enxerga, e a
+-- conferência inteira passa a valer o que o chamador quiser.
+set search_path = public
+as $$
+  select array[
+    'nenhum', 'distensao', 'gases', 'dor_abdominal', 'colica',
+    'alteracao_evacuacao', 'diarreia', 'constipacao', 'urgencia',
+    'nausea', 'refluxo', 'manchas_pele', 'outros'
+  ];
+$$;
+
+/** Recusa um sintoma que a tela não conhece, antes de ele virar linha. */
+create or replace function conferir_sintomas(p_sintomas text[])
+returns text[]
+language plpgsql
+immutable
+set search_path = public
+as $$
+declare s text;
+begin
+  if p_sintomas is null then
+    return '{}';
+  end if;
+  foreach s in array p_sintomas loop
+    if not (s = any (sintomas_da_reintroducao())) then
+      raise exception 'Sintoma desconhecido: %', s using errcode = '22023';
+    end if;
+  end loop;
+  -- 'nenhum' junto de qualquer outro é contradição: o outro manda.
+  if 'nenhum' = any (p_sintomas) and array_length(p_sintomas, 1) > 1 then
+    return array_remove(p_sintomas, 'nenhum');
+  end if;
+  return p_sintomas;
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- A semana do histórico
+--
+-- Só agrupa o tempo. Quando a nutricionista não marcou um início, a âncora é
+-- o primeiro registro da paciente — assim ninguém precisa "abrir" o processo
+-- para começar a usar, e a semana 1 é a semana em que ela de fato começou.
+-- -----------------------------------------------------------------------------
+
+-- As duas conferem o dono antes de responder. Sem isso, o id de outra
+-- paciente devolveria quando ela começou o processo — que é dado dela, e do
+-- mesmo tipo que já vazou uma vez por `saldo_de_pontos` sem essa checagem.
+-- O `coalesce` é o que impede o nulo de escapar: `if null` não entra no
+-- bloco, e a conferência inteira viraria enfeite.
+create or replace function inicio_da_reintroducao(p_paciente uuid)
+returns date
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not coalesce(e_admin() or p_paciente = meu_paciente_id(), false) then
+    raise exception 'Você só pode ver o seu acompanhamento.' using errcode = '42501';
+  end if;
+  return coalesce(
+    (select a.inicio from reintroducao_acompanhamento a where a.paciente_id = p_paciente),
+    (select min(r.data) from reintroducao_registros r where r.paciente_id = p_paciente)
+  );
+end;
+$$;
+
+create or replace function semana_da_reintroducao(p_paciente uuid, p_data date)
+returns integer
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare v_inicio date;
+begin
+  if not coalesce(e_admin() or p_paciente = meu_paciente_id(), false) then
+    raise exception 'Você só pode ver o seu acompanhamento.' using errcode = '42501';
+  end if;
+  v_inicio := inicio_da_reintroducao(p_paciente);
+  return case
+    when v_inicio is null then 1
+    when p_data < v_inicio then 1
+    else floor((p_data - v_inicio) / 7)::int + 1
+  end;
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- O que as duas telas leem
+--
+-- Um construtor só para a tela da paciente e a da nutricionista: se as duas
+-- lessem de lugares diferentes, um dia mostrariam coisas diferentes sobre a
+-- mesma paciente.
+-- -----------------------------------------------------------------------------
+
+create or replace function reintroducao_json(p_paciente uuid, p_previa boolean default false)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'previa', p_previa,
+    'inicio', inicio_da_reintroducao(p_paciente),
+    'semanaAtual', semana_da_reintroducao(p_paciente, hoje_sp()),
+    -- Quantas semanas já correram. Não é meta nem prazo: é só até onde a
+    -- linha do tempo chega hoje.
+    'semanasComRegistro', (
+      select coalesce(jsonb_agg(distinct semana_da_reintroducao(p_paciente, r.data)), '[]'::jsonb)
+      from reintroducao_registros r where r.paciente_id = p_paciente
+    ),
+    'itens', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+        'id', i.id,
+        'alimentoId', i.alimento_id,
+        'nome', coalesce(a.nome, i.nome_livre),
+        'categoria', coalesce(a.categoria, 'outros'),
+        'semanaSugerida', a.semana_sugerida,
+        'porcaoReferencia', a.porcao_referencia,
+        'observacaoMaterial', a.observacao,
+        'doCatalogo', i.alimento_id is not null,
+        'status', i.status,
+        'notaNutri', i.nota_nutri,
+        'ordem', i.ordem,
+        'totalDeRegistros', (
+          select count(*) from reintroducao_registros r where r.item_id = i.id
+        ),
+        'ultimoRegistro', (
+          select max(r.data) from reintroducao_registros r where r.item_id = i.id
+        )
+      ) order by i.ordem, coalesce(a.nome, i.nome_livre)), '[]'::jsonb)
+      from reintroducao_itens i
+      left join reintroducao_alimentos a on a.id = i.alimento_id
+      where i.paciente_id = p_paciente
+    ),
+    'registros', (
+      select coalesce(jsonb_agg(jsonb_build_object(
+        'id', r.id,
+        'itemId', r.item_id,
+        'itemNome', coalesce(a.nome, i.nome_livre),
+        'data', r.data,
+        'horario', to_char(r.horario, 'HH24:MI'),
+        'semana', semana_da_reintroducao(p_paciente, r.data),
+        'quantidade', r.quantidade,
+        'preparo', r.preparo,
+        'sintomas', to_jsonb(r.sintomas),
+        'intensidade', r.intensidade,
+        'bristol', r.bristol,
+        'observacao', r.observacao,
+        'criadoEm', r.criado_em
+      ) order by r.data desc, r.horario desc nulls last, r.criado_em desc), '[]'::jsonb)
+      from reintroducao_registros r
+      join reintroducao_itens i on i.id = r.item_id
+      left join reintroducao_alimentos a on a.id = i.alimento_id
+      where r.paciente_id = p_paciente
+    )
+  );
+$$;
+
+-- -----------------------------------------------------------------------------
+-- A tela da paciente
+--
+-- Mesmo caminho do desafio: a nutricionista, que não tem cadastro de
+-- paciente, entra em modo de prévia e vê como a tela fica.
+-- -----------------------------------------------------------------------------
+
+create or replace function minha_reintroducao()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente uuid;
+  v_previa boolean;
+  v_orientacao text;
+begin
+  v_paciente := meu_paciente_id();
+  v_previa := v_paciente is null and e_admin();
+
+  if v_paciente is null and not v_previa then
+    return jsonb_build_object('previa', false, 'orientacao', null,
+                              'itens', '[]'::jsonb, 'registros', '[]'::jsonb);
+  end if;
+
+  select valor #>> '{}' into v_orientacao
+  from configuracoes where chave = 'reintroducao_orientacao';
+
+  -- A orientação da nutricionista para aquela paciente vem antes da geral.
+  return jsonb_build_object('orientacao', coalesce(
+    (select nullif(trim(a.orientacao), '') from reintroducao_acompanhamento a
+      where a.paciente_id = v_paciente),
+    v_orientacao
+  )) || reintroducao_json(v_paciente, v_previa);
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- A paciente registra
+--
+-- Aceita item da lista dela OU um nome digitado: o material manda o que não
+-- está na lista entrar na semana 5, e é por aqui que isso acontece.
+--
+-- Não há conferência de intervalo. De propósito.
+-- -----------------------------------------------------------------------------
+
+create or replace function registrar_reintroducao(
+  p_item uuid default null,
+  p_nome_novo text default null,
+  p_data date default null,
+  p_horario time default null,
+  p_quantidade text default null,
+  p_preparo text default null,
+  p_sintomas text[] default '{}',
+  p_intensidade integer default null,
+  p_bristol integer default null,
+  p_observacao text default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente uuid;
+  v_item uuid;
+  v_id uuid;
+begin
+  if not tem_acesso() then
+    raise exception 'Seu acesso não está liberado.' using errcode = '42501';
+  end if;
+  v_paciente := meu_paciente_id();
+  if v_paciente is null then
+    raise exception 'Não encontrei seu cadastro de paciente.' using errcode = '42501';
+  end if;
+
+  if p_item is not null then
+    select i.id into v_item from reintroducao_itens i
+     where i.id = p_item and i.paciente_id = v_paciente;
+    if v_item is null then
+      raise exception 'Este alimento não está na sua lista.' using errcode = '42501';
+    end if;
+  elsif coalesce(trim(p_nome_novo), '') <> '' then
+    -- Alimento fora da lista: entra como item da paciente, sem pedir licença.
+    insert into reintroducao_itens (paciente_id, nome_livre, status, ordem)
+    values (v_paciente, trim(p_nome_novo), 'em_teste',
+            coalesce((select max(ordem) + 1 from reintroducao_itens
+                       where paciente_id = v_paciente), 1))
+    returning id into v_item;
+  else
+    raise exception 'Escolha um alimento ou escreva o nome.' using errcode = '22023';
+  end if;
+
+  insert into reintroducao_registros
+    (item_id, paciente_id, data, horario, quantidade, preparo,
+     sintomas, intensidade, bristol, observacao)
+  values
+    (v_item, v_paciente, coalesce(p_data, hoje_sp()), p_horario,
+     nullif(trim(p_quantidade), ''), nullif(trim(p_preparo), ''),
+     conferir_sintomas(p_sintomas), p_intensidade, p_bristol,
+     nullif(trim(p_observacao), ''))
+  returning id into v_id;
+
+  -- 'em_teste' é o único status que o sistema mexe sozinho, e é constatação,
+  -- não conclusão: passou a existir registro, então o teste começou. O que a
+  -- nutricionista já tiver classificado fica como está — inclusive
+  -- 'nao_relevante', que ela pode ter marcado por um motivo.
+  update reintroducao_itens set status = 'em_teste'
+   where id = v_item and status = 'nao_iniciado';
+
+  return v_id;
+end;
+$$;
+
+/** Corrigir o próprio registro — errar o horário não pode custar o registro. */
+create or replace function editar_registro_reintroducao(
+  p_registro uuid,
+  p_data date default null,
+  p_horario time default null,
+  p_quantidade text default null,
+  p_preparo text default null,
+  p_sintomas text[] default '{}',
+  p_intensidade integer default null,
+  p_bristol integer default null,
+  p_observacao text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare v_paciente uuid;
+begin
+  v_paciente := meu_paciente_id();
+  update reintroducao_registros
+     set data = coalesce(p_data, data),
+         horario = p_horario,
+         quantidade = nullif(trim(p_quantidade), ''),
+         preparo = nullif(trim(p_preparo), ''),
+         sintomas = conferir_sintomas(p_sintomas),
+         intensidade = p_intensidade,
+         bristol = p_bristol,
+         observacao = nullif(trim(p_observacao), '')
+   where id = p_registro
+     and (paciente_id = v_paciente or e_admin());
+  if not found then
+    raise exception 'Registro não encontrado.' using errcode = '22023';
+  end if;
+end;
+$$;
+
+create or replace function excluir_registro_reintroducao(p_registro uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare v_paciente uuid;
+begin
+  v_paciente := meu_paciente_id();
+  delete from reintroducao_registros
+   where id = p_registro and (paciente_id = v_paciente or e_admin());
+  if not found then
+    raise exception 'Registro não encontrado.' using errcode = '22023';
+  end if;
+end;
+$$;
+
+/**
+ * "Esse alimento não faz parte da minha alimentação."
+ *
+ * É o §4 do pedido dela virando código: a paciente tira da frente o que ela
+ * não come, e o app para de mostrar — sem cobrar, sem marcar como falha.
+ *
+ * Só funciona a partir de 'nao_iniciado' ou do próprio 'nao_relevante'. Se a
+ * nutricionista já classificou o alimento, a classificação dela fica: quem
+ * desfaz um julgamento clínico é quem o fez.
+ */
+create or replace function marcar_relevancia_reintroducao(p_item uuid, p_relevante boolean)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente uuid;
+  v_status text;
+begin
+  v_paciente := meu_paciente_id();
+  select status into v_status from reintroducao_itens
+   where id = p_item and paciente_id = v_paciente;
+  if v_status is null then
+    raise exception 'Este alimento não está na sua lista.' using errcode = '42501';
+  end if;
+  if v_status not in ('nao_iniciado', 'nao_relevante') then
+    raise exception 'Este alimento já está em acompanhamento com a sua nutricionista.'
+      using errcode = '22023';
+  end if;
+
+  update reintroducao_itens
+     set status = case when p_relevante then 'nao_iniciado' else 'nao_relevante' end
+   where id = p_item;
+end;
+$$;
+
+
+-- ###########################################################################
+-- 0017_reintroducao_admin.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0017: o lado da nutricionista, e as fechaduras
+--
+-- É aqui que ela monta a lista de cada paciente, muda status e lê a linha do
+-- tempo. E é aqui que se garante o de sempre: uma paciente não vê o diário de
+-- outra, e o visitante sem login não vê nada.
+-- =============================================================================
+
+-- -----------------------------------------------------------------------------
+-- Montar a lista daquela paciente (§5)
+-- -----------------------------------------------------------------------------
+
+/** Puxa alimentos do catálogo para a lista da paciente. Repetido é ignorado. */
+create or replace function adicionar_itens_reintroducao(p_paciente uuid, p_alimentos text[])
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_base integer;
+  v_incluidos integer;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista monta a lista.' using errcode = '42501';
+  end if;
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrada.' using errcode = '22023';
+  end if;
+
+  select coalesce(max(ordem), 0) into v_base
+  from reintroducao_itens where paciente_id = p_paciente;
+
+  with novos as (
+    insert into reintroducao_itens (paciente_id, alimento_id, ordem)
+    select p_paciente, a.id, v_base + row_number() over (order by a.ordem)
+    from reintroducao_alimentos a
+    where a.id = any (p_alimentos) and a.ativo
+    on conflict (paciente_id, alimento_id) where alimento_id is not null
+    do nothing
+    returning 1
+  )
+  select count(*) into v_incluidos from novos;
+
+  insert into reintroducao_acompanhamento (paciente_id)
+  values (p_paciente) on conflict (paciente_id) do nothing;
+
+  return v_incluidos;
+end;
+$$;
+
+/** Um alimento que não está no material — o "entra na semana 5" dela. */
+create or replace function adicionar_item_livre_reintroducao(p_paciente uuid, p_nome text)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare v_id uuid;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista monta a lista.' using errcode = '42501';
+  end if;
+  if coalesce(trim(p_nome), '') = '' then
+    raise exception 'Escreva o nome do alimento.' using errcode = '22023';
+  end if;
+
+  insert into reintroducao_itens (paciente_id, nome_livre, ordem)
+  values (p_paciente, trim(p_nome),
+          coalesce((select max(ordem) + 1 from reintroducao_itens
+                     where paciente_id = p_paciente), 1))
+  returning id into v_id;
+
+  insert into reintroducao_acompanhamento (paciente_id)
+  values (p_paciente) on conflict (paciente_id) do nothing;
+
+  return v_id;
+end;
+$$;
+
+/**
+ * Tirar um alimento da lista.
+ *
+ * Com registro no histórico, some o alimento E some o que a paciente
+ * escreveu. Quando é isso que ela quer, 'nao_relevante' é o caminho — por
+ * isso a recusa aqui explica a alternativa em vez de só negar.
+ */
+create or replace function remover_item_reintroducao(p_item uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista mexe na lista.' using errcode = '42501';
+  end if;
+  if exists (select 1 from reintroducao_registros where item_id = p_item) then
+    raise exception 'Este alimento já tem registros. Marque como "não relevante" para tirá-lo da frente sem apagar o histórico.'
+      using errcode = '22023';
+  end if;
+  delete from reintroducao_itens where id = p_item;
+end;
+$$;
+
+/**
+ * O status é dela (§12).
+ *
+ * Nenhum destes valores é atribuído por conta de um sintoma: ela lê o
+ * histórico e decide. Os nomes são neutros de propósito — não existe
+ * "proibido" nesta lista.
+ */
+create or replace function definir_status_reintroducao(
+  p_item uuid,
+  p_status text,
+  p_nota text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista classifica.' using errcode = '42501';
+  end if;
+  update reintroducao_itens
+     set status = p_status,
+         nota_nutri = nullif(trim(p_nota), '')
+   where id = p_item;
+  if not found then
+    raise exception 'Alimento não encontrado.' using errcode = '22023';
+  end if;
+end;
+$$;
+
+/** A ordem em que os alimentos aparecem para a paciente. */
+create or replace function reordenar_reintroducao(p_itens uuid[])
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista reordena.' using errcode = '42501';
+  end if;
+  update reintroducao_itens i
+     set ordem = pos.n
+    from unnest(p_itens) with ordinality as pos(id, n)
+   where i.id = pos.id;
+end;
+$$;
+
+/** Início do acompanhamento e o recado dela para aquela paciente. */
+create or replace function definir_acompanhamento_reintroducao(
+  p_paciente uuid,
+  p_inicio date default null,
+  p_orientacao text default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista define o acompanhamento.' using errcode = '42501';
+  end if;
+  insert into reintroducao_acompanhamento (paciente_id, inicio, orientacao)
+  values (p_paciente, p_inicio, nullif(trim(p_orientacao), ''))
+  on conflict (paciente_id) do update
+    set inicio = excluded.inicio,
+        orientacao = excluded.orientacao;
+end;
+$$;
+
+/** A linha do tempo de uma paciente, para a tela dela. */
+create or replace function reintroducao_do_paciente(p_paciente uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê o acompanhamento de uma paciente.'
+      using errcode = '42501';
+  end if;
+  return jsonb_build_object(
+    'orientacao', (select orientacao from reintroducao_acompanhamento
+                    where paciente_id = p_paciente)
+  ) || reintroducao_json(p_paciente, false);
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- Quem vê o quê
+-- -----------------------------------------------------------------------------
+
+alter table reintroducao_alimentos enable row level security;
+alter table reintroducao_acompanhamento enable row level security;
+alter table reintroducao_itens enable row level security;
+alter table reintroducao_registros enable row level security;
+
+-- O catálogo é conteúdo: quem tem acesso válido lê.
+drop policy if exists reintroducao_alimentos_leitura on reintroducao_alimentos;
+create policy reintroducao_alimentos_leitura on reintroducao_alimentos for select
+  using (e_admin() or (ativo and tem_acesso()));
+
+drop policy if exists reintroducao_alimentos_admin on reintroducao_alimentos;
+create policy reintroducao_alimentos_admin on reintroducao_alimentos for all
+  using (e_admin()) with check (e_admin());
+
+-- Diário é dado de paciente: cada uma lê o seu, e ninguém lê o da outra.
+--
+-- Repare no que NÃO existe: política de insert, update ou delete para
+-- paciente. Tudo o que ela grava passa pelas funções, que conferem o acesso
+-- e o dono antes de escrever.
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'reintroducao_acompanhamento', 'reintroducao_itens', 'reintroducao_registros'
+  ] loop
+    execute format('drop policy if exists %I on %I', t || '_leitura', t);
+    execute format(
+      'create policy %I on %I for select using (e_admin() or (paciente_id = meu_paciente_id() and tem_acesso()))',
+      t || '_leitura', t
+    );
+    execute format('drop policy if exists %I on %I', t || '_admin', t);
+    execute format(
+      'create policy %I on %I for all using (e_admin()) with check (e_admin())',
+      t || '_admin', t
+    );
+  end loop;
+end;
+$$;
+
+-- -----------------------------------------------------------------------------
+-- Permissões
+-- -----------------------------------------------------------------------------
+
+grant select on reintroducao_alimentos, reintroducao_acompanhamento,
+  reintroducao_itens, reintroducao_registros to authenticated;
+grant insert, update, delete on reintroducao_alimentos, reintroducao_acompanhamento,
+  reintroducao_itens, reintroducao_registros to authenticated;
+
+-- E nada disso chega ao visitante sem login.
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'reintroducao_alimentos', 'reintroducao_acompanhamento',
+    'reintroducao_itens', 'reintroducao_registros'
+  ] loop
+    execute format('revoke all on table %I from anon', t);
+  end loop;
+end;
+$$;
+
+do $$
+declare f record;
+begin
+  for f in
+    select p.oid::regprocedure as assinatura
+    from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public'
+      and p.proname in (
+        'sintomas_da_reintroducao', 'conferir_sintomas', 'inicio_da_reintroducao',
+        'semana_da_reintroducao', 'reintroducao_json', 'minha_reintroducao',
+        'registrar_reintroducao', 'editar_registro_reintroducao',
+        'excluir_registro_reintroducao', 'marcar_relevancia_reintroducao',
+        'adicionar_itens_reintroducao', 'adicionar_item_livre_reintroducao',
+        'remover_item_reintroducao', 'definir_status_reintroducao',
+        'reordenar_reintroducao', 'definir_acompanhamento_reintroducao',
+        'reintroducao_do_paciente'
+      )
+  loop
+    execute format('revoke all on function %s from anon, public', f.assinatura);
+  end loop;
+end;
+$$;
+
+-- `reintroducao_json` fica de fora: ela aceita o id de qualquer paciente e não
+-- confere dono nenhum. É auxiliar das duas funções acima, que conferem — e é
+-- exatamente por isso que ninguém a chama pela mão.
+grant execute on function sintomas_da_reintroducao() to authenticated;
+grant execute on function conferir_sintomas(text[]) to authenticated;
+grant execute on function inicio_da_reintroducao(uuid) to authenticated;
+grant execute on function semana_da_reintroducao(uuid, date) to authenticated;
+grant execute on function minha_reintroducao() to authenticated;
+grant execute on function registrar_reintroducao(uuid, text, date, time, text, text, text[], integer, integer, text) to authenticated;
+grant execute on function editar_registro_reintroducao(uuid, date, time, text, text, text[], integer, integer, text) to authenticated;
+grant execute on function excluir_registro_reintroducao(uuid) to authenticated;
+grant execute on function marcar_relevancia_reintroducao(uuid, boolean) to authenticated;
+grant execute on function adicionar_itens_reintroducao(uuid, text[]) to authenticated;
+grant execute on function adicionar_item_livre_reintroducao(uuid, text) to authenticated;
+grant execute on function remover_item_reintroducao(uuid) to authenticated;
+grant execute on function definir_status_reintroducao(uuid, text, text) to authenticated;
+grant execute on function reordenar_reintroducao(uuid[]) to authenticated;
+grant execute on function definir_acompanhamento_reintroducao(uuid, date, text) to authenticated;
+grant execute on function reintroducao_do_paciente(uuid) to authenticated;

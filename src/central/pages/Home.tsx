@@ -16,6 +16,12 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
  */
 const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: string }[] = [
   {
+    rota: rotas.rastreabilidade,
+    icone: "folha",
+    titulo: "Rastreabilidade",
+    descricao: "Registre o que você reintroduziu e como se sentiu.",
+  },
+  {
     rota: rotas.trocas,
     icone: "troca",
     titulo: "Troca inteligente",

@@ -6,3 +6,4 @@ export type * from "./pessoal";
 export type * from "./busca";
 export type * from "./acesso";
 export type * from "./desafio";
+export type * from "./reintroducao";

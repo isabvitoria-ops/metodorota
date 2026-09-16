@@ -2235,3 +2235,13 @@ body:has(.central) {
   color: var(--text-muted);
   font-size: 14.5px;
 }
+
+/* Rastreabilidade alimentar.
+   Uma regra só: o alimento que a paciente marcou como "não faz parte da minha
+   alimentação" recua em vez de sumir. Sumir a faria pensar que perdeu o
+   alimento; recuar mostra que a escolha foi registrada e continua desfazível.
+   Nada de tachado nem de vermelho — não é erro, é uma preferência dela. */
+.c-acao.apagado {
+  opacity: 0.62;
+  border-style: dashed;
+}

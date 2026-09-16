@@ -24,6 +24,7 @@ export const rotas = {
   guias: "/guias",
   guia: (guiaId: string) => `/guias/${guiaId}`,
   desafio: "/desafio",
+  rastreabilidade: "/rastreabilidade",
   salvos: "/salvos",
   busca: (consulta?: string) => (consulta ? `/busca?q=${encodeURIComponent(consulta)}` : "/busca"),
   diagnostico: "/diagnostico",
@@ -43,6 +44,7 @@ export const rotas = {
   adminConteudos: "/admin/conteudos",
   adminConfiguracoes: "/admin/configuracoes",
   adminDesafios: "/admin/desafios",
+  adminRastreabilidade: "/admin/rastreabilidade",
 };
 
 /** Prefixo antigo, mantido para não quebrar link já enviado a paciente. */
