@@ -25,7 +25,6 @@ const ICONES: Record<TipoFavorito, NomeIcone> = {
 const SECOES: { tipo: TipoFavorito; rotulo: string }[] = [
   { tipo: "troca", rotulo: "Trocas" },
   { tipo: "alimento", rotulo: "Alimentos" },
-  { tipo: "grupo", rotulo: "Grupos" },
   { tipo: "categoria", rotulo: "Comer fora" },
   { tipo: "opcao", rotulo: "Opções" },
   { tipo: "guia", rotulo: "Guias" },

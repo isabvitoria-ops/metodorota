@@ -36,7 +36,10 @@ export const useFavoritos = create<EstadoFavoritos>((set, get) => ({
   async carregar() {
     try {
       const itens = await repositorio.listarFavoritos();
-      set({ itens, carregado: true });
+      // A tela de grupos saiu da Central. O que ficou salvo continua no banco
+      // (não apago o que a paciente guardou), mas não aparece mais na lista —
+      // um cartão que não abre nada é pior do que um cartão a menos.
+      set({ itens: itens.filter((f) => f.tipo !== "grupo"), carregado: true });
     } catch {
       set({ carregado: true });
     }

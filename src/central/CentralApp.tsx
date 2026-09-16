@@ -3,8 +3,6 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { NavPrincipal } from "./components/NavPrincipal";
 import { Home } from "./pages/Home";
 import { TrocaInteligente } from "./pages/TrocaInteligente";
-import { Substituicoes } from "./pages/Substituicoes";
-import { GrupoDetalhe } from "./pages/GrupoDetalhe";
 import { ComerFora } from "./pages/ComerFora";
 import { CategoriaDetalhe } from "./pages/CategoriaDetalhe";
 import { EstabelecimentoDetalhe } from "./pages/EstabelecimentoDetalhe";
@@ -41,8 +39,12 @@ export function CentralApp() {
         <Routes>
           <Route index element={<Home />} />
           <Route path="trocas" element={<TrocaInteligente />} />
-          <Route path="substituicoes" element={<Substituicoes />} />
-          <Route path="substituicoes/:grupoId" element={<GrupoDetalhe />} />
+          {/* A tabela de substituições saiu da Central: a Troca Inteligente faz
+              o mesmo trabalho e duas portas para a mesma coisa confundiam. O
+              caminho fica de pé para não quebrar link já enviado nem item que
+              a paciente tenha guardado. */}
+          <Route path="substituicoes" element={<Navigate to={rotas.trocas} replace />} />
+          <Route path="substituicoes/:grupoId" element={<Navigate to={rotas.trocas} replace />} />
           <Route path="comer-fora" element={<ComerFora />} />
           <Route path="comer-fora/:categoriaId" element={<CategoriaDetalhe />} />
           <Route

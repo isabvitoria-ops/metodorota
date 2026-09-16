@@ -36,14 +36,6 @@ export function indiceBusca(): ItemIndice[] {
       palavras: ["comer fora", "restaurante", "delivery", "rua", "pedido"],
     },
     {
-      id: "ferramenta:substituicoes",
-      tipo: "ferramenta",
-      titulo: "Substituições",
-      subtitulo: "Suas opções de troca por grupo alimentar",
-      rota: rotas.substituicoes,
-      palavras: ["substituicao", "grupo", "lista", "porcao", "porcoes"],
-    },
-    {
       id: "ferramenta:guias",
       tipo: "ferramenta",
       titulo: "Guias",
@@ -70,17 +62,6 @@ export function indiceBusca(): ItemIndice[] {
       subtitulo: grupo ? grupo.nome : null,
       rota: rotas.trocaCom(alimento.id),
       palavras: [...alimento.tags, grupo?.nome ?? ""],
-    });
-  }
-
-  for (const grupo of catalogo.grupos()) {
-    itens.push({
-      id: `grupo:${grupo.id}`,
-      tipo: "grupo",
-      titulo: grupo.nome,
-      subtitulo: grupo.descricao,
-      rota: rotas.grupo(grupo.id),
-      palavras: grupo.tags,
     });
   }
 

@@ -34,12 +34,6 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Estratégias para escolher melhor fora de casa.",
   },
   {
-    rota: rotas.substituicoes,
-    icone: "lista",
-    titulo: "Substituições",
-    descricao: "Suas opções de troca por grupo alimentar.",
-  },
-  {
     rota: rotas.guias,
     icone: "guias",
     titulo: "Guias",
