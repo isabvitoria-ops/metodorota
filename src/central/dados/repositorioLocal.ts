@@ -505,6 +505,7 @@ export const repositorioLocal: Repositorio = {
     const itens = itensDemo();
     const registros = guardaRegistrosReintroducao.ler();
     return {
+      ativo: true,
       previa: false,
       orientacao: ORIENTACAO_DEMO,
       inicio: registros.length > 0 ? menorData(registros) : null,
@@ -627,6 +628,14 @@ export const repositorioLocal: Repositorio = {
 
   async reintroducaoDoPaciente(): Promise<Reintroducao> {
     return repositorioLocal.minhaReintroducao();
+  },
+
+  async definirRastreioDoPaciente() {
+    throw new Error("Ligar o rastreio precisa do banco. Configure o Supabase.");
+  },
+
+  async rastreiosAtivos() {
+    return [];
   },
 
   async adicionarItensReintroducao() {

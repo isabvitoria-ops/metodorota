@@ -124,6 +124,8 @@ export interface RegistroDeReintroducao {
 
 /** O retorno inteiro. Serve à tela da paciente e à da nutricionista. */
 export interface Reintroducao {
+  /** Se o módulo está ligado para esta paciente. */
+  ativo: boolean;
   /** A nutricionista abrindo a tela da paciente. */
   previa?: boolean;
   orientacao: string | null;

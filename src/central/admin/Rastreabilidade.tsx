@@ -41,7 +41,12 @@ export function RastreabilidadeAdmin() {
   const [escolhida, definirEscolhida] = useState<string>("");
   const [busca, definirBusca] = useState("");
   const [aba, definirAba] = useState<Aba>("Linha do tempo");
+  const [ligados, definirLigados] = useState<string[]>([]);
   const [erroLista, definirErroLista] = useState<string | null>(null);
+
+  const carregarLigados = useCallback(async () => {
+    definirLigados(await repositorio.rastreiosAtivos().catch(() => []));
+  }, []);
 
   useEffect(() => {
     void repositorio
@@ -50,7 +55,8 @@ export function RastreabilidadeAdmin() {
       .catch((e: unknown) =>
         definirErroLista(e instanceof Error ? e.message : "Não consegui carregar as pacientes."),
       );
-  }, []);
+    void carregarLigados();
+  }, [carregarLigados]);
 
   const visiveis = pacientes.filter((p) =>
     p.nome.toLowerCase().includes(busca.trim().toLowerCase()),
@@ -78,13 +84,24 @@ export function RastreabilidadeAdmin() {
       <Campo rotulo="Buscar paciente">
         <Texto valor={busca} aoMudar={definirBusca} placeholder="Nome" />
       </Campo>
+      <p className="c-dica" style={{ marginTop: -4 }}>
+        {ligados.length === 0
+          ? "Nenhuma paciente com rastreio ligado ainda."
+          : `${ligados.length} ${
+              ligados.length === 1 ? "paciente está" : "pacientes estão"
+            } com o rastreio ligado.`}
+      </p>
+
       <Campo rotulo="Paciente">
         <Selecao
           valor={escolhida}
           aoMudar={definirEscolhida}
           opcoes={[
             { valor: "", rotulo: "Escolha a paciente" },
-            ...visiveis.map((p) => ({ valor: p.id, rotulo: p.nome })),
+            ...visiveis.map((p) => ({
+              valor: p.id,
+              rotulo: ligados.includes(p.id) ? `${p.nome} · rastreio ligado` : p.nome,
+            })),
           ]}
         />
       </Campo>
@@ -103,17 +120,31 @@ export function RastreabilidadeAdmin() {
               </button>
             ))}
           </div>
-          <PainelDaPaciente paciente={paciente} aba={aba} />
+          <PainelDaPaciente
+            paciente={paciente}
+            aba={aba}
+            aoMudarRastreio={() => void carregarLigados()}
+          />
         </>
       )}
     </>
   );
 }
 
-function PainelDaPaciente({ paciente, aba }: { paciente: Paciente; aba: Aba }) {
+function PainelDaPaciente({
+  paciente,
+  aba,
+  aoMudarRastreio,
+}: {
+  paciente: Paciente;
+  aba: Aba;
+  aoMudarRastreio: () => void;
+}) {
   const { dados, carregando, erro, ocupado, comRecarga } = useReintroducao(paciente.id);
 
   if (carregando) return <p className="c-contagem">Carregando…</p>;
+
+  const ativo = dados?.ativo ?? false;
 
   return (
     <div style={{ marginTop: 18 }}>
@@ -122,6 +153,37 @@ function PainelDaPaciente({ paciente, aba }: { paciente: Paciente; aba: Aba }) {
           <span>{erro}</span>
         </div>
       )}
+
+      {/* O interruptor fica em cima de tudo e em toda aba: é a primeira coisa
+          a conferir quando ela achar que "não apareceu para a paciente". */}
+      <div className="c-bloco" style={{ marginBottom: 14 }}>
+        <div className="c-bloco-topo">
+          <strong style={{ fontSize: 14 }}>
+            {ativo
+              ? `${paciente.nome} vê a Rastreabilidade`
+              : `${paciente.nome} não vê a Rastreabilidade`}
+          </strong>
+          <button
+            type="button"
+            className={`c-botao c-botao-pequeno ${ativo ? "c-botao-secundario" : ""}`}
+            disabled={ocupado}
+            onClick={() =>
+              void comRecarga(() =>
+                repositorio.definirRastreioDoPaciente(paciente.id, !ativo),
+              ).then((deuCerto) => {
+                if (deuCerto) aoMudarRastreio();
+              })
+            }
+          >
+            {ativo ? "Desligar" : "Ligar para ela"}
+          </button>
+        </div>
+        <p className="c-dica">
+          {ativo
+            ? "O atalho aparece na tela inicial dela e ela pode registrar. Desligar não apaga nada: o histórico fica guardado e volta se você religar."
+            : "Nem toda paciente precisa de rastreamento. Desligado, o atalho não aparece para ela e o módulo é como se não existisse. Adicionar alimentos à lista dela liga sozinho."}
+        </p>
+      </div>
 
       {aba === "Linha do tempo" && <LinhaDoTempo dados={dados} />}
       {aba === "Lista da paciente" && (

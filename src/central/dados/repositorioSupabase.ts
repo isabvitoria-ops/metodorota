@@ -618,6 +618,22 @@ export const repositorioSupabase: Repositorio = {
     return data as Reintroducao;
   },
 
+  async definirRastreioDoPaciente(pacienteId: string, ativo: boolean) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("definir_rastreio_do_paciente", {
+      p_paciente: pacienteId,
+      p_ativo: ativo,
+    });
+    erro("salvar o rastreio", error);
+  },
+
+  async rastreiosAtivos() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("rastreios_ativos");
+    erro("carregar quem tem rastreio", error);
+    return (data ?? []) as string[];
+  },
+
   async adicionarItensReintroducao(pacienteId: string, alimentos: string[]) {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("adicionar_itens_reintroducao", {

@@ -6,6 +6,7 @@ import type {
   SintomaReintroducao,
 } from "@/central/types";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
+import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { Icone } from "@/central/components/Icone";
 // Primitivo compartilhado: mora em `admin/componentes` por ter nascido lá, e
 // traz o que faz um modal ser usável — foco preso dentro, Esc fecha, foco
@@ -59,6 +60,23 @@ export function Rastreabilidade() {
         <CabecalhoPagina titulo="Rastreabilidade alimentar" voltarPara={rotas.home} />
         <div className="c-conteudo">
           <p className="c-contagem">Carregando…</p>
+        </div>
+      </>
+    );
+  }
+
+  // Desligado, a tela não é uma tela vazia: é um recado curto, sem sugerir
+  // que ela perdeu alguma coisa ou que deixou de fazer algo.
+  if (dados && !dados.ativo) {
+    return (
+      <>
+        <CabecalhoPagina titulo="Rastreabilidade alimentar" voltarPara={rotas.home} />
+        <div className="c-conteudo">
+          <EstadoVazio
+            icone="folha"
+            titulo="Este acompanhamento não está ativo para você"
+            descricao="Se a sua nutricionista quiser acompanhar sua reintrodução por aqui, ela liga e o espaço aparece."
+          />
         </div>
       </>
     );

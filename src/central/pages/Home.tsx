@@ -115,7 +115,12 @@ export function Home() {
 
         <section className="c-secao">
           <div className="c-atalhos">
-            {ATALHOS.map((atalho) => (
+            {/* A Rastreabilidade é para quem faz o acompanhamento intestinal.
+                Para quem não faz, o atalho não existe — em vez de existir e
+                abrir uma tela vazia explicando que não é para ela. */}
+            {ATALHOS.filter(
+              (atalho) => atalho.rota !== rotas.rastreabilidade || acesso.rastreio,
+            ).map((atalho) => (
               <button key={atalho.rota} type="button" className="c-atalho" onClick={() => navegar(atalho.rota)}>
                 <span className="c-atalho-icone">
                   <Icone nome={atalho.icone} tamanho={22} />

@@ -475,11 +475,6 @@ select teste('e o abacate traz os dois marcadores altos dele',
 select teste('muito alta aparece antes de alta',
   (marcacao_do_alimento('m-goiaba') -> 0 ->> 'nivel') = 'muito_alta');
 
-select teste('o alimento digitado é encontrado pelo nome, sem acento',
-  marcador_por_nome('PÃO') = 'm-pao');
-select teste('e nome que não existe não casa com nada parecido',
-  marcador_por_nome('bolo de fubá da vó') is null);
-
 select teste('os alimentos do Mapa que existem na Tabela estão ligados',
   (select count(*) from reintroducao_alimentos where marcador_id is not null) = 46);
 select teste('e o que não existe na Tabela fica sem marcação, em vez de chutar',
@@ -501,8 +496,8 @@ select teste('e é o oxalato muito alto do material',
      from jsonb_array_elements(minha_reintroducao() -> 'registros') r
     where r ->> 'itemNome' = 'Inhame') = 'Oxalato');
 
--- O pão que ela digitou não estava na lista, e mesmo assim é reconhecido.
-select teste('o alimento digitado pela paciente também recebe marcação',
+-- Alimento digitado não recebe marcação: ele não veio do Mapa.
+select teste('o alimento digitado pela paciente fica sem marcação',
   (select jsonb_array_length(r -> 'marcacao')
      from jsonb_array_elements(minha_reintroducao() -> 'registros') r
     where r ->> 'itemNome' = 'Pão da padaria') = 0);
@@ -529,11 +524,144 @@ begin
   perform teste('visitante sem login NÃO lê a tabela de marcadores', v_erro);
 
   v_erro := false;
-  begin perform marcador_por_nome('tomate');
+  begin perform marcacao_do_alimento('m-abacate');
   exception when others then v_erro := true; end;
-  perform teste('visitante sem login NÃO consulta marcador por nome', v_erro);
+  perform teste('visitante sem login NÃO consulta marcação de alimento', v_erro);
 end;
 $$;
+commit;
+
+-- -----------------------------------------------------------------------------
+-- O rastreio é de quem precisa dele (0021)
+-- -----------------------------------------------------------------------------
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+-- Montar a lista de alguém já liga: sem isto, ela cadastraria dez alimentos e
+-- a paciente continuaria sem ver nada.
+select teste('montar a lista da paciente liga o rastreio sozinho',
+  rastreio_ativo(current_setting('teste.ana')::uuid));
+
+select teste('e quem nunca foi tocada continua desligada',
+  rastreio_ativo(current_setting('teste.bia')::uuid) = false);
+
+select teste('o quadro dela mostra quem está ligada',
+  jsonb_array_length(rastreios_ativos()) = 1);
+commit;
+
+-- A Bia não vê o módulo.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e2', true);
+select teste('paciente sem rastreio recebe a tela desligada',
+  (minha_reintroducao() ->> 'ativo')::boolean = false);
+
+do $$
+declare v_estado text := '';
+begin
+  begin perform registrar_reintroducao(p_nome_novo := 'Qualquer coisa');
+  exception when others then v_estado := sqlstate; end;
+  perform teste('e NÃO registra nada, nem pelo caminho de fora da tela',
+    v_estado = '42501');
+end;
+$$;
+commit;
+
+-- Desligar não apaga: o histórico fica e volta.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+do $$
+begin
+  perform definir_rastreio_do_paciente(current_setting('teste.ana')::uuid, false);
+end;
+$$;
+select teste('a nutricionista desliga o rastreio de uma paciente',
+  rastreio_ativo(current_setting('teste.ana')::uuid) = false);
+select teste('e o histórico dela continua guardado',
+  (select count(*) from reintroducao_registros
+    where paciente_id = current_setting('teste.ana')::uuid) > 0);
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+select teste('com o rastreio desligado, a tela dela volta vazia',
+  jsonb_array_length(minha_reintroducao() -> 'itens') = 0);
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+do $$
+begin
+  perform definir_rastreio_do_paciente(current_setting('teste.ana')::uuid, true);
+end;
+$$;
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+select teste('religando, tudo volta como estava',
+  jsonb_array_length(minha_reintroducao() -> 'itens') > 0);
+select teste('o acesso dela passa a dizer que o rastreio está ligado',
+  (meu_acesso() ->> 'rastreio')::boolean);
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e2', true);
+select teste('e o de quem não faz rastreamento diz que não',
+  (meu_acesso() ->> 'rastreio')::boolean = false);
+
+do $$
+declare v_erro boolean := false;
+begin
+  begin perform definir_rastreio_do_paciente(meu_paciente_id(), true);
+  exception when others then v_erro := true; end;
+  perform teste('paciente NÃO liga o rastreio para si mesma', v_erro);
+end;
+$$;
+commit;
+
+-- -----------------------------------------------------------------------------
+-- A marcação só alcança os alimentos do Mapa (0021)
+-- -----------------------------------------------------------------------------
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+
+-- O inhame veio do Mapa e tem ligação: continua marcado.
+select teste('alimento do Mapa continua recebendo a marcação',
+  (select jsonb_array_length(i -> 'marcacao')
+     from jsonb_array_elements(minha_reintroducao() -> 'itens') i
+    where i ->> 'nome' = 'Inhame') = 1);
+
+-- "Champagne" existe na Tabela e não no Mapa. Antes do 0021, digitar o nome
+-- trazia a marcação pela semelhança; agora não traz — e é esse o pedido dela.
+select teste('a paciente registra um alimento que só existe na Tabela',
+  registrar_reintroducao(p_nome_novo := 'Champagne',
+    p_sintomas := array['dor_abdominal']) is not null);
+
+select teste('e ele NÃO recebe marcação, porque não é alimento do Mapa',
+  (select jsonb_array_length(r -> 'marcacao')
+     from jsonb_array_elements(minha_reintroducao() -> 'registros') r
+    where r ->> 'itemNome' = 'Champagne') = 0);
+commit;
+
+-- A busca por nome saiu de vez: não dá para chamar nem por fora.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+select teste('a busca de marcador por nome não existe mais',
+  (select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+    where n.nspname = 'public' and p.proname = 'marcador_por_nome') = 0);
+
+-- A Tabela inteira continua guardada: o que mudou é quem a alcança.
+select teste('a Tabela dela continua com os 283 alimentos',
+  (select count(*) from alimentos_marcadores) = 283);
 commit;
 
 -- -----------------------------------------------------------------------------

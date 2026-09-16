@@ -140,6 +140,10 @@ export interface Repositorio {
   /** O material dela, para montar a lista de cada paciente. */
   listarAlimentosDoMaterial(): Promise<AlimentoDoMaterial[]>;
   reintroducaoDoPaciente(pacienteId: string): Promise<Reintroducao>;
+  /** Liga ou desliga o módulo inteiro para aquela paciente. */
+  definirRastreioDoPaciente(pacienteId: string, ativo: boolean): Promise<void>;
+  /** Quem já está com o rastreio ligado, para a lista de pacientes. */
+  rastreiosAtivos(): Promise<string[]>;
   adicionarItensReintroducao(pacienteId: string, alimentos: string[]): Promise<number>;
   adicionarItemLivreReintroducao(pacienteId: string, nome: string): Promise<void>;
   removerItemReintroducao(itemId: string): Promise<void>;

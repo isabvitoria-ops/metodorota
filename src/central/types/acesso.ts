@@ -75,6 +75,13 @@ export interface Acesso {
   dataFim: string | null;
   diasRestantes: number | null;
   plano: string | null;
+  /**
+   * Se a Rastreabilidade alimentar está ligada para esta paciente.
+   *
+   * Nem toda paciente faz rastreamento. Desligado, o atalho não aparece e a
+   * tela não abre — o módulo simplesmente não existe para ela.
+   */
+  rastreio: boolean;
 }
 
 export interface Configuracoes {
