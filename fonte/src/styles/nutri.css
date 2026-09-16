@@ -1,0 +1,223 @@
+/**
+ * Painel da nutricionista — porte literal do CSS do protótipo
+ * `painel-nutricionista.jsx`, escopado sob `.root` (ver nota em patient.css).
+ */
+.root {
+  font-family: var(--font-body);
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+.root .wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 18px 70px;
+}
+.root .disp {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  line-height: 1.08;
+}
+.root .mono {
+  font-family: var(--font-mono);
+}
+.root .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+.root .card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 16px;
+}
+.root .hair {
+  height: 1px;
+  background: var(--line);
+  border: 0;
+  margin: 20px 0;
+}
+.root .nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(233, 231, 226, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.root .navin {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.root .seg {
+  border: 1.5px solid var(--line);
+  background: transparent;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+.root .seg.on {
+  background: var(--plum);
+  border-color: var(--plum);
+  color: #fff;
+}
+.root .btn {
+  border: 0;
+  border-radius: 11px;
+  padding: 13px 18px;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  font-weight: 600;
+  background: var(--plum);
+  color: #fff;
+  cursor: pointer;
+}
+.root .btn.ghost {
+  background: transparent;
+  color: var(--plum);
+  border: 1.5px solid var(--plum);
+}
+.root .btn.quiet {
+  background: var(--plum-wash);
+  color: var(--plum);
+}
+.root .btn.danger {
+  background: var(--clay);
+}
+.root .btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.root .btn.full {
+  width: 100%;
+}
+.root .chip {
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: all 0.12s;
+}
+.root .chip.on {
+  background: var(--plum);
+  border-color: var(--plum);
+  color: #fff;
+}
+.root .chip.sage.on {
+  background: var(--sage);
+  border-color: var(--sage);
+}
+.root .chip.sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+.root .input,
+.root select.input {
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  border-radius: 11px;
+  padding: 12px 14px;
+  font-size: 14.5px;
+  font-family: var(--font-body);
+  color: var(--ink);
+  width: 100%;
+  outline: none;
+  resize: vertical;
+}
+.root .input:focus {
+  border-color: var(--plum);
+}
+.root .tag {
+  font-size: 10.5px;
+  padding: 3px 8px;
+  border-radius: 99px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: 0.04em;
+}
+.root .grid2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+@media (min-width: 760px) {
+  .root .grid2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.root .row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.root .sw {
+  width: 48px;
+  height: 28px;
+  border-radius: 99px;
+  border: 0;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.16s;
+}
+.root .sw span {
+  position: absolute;
+  top: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 99px;
+  background: #fff;
+  transition: left 0.16s;
+}
+.root .lista {
+  max-height: 340px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+}
+.root .li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  width: 100%;
+  background: none;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  font-family: var(--font-body);
+}
+.root .li:hover {
+  background: var(--plum-wash);
+}
+
+/* Responsividade (briefing §20): densidade maior em telas largas — o painel
+   deve aproveitar a tela, não só caber nela. `.wrap` já cresce até 1080px;
+   em telas muito largas o grid de pacientes ganha uma terceira coluna. */
+@media (min-width: 1280px) {
+  .root .grid2 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

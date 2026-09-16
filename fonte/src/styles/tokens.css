@@ -1,0 +1,27 @@
+/**
+ * Design tokens — paleta, tipografia e raio de borda usados pelo app do
+ * paciente e pelo painel da nutricionista. Portados literalmente dos dois
+ * protótipos (os valores eram idênticos nos dois arquivos); não alterar
+ * sem aprovação explícita — identidade visual é regra de negócio (briefing §6).
+ */
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap");
+
+:root {
+  --paper: #e9e7e2;
+  --card: #ffffff;
+  --ink: #241f23;
+  --ink-2: #5c5359;
+  --ink-3: #8c838a;
+  --plum: #573450;
+  --plum-2: #7a5070;
+  --plum-wash: #ede3ea;
+  --sage: #6e8168;
+  --gold: #b98b2e;
+  --clay: #b0503c;
+  --line: #d9d5ce;
+  --radius: 18px;
+
+  --font-display: "Bricolage Grotesque", system-ui, sans-serif;
+  --font-body: "Public Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+}

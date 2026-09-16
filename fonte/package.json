@@ -1,0 +1,47 @@
+{
+  "name": "central-do-paciente",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Central do Paciente — ferramenta de consulta e área administrativa da nutricionista",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
+    "lint": "eslint .",
+    "test": "node --test --import ./scripts/registrar-alias.mjs \"src/**/*.test.ts\"",
+    "seed": "node --import ./scripts/registrar-alias.mjs scripts/gerar-seed.mjs",
+    "test:banco": "./scripts/testar-banco.sh",
+    "instalador": "node scripts/gerar-instalador.mjs",
+    "build:demo": "VITE_ROTEADOR=hash vite build --mode demo --base ./ --outDir dist-demo",
+    "artefato": "npm run build:demo && node scripts/gerar-artefato.mjs",
+    "build:unico": "VITE_ROTEADOR=hash vite build --mode unico",
+    "html-unico": "npm run build:unico && node scripts/gerar-html-unico.mjs",
+    "build:pages": "vite build --mode pages --base /metodorota/",
+    "html-pages": "npm run build:pages && node scripts/gerar-html-unico.mjs --pages"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "dexie": "^4.0.8",
+    "dexie-react-hooks": "^1.1.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.2",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.5.0",
+    "@typescript-eslint/parser": "^8.5.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.11",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.3",
+    "vite-plugin-pwa": "^0.20.5"
+  }
+}

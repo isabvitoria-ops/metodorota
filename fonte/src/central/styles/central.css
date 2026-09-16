@@ -1,0 +1,2370 @@
+/* =========================================================================
+   Central do Paciente — identidade visual (§20, §21, §22)
+
+   TODA cor está declarada como variável no bloco `.central` abaixo. Para
+   trocar a identidade visual inteira do app, mexa só ali: nenhuma regra
+   deste arquivo escreve um código de cor no meio do caminho.
+
+   Tudo é escrito primeiro para o celular; os `@media (min-width: ...)` no
+   fim do arquivo só acrescentam o que sobra de espaço no tablet e no
+   desktop — não há layout de desktop encolhido.
+   ========================================================================= */
+
+/* O navegador aplica uma margem de 8 px ao corpo por padrão; sem zerar, o
+   app ganha uma faixa branca em volta. Fica aqui, e não num reset separado,
+   para que a Central continue inteira mesmo servida sozinha. */
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* As duas famílias são servidas pelo próprio app. Além de tirar uma
+   requisição a outro domínio do caminho crítico, isso faz a Central abrir
+   igual quando a rede está ruim ou quando o Google Fonts está bloqueado —
+   e um `@import` remoto dentro de um CSS carregado sob demanda chegava a
+   derrubar a tela inteira quando falhava. `font-display: swap` garante que
+   o texto apareça na hora, na fonte de sistema, se o arquivo demorar. */
+@font-face {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./fontes/public-sans-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./fontes/public-sans-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("./fontes/fraunces-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("./fontes/fraunces-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+.central {
+  /* ---- cores ---- */
+  --primary: #3a6355;
+  --primary-dark: #274539;
+  --primary-soft: #e7efea;
+  --accent: #9d5f5a;
+  --accent-soft: #f4e9e7;
+
+  --background: #f6f4f1;
+  --surface: #ffffff;
+  --surface-2: #fbfaf8;
+
+  --text: #1f1d1b;
+  /* Os dois tons de texto de apoio passam de 4,5:1 sobre o fundo e sobre o
+     cartão — a hierarquia vem do tamanho e do peso, não de clarear a cor
+     até o texto sumir no sol. `--icone` é só para ícone decorativo (a lupa,
+     a seta do cartão), onde a régua é 3:1. */
+  --text-muted: #655f59;
+  --text-subtle: #726c65;
+  --icone: #8f877f;
+  /* `--border` desenha separador e contorno de cartão (decorativo);
+     `--border-campo` desenha a moldura de campo, seletor e chip, que
+     precisa de 3:1 para o controle ser identificável (WCAG 1.4.11). */
+  --border: #e6e1d9;
+  --border-strong: #d4cdc3;
+  --border-campo: #8a837b;
+
+  --success: #3d6650;
+  --success-soft: #e6efe9;
+  --warning: #7d5c14;
+  --warning-soft: #f6eeda;
+  --danger: #8f4034;
+  --danger-soft: #f6e8e5;
+
+  /* ---- forma e profundidade ---- */
+  --radius: 20px;
+  --radius-sm: 14px;
+  --radius-pill: 999px;
+  --shadow: 0 1px 2px rgba(31, 29, 27, 0.04), 0 10px 24px -18px rgba(31, 29, 27, 0.28);
+  --shadow-forte: 0 2px 6px rgba(31, 29, 27, 0.06), 0 18px 40px -24px rgba(31, 29, 27, 0.36);
+
+  /* ---- tipografia ---- */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Public Sans", system-ui, -apple-system, sans-serif;
+
+  /* ---- medidas de layout ---- */
+  --gutter: 20px;
+  --nav-altura: 64px;
+  --largura-conteudo: 720px;
+
+  min-height: 100dvh;
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+/* O fundo do documento acompanha a Central para que o "puxar" do iOS não
+   revele a cor do app que roda nas outras rotas. */
+body:has(.central) {
+  background: #f6f4f1;
+}
+
+.central *,
+.central *::before,
+.central *::after {
+  box-sizing: border-box;
+}
+
+.central h1,
+.central h2,
+.central h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  margin: 0;
+  font-variation-settings: "SOFT" 0, "WONK" 0;
+}
+
+.central p {
+  margin: 0;
+}
+
+.central button {
+  font: inherit;
+  color: inherit;
+}
+
+.central a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.central :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* ---------------------------------------------------------------- casca */
+
+.c-casca {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+.c-conteudo {
+  flex: 1;
+  width: 100%;
+  max-width: var(--largura-conteudo);
+  margin: 0 auto;
+  padding: 0 var(--gutter) calc(var(--nav-altura) + 40px + env(safe-area-inset-bottom));
+}
+
+/* ---------------------------------------------------------------- cabeçalho */
+
+.c-cabecalho {
+  padding: calc(20px + env(safe-area-inset-top)) var(--gutter) 4px;
+  max-width: var(--largura-conteudo);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.c-cabecalho-linha {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.c-marca {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.c-titulo {
+  font-size: 30px;
+  line-height: 1.12;
+  margin-top: 6px;
+}
+
+.c-subtitulo {
+  color: var(--text-muted);
+  font-size: 15px;
+  margin-top: 8px;
+  max-width: 34ch;
+}
+
+/* Cabeçalho das telas internas: voltar + título */
+.c-cabecalho-pagina {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(12px + env(safe-area-inset-top)) var(--gutter) 0;
+  max-width: var(--largura-conteudo);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.c-voltar {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border: 1px solid var(--border-campo);
+  background: var(--surface);
+  border-radius: var(--radius-pill);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.c-voltar:hover {
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+/* ---------------------------------------------------------------- busca */
+
+.c-busca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-campo);
+  border-radius: var(--radius-pill);
+  padding: 0 16px;
+  height: 50px;
+  box-shadow: var(--shadow);
+  width: 100%;
+  cursor: text;
+}
+
+.c-busca svg {
+  color: var(--icone);
+  flex: none;
+}
+
+.c-busca input {
+  border: 0;
+  background: none;
+  outline: none;
+  font: inherit;
+  color: var(--text);
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+}
+
+.c-busca input::placeholder {
+  color: var(--text-subtle);
+}
+
+.c-busca-limpar {
+  border: 0;
+  background: none;
+  padding: 4px;
+  color: var(--icone);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+/* ---------------------------------------------------------------- cartões */
+
+.c-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.c-secao {
+  margin-top: 28px;
+}
+
+.c-secao-titulo {
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* Grade dos acessos da home */
+.c-atalhos {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+.c-atalho {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+  padding: 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+}
+
+.c-atalho:active {
+  transform: scale(0.985);
+}
+
+.c-atalho:hover {
+  box-shadow: var(--shadow-forte);
+  border-color: var(--border-strong);
+}
+
+.c-atalho-icone {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: var(--radius-sm);
+  display: grid;
+  place-items: center;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.c-atalho-texto h3 {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.c-atalho-texto p {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.c-atalho-seta {
+  margin-left: auto;
+  color: var(--icone);
+  flex: none;
+}
+
+/* Lista simples dentro de cartão */
+.c-lista {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.c-lista-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 15px 18px;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  min-height: 56px;
+}
+
+.c-lista-item:last-child {
+  border-bottom: 0;
+}
+
+.c-lista-item:hover {
+  background: var(--surface-2);
+}
+
+/* Mesma linha, quando ela tem uma ação própria à direita (salvar, remover):
+   o alvo de navegação vira um botão e a ação fica ao lado dele, nunca
+   dentro. */
+.c-linha {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.c-linha:last-child {
+  border-bottom: 0;
+}
+
+.c-linha:hover {
+  background: var(--surface-2);
+}
+
+.c-linha-alvo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  padding: 15px 4px 15px 18px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  min-height: 56px;
+}
+
+.c-linha-alvo:disabled {
+  cursor: default;
+  color: inherit;
+  opacity: 1;
+}
+
+.c-lista-item-nome {
+  display: block;
+  font-size: 15.5px;
+  line-height: 1.3;
+}
+
+.c-lista-item-apoio {
+  display: block;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.c-lista-item-direita {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--icone);
+  flex: none;
+}
+
+/* ---------------------------------------------------------------- formulário */
+
+.c-campo {
+  margin-top: 18px;
+}
+
+.c-rotulo {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.c-input,
+.c-select {
+  width: 100%;
+  /* Junto com o `min-width: 0` do item de grid: campo de data e de hora têm
+     largura natural própria no iOS e precisam poder encolher. */
+  min-width: 0;
+  box-sizing: border-box;
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid var(--border-campo);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: inherit;
+  color: var(--text);
+  outline: none;
+}
+
+.c-input:focus,
+.c-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.c-select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 20px) 23px, calc(100% - 14px) 23px;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.c-quantidade {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 10px;
+}
+
+/* Campo de alimento já escolhido */
+.c-escolhido {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 13px 16px;
+  border: 1px solid var(--primary);
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+  cursor: pointer;
+  min-height: 52px;
+}
+
+.c-escolhido-nome {
+  display: block;
+  font-size: 15.5px;
+  line-height: 1.25;
+}
+
+.c-escolhido-grupo {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.c-escolhido-trocar {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: 600;
+  flex: none;
+}
+
+/* Lista de sugestões do autocomplete */
+.c-sugestoes {
+  margin-top: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-forte);
+  overflow: hidden;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.c-sugestao {
+  display: block;
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 13px 16px;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  min-height: 50px;
+}
+
+.c-sugestao:last-child {
+  border-bottom: 0;
+}
+
+.c-sugestao:hover,
+.c-sugestao[aria-selected="true"] {
+  background: var(--primary-soft);
+}
+
+.c-sugestao-nome {
+  display: block;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.c-sugestao-grupo {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* Separador entre os dois lados da troca */
+.c-inversor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 4px;
+}
+
+.c-inversor::before,
+.c-inversor::after {
+  content: "";
+  height: 1px;
+  background: var(--border);
+  flex: 1;
+}
+
+.c-inversor button {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-campo);
+  background: var(--surface);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+.c-inversor button:disabled {
+  color: var(--text-subtle);
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- chips */
+
+.c-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.c-chip {
+  border: 1px solid var(--border-campo);
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: var(--radius-pill);
+  padding: 8px 14px;
+  font-size: 13.5px;
+  cursor: pointer;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.c-chip[aria-pressed="true"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.c-chip:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- resultado da troca */
+
+.c-resultado {
+  margin-top: 26px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 26px 22px 22px;
+  box-shadow: var(--shadow-forte);
+  position: relative;
+  overflow: hidden;
+}
+
+.c-resultado-rotulo {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  font-weight: 600;
+}
+
+.c-resultado-valor {
+  font-family: var(--font-display);
+  font-size: 44px;
+  line-height: 1.05;
+  margin-top: 12px;
+  letter-spacing: -0.02em;
+}
+
+.c-resultado-valor span {
+  font-size: 24px;
+  opacity: 0.85;
+}
+
+.c-resultado-alimento {
+  font-size: 19px;
+  margin-top: 6px;
+  line-height: 1.25;
+}
+
+.c-resultado-troca {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 14px;
+  opacity: 0.82;
+  line-height: 1.45;
+}
+
+.c-resultado-nota {
+  margin-top: 10px;
+  font-size: 12.5px;
+  opacity: 0.66;
+  line-height: 1.4;
+}
+
+.c-resultado-acoes {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.c-resultado-acao {
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: var(--radius-pill);
+  padding: 9px 16px;
+  font-size: 13.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+}
+
+.c-resultado-acao[aria-pressed="true"] {
+  background: #fff;
+  color: var(--primary-dark);
+  border-color: #fff;
+}
+
+/* ---------------------------------------------------------------- avisos e vazios */
+
+.c-aviso {
+  margin-top: 22px;
+  border-radius: var(--radius);
+  padding: 18px;
+  background: var(--warning-soft);
+  border: 1px solid rgba(168, 124, 40, 0.22);
+  color: #6d5116;
+  font-size: 14.5px;
+  line-height: 1.45;
+  display: flex;
+  gap: 12px;
+}
+
+.c-aviso svg {
+  flex: none;
+  margin-top: 1px;
+}
+
+.c-vazio {
+  text-align: center;
+  padding: 44px 24px;
+  color: var(--text-muted);
+}
+
+.c-vazio-icone {
+  width: 54px;
+  height: 54px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+  margin: 0 auto 16px;
+}
+
+.c-vazio h3 {
+  font-size: 19px;
+  color: var(--text);
+}
+
+.c-vazio p {
+  font-size: 14.5px;
+  margin-top: 8px;
+  line-height: 1.5;
+  max-width: 38ch;
+  margin-inline: auto;
+}
+
+/* ---------------------------------------------------------------- selos */
+
+.c-selo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: var(--radius-pill);
+  padding: 4px 11px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.c-selo::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.c-selo.melhor {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.c-selo.boa {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.c-selo.ocasional {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.c-selo.neutro {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.c-selo.neutro::before {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- favoritar */
+
+.c-favoritar {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-campo);
+  background: var(--surface);
+  color: var(--text-muted);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.c-favoritar[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--accent-soft);
+  background: var(--accent-soft);
+}
+
+/* ---------------------------------------------------------------- comer fora */
+
+.c-grade {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.c-categoria {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 18px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  min-height: 124px;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.c-categoria:active {
+  transform: scale(0.985);
+}
+
+.c-categoria:hover {
+  box-shadow: var(--shadow-forte);
+}
+
+.c-categoria-icone {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: grid;
+  place-items: center;
+}
+
+.c-categoria h3 {
+  font-size: 16.5px;
+  line-height: 1.2;
+}
+
+.c-categoria p {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.35;
+  margin-top: 3px;
+}
+
+.c-categoria.pendente {
+  background: var(--surface-2);
+  box-shadow: none;
+}
+
+.c-categoria.pendente .c-categoria-icone {
+  background: var(--surface);
+  color: var(--text-subtle);
+  border: 1px solid var(--border);
+}
+
+/* Cartão de opção (abre e fecha) */
+.c-opcao {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+/* A linha de topo do cartão é um contêiner, não um botão: dentro dela o
+   botão de abrir e o de salvar são irmãos. Botão dentro de botão é HTML
+   inválido e quebra o foco por teclado e a leitura por leitor de tela. */
+.c-opcao-topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 14px;
+  min-height: 58px;
+}
+
+.c-opcao-abrir {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  padding: 15px 4px 15px 16px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  min-height: 58px;
+}
+
+.c-opcao-titulo {
+  display: block;
+  font-size: 15.5px;
+  line-height: 1.25;
+}
+
+.c-opcao-corpo {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+}
+
+.c-opcao-corpo p {
+  font-size: 14.5px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.c-opcao-corpo ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  font-size: 14.5px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.c-opcao-kcal {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--text-subtle);
+}
+
+.c-decisao {
+  margin-top: 26px;
+}
+
+.c-decisao h2 {
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.c-decisao-pergunta {
+  font-size: 14.5px;
+  color: var(--text-muted);
+  margin-top: 5px;
+}
+
+/* ---------------------------------------------------------------- texto longo */
+
+.c-prosa p {
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--text-muted);
+  margin-top: 12px;
+}
+
+.c-prosa ul {
+  margin: 12px 0 0;
+  padding-left: 20px;
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.c-intro {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-top: 14px;
+}
+
+.c-regra {
+  margin-top: 18px;
+  background: var(--primary-soft);
+  border-radius: var(--radius);
+  padding: 18px;
+  color: var(--primary-dark);
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+.c-regra strong {
+  font-weight: 600;
+}
+
+/* A regra de mão única entre grupos. Âmbar e com barra à esquerda porque ela
+   não é uma informação a mais sobre o grupo: é a que mais se aplica ao
+   contrário por engano, e precisa parar o olho. */
+.c-regra-atencao {
+  background: var(--warning-soft);
+  color: #6d5116;
+  border-left: 3px solid var(--warning);
+}
+
+/* Cartão alcançado por um link da busca: marcado só o suficiente para o olho
+   achar onde a rolagem parou. */
+.c-opcao.destacada {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------- desafio */
+
+.c-desafio-lema {
+  margin-top: 16px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--primary-dark);
+  border-left: 3px solid var(--primary);
+  padding-left: 12px;
+  line-height: 1.4;
+}
+
+/* O placar: mês grande, acumulado pequeno. A hierarquia visual é a própria
+   regra — são duas contagens diferentes, e a do mês é a do ranking. */
+.c-placar {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  margin-top: 20px;
+}
+
+.c-placar-mes {
+  flex: 1;
+  background: var(--primary);
+  color: var(--surface);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.c-placar-mes strong {
+  font-family: var(--font-display);
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 600;
+}
+
+.c-placar-mes span {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.c-placar-posicao {
+  flex: 0 0 96px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.c-placar-posicao span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.c-placar-posicao strong {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1;
+  color: var(--primary-dark);
+}
+
+.c-placar-acumulado {
+  margin-top: 10px;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.c-placar-acumulado strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.c-desafio-frase {
+  margin-top: 14px;
+  font-family: var(--font-display);
+  font-size: 16px;
+  color: var(--text);
+}
+
+/* Confirmação discreta depois de marcar. Some sozinha. */
+.c-festejo {
+  margin-top: 16px;
+  background: var(--success-soft);
+  color: var(--success);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 13.5px;
+  animation: c-surgir 0.24s ease;
+}
+
+@keyframes c-surgir {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c-festejo { animation: none; }
+}
+
+.c-acoes {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.c-acao {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.c-acao.aprovado {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+
+.c-acao.pendente {
+  border-color: var(--border-strong);
+}
+
+.c-acao-topo {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.c-acao-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.c-acao-texto strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.c-acao-descricao {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.c-acao-pontos {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.c-acao-estado {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.c-acao .c-botao-pequeno {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Painel de números da área da nutricionista. */
+.c-numeros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.c-numero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+.c-numero.destaque {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+}
+
+.c-numero strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 26px;
+  line-height: 1;
+  color: var(--primary-dark);
+}
+
+.c-numero.destaque strong { color: #6d5116; }
+
+.c-numero span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------------- ranking */
+
+.c-ranking {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.c-ranking-linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+/* Destaque para o pódio sem medalha nem confete: só peso tipográfico. */
+.c-ranking-linha.destaque .c-ranking-posicao {
+  color: var(--primary);
+  font-size: 17px;
+}
+
+.c-ranking-linha.eu {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.c-ranking-posicao {
+  flex: 0 0 34px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.c-ranking-nome {
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.c-ranking-linha.eu .c-ranking-nome {
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.c-ranking-pontos {
+  flex: none;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------------- recompensas */
+
+.c-progresso {
+  margin-top: 14px;
+  height: 8px;
+  background: var(--border);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+
+.c-progresso-barra {
+  height: 100%;
+  background: var(--primary);
+  border-radius: var(--radius-pill);
+  transition: width 0.3s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c-progresso-barra { transition: none; }
+}
+
+.c-recompensas {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.c-recompensa {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.c-recompensa.alcancada {
+  border-color: var(--success);
+  background: var(--success-soft);
+}
+
+.c-recompensa-pontos {
+  flex: 0 0 46px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.c-recompensa-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.c-recompensa-texto strong {
+  display: block;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.c-recompensa-texto span {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* Card do desafio na Home: chama atenção sem tomar a tela. */
+.c-card-desafio {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: var(--radius);
+  border: 1px solid var(--primary);
+  background: var(--primary-soft);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.c-card-desafio:hover { background: var(--surface); }
+
+.c-card-desafio:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.c-card-desafio-texto { flex: 1; min-width: 0; }
+
+.c-card-desafio-texto strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--primary-dark);
+}
+
+.c-card-desafio-texto span {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.c-card-desafio-numero {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--primary);
+  line-height: 1;
+}
+
+/* ---------------------------------------------------------------- logos */
+
+.c-logo {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+/* `contain` e não `cover`: logo cortada deixa de ser a marca. */
+.c-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 14%;
+}
+
+.c-logo-inicial {
+  background: var(--primary-soft);
+  border-color: transparent;
+  color: var(--primary-dark);
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* ---------------------------------------------------------------- casas */
+
+.c-casas {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.c-casa {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  box-shadow: var(--shadow);
+}
+
+.c-casa:hover {
+  border-color: var(--border-strong);
+}
+
+.c-casa:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.c-casa-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.c-casa-texto strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.c-casa-texto span {
+  display: block;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.c-casa-seta {
+  color: var(--icone);
+  display: inline-flex;
+}
+
+/* Cabeçalho da tela de uma casa: logo grande ao lado do nome. */
+.c-casa-topo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+/* ---------------------------------------------------------------- navegação */
+
+.c-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  display: flex;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border);
+  padding: 7px 4px calc(7px + env(safe-area-inset-bottom));
+}
+
+.c-nav-item {
+  flex: 1;
+  border: 0;
+  background: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px 2px;
+  cursor: pointer;
+  color: var(--text-muted);
+  min-height: 50px;
+  font-size: 10.5px;
+  letter-spacing: 0.01em;
+  transition: color 0.15s ease;
+}
+
+.c-nav-item.ativo {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.c-nav-item span {
+  line-height: 1;
+}
+
+/* ---------------------------------------------------------------- resultados da busca */
+
+.c-resultado-secao + .c-resultado-secao {
+  margin-top: 24px;
+}
+
+.c-contagem {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 14px;
+}
+
+.c-sugeridos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+/* ---------------------------------------------------------------- tablet */
+
+@media (min-width: 640px) {
+  .central {
+    --gutter: 28px;
+  }
+
+  .c-atalhos {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .c-atalho {
+    flex-direction: column;
+    align-items: flex-start;
+    min-height: 168px;
+    padding: 22px;
+  }
+
+  .c-atalho-seta {
+    display: none;
+  }
+
+  .c-grade {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .c-titulo {
+    font-size: 36px;
+  }
+}
+
+/* ---------------------------------------------------------------- desktop */
+
+@media (min-width: 1024px) {
+  .central {
+    --nav-altura: 0px;
+  }
+
+  .c-casca {
+    padding-left: 248px;
+  }
+
+  .c-conteudo {
+    padding-bottom: 80px;
+  }
+
+  /* A barra inferior vira barra lateral — mesma estrutura, outra forma. */
+  .c-nav {
+    top: 0;
+    right: auto;
+    width: 248px;
+    height: 100dvh;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px;
+    padding: 96px 16px 24px;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-top: 0;
+    border-right: 1px solid var(--border);
+  }
+
+  .c-nav-item {
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    font-size: 14.5px;
+    width: 100%;
+  }
+
+  .c-nav-item.ativo {
+    background: var(--primary-soft);
+  }
+
+  .c-nav-marca {
+    position: fixed;
+    top: 34px;
+    left: 30px;
+    width: 200px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .central *,
+  .central *::before,
+  .central *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* =========================================================================
+   Telas de conta, faixa de demonstração e área da nutricionista.
+   Mesmas variáveis do bloco do topo — nada de cor nova escrita aqui.
+   ========================================================================= */
+
+.c-conta {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 28px var(--gutter) calc(28px + env(safe-area-inset-bottom));
+}
+
+.c-conta-caixa {
+  width: 100%;
+  max-width: 420px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-forte);
+  padding: 30px 24px 26px;
+}
+
+.c-conta-rodape {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.c-botao {
+  display: block;
+  width: 100%;
+  min-height: 50px;
+  margin-top: 20px;
+  padding: 0 20px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  line-height: 48px;
+  transition: background 0.15s ease;
+}
+
+.c-botao:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+.c-botao:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.c-botao-secundario {
+  background: var(--surface);
+  color: var(--primary);
+}
+
+.c-botao-secundario:hover {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+.c-botao-perigo {
+  background: var(--surface);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.c-botao-perigo:hover {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+.c-botao-pequeno {
+  width: auto;
+  min-height: 42px;
+  line-height: 40px;
+  margin-top: 0;
+  font-size: 14px;
+  padding: 0 16px;
+}
+
+.c-link {
+  border: 0;
+  background: none;
+  padding: 8px 0;
+  color: var(--primary);
+  font: inherit;
+  font-size: 14.5px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  min-height: 40px;
+}
+
+.c-dica {
+  /* `block` porque a dica também é usada em <span>, dentro de <label>. Sem
+     isto ela emenda no elemento anterior e vira "Foi outro alimentoPorção de
+     referência..." — que foi exatamente o que apareceu no celular dela. */
+  display: block;
+  font-size: 13px;
+  color: var(--text-subtle);
+  margin-top: 7px;
+  line-height: 1.45;
+}
+
+.c-aviso-erro {
+  background: var(--danger-soft);
+  border-color: rgba(143, 64, 52, 0.24);
+  color: #6f2f26;
+}
+
+.c-aviso-ok {
+  background: var(--success-soft);
+  border-color: rgba(61, 102, 80, 0.24);
+  color: #2c4c3b;
+}
+
+.c-carregando {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  gap: 14px;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.c-girando {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--border-campo);
+  border-top-color: var(--primary);
+  animation: c-girar 0.7s linear infinite;
+  display: block;
+  margin: 0 auto;
+}
+
+@keyframes c-girar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.c-faixa-demo {
+  background: var(--warning-soft);
+  color: #6d5116;
+  border-bottom: 1px solid rgba(125, 92, 20, 0.22);
+  padding: 9px var(--gutter);
+  font-size: 12.5px;
+  text-align: center;
+  line-height: 1.35;
+}
+
+/* A faixa da nutricionista é verde, não âmbar: não é um aviso de risco, é
+   uma informação de contexto mais um atalho. A de demonstração continua
+   sendo a única coisa amarela da tela. */
+.c-faixa-admin {
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  border-bottom: 1px solid rgba(58, 99, 85, 0.2);
+  padding: 8px var(--gutter);
+  font-size: 12.5px;
+  line-height: 1.35;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px 12px;
+}
+
+.c-faixa-admin button {
+  font: inherit;
+  font-weight: 600;
+  color: var(--primary-dark);
+  background: none;
+  border: none;
+  padding: 2px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border-radius: 4px;
+}
+
+.c-faixa-admin button:hover {
+  color: var(--text);
+}
+
+.c-faixa-admin button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------- admin */
+
+.c-admin {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.c-admin-topo {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: calc(12px + env(safe-area-inset-top)) var(--gutter) 0;
+}
+
+.c-admin-topo-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-bottom: 10px;
+}
+
+.c-admin-abas {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  max-width: 1100px;
+  margin: 0 auto;
+  scrollbar-width: none;
+}
+
+.c-admin-abas::-webkit-scrollbar {
+  display: none;
+}
+
+.c-admin-aba {
+  border: 0;
+  background: none;
+  padding: 10px 12px 12px;
+  font-size: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  min-height: 44px;
+}
+
+.c-admin-aba.ativo {
+  color: var(--primary);
+  font-weight: 600;
+  border-bottom-color: var(--primary);
+}
+
+.c-admin-conteudo {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 22px var(--gutter) calc(60px + env(safe-area-inset-bottom));
+}
+
+.c-cartoes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.c-metrica {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 18px;
+}
+
+.c-metrica-valor {
+  font-family: var(--font-display);
+  font-size: 32px;
+  line-height: 1;
+  margin-top: 8px;
+}
+
+.c-metrica-rotulo {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  font-weight: 600;
+}
+
+.c-barra-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 18px;
+}
+
+.c-barra-acoes .c-busca {
+  flex: 1;
+  min-width: 200px;
+}
+
+.c-tabela {
+  margin-top: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.c-tabela-linha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.c-tabela-linha:last-child {
+  border-bottom: 0;
+}
+
+.c-tabela-linha:hover {
+  background: var(--surface-2);
+}
+
+.c-tabela-alvo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 14px 4px 14px 18px;
+  cursor: pointer;
+  min-height: 60px;
+}
+
+.c-tabela-nome {
+  display: block;
+  font-size: 15.5px;
+  line-height: 1.25;
+}
+
+.c-tabela-apoio {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.c-tabela-coluna {
+  flex: none;
+  min-width: 120px;
+}
+
+/* ---------------------------------------------------------------- modal */
+
+.c-veu {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(31, 29, 27, 0.42);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+}
+
+.c-modal {
+  background: var(--surface);
+  width: 100%;
+  max-width: 520px;
+  max-height: 92dvh;
+  overflow-y: auto;
+  border-radius: var(--radius) var(--radius) 0 0;
+  /* Sem espaço em cima: quem dá o respiro é a pega, e o título precisa
+     encostar no topo para poder grudar nele ao rolar. */
+  padding: 0 20px calc(24px + env(safe-area-inset-bottom));
+  box-shadow: var(--shadow-forte);
+  animation: c-subir 0.24s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes c-subir {
+  from {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+}
+
+.c-modal-pega {
+  width: 40px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--border-strong);
+  margin: 16px auto 14px;
+}
+
+/* O título gruda no topo enquanto o formulário rola.
+   Num formulário longo de celular — registrar alimento tem sete perguntas —
+   o título saía de cena no primeiro deslize e ficava cortado pela borda, e
+   quem rolasse um pouco não sabia mais em que tela estava. As margens
+   negativas fazem o fundo cobrir a largura toda, senão o conteúdo passaria
+   por baixo aparecendo nas beiradas. */
+.c-modal h2 {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0 -20px;
+  padding: 2px 20px 12px;
+  background: var(--surface);
+  /* Acompanha o arredondamento do modal: grudado no topo, um fundo quadrado
+     cobriria os cantos e o modal pareceria outro componente. */
+  border-radius: var(--radius) var(--radius) 0 0;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.c-modal-acoes {
+  display: flex;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.c-modal-acoes .c-botao {
+  margin-top: 0;
+}
+
+.c-textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 92px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-campo);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: inherit;
+  color: var(--text);
+  outline: none;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.c-textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+/* Duas colunas quando cabem duas; uma quando não cabem.
+   O `minmax(200px, 1fr)` é o que faz o par virar lista no celular estreito —
+   antes as duas colunas eram impostas, o rótulo comprido quebrava em duas
+   linhas e empurrava só um dos campos para baixo, deixando a dupla torta.
+   `align-items: start` impede que o campo de um lado estique para acompanhar
+   o rótulo alto do outro. */
+.c-duas-colunas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+/* Item de grid nasce com `min-width: auto`, e por isso não encolhe abaixo do
+   tamanho natural do conteúdo. Um <input type="date"> no iPhone é largo por
+   natureza: sem esta linha ele estoura a coluna e passa por cima do campo do
+   lado — o empilhamento que ela viu na tela de registrar alimento. */
+.c-duas-colunas > * {
+  min-width: 0;
+}
+
+/* Quem dá o espaço entre as duas é o `gap`. Sem zerar aqui, cada campo somava
+   a própria margem e a dupla ficava afastada demais do que vem antes — e, ao
+   empilhar no celular, com dois espaçamentos diferentes entre as linhas. */
+.c-duas-colunas {
+  margin-top: 18px;
+}
+
+.c-duas-colunas > .c-campo {
+  margin-top: 0;
+}
+
+.c-bloco {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-top: 12px;
+  background: var(--surface-2);
+}
+
+.c-bloco-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .c-veu {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .c-modal {
+    border-radius: var(--radius);
+  }
+
+  .c-modal-pega {
+    display: none;
+  }
+
+  /* No computador não há pega para dar o respiro de cima. */
+  .c-modal h2 {
+    padding-top: 20px;
+  }
+}
+
+/* Observações que valem para um bloco de escolhas inteiro, e links dentro
+   do texto dos guias. */
+.c-observacoes {
+  margin: 12px 0 0;
+  padding: 12px 14px 12px 30px;
+  background: var(--primary-soft);
+  border-radius: var(--radius-sm);
+  color: var(--primary-dark);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.c-observacoes li + li {
+  margin-top: 6px;
+}
+
+.c-link-externo {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  word-break: break-word;
+}
+
+/* Lema da Central. Tipografia de título, tamanho de legenda: é uma frase de
+   identidade, não uma instrução — precisa ser notada sem competir com os
+   acessos logo abaixo. */
+.c-lema {
+  margin-top: 24px;
+  margin-bottom: 4px;
+  padding-left: 14px;
+  border-left: 2px solid var(--primary);
+  font-family: var(--font-display);
+  font-size: 16.5px;
+  line-height: 1.4;
+  color: var(--primary-dark);
+}
+
+.c-sem-sugestao {
+  padding: 13px 16px;
+  color: var(--text-muted);
+  font-size: 14.5px;
+}
+
+/* Rastreabilidade alimentar.
+   Uma regra só: o alimento que a paciente marcou como "não faz parte da minha
+   alimentação" recua em vez de sumir. Sumir a faria pensar que perdeu o
+   alimento; recuar mostra que a escolha foi registrada e continua desfazível.
+   Nada de tachado nem de vermelho — não é erro, é uma preferência dela. */
+.c-acao.apagado {
+  opacity: 0.62;
+  border-style: dashed;
+}
+
+/* A marcação de oxalato, histamina e lectina.
+   "Bem sutil e pequeno embaixo" — menor que a dica comum, cinza, sem caixa e
+   sem cor de alerta. Não é aviso de perigo: é uma pista para a nutricionista
+   comparar alimentos parecidos, e só aparece quando houve sintoma. */
+.c-marcacao {
+  margin-top: 6px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+/* Controle de intensidade do sintoma.
+   Sem isto o navegador desenha o dele, azul — o único azul num app verde, e
+   logo na pergunta mais delicada do formulário. A trilha e o botão precisam
+   dos dois prefixos: cada motor desenha essa peça do seu jeito. */
+.c-faixa {
+  width: 100%;
+  height: 34px;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.c-faixa::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--border-strong);
+}
+
+.c-faixa::-moz-range-track {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--border-strong);
+}
+
+.c-faixa::-webkit-slider-thumb {
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  margin-top: -10px;
+  border-radius: 99px;
+  border: 2px solid var(--surface);
+  background: var(--primary);
+  box-shadow: 0 1px 4px rgba(31, 29, 27, 0.28);
+}
+
+.c-faixa::-moz-range-thumb {
+  width: 26px;
+  height: 26px;
+  border-radius: 99px;
+  border: 2px solid var(--surface);
+  background: var(--primary);
+  box-shadow: 0 1px 4px rgba(31, 29, 27, 0.28);
+}
+
+.c-faixa:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.c-faixa:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}

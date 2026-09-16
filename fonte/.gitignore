@@ -1,0 +1,14 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.local
+.DS_Store
+*.tsbuildinfo
+.claude/worktrees/
+dist-demo
+dist-unico
+site-pages
+site
+dist-pages

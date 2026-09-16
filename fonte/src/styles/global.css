@@ -1,0 +1,8 @@
+@import "./tokens.css";
+@import "./reset.css";
+@import "./patient.css";
+@import "./nutri.css";
+
+body {
+  background: var(--paper);
+}

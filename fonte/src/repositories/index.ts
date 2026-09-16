@@ -1,0 +1,15 @@
+export * as pacienteRepository from "./pacienteRepository";
+export * as planoRepository from "./planoRepository";
+export * as checkinRepository from "./checkinRepository";
+export * as diarioRepository from "./diarioRepository";
+export * as chatRepository from "./chatRepository";
+export * as feedRepository from "./feedRepository";
+export * as materialRepository from "./materialRepository";
+export * as bibliotecaRepository from "./bibliotecaRepository";
+export * as questionarioRepository from "./questionarioRepository";
+export * as evolucaoRepository from "./evolucaoRepository";
+export * as preferenciasRepository from "./preferenciasRepository";
+export * as alimentoRepository from "./alimentoRepository";
+export * as fichaAlimentoRepository from "./fichaAlimentoRepository";
+export * as mfaRepository from "./mfaRepository";
+export * as alertaRepository from "./alertaRepository";
