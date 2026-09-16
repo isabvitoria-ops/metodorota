@@ -60,13 +60,20 @@ Ela não sobe arquivo. Você publica:
 
 ```bash
 npm run html-pages                 # gera site-pages/index.html + 404.html
-cp site-pages/*.html /home/user/metodorota/
-cd /home/user/metodorota && git add -A && git commit && git push origin main
+cp site-pages/*.html ..            # a raiz do repositório
+cd .. && git add -A && git commit && git push origin main
 ```
 
-O repositório do site é `isabvitoria-ops/metodorota` (o código é
-`isabvitoria-ops/diet-app`, branch `claude/nutrition-patient-webapp-5myhmt`).
-Se não estiver anexado à sessão, use `add_repo`.
+**Repositório único: `isabvitoria-ops/metodorota`.** Ele guarda as duas
+metades do aplicativo — `index.html` e `404.html` na raiz (o app montado,
+que a paciente abre) e `fonte/` (o código de onde esses arquivos saem, que
+é onde você trabalha). Se não estiver anexado à sessão, use `add_repo`.
+
+O `isabvitoria-ops/diet-app` **não existe mais**: ela o apagou em 16/09/26
+achando que fosse uma versão velha, porque a branch principal dele estava
+parada em agosto enquanto o trabalho vivia numa ramificação. O código foi
+recuperado desta máquina e trazido para `fonte/`, com o histórico inteiro.
+Não recrie aquele repositório nem mande ela procurá-lo.
 
 Os dois arquivos têm que subir com os nomes **exatos** `index.html` e
 `404.html`. Um upload pelo navegador já virou `index (1).html` uma vez, e o
@@ -80,9 +87,9 @@ está no ar.
 Quase nunca. No fluxo normal ela **não toca no GitHub** — você commita, faz
 push e o Pages publica. Os casos em que ela precisa entrar:
 
-- **Sessão nova sem os repositórios anexados.** Peça que ela mande
-  `isabvitoria-ops/metodorota` e `isabvitoria-ops/diet-app`, e use `add_repo`.
-  É pedido de informação, não tarefa no site.
+- **Sessão nova sem o repositório anexado.** Peça que ela mande
+  `isabvitoria-ops/metodorota`, e use `add_repo`. É um só, e é pedido de
+  informação, não tarefa no site.
 - **Configuração do GitHub Pages** (Settings → Pages): ligar, desligar, mudar
   a branch ou apontar domínio próprio. Só ela tem esse botão.
 - **Plano B**, se você não conseguir publicar: repositório `metodorota` →
