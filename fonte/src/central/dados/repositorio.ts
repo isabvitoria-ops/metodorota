@@ -25,9 +25,12 @@ import type {
   Unidade,
 } from "@/central/types";
 import type {
+  AvaliacaoFisica,
   ConteudoProtocolo,
+  DadosAvaliacao,
   FichaProtocolo,
   GrupoDoProtocolo,
+  MinhaAvaliacao,
   Protocolo,
   ResumoProtocolo,
 } from "@/central/types/protocolo";
@@ -200,6 +203,24 @@ export interface Repositorio {
     itens: GrupoDoProtocolo["itens"],
   ): Promise<void>;
   excluirGrupoProtocolo(id: string): Promise<void>;
+
+  // --------------------------------------------------------- avaliação física
+  //
+  // O app guarda e mostra; quem calcula é ela, fora daqui.
+
+  /** A última avaliação publicada da paciente, ou nulo. */
+  minhaAvaliacao(): Promise<MinhaAvaliacao | null>;
+
+  // Área da nutricionista
+  avaliacoesDoPaciente(pacienteId: string): Promise<AvaliacaoFisica[]>;
+  salvarAvaliacaoFisica(
+    id: string | null,
+    pacienteId: string,
+    data: string,
+    dados: DadosAvaliacao,
+    publicada: boolean,
+  ): Promise<void>;
+  excluirAvaliacaoFisica(id: string): Promise<void>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

@@ -726,6 +726,52 @@ export const repositorioLocal: Repositorio = {
   async excluirGrupoProtocolo() {
     throw new Error("Apagar grupo precisa do banco. Configure o Supabase.");
   },
+
+  // Uma avaliação de exemplo, com os números do material dela, para a
+  // demonstração mostrar a tela cheia.
+  async minhaAvaliacao() {
+    return {
+      id: "demo",
+      data: new Date().toISOString().slice(0, 10),
+      total: 1,
+      inicio: new Date().toISOString().slice(0, 10),
+      dados: {
+        metodo: "4 Pregas: Protocolo de Faulkner",
+        peso: 47.8,
+        altura: 159,
+        idade: 22,
+        percentualGordura: 10.9,
+        massaGorda: 5.2,
+        massaMagra: 42.6,
+        imc: 18.9,
+        somaDobras: 33.2,
+        dobras: [
+          { nome: "Tríceps", valor: "9,6 mm" },
+          { nome: "Subescapular", valor: "8,0 mm" },
+          { nome: "Supra-ilíaca", valor: "7,4 mm" },
+          { nome: "Abdominal", valor: "8,2 mm" },
+        ],
+        circunferencias: [
+          { nome: "Cintura", valor: "61,0 cm" },
+          { nome: "Abdômen", valor: "63,0 cm" },
+          { nome: "Quadril", valor: "87,0 cm" },
+        ],
+        observacao: null,
+      },
+    };
+  },
+
+  async avaliacoesDoPaciente() {
+    return [];
+  },
+
+  async salvarAvaliacaoFisica() {
+    throw new Error("Lançar avaliação precisa do banco. Configure o Supabase.");
+  },
+
+  async excluirAvaliacaoFisica() {
+    throw new Error("Apagar avaliação precisa do banco. Configure o Supabase.");
+  },
 };
 
 /** Dois grupos de exemplo, no formato que ela monta. */

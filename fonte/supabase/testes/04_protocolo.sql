@@ -317,6 +317,71 @@ select teste('nem criar', recusou($$select salvar_grupo_protocolo(null, 'Meu', '
 commit;
 
 -- -----------------------------------------------------------------------------
+-- Avaliação física: a paciente vê a dela, publicada, e só
+-- -----------------------------------------------------------------------------
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+select salvar_avaliacao_fisica(null, alana(), hoje_sp() - 30,
+  jsonb_build_object('metodo', '4 Pregas: Protocolo de Faulkner',
+                     'peso', 47.8, 'percentualGordura', 10.9), false);
+
+select teste('a avaliação nasce como rascunho',
+  (select count(*) from avaliacoes_fisicas where not publicada) = 1);
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000f1', true);
+select teste('a paciente NÃO vê avaliação não publicada',
+  (select count(*) from avaliacoes_fisicas) = 0);
+select teste('e minha_avaliacao() volta vazia', minha_avaliacao() is null);
+select teste('a home dela não oferece o atalho',
+  (meu_acesso() ->> 'avaliacao')::boolean = false);
+select teste('nem consegue lançar avaliação para si mesma',
+  recusou(format('select salvar_avaliacao_fisica(null, %L, null, ''{}''::jsonb, true)', alana())));
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+update avaliacoes_fisicas set publicada = true where paciente_id = alana();
+
+-- Uma segunda, mais nova, para conferir que a paciente lê a ÚLTIMA.
+select salvar_avaliacao_fisica(null, alana(), hoje_sp(),
+  jsonb_build_object('metodo', '3 Pregas: Protocolo de Guedes',
+                     'peso', 46.9, 'percentualGordura', 12.4), true);
+
+select teste('a lista dela traz as duas, mais nova primeiro',
+  jsonb_array_length(avaliacoes_do_paciente(alana())) = 2
+  and (avaliacoes_do_paciente(alana()) -> 0 -> 'dados' ->> 'metodo') = '3 Pregas: Protocolo de Guedes');
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000f1', true);
+
+select teste('a paciente lê a avaliação mais recente',
+  (minha_avaliacao() -> 'dados' ->> 'metodo') = '3 Pregas: Protocolo de Guedes');
+select teste('com o percentual que a nutricionista lançou',
+  (minha_avaliacao() -> 'dados' ->> 'percentualGordura') = '12.4');
+select teste('e sabe quantas já fez e desde quando',
+  (minha_avaliacao() ->> 'total')::int = 2
+  and (minha_avaliacao() ->> 'inicio')::date = hoje_sp() - 30);
+select teste('agora o atalho aparece', (meu_acesso() ->> 'avaliacao')::boolean);
+select teste('ela não consegue alterar a própria avaliação',
+  nao_alterou('update avaliacoes_fisicas set publicada = false'));
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000f2', true);
+select teste('a paciente B não vê a avaliação da paciente A',
+  (select count(*) from avaliacoes_fisicas) = 0);
+commit;
+
+-- -----------------------------------------------------------------------------
 -- Anônimo não chega perto
 -- -----------------------------------------------------------------------------
 begin;

@@ -21,9 +21,12 @@ import type {
   StatusReintroducao,
 } from "@/central/types";
 import type {
+  AvaliacaoFisica,
   ConteudoProtocolo,
+  DadosAvaliacao,
   FichaProtocolo,
   GrupoDoProtocolo,
+  MinhaAvaliacao,
   Protocolo,
   ResumoProtocolo,
 } from "@/central/types/protocolo";
@@ -802,6 +805,57 @@ export const repositorioSupabase: Repositorio = {
     const sb = exigirSupabase();
     const { error } = await sb.rpc("excluir_grupo_protocolo", { p_id: id });
     erro("apagar o grupo", error);
+  },
+
+  async minhaAvaliacao(): Promise<MinhaAvaliacao | null> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("minha_avaliacao");
+    erro("carregar sua avaliação", error);
+    if (!data) return null;
+    const linha = data as Linha;
+    return {
+      id: texto(linha.id),
+      data: texto(linha.data),
+      dados: (linha.dados ?? {}) as DadosAvaliacao,
+      total: numero(linha.total),
+      inicio: textoOuNulo(linha.inicio),
+    };
+  },
+
+  async avaliacoesDoPaciente(pacienteId: string): Promise<AvaliacaoFisica[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("avaliacoes_do_paciente", { p_paciente: pacienteId });
+    erro("carregar as avaliações", error);
+    return ((data ?? []) as Linha[]).map((a) => ({
+      id: texto(a.id),
+      data: texto(a.data),
+      dados: (a.dados ?? {}) as DadosAvaliacao,
+      publicada: a.publicada === true,
+    }));
+  },
+
+  async salvarAvaliacaoFisica(
+    id: string | null,
+    pacienteId: string,
+    data: string,
+    dados: DadosAvaliacao,
+    publicada: boolean,
+  ) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("salvar_avaliacao_fisica", {
+      p_id: id,
+      p_paciente: pacienteId,
+      p_data: data,
+      p_dados: dados,
+      p_publicada: publicada,
+    });
+    erro("salvar a avaliação", error);
+  },
+
+  async excluirAvaliacaoFisica(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("excluir_avaliacao_fisica", { p_id: id });
+    erro("apagar a avaliação", error);
   },
 };
 

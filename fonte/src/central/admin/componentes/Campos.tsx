@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { numeroDeTexto, textoDeNumero } from "@/central/utils/numero";
 
 /**
  * Campos de formulário da área administrativa.
@@ -138,6 +139,50 @@ export function AreaDeLinhas({
       onChange={(e) => {
         definirTexto(e.target.value);
         aoMudar(listaDeLinhas(e.target.value));
+      }}
+    />
+  );
+}
+
+/**
+ * Um número decimal escrito do jeito daqui, com vírgula.
+ *
+ * `<input type="number">` parece a escolha óbvia e não é: o que ele aceita
+ * depende do idioma do navegador. Num navegador em inglês, digitar "10,9"
+ * não dá erro nenhum — o campo devolve vazio, e um percentual de gordura
+ * some sem ninguém ver. Em avaliação física isso é número clínico indo
+ * embora calado.
+ *
+ * Aqui o texto mora como ela digitou (inclusive estados no meio do caminho,
+ * como "47," ou "-"), e só vira número na saída. Mesmo motivo do
+ * `AreaDeLinhas` logo acima: normalizar a cada tecla briga com quem digita.
+ */
+export function NumeroDecimal({
+  valor,
+  aoMudar,
+  placeholder,
+}: {
+  valor: number | null;
+  aoMudar: (valor: number | null) => void;
+  placeholder?: string;
+}) {
+  const [texto, definirTexto] = useState(() => textoDeNumero(valor));
+
+  useEffect(() => {
+    if (numeroDeTexto(texto) !== valor) definirTexto(textoDeNumero(valor));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valor]);
+
+  return (
+    <input
+      className="c-input"
+      type="text"
+      inputMode="decimal"
+      value={texto}
+      placeholder={placeholder}
+      onChange={(e) => {
+        definirTexto(e.target.value);
+        aoMudar(numeroDeTexto(e.target.value));
       }}
     />
   );

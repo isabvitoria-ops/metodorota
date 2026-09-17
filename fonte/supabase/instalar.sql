@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql
 -- =============================================================================
 
 
@@ -5704,3 +5704,821 @@ grant execute on function adicionar_item_livre_reintroducao(uuid, text) to authe
 grant execute on function rastreio_ativo(uuid) to authenticated;
 grant execute on function definir_rastreio_do_paciente(uuid, boolean) to authenticated;
 grant execute on function rastreios_ativos() to authenticated;
+
+
+-- ###########################################################################
+-- 0022_protocolo.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0022: protocolo alimentar
+--
+-- A nutricionista calcula a dieta fora, do jeito dela, e cola o resultado
+-- aqui. O app NÃO calcula nada: não guarda caloria, não guarda macro, não
+-- guarda porção. Ele guarda o que ela escreveu e mostra bonito para a
+-- paciente — que era a razão de existir disto, ter um aplicativo só em vez
+-- de dois.
+--
+-- O protocolo inteiro cabe num `jsonb`. Isso é decisão, não preguiça:
+--
+--   * ele é um documento, não uma planilha. Ninguém vai pesquisar "todas as
+--     pacientes que comem tapioca no café" — vai abrir o protocolo de uma
+--     paciente e ler de cima a baixo;
+--   * editar é reescrever o documento, e não costurar quinze tabelas;
+--   * o formato dela muda (hoje três colunas, amanhã quatro). Um documento
+--     acompanha; um esquema rígido vira migração toda vez.
+--
+-- Três situações, e só uma delas a paciente enxerga:
+--
+--   rascunho   — ela está montando. Ninguém mais vê.
+--   publicado  — no ar para a paciente. No máximo um por paciente.
+--   arquivado  — versão anterior. Fica de história, só para a nutricionista.
+-- =============================================================================
+
+create table if not exists protocolos (
+  id uuid primary key default gen_random_uuid(),
+  paciente_id uuid not null references pacientes (id) on delete cascade,
+  titulo text not null default 'Protocolo alimentar',
+  conteudo jsonb not null default '{"orientacoes":[],"refeicoes":[],"secoes":[]}'::jsonb,
+  -- Recado curto que aparece em destaque em cima do protocolo. Serve para o
+  -- ajuste de uma semana sem refazer o documento inteiro.
+  ajustes text,
+  situacao text not null default 'rascunho'
+    check (situacao in ('rascunho', 'publicado', 'arquivado')),
+  versao integer not null default 1,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now(),
+  publicado_em timestamptz
+);
+
+create index if not exists protocolos_por_paciente on protocolos (paciente_id, situacao);
+
+-- Um rascunho e um publicado por paciente. Arquivado pode ter quantos vierem.
+create unique index if not exists protocolo_um_rascunho
+  on protocolos (paciente_id) where situacao = 'rascunho';
+create unique index if not exists protocolo_um_publicado
+  on protocolos (paciente_id) where situacao = 'publicado';
+
+alter table protocolos enable row level security;
+
+-- A paciente lê o protocolo publicado dela, e mais nada: nem rascunho (que
+-- ainda está sendo escrito), nem arquivado (que já foi substituído), nem o
+-- de outra paciente. Quem garante isso é esta política, não a ausência de
+-- botão na tela.
+drop policy if exists protocolos_nutri on protocolos;
+create policy protocolos_nutri on protocolos for all
+  using (e_admin()) with check (e_admin());
+
+drop policy if exists protocolos_paciente on protocolos;
+create policy protocolos_paciente on protocolos for select
+  using (situacao = 'publicado' and paciente_id = meu_paciente_id());
+
+grant select, insert, update, delete on protocolos to authenticated;
+revoke all on table protocolos from anon;
+
+-- -----------------------------------------------------------------------------
+-- Lado da paciente
+-- -----------------------------------------------------------------------------
+
+/**
+ * O protocolo da paciente, ou nulo.
+ *
+ * Nulo não é erro: é a paciente que ainda não recebeu dieta, e a tela dela
+ * não deve nem mostrar o atalho nesse caso.
+ */
+create or replace function meu_protocolo()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select to_jsonb(p) - 'paciente_id'
+  from protocolos p
+  where p.situacao = 'publicado'
+    and p.paciente_id = meu_paciente_id();
+$$;
+
+revoke all on function meu_protocolo() from anon, public;
+grant execute on function meu_protocolo() to authenticated;
+
+/** Tem protocolo publicado? Entra no `meu_acesso()` para a home decidir. */
+create or replace function tenho_protocolo()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from protocolos
+    where situacao = 'publicado' and paciente_id = meu_paciente_id()
+  );
+$$;
+
+revoke all on function tenho_protocolo() from anon, public;
+grant execute on function tenho_protocolo() to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- Lado da nutricionista
+-- -----------------------------------------------------------------------------
+
+/**
+ * O que a tela de edição precisa: o rascunho (se houver), o publicado (se
+ * houver) e a lista das versões anteriores.
+ *
+ * Vem tudo numa chamada só porque a tela mostra tudo junto — e porque uma
+ * volta de rede a menos, no celular dela, é meio segundo a menos de espera.
+ */
+create or replace function protocolo_do_paciente(p_paciente uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista abre o protocolo de um paciente.' using errcode = '42501';
+  end if;
+
+  return jsonb_build_object(
+    'rascunho', (select to_jsonb(p) from protocolos p
+                  where p.paciente_id = p_paciente and p.situacao = 'rascunho'),
+    'publicado', (select to_jsonb(p) from protocolos p
+                   where p.paciente_id = p_paciente and p.situacao = 'publicado'),
+    'historico', coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'id', p.id, 'titulo', p.titulo, 'versao', p.versao,
+               'publicadoEm', p.publicado_em, 'atualizadoEm', p.atualizado_em)
+             order by p.versao desc)
+      from protocolos p
+      where p.paciente_id = p_paciente and p.situacao = 'arquivado'
+    ), '[]'::jsonb)
+  );
+end;
+$$;
+
+revoke all on function protocolo_do_paciente(uuid) from anon, public;
+grant execute on function protocolo_do_paciente(uuid) to authenticated;
+
+/**
+ * Salva o rascunho. Cria se não existir, sobrescreve se existir.
+ *
+ * Salvar nunca publica. A paciente só passa a ver quando ela apertar
+ * publicar, e essa separação é de propósito: metade de um protocolo colado
+ * é pior do que nenhum.
+ */
+create or replace function salvar_rascunho_protocolo(
+  p_paciente uuid,
+  p_titulo text,
+  p_conteudo jsonb,
+  p_ajustes text default null
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_id uuid;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista escreve protocolo.' using errcode = '42501';
+  end if;
+
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrado.' using errcode = 'P0002';
+  end if;
+
+  if p_conteudo is null or jsonb_typeof(p_conteudo) <> 'object' then
+    raise exception 'O conteúdo do protocolo precisa ser um objeto.' using errcode = '22023';
+  end if;
+
+  insert into protocolos (paciente_id, titulo, conteudo, ajustes, situacao)
+  values (p_paciente, coalesce(nullif(trim(p_titulo), ''), 'Protocolo alimentar'),
+          p_conteudo, p_ajustes, 'rascunho')
+  on conflict (paciente_id) where situacao = 'rascunho'
+  do update set titulo = excluded.titulo,
+                conteudo = excluded.conteudo,
+                ajustes = excluded.ajustes,
+                atualizado_em = now()
+  returning id into v_id;
+
+  return (select to_jsonb(p) from protocolos p where p.id = v_id);
+end;
+$$;
+
+revoke all on function salvar_rascunho_protocolo(uuid, text, jsonb, text) from anon, public;
+grant execute on function salvar_rascunho_protocolo(uuid, text, jsonb, text) to authenticated;
+
+/**
+ * Publica o rascunho.
+ *
+ * O que estava publicado vira arquivado — não some. Se ela publicar uma
+ * dieta errada, a anterior está a um clique de voltar, e é isso que faz
+ * publicar deixar de ser assustador.
+ */
+create or replace function publicar_protocolo(p_paciente uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_rascunho protocolos;
+  v_versao integer;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista publica protocolo.' using errcode = '42501';
+  end if;
+
+  select * into v_rascunho from protocolos
+  where paciente_id = p_paciente and situacao = 'rascunho';
+
+  if v_rascunho.id is null then
+    raise exception 'Não há rascunho para publicar.' using errcode = 'P0002';
+  end if;
+
+  if jsonb_array_length(coalesce(v_rascunho.conteudo -> 'refeicoes', '[]'::jsonb)) = 0 then
+    raise exception 'O protocolo não tem nenhuma refeição.' using errcode = '22023';
+  end if;
+
+  -- O próprio rascunho já nasce com versao = 1; contá-lo aqui faria a
+  -- primeira publicação sair como versão 2. Só o que já foi ao ar conta.
+  select coalesce(max(versao), 0) + 1 into v_versao
+  from protocolos
+  where paciente_id = p_paciente and situacao in ('publicado', 'arquivado');
+
+  update protocolos set situacao = 'arquivado', atualizado_em = now()
+  where paciente_id = p_paciente and situacao = 'publicado';
+
+  update protocolos
+  set situacao = 'publicado', versao = v_versao,
+      publicado_em = now(), atualizado_em = now()
+  where id = v_rascunho.id;
+
+  return (select to_jsonb(p) from protocolos p where p.id = v_rascunho.id);
+end;
+$$;
+
+revoke all on function publicar_protocolo(uuid) from anon, public;
+grant execute on function publicar_protocolo(uuid) to authenticated;
+
+/**
+ * Muda só o recado de ajustes do protocolo que já está no ar.
+ *
+ * É o atalho para "essa semana troca o lanche": chega na paciente na hora,
+ * sem versão nova e sem refazer o documento.
+ */
+create or replace function definir_ajustes_protocolo(p_paciente uuid, p_ajustes text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista muda os ajustes.' using errcode = '42501';
+  end if;
+
+  update protocolos
+  set ajustes = nullif(trim(coalesce(p_ajustes, '')), ''), atualizado_em = now()
+  where paciente_id = p_paciente and situacao = 'publicado';
+
+  if not found then
+    raise exception 'Este paciente não tem protocolo publicado.' using errcode = 'P0002';
+  end if;
+end;
+$$;
+
+revoke all on function definir_ajustes_protocolo(uuid, text) from anon, public;
+grant execute on function definir_ajustes_protocolo(uuid, text) to authenticated;
+
+/** Joga o rascunho fora. O que está publicado não se mexe. */
+create or replace function descartar_rascunho_protocolo(p_paciente uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista descarta rascunho.' using errcode = '42501';
+  end if;
+  delete from protocolos where paciente_id = p_paciente and situacao = 'rascunho';
+end;
+$$;
+
+revoke all on function descartar_rascunho_protocolo(uuid) from anon, public;
+grant execute on function descartar_rascunho_protocolo(uuid) to authenticated;
+
+/**
+ * Traz uma versão antiga de volta como rascunho.
+ *
+ * Não republica sozinho: ela olha, mexe se quiser, e publica. Voltar uma
+ * dieta para o ar sem ela conferir seria decidir no lugar dela.
+ */
+create or replace function restaurar_protocolo(p_protocolo uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_antigo protocolos;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista restaura protocolo.' using errcode = '42501';
+  end if;
+
+  select * into v_antigo from protocolos where id = p_protocolo;
+  if v_antigo.id is null then
+    raise exception 'Versão não encontrada.' using errcode = 'P0002';
+  end if;
+
+  return salvar_rascunho_protocolo(
+    v_antigo.paciente_id, v_antigo.titulo, v_antigo.conteudo, v_antigo.ajustes
+  );
+end;
+$$;
+
+revoke all on function restaurar_protocolo(uuid) from anon, public;
+grant execute on function restaurar_protocolo(uuid) to authenticated;
+
+/**
+ * Quem tem protocolo, e em que pé está.
+ *
+ * A tela da nutricionista abre com a lista das pacientes; sem isto ela teria
+ * de abrir uma por uma para lembrar quem ainda não recebeu dieta.
+ */
+create or replace function protocolos_das_pacientes()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê a lista.' using errcode = '42501';
+  end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'pacienteId', pa.id,
+             'nome', pa.nome,
+             'situacao', coalesce(
+               (select p.situacao from protocolos p
+                 where p.paciente_id = pa.id and p.situacao = 'publicado'), 'sem'),
+             'temRascunho', exists (
+               select 1 from protocolos p
+                where p.paciente_id = pa.id and p.situacao = 'rascunho'),
+             'publicadoEm', (select p.publicado_em from protocolos p
+                              where p.paciente_id = pa.id and p.situacao = 'publicado')
+           ) order by pa.nome)
+    from pacientes pa
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function protocolos_das_pacientes() from anon, public;
+grant execute on function protocolos_das_pacientes() to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- O app precisa saber, e numa chamada que ele já faz
+-- -----------------------------------------------------------------------------
+
+create or replace function meu_acesso()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'autenticado', auth.uid() is not null,
+    'perfilId', auth.uid(),
+    'papel', coalesce((select papel from perfis where id = auth.uid()), 'paciente'),
+    'nome', (select coalesce(pa.nome, pe.nome) from perfis pe
+             left join pacientes pa on pa.perfil_id = pe.id where pe.id = auth.uid()),
+    'email', (select email::text from perfis where id = auth.uid()),
+    'temAcesso', tem_acesso() or e_admin(),
+    'situacao', coalesce(
+      (select situacao_paciente(p.status, p.perfil_id, p.data_inicio, p.data_fim)
+         from pacientes p where p.perfil_id = auth.uid()),
+      case when e_admin() then 'admin' else 'sem_cadastro' end
+    ),
+    'dataInicio', (select data_inicio from pacientes where perfil_id = auth.uid()),
+    'dataFim', (select data_fim from pacientes where perfil_id = auth.uid()),
+    'diasRestantes', (select data_fim - hoje_sp() from pacientes where perfil_id = auth.uid()),
+    'plano', (select pl.nome from pacientes p join planos pl on pl.id = p.plano_id
+               where p.perfil_id = auth.uid()),
+    'rastreio', e_admin() or coalesce(rastreio_ativo(meu_paciente_id()), false),
+    -- A nutricionista enxerga sempre, para conferir a tela da paciente.
+    'protocolo', e_admin() or tenho_protocolo()
+  );
+$$;
+
+grant execute on function meu_acesso() to authenticated;
+
+
+-- ###########################################################################
+-- 0023_grupos_protocolo.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0023: grupos de alimentos do protocolo
+--
+-- "Preciso de um banco de dados com alimentos já salvos, tipo grupo de frutas
+-- já com porção, grupo de carbos pro almoço."
+--
+-- É a lista que ela monta UMA vez e usa em toda paciente: dezessete frutas
+-- com a porção de cada uma, sete fontes de carboidrato para o almoço. Sem
+-- isto ela redigita a mesma lista a cada protocolo.
+--
+-- O QUE ESTA TABELA NÃO É
+--
+-- Não é tabela nutricional. Não há caloria, macro nem composição em lugar
+-- nenhum — só nome e quantidade, escritos por ela. O aplicativo continua sem
+-- calcular dieta, que é a regra desde o começo: quem calcula é a
+-- nutricionista, fora daqui.
+--
+-- CÓPIA, NÃO LIGAÇÃO
+--
+-- Ao entrar num protocolo, o grupo é copiado para dentro dele. Mexer no
+-- grupo depois NÃO muda o protocolo de ninguém que já recebeu — a dieta que
+-- a paciente está seguindo não pode mudar sozinha porque ela ajustou uma
+-- lista. Quando quiser propagar, ela entra no protocolo e acrescenta o grupo
+-- de novo.
+-- =============================================================================
+
+create table if not exists grupos_protocolo (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  -- [{ "alimento": "Banana", "quantidade": "1 unidade" }, …]
+  itens jsonb not null default '[]'::jsonb,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+
+create unique index if not exists grupo_protocolo_nome on grupos_protocolo (lower(nome));
+
+alter table grupos_protocolo enable row level security;
+
+-- A paciente não lê esta tabela. Ela não precisa: o que vale para a dieta
+-- dela já foi copiado para dentro do protocolo dela.
+drop policy if exists grupos_protocolo_nutri on grupos_protocolo;
+create policy grupos_protocolo_nutri on grupos_protocolo for all
+  using (e_admin()) with check (e_admin());
+
+grant select, insert, update, delete on grupos_protocolo to authenticated;
+revoke all on table grupos_protocolo from anon;
+
+create or replace function listar_grupos_protocolo()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê os grupos.' using errcode = '42501';
+  end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object('id', g.id, 'nome', g.nome, 'itens', g.itens)
+                     order by g.nome)
+    from grupos_protocolo g
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function listar_grupos_protocolo() from anon, public;
+grant execute on function listar_grupos_protocolo() to authenticated;
+
+/**
+ * Cria ou atualiza um grupo. Sem `p_id`, cria.
+ *
+ * Grupo sem nome não entra: a lista dela é encontrada pelo nome, e um grupo
+ * chamado "" some no meio dos outros.
+ */
+create or replace function salvar_grupo_protocolo(
+  p_id uuid,
+  p_nome text,
+  p_itens jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_id uuid;
+  v_nome text := nullif(trim(coalesce(p_nome, '')), '');
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista escreve grupos.' using errcode = '42501';
+  end if;
+
+  if v_nome is null then
+    raise exception 'O grupo precisa de um nome.' using errcode = '22023';
+  end if;
+
+  if p_itens is null or jsonb_typeof(p_itens) <> 'array' then
+    raise exception 'A lista de alimentos do grupo precisa ser uma lista.' using errcode = '22023';
+  end if;
+
+  if p_id is null then
+    insert into grupos_protocolo (nome, itens) values (v_nome, p_itens)
+    returning id into v_id;
+  else
+    update grupos_protocolo
+    set nome = v_nome, itens = p_itens, atualizado_em = now()
+    where id = p_id
+    returning id into v_id;
+
+    if v_id is null then
+      raise exception 'Grupo não encontrado.' using errcode = 'P0002';
+    end if;
+  end if;
+
+  return (select jsonb_build_object('id', g.id, 'nome', g.nome, 'itens', g.itens)
+          from grupos_protocolo g where g.id = v_id);
+end;
+$$;
+
+revoke all on function salvar_grupo_protocolo(uuid, text, jsonb) from anon, public;
+grant execute on function salvar_grupo_protocolo(uuid, text, jsonb) to authenticated;
+
+/**
+ * Apaga o grupo.
+ *
+ * Os protocolos que já usaram esse grupo não sentem nada: eles guardam a
+ * cópia, não uma ligação. Apagar aqui é tirar da lista de atalhos dela.
+ */
+create or replace function excluir_grupo_protocolo(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista apaga grupos.' using errcode = '42501';
+  end if;
+  delete from grupos_protocolo where id = p_id;
+end;
+$$;
+
+revoke all on function excluir_grupo_protocolo(uuid) from anon, public;
+grant execute on function excluir_grupo_protocolo(uuid) to authenticated;
+
+
+-- ###########################################################################
+-- 0024_avaliacao_fisica.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0024: avaliação física
+--
+-- "Ao lado do protocolo, um negocinho clicável, que a paciente clica para
+-- ver a última avaliação física dela."
+--
+-- A conta é feita FORA daqui, na ferramenta de cálculo. Esta tabela guarda o
+-- resultado que a nutricionista lançou: as medidas, as dobras, o método que
+-- ela usou e o percentual que deu. O app não recalcula nada — se
+-- recalculasse, um dia mostraria um número diferente do que ela entregou na
+-- consulta, e quem estaria certo seria impossível dizer.
+--
+-- Uma linha por avaliação. O histórico é o ponto: "cada retorno mostra a
+-- variação" é o que o material dela promete à paciente.
+-- =============================================================================
+
+create table if not exists avaliacoes_fisicas (
+  id uuid primary key default gen_random_uuid(),
+  paciente_id uuid not null references pacientes (id) on delete cascade,
+  data date not null default hoje_sp(),
+  /**
+   * { metodo, peso, altura, idade, percentualGordura, massaGorda,
+   *   massaMagra, imc, somaDobras, dobras: [{nome, valor}],
+   *   circunferencias: [{nome, valor}], observacao }
+   *
+   * Documento, não planilha: o conjunto de dobras muda com o protocolo, e
+   * uma coluna por dobra viraria migração a cada material novo.
+   */
+  dados jsonb not null default '{}'::jsonb,
+  publicada boolean not null default false,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+
+create index if not exists avaliacoes_por_paciente
+  on avaliacoes_fisicas (paciente_id, data desc);
+
+alter table avaliacoes_fisicas enable row level security;
+
+drop policy if exists avaliacoes_nutri on avaliacoes_fisicas;
+create policy avaliacoes_nutri on avaliacoes_fisicas for all
+  using (e_admin()) with check (e_admin());
+
+-- A paciente lê as avaliações publicadas dela, e mais nada. Rascunho de
+-- avaliação não aparece: um percentual lançado pela metade não pode chegar
+-- em quem vai lê-lo sobre o próprio corpo.
+drop policy if exists avaliacoes_paciente on avaliacoes_fisicas;
+create policy avaliacoes_paciente on avaliacoes_fisicas for select
+  using (publicada and paciente_id = meu_paciente_id());
+
+grant select, insert, update, delete on avaliacoes_fisicas to authenticated;
+revoke all on table avaliacoes_fisicas from anon;
+
+/** A última avaliação publicada da paciente, e quantas vieram antes. */
+create or replace function minha_avaliacao()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente uuid;
+  v_ultima avaliacoes_fisicas;
+  v_total integer;
+begin
+  v_paciente := meu_paciente_id();
+  if v_paciente is null then return null; end if;
+
+  select * into v_ultima from avaliacoes_fisicas
+  where paciente_id = v_paciente and publicada
+  order by data desc, criado_em desc
+  limit 1;
+
+  if v_ultima.id is null then return null; end if;
+
+  select count(*) into v_total from avaliacoes_fisicas
+  where paciente_id = v_paciente and publicada;
+
+  return jsonb_build_object(
+    'id', v_ultima.id,
+    'data', v_ultima.data,
+    'dados', v_ultima.dados,
+    'total', v_total,
+    -- A data da primeira: é o "ponto de partida" do material dela.
+    'inicio', (select min(data) from avaliacoes_fisicas
+                where paciente_id = v_paciente and publicada)
+  );
+end;
+$$;
+
+revoke all on function minha_avaliacao() from anon, public;
+grant execute on function minha_avaliacao() to authenticated;
+
+/** Tem avaliação publicada? Entra no `meu_acesso()` para a tela decidir. */
+create or replace function tenho_avaliacao()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from avaliacoes_fisicas
+    where publicada and paciente_id = meu_paciente_id()
+  );
+$$;
+
+revoke all on function tenho_avaliacao() from anon, public;
+grant execute on function tenho_avaliacao() to authenticated;
+
+create or replace function avaliacoes_do_paciente(p_paciente uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê as avaliações.' using errcode = '42501';
+  end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'id', a.id, 'data', a.data, 'dados', a.dados, 'publicada', a.publicada)
+           order by a.data desc, a.criado_em desc)
+    from avaliacoes_fisicas a where a.paciente_id = p_paciente
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function avaliacoes_do_paciente(uuid) from anon, public;
+grant execute on function avaliacoes_do_paciente(uuid) to authenticated;
+
+create or replace function salvar_avaliacao_fisica(
+  p_id uuid,
+  p_paciente uuid,
+  p_data date,
+  p_dados jsonb,
+  p_publicada boolean
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_id uuid;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista lança avaliação.' using errcode = '42501';
+  end if;
+
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrado.' using errcode = 'P0002';
+  end if;
+
+  if p_dados is null or jsonb_typeof(p_dados) <> 'object' then
+    raise exception 'Os dados da avaliação precisam ser um objeto.' using errcode = '22023';
+  end if;
+
+  if p_id is null then
+    insert into avaliacoes_fisicas (paciente_id, data, dados, publicada)
+    values (p_paciente, coalesce(p_data, hoje_sp()), p_dados, coalesce(p_publicada, false))
+    returning id into v_id;
+  else
+    update avaliacoes_fisicas
+    set data = coalesce(p_data, data),
+        dados = p_dados,
+        publicada = coalesce(p_publicada, publicada),
+        atualizado_em = now()
+    where id = p_id and paciente_id = p_paciente
+    returning id into v_id;
+
+    if v_id is null then
+      raise exception 'Avaliação não encontrada.' using errcode = 'P0002';
+    end if;
+  end if;
+
+  return (select jsonb_build_object('id', a.id, 'data', a.data, 'dados', a.dados,
+                                    'publicada', a.publicada)
+          from avaliacoes_fisicas a where a.id = v_id);
+end;
+$$;
+
+revoke all on function salvar_avaliacao_fisica(uuid, uuid, date, jsonb, boolean) from anon, public;
+grant execute on function salvar_avaliacao_fisica(uuid, uuid, date, jsonb, boolean) to authenticated;
+
+create or replace function excluir_avaliacao_fisica(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista apaga avaliação.' using errcode = '42501';
+  end if;
+  delete from avaliacoes_fisicas where id = p_id;
+end;
+$$;
+
+revoke all on function excluir_avaliacao_fisica(uuid) from anon, public;
+grant execute on function excluir_avaliacao_fisica(uuid) to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- O acesso passa a dizer se há avaliação, para a tela não oferecer porta vazia
+-- -----------------------------------------------------------------------------
+
+create or replace function meu_acesso()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'autenticado', auth.uid() is not null,
+    'perfilId', auth.uid(),
+    'papel', coalesce((select papel from perfis where id = auth.uid()), 'paciente'),
+    'nome', (select coalesce(pa.nome, pe.nome) from perfis pe
+             left join pacientes pa on pa.perfil_id = pe.id where pe.id = auth.uid()),
+    'email', (select email::text from perfis where id = auth.uid()),
+    'temAcesso', tem_acesso() or e_admin(),
+    'situacao', coalesce(
+      (select situacao_paciente(p.status, p.perfil_id, p.data_inicio, p.data_fim)
+         from pacientes p where p.perfil_id = auth.uid()),
+      case when e_admin() then 'admin' else 'sem_cadastro' end
+    ),
+    'dataInicio', (select data_inicio from pacientes where perfil_id = auth.uid()),
+    'dataFim', (select data_fim from pacientes where perfil_id = auth.uid()),
+    'diasRestantes', (select data_fim - hoje_sp() from pacientes where perfil_id = auth.uid()),
+    'plano', (select pl.nome from pacientes p join planos pl on pl.id = p.plano_id
+               where p.perfil_id = auth.uid()),
+    'rastreio', e_admin() or coalesce(rastreio_ativo(meu_paciente_id()), false),
+    'protocolo', e_admin() or tenho_protocolo(),
+    'avaliacao', e_admin() or tenho_avaliacao()
+  );
+$$;
+
+grant execute on function meu_acesso() to authenticated;

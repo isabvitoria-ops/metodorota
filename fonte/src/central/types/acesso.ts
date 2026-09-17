@@ -89,6 +89,8 @@ export interface Acesso {
    * que abre vazio faz a paciente achar que perdeu alguma coisa.
    */
   protocolo: boolean;
+  /** Se ela já tem avaliação física publicada. */
+  avaliacao: boolean;
 }
 
 export interface Configuracoes {

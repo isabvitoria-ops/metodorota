@@ -24,6 +24,7 @@ export const rotas = {
   guias: "/guias",
   guia: (guiaId: string) => `/guias/${guiaId}`,
   protocolo: "/protocolo",
+  avaliacao: "/avaliacao",
   desafio: "/desafio",
   rastreabilidade: "/rastreabilidade",
   salvos: "/salvos",

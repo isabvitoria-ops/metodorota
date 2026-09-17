@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Paciente } from "@/central/types";
 import type {
+  AvaliacaoFisica,
   ConteudoProtocolo,
+  DadosAvaliacao,
   FichaProtocolo,
   GrupoDoProtocolo,
   ItemProtocolo,
@@ -9,10 +11,11 @@ import type {
   RefeicaoProtocolo,
   ResumoProtocolo,
 } from "@/central/types/protocolo";
-import { CONTEUDO_VAZIO } from "@/central/types/protocolo";
+import { AVALIACAO_VAZIA, CONTEUDO_VAZIO } from "@/central/types/protocolo";
 import { repositorio } from "@/central/dados/repositorio";
 import { dataBonita } from "@/central/utils/situacao";
-import { AreaDeLinhas, AreaTexto, Campo, Selecao, Texto } from "./componentes/Campos";
+import { AreaDeLinhas, AreaTexto, Campo, NumeroDecimal, Selecao, Texto } from "./componentes/Campos";
+import { hojeSaoPaulo, dataBonita as diaBonito } from "@/central/utils/situacao";
 
 /**
  * Protocolo alimentar — área da nutricionista.
@@ -510,6 +513,8 @@ function EditorDoProtocolo({
         )}
       </div>
 
+      <AvaliacoesDaPaciente paciente={paciente} />
+
       {(ficha?.historico.length ?? 0) > 0 && (
         <>
           <h2 className="c-secao-titulo" style={{ marginTop: 24 }}>
@@ -992,4 +997,264 @@ function GruposDeAlimentos({
       )}
     </div>
   );
+}
+
+
+/**
+ * Avaliação física — o lançamento do que ela calculou na ferramenta.
+ *
+ * Aqui não há conta nenhuma: os campos recebem o resultado pronto. Refazer
+ * o cálculo neste lado abriria a porta para o app mostrar um número
+ * diferente do que ela entregou na consulta.
+ */
+function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
+  const [lista, definirLista] = useState<AvaliacaoFisica[]>([]);
+  const [abertaId, definirAberta] = useState<string | null>(null);
+  const [data, definirData] = useState(hojeSaoPaulo());
+  const [dados, definirDados] = useState<DadosAvaliacao>(AVALIACAO_VAZIA);
+  const [publicada, definirPublicada] = useState(false);
+  const [aviso, definirAviso] = useState<string | null>(null);
+  const [erro, definirErro] = useState<string | null>(null);
+  const [ocupado, definirOcupado] = useState(false);
+
+  const carregar = useCallback(async () => {
+    definirLista(await repositorio.avaliacoesDoPaciente(paciente.id).catch(() => []));
+  }, [paciente.id]);
+
+  useEffect(() => {
+    void carregar();
+  }, [carregar]);
+
+  function abrir(a: AvaliacaoFisica | null) {
+    definirAberta(a?.id ?? "nova");
+    definirData(a?.data ?? hojeSaoPaulo());
+    definirDados(a ? { ...AVALIACAO_VAZIA, ...a.dados } : AVALIACAO_VAZIA);
+    definirPublicada(a?.publicada ?? false);
+    definirErro(null);
+  }
+
+  async function executar(acao: () => Promise<void>, mensagem: string) {
+    definirOcupado(true);
+    definirErro(null);
+    try {
+      await acao();
+      await carregar();
+      definirAviso(mensagem);
+      definirAberta(null);
+    } catch (e: unknown) {
+      definirErro(e instanceof Error ? e.message : "Não consegui salvar a avaliação.");
+    } finally {
+      definirOcupado(false);
+    }
+  }
+
+  const campoNumero = (
+    rotulo: string,
+    chave: keyof DadosAvaliacao,
+    dica?: string,
+  ) => (
+    <Campo rotulo={rotulo} dica={dica}>
+      <NumeroDecimal
+        valor={(dados[chave] as number | null) ?? null}
+        aoMudar={(v) => definirDados({ ...dados, [chave]: v })}
+      />
+    </Campo>
+  );
+
+  return (
+    <>
+      <h2 className="c-secao-titulo" style={{ marginTop: 26 }}>
+        Avaliação física
+      </h2>
+      <p className="c-dica" style={{ marginTop: 0 }}>
+        Lance aqui o resultado que você calculou na ferramenta. A paciente vê a última publicada,
+        num atalho dentro do Protocolo dela.
+      </p>
+
+      {aviso && (
+        <div className="c-aviso c-aviso-ok" role="status">
+          <span>{aviso}</span>
+        </div>
+      )}
+      {erro && (
+        <div className="c-aviso c-aviso-erro" role="alert">
+          <span>{erro}</span>
+        </div>
+      )}
+
+      {lista.length > 0 && (
+        <div className="c-lista">
+          {lista.map((a) => (
+            <div className="c-lista-item" key={a.id}>
+              <span>
+                <span className="c-lista-item-nome">
+                  {diaBonito(a.data)}
+                  {a.dados.percentualGordura !== null && a.dados.percentualGordura !== undefined
+                    ? ` — ${a.dados.percentualGordura}% de gordura`
+                    : ""}
+                </span>
+                <span className="c-lista-item-apoio">
+                  {a.dados.metodo || "sem método anotado"} ·{" "}
+                  {a.publicada ? "a paciente vê" : "rascunho, só você vê"}
+                </span>
+              </span>
+              <button type="button" className="c-link" onClick={() => abrir(a)}>
+                Editar
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {abertaId === null && (
+        <button
+          type="button"
+          className="c-botao c-botao-secundario"
+          style={{ marginTop: 12 }}
+          onClick={() => abrir(null)}
+        >
+          + Lançar avaliação
+        </button>
+      )}
+
+      {abertaId !== null && (
+        <div className="c-bloco">
+          <div className="c-duas-colunas">
+            <Campo rotulo="Data da avaliação">
+              <Texto valor={data} tipo="date" aoMudar={definirData} />
+            </Campo>
+            <Campo rotulo="Método usado" dica="Ex.: 4 Pregas: Protocolo de Faulkner">
+              <Texto
+                valor={dados.metodo}
+                aoMudar={(v) => definirDados({ ...dados, metodo: v })}
+              />
+            </Campo>
+          </div>
+
+          <div className="c-duas-colunas">
+            {campoNumero("Peso (kg)", "peso")}
+            {campoNumero("Altura (cm)", "altura")}
+            {campoNumero("Idade", "idade")}
+          </div>
+
+          <div className="c-duas-colunas">
+            {campoNumero("Gordura (%)", "percentualGordura")}
+            {campoNumero("Massa gorda (kg)", "massaGorda")}
+            {campoNumero("Massa magra (kg)", "massaMagra")}
+          </div>
+
+          <div className="c-duas-colunas">
+            {campoNumero("IMC", "imc")}
+            {campoNumero("Soma das dobras (mm)", "somaDobras", "A do protocolo usado.")}
+          </div>
+
+          <Campo rotulo="Dobras" dica="Uma por linha, no formato: Tríceps = 9,6 mm">
+            <AreaDeLinhas
+              valor={dados.dobras.map((d) => `${d.nome} = ${d.valor}`)}
+              linhas={4}
+              aoMudar={(linhas) =>
+                definirDados({ ...dados, dobras: linhas.map(paraMedida) })
+              }
+            />
+          </Campo>
+
+          <Campo rotulo="Circunferências" dica="Uma por linha: Cintura = 61 cm">
+            <AreaDeLinhas
+              valor={dados.circunferencias.map((d) => `${d.nome} = ${d.valor}`)}
+              linhas={4}
+              aoMudar={(linhas) =>
+                definirDados({ ...dados, circunferencias: linhas.map(paraMedida) })
+              }
+            />
+          </Campo>
+
+          <Campo rotulo="Observação" dica="Opcional. Aparece para a paciente.">
+            <AreaTexto
+              valor={dados.observacao ?? ""}
+              linhas={2}
+              aoMudar={(v) => definirDados({ ...dados, observacao: v.trim() || null })}
+            />
+          </Campo>
+
+          {/* Dois botões que salvam, e nenhum que só "marca".
+              Antes havia um par marcar/salvar: clicar em "marcar para
+              publicar" trocava o rótulo do outro botão e não gravava nada.
+              Quem parasse ali sairia da tela convencida de que tinha
+              publicado, e a paciente não veria avaliação nenhuma. Agora cada
+              botão faz a coisa inteira num clique. */}
+          <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+            <button
+              type="button"
+              className="c-botao"
+              disabled={ocupado}
+              onClick={() =>
+                void executar(
+                  () =>
+                    repositorio.salvarAvaliacaoFisica(
+                      abertaId === "nova" ? null : abertaId,
+                      paciente.id,
+                      data,
+                      dados,
+                      true,
+                    ),
+                  `Avaliação publicada. ${paciente.nome.split(" ")[0]} já vê no aplicativo.`,
+                )
+              }
+            >
+              Salvar e publicar para {paciente.nome.split(" ")[0]}
+            </button>
+
+            <button
+              type="button"
+              className="c-botao c-botao-secundario"
+              disabled={ocupado}
+              onClick={() =>
+                void executar(
+                  () =>
+                    repositorio.salvarAvaliacaoFisica(
+                      abertaId === "nova" ? null : abertaId,
+                      paciente.id,
+                      data,
+                      dados,
+                      false,
+                    ),
+                  publicada
+                    ? "Avaliação tirada do ar. Voltou a ser rascunho, só você vê."
+                    : "Avaliação guardada como rascunho. A paciente ainda não vê.",
+                )
+              }
+            >
+              {publicada ? "Tirar do ar e guardar como rascunho" : "Salvar rascunho"}
+            </button>
+
+            <button type="button" className="c-link" onClick={() => definirAberta(null)}>
+              Cancelar
+            </button>
+
+            {abertaId !== "nova" && (
+              <button
+                type="button"
+                className="c-link"
+                disabled={ocupado}
+                onClick={() =>
+                  void executar(
+                    () => repositorio.excluirAvaliacaoFisica(abertaId),
+                    "Avaliação apagada.",
+                  )
+                }
+              >
+                Apagar esta avaliação
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** "Tríceps = 9,6 mm" vira { nome, valor }. Sem "=", tudo vira nome. */
+function paraMedida(linha: string): { nome: string; valor: string } {
+  const [nome, ...resto] = linha.split("=");
+  return { nome: (nome ?? "").trim(), valor: resto.join("=").trim() };
 }

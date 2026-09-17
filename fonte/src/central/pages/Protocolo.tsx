@@ -4,6 +4,8 @@ import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
+import { useNavigate } from "react-router-dom";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
 
 /**
  * Protocolo Alimentar — a dieta da paciente.
@@ -24,6 +26,8 @@ import { rotas } from "@/central/rotas";
 export function Protocolo() {
   const [protocolo, definirProtocolo] = useState<ProtocoloAlimentar | null>(null);
   const [carregando, definirCarregando] = useState(true);
+  const navegar = useNavigate();
+  const { acesso } = useSessao();
 
   useEffect(() => {
     let vivo = true;
@@ -61,6 +65,26 @@ export function Protocolo() {
 
         {!carregando && temRefeicoes && conteudo && (
           <>
+            {/* O atalho para a avaliação física, ao lado do protocolo. Só
+                aparece quando existe uma publicada: uma porta que abre vazia
+                faz a paciente achar que perdeu alguma coisa. */}
+            {acesso.avaliacao && (
+              <button
+                type="button"
+                className="c-lista-item"
+                style={{ width: "100%", textAlign: "left" }}
+                onClick={() => navegar(rotas.avaliacao)}
+              >
+                <span>
+                  <span className="c-lista-item-nome">Minha avaliação física</span>
+                  <span className="c-lista-item-apoio">
+                    Peso, medidas, dobras e composição da última consulta
+                  </span>
+                </span>
+                <span className="c-lista-item-direita">›</span>
+              </button>
+            )}
+
             {protocolo?.ajustes && (
               <div className="c-aviso c-aviso-ok" role="status">
                 <span>{protocolo.ajustes}</span>

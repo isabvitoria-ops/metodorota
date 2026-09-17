@@ -107,3 +107,59 @@ export interface GrupoDoProtocolo {
   nome: string;
   itens: { alimento: string; quantidade: string }[];
 }
+
+/**
+ * Uma avaliação física lançada pela nutricionista.
+ *
+ * Os números vêm prontos da ferramenta de cálculo dela — o app não
+ * recalcula. Se recalculasse, um dia mostraria um valor diferente do que
+ * ela entregou na consulta, e não haveria como dizer qual dos dois vale.
+ */
+export interface DadosAvaliacao {
+  /** "4 Pregas: Protocolo de Faulkner" */
+  metodo: string;
+  peso: number | null;
+  altura: number | null;
+  idade: number | null;
+  percentualGordura: number | null;
+  massaGorda: number | null;
+  massaMagra: number | null;
+  imc: number | null;
+  somaDobras: number | null;
+  dobras: { nome: string; valor: string }[];
+  circunferencias: { nome: string; valor: string }[];
+  observacao: string | null;
+}
+
+export interface AvaliacaoFisica {
+  id: string;
+  data: string;
+  dados: DadosAvaliacao;
+  publicada: boolean;
+}
+
+/** O que a tela da paciente recebe: a última, e o contexto dela. */
+export interface MinhaAvaliacao {
+  id: string;
+  data: string;
+  dados: DadosAvaliacao;
+  /** Quantas avaliações publicadas ela já tem. */
+  total: number;
+  /** A data da primeira — o "ponto de partida". */
+  inicio: string | null;
+}
+
+export const AVALIACAO_VAZIA: DadosAvaliacao = {
+  metodo: "",
+  peso: null,
+  altura: null,
+  idade: null,
+  percentualGordura: null,
+  massaGorda: null,
+  massaMagra: null,
+  imc: null,
+  somaDobras: null,
+  dobras: [],
+  circunferencias: [],
+  observacao: null,
+};

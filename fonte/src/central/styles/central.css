@@ -2683,3 +2683,66 @@ body:has(.central) {
     color: #000 !important;
   }
 }
+
+/* ------------------------------------------------------- avaliação física
+
+   Os três números grandes do material dela, e a barra de dois
+   compartimentos. Mesma paleta de sempre: nada de semáforo novo, e nenhuma
+   cor dizendo que o corpo da paciente está certo ou errado. */
+
+.c-destaques {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 14px;
+  /* "Gordura corporal" ocupa duas linhas onde "Peso" e "IMC" ocupam uma.
+     Alinhando pelo fim, os três números ficam na mesma altura, em vez de um
+     deles descer sozinho e parecer desalinhado no celular. */
+  align-items: end;
+}
+
+.c-destaques > div {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.c-destaque-rotulo {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.c-destaque-valor {
+  display: block;
+  margin-top: 2px;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.c-destaque-unidade {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 3px;
+}
+
+.c-barra-corpo {
+  display: flex;
+  height: 26px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--accent-soft);
+}
+
+.c-barra-gorda {
+  background: var(--warning-soft);
+  border-right: 1px solid var(--border);
+}
+
+.c-barra-magra {
+  flex: 1;
+}
