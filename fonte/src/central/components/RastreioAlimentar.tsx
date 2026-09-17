@@ -93,13 +93,19 @@ const GRUPOS: { tom: Linha["tom"]; titulo: string; apoio: string }[] = [
   {
     tom: "atencao",
     titulo: "Comer com atenção",
-    apoio: "Houve alguma resposta do corpo que vale observar. Não quer dizer cortar.",
+    apoio:
+      "Pouco tolerados: houve alguma resposta do corpo que vale observar. Não quer dizer cortar.",
   },
   {
     tom: "grave",
     titulo: "Não tolerados",
+    // Ela pediu, com estas palavras: "adiciona algo para ele saber que se
+    // quiser comer, come, mas tem consequências — de um jeito sutil". A
+    // frase diz isso sem mandar e sem ameaçar: a escolha é da paciente, e o
+    // rastreio existe para ela escolher sabendo.
     apoio:
-      "Foram relatados três ou mais sintomas depois destes. Vale conversar na sua consulta.",
+      "Foram relatados três ou mais sintomas depois destes. Comer continua sendo escolha sua — " +
+      "o rastreio serve para você saber o que costuma vir junto.",
   },
   { tom: "neutro", titulo: "Outros", apoio: "" },
   { tom: "apagado", titulo: "Fora da sua alimentação", apoio: "" },
@@ -150,9 +156,8 @@ export function RastreioAlimentar({
 
       <p className="c-dica">
         Esta lista não é de alimentos proibidos. Ela mostra como seu corpo respondeu ao que você
-        já testou, para você escolher com mais consciência. Um alimento marcado em amarelo não
-        quer dizer que você nunca mais possa comê-lo — quer dizer que naquele teste houve algo
-        que vale observar.
+        já testou, para você escolher com mais consciência. Nenhum alimento aqui está cortado:
+        se quiser comer, você come — o rastreio existe para que você saiba o que pode vir depois.
       </p>
 
       <div className="c-chips" style={{ marginTop: 12 }}>
