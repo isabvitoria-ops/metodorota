@@ -21,6 +21,7 @@ import {
 import { dataBonita } from "@/central/utils/situacao";
 import { Campo, Selecao, Texto, AreaTexto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
+import { RastreioAlimentar } from "@/central/components/RastreioAlimentar";
 
 /**
  * Rastreabilidade alimentar — área da nutricionista.
@@ -192,7 +193,19 @@ function PainelDaPaciente({
         </p>
       </div>
 
-      {aba === "Linha do tempo" && <LinhaDoTempo dados={dados} />}
+      {aba === "Linha do tempo" && (
+        <>
+          {/* O mesmo rastreio que a paciente vê, com a mesma conta e as
+              mesmas palavras. Duas leituras diferentes da mesma coisa seria
+              o começo de uma conversa em que as duas estão certas. */}
+          <RastreioAlimentar
+            itens={dados?.itens ?? []}
+            registros={dados?.registros ?? []}
+            nome={paciente.nome}
+          />
+          <LinhaDoTempo dados={dados} />
+        </>
+      )}
       {aba === "Lista da paciente" && (
         <ListaDaPaciente
           paciente={paciente}

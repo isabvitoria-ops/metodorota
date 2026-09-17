@@ -30,6 +30,8 @@ import {
 } from "@/central/utils/reintroducao";
 import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { rotas } from "@/central/rotas";
+import { RastreioAlimentar } from "@/central/components/RastreioAlimentar";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
 
 /**
  * Rastreabilidade alimentar — a tela da paciente.
@@ -50,6 +52,7 @@ import { rotas } from "@/central/rotas";
  */
 export function Rastreabilidade() {
   const { dados, carregando, erro, ocupado, comRecarga, definirErro } = useReintroducao();
+  const { acesso } = useSessao();
   const [registrando, definirRegistrando] = useState(false);
   const [editando, definirEditando] = useState<RegistroDeReintroducao | null>(null);
   const [semanaVisivel, definirSemanaVisivel] = useState<number | "todas">("todas");
@@ -137,6 +140,13 @@ export function Rastreabilidade() {
             <Icone nome="salvos" tamanho={16} /> Registrar alimento
           </button>
         )}
+
+        {/* ------------------------------------------------ o rastreio dela
+
+            Vem antes da lista de alimentos de propósito: é o material que ela
+            volta para consultar. A lista a testar é tarefa; o rastreio é
+            resultado. */}
+        <RastreioAlimentar itens={itens} registros={registros} nome={acesso.nome} />
 
         {/* -------------------------------------------------- a lista dela */}
         {itens.length > 0 && (

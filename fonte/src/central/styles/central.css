@@ -2528,3 +2528,126 @@ body:has(.central) {
 .c-hora-refeicao {
   flex: 0 0 92px;
 }
+
+/* ------------------------------------------------------- rastreio alimentar
+
+   A lista que a paciente vai juntando. Mesma linguagem das outras listas do
+   app: cartão claro, selo colorido, frase discreta embaixo. O selo usa as
+   três cores que já existem na paleta (melhor/boa/ocasional) — nada de
+   semáforo novo. */
+
+.c-rastreio-item + .c-rastreio-item {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+.c-rastreio-toque {
+  display: block;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.c-rastreio-nome {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.c-rastreio-frase {
+  display: block;
+  margin-top: 4px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.c-rastreio-detalhe.fechado {
+  display: none;
+}
+
+.c-rastreio-detalhe {
+  margin-top: 10px;
+  padding-left: 11px;
+  border-left: 2px solid var(--accent-soft);
+}
+
+.c-rastreio-teste + .c-rastreio-teste {
+  margin-top: 10px;
+}
+
+.c-rastreio-data {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.c-rastreio-sintomas,
+.c-rastreio-observacao {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.c-rastreio-observacao {
+  font-style: italic;
+}
+
+/* Guardar o rastreio: a janela de impressão do aparelho vira PDF. Sem
+   biblioteca, sem servidor, sem custo por paciente — com dez ou com mil.
+   O que vai para o papel é só o rastreio: o resto do app, os botões e a
+   navegação ficam de fora. */
+.c-so-impressao {
+  display: none;
+}
+
+@media print {
+  /* Em vez de esconder por visibilidade — que deixa o espaço ocupado e
+     rendia uma segunda página em branco no arquivo salvo —, o que não vai
+     para o papel sai do fluxo. */
+  .c-nav,
+  .c-faixa-demo,
+  .c-faixa-admin,
+  .c-cabecalho-pagina,
+  .c-cabecalho,
+  .c-conteudo > *:not(.c-rastreio) {
+    display: none !important;
+  }
+
+  .c-rastreio {
+    margin: 0;
+  }
+
+  .c-sem-impressao,
+  .c-rastreio .c-chips {
+    display: none !important;
+  }
+
+  .c-so-impressao {
+    display: block;
+    margin-top: 16px;
+    font-size: 11px;
+    color: #555;
+  }
+
+  /* No papel tudo aparece aberto: não há como tocar para expandir, e um
+     rastreio salvo pela metade não serve para levar à consulta. */
+  .c-rastreio-detalhe.fechado {
+    display: block;
+  }
+
+  /* No papel a cor pode não sair; o rótulo escrito garante a leitura. */
+  .c-selo {
+    border: 1px solid #999;
+    background: none !important;
+    color: #000 !important;
+  }
+}
