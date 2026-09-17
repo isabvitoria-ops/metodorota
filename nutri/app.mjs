@@ -4,9 +4,13 @@ import {
   classificarIMC,
   cunningham,
   densidadeDurnin,
+  densidadePollock4,
   densidadePollock3,
   densidadePollock7,
   distribuicao,
+  FAIXAS_MACROS,
+  faoOms,
+  fatorFao,
   faulkner,
   harrisBenedict,
   imc,
@@ -415,6 +419,15 @@ const PROTOCOLOS = {
       feminino: ["peitoral", "axilar", "triceps", "subescapular", "abdominal", "suprailiaca", "coxa"],
     },
   },
+  pollock4: {
+    rotulo: "Jackson, Pollock & Ward, 4 dobras (mulheres)",
+    dobras: {
+      // Publicada só para mulheres. Para homem a tela avisa em vez de
+      // reaproveitar a fórmula feminina, que daria número errado calado.
+      masculino: [],
+      feminino: ["triceps", "abdominal", "suprailiaca", "coxa"],
+    },
+  },
   durnin: {
     rotulo: "Durnin & Womersley, 4 dobras",
     dobras: {
@@ -464,8 +477,9 @@ function calcularCorpo() {
   const protocolo = $("c-protocolo").value;
   const usadas = PROTOCOLOS[protocolo].dobras[sexo];
 
-  $("quais-dobras").textContent =
-    `${PROTOCOLOS[protocolo].rotulo}: soma ${usadas.map((c) => DOBRAS.find(([k]) => k === c)[1].toLowerCase()).join(", ")}.`;
+  $("quais-dobras").textContent = usadas.length
+    ? `${PROTOCOLOS[protocolo].rotulo}: soma ${usadas.map((c) => DOBRAS.find(([k]) => k === c)[1].toLowerCase()).join(", ")}.`
+    : `${PROTOCOLOS[protocolo].rotulo} não tem equação publicada para este sexo. Escolha outro protocolo.`;
 
   const valores = usadas.map((c) => num($(`dob-${c}`).value));
   const faltando = valores.filter((v) => !v).length;
@@ -482,7 +496,9 @@ function calcularCorpo() {
           ? densidadePollock3(soma, idade, sexo)
           : protocolo === "pollock7"
             ? densidadePollock7(soma, idade, sexo)
-            : densidadeDurnin(soma, idade, sexo);
+            : protocolo === "pollock4"
+              ? densidadePollock4(soma, idade)
+              : densidadeDurnin(soma, idade, sexo);
       percentual = $("c-equacao").value === "brozek" ? brozek(densidade) : siri(densidade);
     }
   }
@@ -548,6 +564,8 @@ function calcularCorpo() {
   const tmbMifflin = mifflin(peso, alturaCm, idade, sexo);
   const tmbHB = harrisBenedict(peso, alturaCm, idade, sexo);
   const tmbCun = magra ? cunningham(magra) : null;
+  const tmbFao = faoOms(peso, idade, sexo);
+  const fatorOcupacional = fatorFao($("c-fao").value, idade, sexo);
 
   $("resultado-energia").innerHTML =
     "<dl>" +
@@ -555,6 +573,11 @@ function calcularCorpo() {
       ["Mifflin-St Jeor", mostrar(tmbMifflin, 0), tmbMifflin ? `total ${mostrar(tmbMifflin * fator, 0)}` : ""],
       ["Harris-Benedict", mostrar(tmbHB, 0), tmbHB ? `total ${mostrar(tmbHB * fator, 0)}` : ""],
       ["Cunningham", mostrar(tmbCun, 0), tmbCun ? `total ${mostrar(tmbCun * fator, 0)}` : ""],
+      [
+        "FAO/OMS 1985",
+        mostrar(tmbFao, 0),
+        tmbFao && fatorOcupacional ? `× ${fatorOcupacional} = ${mostrar(tmbFao * fatorOcupacional, 0)}` : "",
+      ],
     ]
       .map(([t, v, apoio]) => `<dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd>`)
       .join("") +
@@ -696,6 +719,23 @@ function calcularMacros() {
         .join("") +
       "</dl>"
     : "<p class=\"nota\">Informe as calorias totais.</p>";
+
+  // Como a divisão dela se compara com as faixas publicadas.
+  $("faixas-macros").innerHTML = Object.values(FAIXAS_MACROS)
+    .map((f) => {
+      const linhas = [
+        ["Carboidrato", pct.carboidrato, f.carboidrato],
+        ["Proteína", pct.proteina, f.proteina],
+        ["Gordura", pct.lipideo, f.lipideo],
+      ]
+        .map(([nome, valor, [minimo, maximo]]) => {
+          const dentro = valor >= minimo && valor <= maximo;
+          return `<td>${nome} <strong>${mostrar(valor, 0)}%</strong> <span style="color:var(--apagado)">(${minimo}–${maximo})</span> ${dentro ? "✓" : "fora"}</td>`;
+        })
+        .join("");
+      return `<table style="margin-top:8px"><tr><th style="text-align:left">${f.rotulo}</th></tr><tr>${linhas}</tr></table>`;
+    })
+    .join("");
 
   const ajuste = venta(num($("m-atual").value), num($("m-desejado").value), num($("m-dias").value));
   $("resultado-venta").innerHTML =

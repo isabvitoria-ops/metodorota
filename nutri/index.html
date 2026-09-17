@@ -204,7 +204,8 @@
             <label for="c-protocolo">Equação</label>
             <select id="c-protocolo">
               <option value="pollock3">Jackson &amp; Pollock — 3 dobras</option>
-              <option value="pollock7">Jackson &amp; Pollock — 7 dobras</option>
+              <option value="pollock7">Jackson, Pollock &amp; Ward — 7 dobras</option>
+              <option value="pollock4">Jackson, Pollock &amp; Ward — 4 dobras (mulheres)</option>
               <option value="durnin">Durnin &amp; Womersley — 4 dobras</option>
               <option value="faulkner">Faulkner — 4 dobras</option>
             </select>
@@ -217,8 +218,16 @@
             </select>
           </div>
           <div>
-            <label for="c-atividade">Fator de atividade</label>
+            <label for="c-atividade">Fator de atividade (Mifflin / HB / Cunningham)</label>
             <select id="c-atividade"></select>
+          </div>
+          <div>
+            <label for="c-fao">Atividade ocupacional (FAO/OMS)</label>
+            <select id="c-fao">
+              <option value="leve">Leve</option>
+              <option value="moderada">Moderada</option>
+              <option value="intensa">Intensa</option>
+            </select>
           </div>
         </div>
         <p class="nota" id="quais-dobras"></p>
@@ -237,8 +246,9 @@
         <h2>Gasto energético</h2>
         <div class="painel" id="resultado-energia"></div>
         <p class="nota">
-          Mifflin-St Jeor (1990), Harris-Benedict revisada por Roza &amp; Shizgal (1984) e
-          Cunningham (1980), esta última a partir da massa magra medida. Nenhuma foi adaptada.
+          Mifflin-St Jeor (1990), Harris-Benedict revisada por Roza &amp; Shizgal (1984),
+          Cunningham (1980) a partir da massa magra medida, e FAO/OMS (1985) com o fator
+          ocupacional da Tabela 25 — que muda com idade e sexo. Nenhuma foi adaptada.
         </p>
 
         <p style="margin-top: 14px">
@@ -284,6 +294,13 @@
 
         <h2>Resultado</h2>
         <div class="painel" id="resultado-macros"></div>
+
+        <h2>Como está em relação às faixas de referência</h2>
+        <div id="faixas-macros"></div>
+        <p class="nota">
+          Tabela 29 do manual do CEPRAN/UNESP. Serve para conferir, não para impor: quem
+          prescreve é você.
+        </p>
 
         <h2>Ajuste para uma meta de peso</h2>
         <div class="linha">

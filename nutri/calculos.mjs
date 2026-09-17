@@ -58,6 +58,12 @@ export function densidadePollock7(soma, idade, sexo) {
  *
  * DC = c − m × log10(soma das 4 dobras: bíceps, tríceps, subescapular e
  * supra-ilíaca).
+ *
+ * Conferidos contra o Quadro 4 do "Manual de Avaliação da Composição
+ * Corporal" (São Camilo), que ela mandou — os dez coeficientes batem um a
+ * um. O manual traz ainda uma linha "todas as idades" com erro de digitação
+ * ("11765" e "11567", sem a vírgula); essa linha ficou de fora até ela
+ * confirmar, porque o valor certo é adivinhação minha e não leitura dela.
  */
 const DURNIN = {
   masculino: [
@@ -82,6 +88,21 @@ export function densidadeDurnin(soma, idade, sexo) {
   const faixa = faixas.find(([ate]) => idade <= ate) ?? faixas[faixas.length - 1];
   const [, c, m] = faixa;
   return c - m * Math.log10(soma);
+}
+
+/**
+ * Jackson, Pollock & Ward (1980) — 4 dobras, só para mulheres.
+ *
+ * Tríceps, abdominal, supra-ilíaca e coxa.
+ * DC = 1,0960950 − 0,0006952(Σ4) + 0,0000011(Σ4)² − 0,0000714(idade)
+ *
+ * Do Quadro 5 do manual que ela mandou. Não há versão masculina publicada
+ * nessa tabela, e por isso a tela não oferece essa opção para homem em vez
+ * de reaproveitar a fórmula feminina.
+ */
+export function densidadePollock4(soma, idade) {
+  if (!soma || !idade) return null;
+  return 1.096095 - 0.0006952 * soma + 0.0000011 * soma * soma - 0.0000714 * idade;
 }
 
 /**
@@ -166,6 +187,61 @@ export function cunningham(massaMagraKg) {
   if (!massaMagraKg) return null;
   return 500 + 22 * massaMagraKg;
 }
+
+/**
+ * FAO/OMS (1985) — taxa metabólica basal a partir do peso.
+ *
+ * Do manual do CEPRAN/UNESP que ela mandou (Tabela 24). A única entrada é o
+ * peso; a faixa de idade escolhe os coeficientes.
+ */
+const FAO = {
+  masculino: [
+    [30, 15.3, 679],
+    [60, 11.6, 879],
+    [200, 13.5, 487],
+  ],
+  feminino: [
+    [30, 14.7, 496],
+    [60, 8.7, 829],
+    [200, 10.5, 596],
+  ],
+};
+
+export function faoOms(pesoKg, idade, sexo) {
+  if (!pesoKg || !idade) return null;
+  const faixas = FAO[sexo] ?? FAO.feminino;
+  const faixa = faixas.find(([ate]) => idade <= ate) ?? faixas[faixas.length - 1];
+  const [, coeficiente, constante] = faixa;
+  return coeficiente * pesoKg + constante;
+}
+
+/**
+ * Fator atividade da FAO/OMS (1985), Tabela 25 do mesmo manual.
+ *
+ * Muda com a idade e com o sexo — e é por isso que ele não pode ser um
+ * número solto na tela: a mesma "atividade moderada" vale 1,80 para um homem
+ * de 40 e 1,65 para uma mulher de 40.
+ */
+export function fatorFao(atividade, idade, sexo) {
+  const ate65 = { leve: [1.55, 1.55], moderada: [1.8, 1.65], intensa: [2.1, 1.8] };
+  const acima = { leve: [1.4, 1.4], moderada: [1.6, 1.6], intensa: [1.9, 1.8] };
+  const tabela = idade > 65 ? acima : ate65;
+  const par = tabela[atividade];
+  if (!par) return null;
+  return sexo === "masculino" ? par[0] : par[1];
+}
+
+/**
+ * Faixas de distribuição de macronutrientes, em percentual das calorias.
+ *
+ * Tabela 29 do manual do CEPRAN. Servem para conferir a divisão que ela
+ * escolheu, não para impor nada: é ela quem prescreve.
+ */
+export const FAIXAS_MACROS = {
+  dri2005: { rotulo: "DRIs (2005)", carboidrato: [45, 65], proteina: [10, 35], lipideo: [20, 35] },
+  who2003: { rotulo: "WHO (2003)", carboidrato: [55, 75], proteina: [10, 15], lipideo: [15, 30] },
+  sban1990: { rotulo: "SBAN (1990)", carboidrato: [60, 70], proteina: [10, 12], lipideo: [20, 25] },
+};
 
 /** Fatores de atividade clássicos, para multiplicar a taxa basal. */
 export const ATIVIDADE = [

@@ -26,10 +26,10 @@ import {
  * conferindo a si mesmo.
  */
 
-const perto = (valor, esperado, tolerancia = 0.05) =>
+const perto = (valor, esperado, tolerancia = 0.05, contexto = "") =>
   assert.ok(
     Math.abs(valor - esperado) <= tolerancia,
-    `esperava ~${esperado}, veio ${valor}`,
+    `${contexto} esperava ~${esperado}, veio ${valor}`,
   );
 
 test("IMC: 70 kg e 1,75 m dão 22,86", () => {
@@ -195,4 +195,55 @@ test("VENTA: perder 2 kg em 30 dias pede 513 kcal a menos por dia", async () => 
   perto(venta(77, 75, 30), 513.33, 0.01);
   // Ganhar peso devolve negativo: o consumo sobe.
   assert.ok(venta(75, 77, 30) < 0);
+});
+
+// ---------------------------------------------------------------------------
+// Conferência contra o material que ela mandou
+// ---------------------------------------------------------------------------
+
+test("Durnin & Womersley: os dez coeficientes do Quadro 4", async () => {
+  const { densidadeDurnin } = await import("./calculos.mjs");
+  const log = Math.log10(50);
+  const esperado = {
+    masculino: [[18, 1.162, 0.063], [25, 1.1631, 0.0632], [35, 1.1422, 0.0544], [45, 1.162, 0.07], [70, 1.1715, 0.0779]],
+    feminino: [[18, 1.1549, 0.0678], [25, 1.1599, 0.0717], [35, 1.1423, 0.0632], [45, 1.1333, 0.0612], [70, 1.1339, 0.0645]],
+  };
+  for (const [sexo, linhas] of Object.entries(esperado)) {
+    for (const [idade, c, m] of linhas) {
+      perto(densidadeDurnin(50, idade, sexo), c - m * log, 0.0000001, `${sexo} ${idade}`);
+    }
+  }
+});
+
+test("Jackson, Pollock & Ward 4 dobras (mulheres), do Quadro 5", async () => {
+  const { densidadePollock4 } = await import("./calculos.mjs");
+  // 1,0960950 − 0,0006952(60) + 0,0000011(3600) − 0,0000714(30)
+  // = 1,096095 − 0,041712 + 0,00396 − 0,002142 = 1,056201
+  perto(densidadePollock4(60, 30), 1.056201, 0.000001);
+});
+
+test("FAO/OMS 1985: as seis linhas da Tabela 24", async () => {
+  const { faoOms } = await import("./calculos.mjs");
+  perto(faoOms(70, 25, "masculino"), 15.3 * 70 + 679, 0.001); // 1750
+  perto(faoOms(70, 45, "masculino"), 11.6 * 70 + 879, 0.001); // 1691
+  perto(faoOms(70, 70, "masculino"), 13.5 * 70 + 487, 0.001); // 1432
+  perto(faoOms(60, 25, "feminino"), 14.7 * 60 + 496, 0.001); // 1378
+  perto(faoOms(60, 45, "feminino"), 8.7 * 60 + 829, 0.001); // 1351
+  perto(faoOms(60, 70, "feminino"), 10.5 * 60 + 596, 0.001); // 1226
+});
+
+test("fator atividade da FAO muda com idade e sexo, como na Tabela 25", async () => {
+  const { fatorFao } = await import("./calculos.mjs");
+  assert.equal(fatorFao("moderada", 40, "masculino"), 1.8);
+  assert.equal(fatorFao("moderada", 40, "feminino"), 1.65);
+  assert.equal(fatorFao("intensa", 40, "masculino"), 2.1);
+  assert.equal(fatorFao("intensa", 70, "masculino"), 1.9);
+  assert.equal(fatorFao("leve", 70, "feminino"), 1.4);
+});
+
+test("as faixas de macros da Tabela 29", async () => {
+  const { FAIXAS_MACROS } = await import("./calculos.mjs");
+  assert.deepEqual(FAIXAS_MACROS.dri2005.carboidrato, [45, 65]);
+  assert.deepEqual(FAIXAS_MACROS.who2003.proteina, [10, 15]);
+  assert.deepEqual(FAIXAS_MACROS.sban1990.lipideo, [20, 25]);
 });
