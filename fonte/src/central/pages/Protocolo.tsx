@@ -146,10 +146,22 @@ function Refeicao({ refeicao }: { refeicao: RefeicaoProtocolo }) {
                 <span className="c-item-protocolo-quantidade">{item.quantidade}</span>
               )}
             </div>
-            {item.substituicoes.length > 0 && (
-              <p className="c-item-protocolo-trocas">
-                ou {item.substituicoes.join(" · ")}
-              </p>
+            {/* Duas ou três substituições cabem numa linha. Um grupo inteiro
+                ("Frutas", com dezessete) não cabe — vira parede de texto em
+                cima do item e some com a dieta. Aí a lista fecha, e ela abre
+                se quiser. */}
+            {item.substituicoes.length > 0 && item.substituicoes.length <= 4 && (
+              <p className="c-item-protocolo-trocas">ou {item.substituicoes.join(" · ")}</p>
+            )}
+            {item.substituicoes.length > 4 && (
+              <details className="c-trocas-lista">
+                <summary>ou uma destas {item.substituicoes.length} opções</summary>
+                <ul>
+                  {item.substituicoes.map((troca, j) => (
+                    <li key={j}>{troca}</li>
+                  ))}
+                </ul>
+              </details>
             )}
           </div>
         ))}

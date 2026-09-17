@@ -3,6 +3,7 @@ import type { Paciente } from "@/central/types";
 import type {
   ConteudoProtocolo,
   FichaProtocolo,
+  GrupoDoProtocolo,
   ItemProtocolo,
   OpcaoProtocolo,
   RefeicaoProtocolo,
@@ -44,6 +45,8 @@ const REFEICOES_COMUNS = [
 ];
 
 export function Protocolos() {
+  const [aba, definirAba] = useState<"pacientes" | "grupos">("pacientes");
+  const [grupos, definirGrupos] = useState<GrupoDoProtocolo[]>([]);
   const [pacientes, definirPacientes] = useState<Paciente[]>([]);
   const [resumos, definirResumos] = useState<ResumoProtocolo[]>([]);
   const [escolhida, definirEscolhida] = useState("");
@@ -54,6 +57,10 @@ export function Protocolos() {
     definirResumos(await repositorio.protocolosDasPacientes().catch(() => []));
   }, []);
 
+  const carregarGrupos = useCallback(async () => {
+    definirGrupos(await repositorio.listarGruposProtocolo().catch(() => []));
+  }, []);
+
   useEffect(() => {
     void repositorio
       .listarPacientes()
@@ -62,7 +69,8 @@ export function Protocolos() {
         definirErro(e instanceof Error ? e.message : "Não consegui carregar as pacientes."),
       );
     void carregarResumos();
-  }, [carregarResumos]);
+    void carregarGrupos();
+  }, [carregarResumos, carregarGrupos]);
 
   const visiveis = pacientes.filter((p) =>
     p.nome.toLowerCase().includes(busca.trim().toLowerCase()),
@@ -95,6 +103,29 @@ export function Protocolos() {
         </div>
       )}
 
+      <div className="c-admin-abas" style={{ marginTop: 16, marginBottom: 4 }}>
+        <button
+          type="button"
+          className={`c-admin-aba ${aba === "pacientes" ? "ativo" : ""}`}
+          onClick={() => definirAba("pacientes")}
+        >
+          Protocolo das pacientes
+        </button>
+        <button
+          type="button"
+          className={`c-admin-aba ${aba === "grupos" ? "ativo" : ""}`}
+          onClick={() => definirAba("grupos")}
+        >
+          Grupos de alimentos
+        </button>
+      </div>
+
+      {aba === "grupos" && (
+        <GruposDeAlimentos grupos={grupos} aoMudar={() => void carregarGrupos()} />
+      )}
+
+      {aba === "pacientes" && (
+        <>
       <Campo rotulo="Buscar paciente">
         <Texto valor={busca} aoMudar={definirBusca} placeholder="Nome" />
       </Campo>
@@ -123,14 +154,25 @@ export function Protocolos() {
         <EditorDoProtocolo
           key={paciente.id}
           paciente={paciente}
+          grupos={grupos}
           aoMudar={() => void carregarResumos()}
         />
+      )}
+        </>
       )}
     </>
   );
 }
 
-function EditorDoProtocolo({ paciente, aoMudar }: { paciente: Paciente; aoMudar: () => void }) {
+function EditorDoProtocolo({
+  paciente,
+  grupos,
+  aoMudar,
+}: {
+  paciente: Paciente;
+  grupos: GrupoDoProtocolo[];
+  aoMudar: () => void;
+}) {
   const [ficha, definirFicha] = useState<FichaProtocolo | null>(null);
   const [titulo, definirTitulo] = useState("Protocolo alimentar");
   const [conteudo, definirConteudo] = useState<ConteudoProtocolo>(CONTEUDO_VAZIO);
@@ -278,6 +320,7 @@ function EditorDoProtocolo({ paciente, aoMudar }: { paciente: Paciente; aoMudar:
         <BlocoDaRefeicao
           key={iRefeicao}
           refeicao={refeicao}
+          grupos={grupos}
           primeira={iRefeicao === 0}
           ultima={iRefeicao === conteudo.refeicoes.length - 1}
           aoTrocar={(nova) => definirConteudo(trocarRefeicao(conteudo, iRefeicao, nova))}
@@ -464,6 +507,7 @@ function EditorDoProtocolo({ paciente, aoMudar }: { paciente: Paciente; aoMudar:
 
 function BlocoDaRefeicao({
   refeicao,
+  grupos,
   primeira,
   ultima,
   aoTrocar,
@@ -471,6 +515,7 @@ function BlocoDaRefeicao({
   aoMover,
 }: {
   refeicao: RefeicaoProtocolo;
+  grupos: GrupoDoProtocolo[];
   primeira: boolean;
   ultima: boolean;
   aoTrocar: (nova: RefeicaoProtocolo) => void;
@@ -582,17 +627,49 @@ function BlocoDaRefeicao({
             </div>
           ))}
 
-          <button
-            type="button"
-            className="c-link"
-            onClick={() => trocarOpcao(iOpcao, { ...opcao, itens: [...opcao.itens, itemVazio()] })}
-          >
-            + Acrescentar alimento
-          </button>
+          <div className="c-acoes-refeicao" style={{ gap: 16, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="c-link"
+              onClick={() => trocarOpcao(iOpcao, { ...opcao, itens: [...opcao.itens, itemVazio()] })}
+            >
+              + Acrescentar alimento
+            </button>
+
+            {grupos.length > 0 && (
+              <Selecao
+                valor=""
+                aoMudar={(id) => {
+                  const grupo = grupos.find((g) => g.id === id);
+                  if (!grupo) return;
+                  // O grupo entra COPIADO: vira um item com o nome dele e a
+                  // lista como substituições. Mexer no grupo depois não muda
+                  // a dieta de quem já recebeu este protocolo.
+                  trocarOpcao(iOpcao, {
+                    ...opcao,
+                    itens: [
+                      ...opcao.itens,
+                      {
+                        alimento: grupo.nome,
+                        quantidade: "1 porção",
+                        substituicoes: grupo.itens.map((i) =>
+                          i.quantidade ? `${i.alimento} - ${i.quantidade}` : i.alimento,
+                        ),
+                      },
+                    ],
+                  });
+                }}
+                opcoes={[
+                  { valor: "", rotulo: "+ Usar um grupo…" },
+                  ...grupos.map((g) => ({ valor: g.id, rotulo: `${g.nome} (${g.itens.length})` })),
+                ]}
+              />
+            )}
+          </div>
 
           <Campo
-            rotulo="Observações desta refeição"
-            dica="Uma por linha. Chá, suplementação, modo de preparo, vegetais liberados."
+            rotulo="Lembrete desta refeição"
+            dica="Um por linha. Chá, suplementação, modo de preparo, vegetais liberados — aparece embaixo desta refeição, na tela dela."
           >
             <AreaTexto
               valor={linhasDeLista(opcao.notas)}
@@ -674,4 +751,193 @@ function moverRefeicao(conteudo: ConteudoProtocolo, i: number, passo: -1 | 1): C
   refeicoes[i] = outra;
   refeicoes[destino] = atual;
   return { ...conteudo, refeicoes };
+}
+
+
+/**
+ * Grupos de alimentos — a lista que ela monta uma vez e usa em toda paciente.
+ *
+ * "Frutas" com a porção de cada uma, "Carboidratos do almoço" com as fontes
+ * que ela aceita. Sem caloria e sem macro: nome e quantidade, escritos por
+ * ela, que é o que entra no protocolo.
+ */
+function GruposDeAlimentos({
+  grupos,
+  aoMudar,
+}: {
+  grupos: GrupoDoProtocolo[];
+  aoMudar: () => void;
+}) {
+  const [abertoId, definirAberto] = useState<string | null>(null);
+  const [nome, definirNome] = useState("");
+  const [itens, definirItens] = useState<GrupoDoProtocolo["itens"]>([{ alimento: "", quantidade: "" }]);
+  const [aviso, definirAviso] = useState<string | null>(null);
+  const [erro, definirErro] = useState<string | null>(null);
+  const [ocupado, definirOcupado] = useState(false);
+
+  function abrir(grupo: GrupoDoProtocolo | null) {
+    definirAberto(grupo?.id ?? "novo");
+    definirNome(grupo?.nome ?? "");
+    definirItens(
+      grupo && grupo.itens.length > 0 ? [...grupo.itens] : [{ alimento: "", quantidade: "" }],
+    );
+    definirErro(null);
+  }
+
+  async function executar(acao: () => Promise<void>, mensagem: string) {
+    definirOcupado(true);
+    definirErro(null);
+    try {
+      await acao();
+      aoMudar();
+      definirAviso(mensagem);
+      definirAberto(null);
+    } catch (e: unknown) {
+      definirErro(e instanceof Error ? e.message : "Não consegui salvar o grupo.");
+    } finally {
+      definirOcupado(false);
+    }
+  }
+
+  return (
+    <div style={{ marginTop: 14 }}>
+      <p className="c-dica" style={{ marginTop: 0 }}>
+        Monte aqui as listas que você repete em toda paciente. Depois, em cada refeição, é só
+        escolher o grupo — ele entra copiado, então mexer nele aqui não muda a dieta de quem já
+        recebeu.
+      </p>
+
+      {aviso && (
+        <div className="c-aviso c-aviso-ok" role="status">
+          <span>{aviso}</span>
+        </div>
+      )}
+      {erro && (
+        <div className="c-aviso c-aviso-erro" role="alert">
+          <span>{erro}</span>
+        </div>
+      )}
+
+      {grupos.length === 0 && abertoId === null && (
+        <p className="c-dica">Nenhum grupo ainda.</p>
+      )}
+
+      <div className="c-lista">
+        {grupos.map((g) => (
+          <div className="c-lista-item" key={g.id}>
+            <span>
+              <span className="c-lista-item-nome">{g.nome}</span>
+              <span className="c-lista-item-apoio">
+                {g.itens.length} {g.itens.length === 1 ? "alimento" : "alimentos"}
+                {g.itens.length > 0 ? ` · ${g.itens.map((i) => i.alimento).join(", ")}` : ""}
+              </span>
+            </span>
+            <button type="button" className="c-link" onClick={() => abrir(g)}>
+              Editar
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {abertoId === null && (
+        <button
+          type="button"
+          className="c-botao c-botao-secundario"
+          style={{ marginTop: 14 }}
+          onClick={() => abrir(null)}
+        >
+          + Novo grupo
+        </button>
+      )}
+
+      {abertoId !== null && (
+        <div className="c-bloco">
+          <Campo rotulo="Nome do grupo" dica="Ex.: Frutas, Carboidratos do almoço, Proteínas.">
+            <Texto valor={nome} aoMudar={definirNome} placeholder="Frutas" />
+          </Campo>
+
+          {itens.map((item, i) => (
+            <div className="c-linha-item" key={i}>
+              <div className="c-duas-colunas">
+                <Campo rotulo="Alimento">
+                  <Texto
+                    valor={item.alimento}
+                    aoMudar={(v) =>
+                      definirItens(itens.map((x, j) => (j === i ? { ...x, alimento: v } : x)))
+                    }
+                    placeholder="Banana"
+                  />
+                </Campo>
+                <Campo rotulo="Quantidade">
+                  <Texto
+                    valor={item.quantidade}
+                    aoMudar={(v) =>
+                      definirItens(itens.map((x, j) => (j === i ? { ...x, quantidade: v } : x)))
+                    }
+                    placeholder="1 unidade"
+                  />
+                </Campo>
+              </div>
+              <button
+                type="button"
+                className="c-link"
+                onClick={() => definirItens(itens.filter((_, j) => j !== i))}
+              >
+                Remover
+              </button>
+            </div>
+          ))}
+
+          <button
+            type="button"
+            className="c-link"
+            onClick={() => definirItens([...itens, { alimento: "", quantidade: "" }])}
+          >
+            + Acrescentar alimento
+          </button>
+
+          <div style={{ display: "grid", gap: 10, marginTop: 16 }}>
+            <button
+              type="button"
+              className="c-botao"
+              disabled={ocupado || !nome.trim()}
+              onClick={() =>
+                void executar(
+                  () =>
+                    repositorio.salvarGrupoProtocolo(
+                      abertoId === "novo" ? null : abertoId,
+                      nome,
+                      itens.filter((i) => i.alimento.trim()),
+                    ),
+                  "Grupo guardado.",
+                )
+              }
+            >
+              Guardar grupo
+            </button>
+
+            <button type="button" className="c-link" onClick={() => definirAberto(null)}>
+              Cancelar
+            </button>
+
+            {abertoId !== "novo" && (
+              <button
+                type="button"
+                className="c-link"
+                disabled={ocupado}
+                onClick={() =>
+                  void executar(
+                    () => repositorio.excluirGrupoProtocolo(abertoId),
+                    "Grupo apagado. Os protocolos que já usaram continuam iguais.",
+                  )
+                }
+              >
+                Apagar este grupo
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

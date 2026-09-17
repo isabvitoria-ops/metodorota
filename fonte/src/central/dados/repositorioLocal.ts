@@ -42,7 +42,7 @@ import { PLANOS } from "./sementes/planos";
 import { CONFIGURACOES } from "./sementes/configuracoes";
 import { paraConfiguracoes } from "./mapeadores";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
-import type { ConteudoProtocolo, Protocolo } from "@/central/types/protocolo";
+import type { ConteudoProtocolo, GrupoDoProtocolo, Protocolo } from "@/central/types/protocolo";
 
 /**
  * Modo demonstração: o app inteiro funcionando sem banco nenhum.
@@ -713,7 +713,44 @@ export const repositorioLocal: Repositorio = {
   async restaurarProtocolo() {
     throw new Error("Restaurar versão precisa do banco. Configure o Supabase.");
   },
+
+  // Na demonstração os grupos vêm prontos, para a tela ter o que mostrar.
+  async listarGruposProtocolo() {
+    return GRUPOS_DEMO;
+  },
+
+  async salvarGrupoProtocolo() {
+    throw new Error("Guardar grupo precisa do banco. Configure o Supabase.");
+  },
+
+  async excluirGrupoProtocolo() {
+    throw new Error("Apagar grupo precisa do banco. Configure o Supabase.");
+  },
 };
+
+/** Dois grupos de exemplo, no formato que ela monta. */
+const GRUPOS_DEMO: GrupoDoProtocolo[] = [
+  {
+    id: "g-frutas",
+    nome: "Frutas",
+    itens: [
+      { alimento: "Banana", quantidade: "1 unidade" },
+      { alimento: "Mamão", quantidade: "150g" },
+      { alimento: "Morango", quantidade: "200g" },
+      { alimento: "Uva", quantidade: "110g" },
+    ],
+  },
+  {
+    id: "g-carbo",
+    nome: "Carboidratos do almoço e jantar",
+    itens: [
+      { alimento: "Arroz branco, cozido", quantidade: "130g" },
+      { alimento: "Batata doce, cozida", quantidade: "180g" },
+      { alimento: "Macarrão, cozido", quantidade: "130g" },
+      { alimento: "Mandioca, cozida", quantidade: "130g" },
+    ],
+  },
+];
 
 /**
  * Um dia de protocolo para a demonstração.

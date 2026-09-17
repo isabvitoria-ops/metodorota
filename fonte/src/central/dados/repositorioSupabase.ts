@@ -23,6 +23,7 @@ import type {
 import type {
   ConteudoProtocolo,
   FichaProtocolo,
+  GrupoDoProtocolo,
   Protocolo,
   ResumoProtocolo,
 } from "@/central/types/protocolo";
@@ -771,6 +772,36 @@ export const repositorioSupabase: Repositorio = {
     const sb = exigirSupabase();
     const { error } = await sb.rpc("restaurar_protocolo", { p_protocolo: protocoloId });
     erro("restaurar a versão", error);
+  },
+
+  async listarGruposProtocolo(): Promise<GrupoDoProtocolo[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("listar_grupos_protocolo");
+    erro("carregar os grupos", error);
+    return ((data ?? []) as Linha[]).map((g) => ({
+      id: texto(g.id),
+      nome: texto(g.nome),
+      itens: ((g.itens ?? []) as Linha[]).map((i) => ({
+        alimento: texto(i.alimento),
+        quantidade: texto(i.quantidade),
+      })),
+    }));
+  },
+
+  async salvarGrupoProtocolo(id: string | null, nome: string, itens: GrupoDoProtocolo["itens"]) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("salvar_grupo_protocolo", {
+      p_id: id,
+      p_nome: nome,
+      p_itens: itens,
+    });
+    erro("salvar o grupo", error);
+  },
+
+  async excluirGrupoProtocolo(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("excluir_grupo_protocolo", { p_id: id });
+    erro("apagar o grupo", error);
   },
 };
 

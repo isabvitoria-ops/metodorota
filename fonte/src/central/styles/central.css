@@ -2488,3 +2488,32 @@ body:has(.central) {
   gap: 12px;
   flex: 0 0 auto;
 }
+
+/* Grupo de alimentos dentro da refeição: dezessete frutas não cabem numa
+   linha de "ou". Fecha, e a paciente abre se quiser trocar. */
+.c-trocas-lista {
+  margin-top: 6px;
+}
+
+.c-trocas-lista > summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-muted);
+  list-style: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.c-trocas-lista > summary::-webkit-details-marker {
+  display: none;
+}
+
+.c-trocas-lista > ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}

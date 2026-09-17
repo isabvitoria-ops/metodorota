@@ -27,6 +27,7 @@ import type {
 import type {
   ConteudoProtocolo,
   FichaProtocolo,
+  GrupoDoProtocolo,
   Protocolo,
   ResumoProtocolo,
 } from "@/central/types/protocolo";
@@ -190,6 +191,15 @@ export interface Repositorio {
   descartarRascunhoProtocolo(pacienteId: string): Promise<void>;
   /** Traz uma versão antiga de volta como rascunho, para ela conferir. */
   restaurarProtocolo(protocoloId: string): Promise<void>;
+
+  /** Os grupos de alimentos dela — "Frutas", "Carboidratos do almoço". */
+  listarGruposProtocolo(): Promise<GrupoDoProtocolo[]>;
+  salvarGrupoProtocolo(
+    id: string | null,
+    nome: string,
+    itens: GrupoDoProtocolo["itens"],
+  ): Promise<void>;
+  excluirGrupoProtocolo(id: string): Promise<void>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

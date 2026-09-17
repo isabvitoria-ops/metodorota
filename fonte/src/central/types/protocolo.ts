@@ -91,3 +91,17 @@ export interface FichaProtocolo {
   publicado: Protocolo | null;
   historico: VersaoProtocolo[];
 }
+
+/**
+ * Um grupo de alimentos que ela monta uma vez e reusa.
+ *
+ * "Frutas" com as dezessete frutas e a porção de cada uma; "Carboidratos do
+ * almoço" com as sete fontes. Sem caloria nem macro: nome e quantidade,
+ * escritos por ela. Ao entrar num protocolo o grupo é COPIADO — mexer nele
+ * depois não muda a dieta de quem já recebeu.
+ */
+export interface GrupoDoProtocolo {
+  id: string;
+  nome: string;
+  itens: { alimento: string; quantidade: string }[];
+}

@@ -267,6 +267,56 @@ select teste('a paciente continua vendo só a versão no ar',
 commit;
 
 -- -----------------------------------------------------------------------------
+-- Grupos de alimentos: a lista que ela monta uma vez e usa em toda paciente
+-- -----------------------------------------------------------------------------
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+select salvar_grupo_protocolo(null, 'Frutas', jsonb_build_array(
+  jsonb_build_object('alimento', 'Banana', 'quantidade', '1 unidade'),
+  jsonb_build_object('alimento', 'Mamão', 'quantidade', '150g')));
+
+select teste('o grupo fica guardado com os alimentos',
+  jsonb_array_length((select itens from grupos_protocolo where nome = 'Frutas')) = 2);
+
+select teste('e aparece na lista dela',
+  (select count(*) from jsonb_array_elements(listar_grupos_protocolo()) e
+    where e ->> 'nome' = 'Frutas') = 1);
+
+select teste('grupo sem nome é recusado',
+  recusou($$select salvar_grupo_protocolo(null, '   ', '[]'::jsonb)$$));
+
+select teste('grupo com lista que não é lista é recusado',
+  recusou($$select salvar_grupo_protocolo(null, 'Torto', '{"a":1}'::jsonb)$$));
+
+select teste('nome repetido é recusado',
+  recusou($$select salvar_grupo_protocolo(null, 'frutas', '[]'::jsonb)$$));
+
+-- Editar o grupo NÃO mexe em protocolo já publicado: a dieta que a paciente
+-- está seguindo não muda sozinha porque ela ajustou uma lista.
+select salvar_grupo_protocolo(
+  (select id from grupos_protocolo where nome = 'Frutas'),
+  'Frutas', jsonb_build_array(jsonb_build_object('alimento', 'Uva', 'quantidade', '100g')));
+
+select teste('editar o grupo não mexe no protocolo que já está no ar',
+  (select conteudo #>> '{refeicoes,0,opcoes,0,itens,0,alimento}'
+     from protocolos where situacao = 'publicado' and paciente_id = alana()) = 'Arroz cozido');
+
+select excluir_grupo_protocolo((select id from grupos_protocolo where nome = 'Frutas'));
+select teste('apagar o grupo tira ele da lista', (select count(*) from grupos_protocolo) = 0);
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000f2', true);
+select teste('a paciente não vê a tabela de grupos',
+  (select count(*) from grupos_protocolo) = 0);
+select teste('nem consegue listar', recusou('select listar_grupos_protocolo()'));
+select teste('nem criar', recusou($$select salvar_grupo_protocolo(null, 'Meu', '[]'::jsonb)$$));
+commit;
+
+-- -----------------------------------------------------------------------------
 -- Anônimo não chega perto
 -- -----------------------------------------------------------------------------
 begin;
