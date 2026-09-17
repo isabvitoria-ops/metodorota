@@ -48,7 +48,7 @@ const PESO_DOBRADO = new Set(["diarreia", "urgencia", "nausea", "refluxo", "manc
  *
  *   0 ponto        → verde,    "Bem tolerado"
  *   1 ou 2 pontos  → amarelo,  "Comer com atenção"
- *   3 ou mais      → vermelho, "Pouco tolerado"
+ *   3 ou mais      → vermelho, "Não tolerado"
  *
  * Os dois exemplos dela batem: abacate só com gases dá 1 ponto (amarelo);
  * gases + distensão + diarreia dá 1+1+2 = 4 (vermelho). E uma diarreia
@@ -66,6 +66,6 @@ export function classificar(registros: RegistroDeReintroducao[]): {
 
   if (pontos === 0) return { tom: "bom", rotulo: "Bem tolerado" };
   if (pontos <= 2) return { tom: "atencao", rotulo: "Comer com atenção" };
-  return { tom: "grave", rotulo: "Pouco tolerado" };
+  return { tom: "grave", rotulo: "Não tolerado" };
 }
 

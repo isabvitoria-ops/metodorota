@@ -16,7 +16,7 @@ import { dataBonita } from "@/central/utils/situacao";
  *
  *   * 0 ponto        → verde,    "Bem tolerado";
  *   * 1 ou 2 pontos  → amarelo,  "Comer com atenção";
- *   * 3 ou mais      → vermelho, "Pouco tolerado".
+ *   * 3 ou mais      → vermelho, "Não tolerado".
  *
  * Cada sintoma DIFERENTE vale um ponto, somando todos os testes daquele
  * alimento — e cinco deles valem dois, por serem mais intensos (ver
@@ -97,8 +97,9 @@ const GRUPOS: { tom: Linha["tom"]; titulo: string; apoio: string }[] = [
   },
   {
     tom: "grave",
-    titulo: "Pouco tolerados",
-    apoio: "Foram relatados vários sintomas depois destes. Vale conversar na consulta.",
+    titulo: "Não tolerados",
+    apoio:
+      "Foram relatados três ou mais sintomas depois destes. Vale conversar na sua consulta.",
   },
   { tom: "neutro", titulo: "Outros", apoio: "" },
   { tom: "apagado", titulo: "Fora da sua alimentação", apoio: "" },
@@ -160,7 +161,7 @@ export function RastreioAlimentar({
             ["todos", `Todos (${linhas.length})`],
             ["bom", `Bem tolerados (${quantos("bom")})`],
             ["atencao", `Com atenção (${quantos("atencao")})`],
-            ["grave", `Pouco tolerados (${quantos("grave")})`],
+            ["grave", `Não tolerados (${quantos("grave")})`],
           ] as [Filtro, string][]
         ).map(([chave, rotulo]) => (
           <button

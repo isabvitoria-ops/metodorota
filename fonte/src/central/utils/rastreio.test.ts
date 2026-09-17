@@ -52,7 +52,7 @@ test("exemplo dela: gases, distensão e diarreia fica vermelho", () => {
   // 1 + 1 + 2 = 4 pontos.
   const r = classificar([registro(["gases", "distensao", "diarreia"])]);
   assert.equal(r.tom, "grave");
-  assert.equal(r.rotulo, "Pouco tolerado");
+  assert.equal(r.rotulo, "Não tolerado");
 });
 
 test("três sintomas leves também chegam a vermelho", () => {
