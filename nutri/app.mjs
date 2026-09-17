@@ -1,17 +1,12 @@
 import {
   ATIVIDADE,
-  brozek,
   classificarIMC,
+  CONVERSOES,
   cunningham,
-  densidadeDurnin,
-  densidadePollock4,
-  densidadePollock3,
-  densidadePollock7,
   distribuicao,
   FAIXAS_MACROS,
   faoOms,
   fatorFao,
-  faulkner,
   harrisBenedict,
   imc,
   massaGorda,
@@ -24,10 +19,10 @@ import {
   riscoRCQ,
   porGramas,
   porQuilo,
-  siri,
   somar,
   venta,
 } from "./calculos.mjs";
+import { PROTOCOLOS } from "./protocolos.mjs";
 
 /**
  * A tela da bancada. Só amarra campo em conta: quem calcula é
@@ -406,47 +401,28 @@ const CIRCUNFERENCIAS = [
   ["pant_esq", "Panturrilha esquerda"],
 ];
 
-/** Quais dobras cada protocolo soma. Nada aqui é escolha minha. */
-const PROTOCOLOS = {
-  pollock3: {
-    rotulo: "Jackson & Pollock, 3 dobras",
-    dobras: { masculino: ["peitoral", "abdominal", "coxa"], feminino: ["triceps", "suprailiaca", "coxa"] },
-  },
-  pollock7: {
-    rotulo: "Jackson & Pollock, 7 dobras",
-    dobras: {
-      masculino: ["peitoral", "axilar", "triceps", "subescapular", "abdominal", "suprailiaca", "coxa"],
-      feminino: ["peitoral", "axilar", "triceps", "subescapular", "abdominal", "suprailiaca", "coxa"],
-    },
-  },
-  pollock4: {
-    rotulo: "Jackson, Pollock & Ward, 4 dobras (mulheres)",
-    dobras: {
-      // Publicada só para mulheres. Para homem a tela avisa em vez de
-      // reaproveitar a fórmula feminina, que daria número errado calado.
-      masculino: [],
-      feminino: ["triceps", "abdominal", "suprailiaca", "coxa"],
-    },
-  },
-  durnin: {
-    rotulo: "Durnin & Womersley, 4 dobras",
-    dobras: {
-      masculino: ["biceps", "triceps", "subescapular", "suprailiaca"],
-      feminino: ["biceps", "triceps", "subescapular", "suprailiaca"],
-    },
-  },
-  faulkner: {
-    rotulo: "Faulkner, 4 dobras",
-    dobras: {
-      masculino: ["triceps", "subescapular", "suprailiaca", "abdominal"],
-      feminino: ["triceps", "subescapular", "suprailiaca", "abdominal"],
-    },
-  },
-};
-
 const CHAVE_CORPO = "nutri:corpo:v1";
 
 function camposCorpo() {
+  // A lista de equações da tela é montada a partir do mapa acima, e não
+  // escrita à mão no HTML. Duas listas para manter em sincronia é uma
+  // esperando ficar desatualizada em silêncio.
+  const protocolos = $("c-protocolo");
+  for (const [chave, dados] of Object.entries(PROTOCOLOS)) {
+    const opcao = document.createElement("option");
+    opcao.value = chave;
+    opcao.textContent = dados.rotulo;
+    protocolos.append(opcao);
+  }
+
+  const conversoes = $("c-equacao");
+  for (const [chave, conv] of Object.entries(CONVERSOES)) {
+    const opcao = document.createElement("option");
+    opcao.value = chave;
+    opcao.textContent = conv.rotulo;
+    conversoes.append(opcao);
+  }
+
   const dobras = $("dobras");
   for (const [chave, rotulo] of DOBRAS) {
     const div = document.createElement("div");
@@ -475,31 +451,32 @@ function calcularCorpo() {
   const peso = num($("c-peso").value);
   const alturaCm = num($("c-altura").value);
   const protocolo = $("c-protocolo").value;
-  const usadas = PROTOCOLOS[protocolo].dobras[sexo];
+  const dados = PROTOCOLOS[protocolo];
+  const usadas = dados.dobras[sexo];
+  const nomes = usadas.map((c) => DOBRAS.find(([k]) => k === c)[1].toLowerCase()).join(", ");
 
   $("quais-dobras").textContent = usadas.length
-    ? `${PROTOCOLOS[protocolo].rotulo}: soma ${usadas.map((c) => DOBRAS.find(([k]) => k === c)[1].toLowerCase()).join(", ")}.`
-    : `${PROTOCOLOS[protocolo].rotulo} não tem equação publicada para este sexo. Escolha outro protocolo.`;
+    ? `${dados.rotulo}: ${dados.percentual || protocolo === "katch" ? "usa" : "soma"} ${nomes}. ${dados.nota}`
+    : `${dados.rotulo} não tem equação publicada para este sexo. Escolha outro protocolo.`;
 
-  const valores = usadas.map((c) => num($(`dob-${c}`).value));
-  const faltando = valores.filter((v) => !v).length;
-  const soma = valores.reduce((t, v) => t + v, 0);
+  const valores = Object.fromEntries(usadas.map((c) => [c, num($(`dob-${c}`).value)]));
+  const lista = usadas.map((c) => valores[c]);
+  const faltando = lista.filter((v) => !v).length;
+  const soma = lista.reduce((t, v) => t + v, 0);
+
+  // A conversão é a do autor da equação, não uma escolha solta na tela. O
+  // seletor serve para ela trocar de propósito; trocar de protocolo puxa a
+  // conversão certa junto.
+  const conversao = CONVERSOES[$("c-equacao").value] ?? CONVERSOES.siri;
 
   let percentual = null;
   let densidade = null;
   if (!faltando && soma > 0) {
-    if (protocolo === "faulkner") {
-      percentual = faulkner(soma);
+    if (dados.percentual) {
+      percentual = dados.percentual({ soma, idade, sexo, valores });
     } else {
-      densidade =
-        protocolo === "pollock3"
-          ? densidadePollock3(soma, idade, sexo)
-          : protocolo === "pollock7"
-            ? densidadePollock7(soma, idade, sexo)
-            : protocolo === "pollock4"
-              ? densidadePollock4(soma, idade)
-              : densidadeDurnin(soma, idade, sexo);
-      percentual = $("c-equacao").value === "brozek" ? brozek(densidade) : siri(densidade);
+      densidade = dados.densidade({ soma, idade, sexo, valores });
+      percentual = densidade === null ? null : conversao.calcular(densidade);
     }
   }
 
@@ -510,7 +487,13 @@ function calcularCorpo() {
   $("resultado-corpo").innerHTML =
     "<dl>" +
     [
-      ["Soma do protocolo", mostrar(soma, 1, " mm"), `${usadas.length} dobras · é esta que entra na conta`],
+      [
+        "Soma do protocolo",
+        mostrar(soma, 1, " mm"),
+        protocolo === "katch"
+          ? `${usadas.length} dobras · esta equação NÃO usa a soma — cada dobra entra com o seu coeficiente`
+          : `${usadas.length} dobras · é esta que entra na conta`,
+      ],
       [
         "Soma de todas as medidas",
         mostrar(
@@ -521,7 +504,11 @@ function calcularCorpo() {
         "todas as dobras anotadas",
       ],
       ["Densidade", densidade ? mostrar(densidade, 4) : "—", densidade ? "g/cm³" : ""],
-      ["Gordura", percentual === null ? "—" : mostrar(percentual, 2, "%"), percentual === null ? "" : "por Siri"],
+      [
+        "Gordura",
+        percentual === null ? "—" : mostrar(percentual, 2, "%"),
+        percentual === null ? "" : dados.percentual ? "da própria equação" : `por ${conversao.rotulo}`,
+      ],
       ["Massa gorda", mostrar(gorda, 1, " kg"), ""],
       ["Massa magra", mostrar(magra, 1, " kg"), ""],
       ["IMC", mostrar(indice, 2), "kg/m²"],
@@ -533,7 +520,7 @@ function calcularCorpo() {
   $("aviso-corpo").innerHTML =
     faltando && soma > 0
       ? `<div class="aviso">Falta preencher ${faltando} ${faltando === 1 ? "dobra" : "dobras"} deste protocolo. Não calculo o percentual com dobra faltando — o resultado sairia errado sem avisar.</div>`
-      : !idade && soma > 0 && protocolo !== "faulkner"
+      : !idade && soma > 0 && dados.usaIdade
         ? `<div class="aviso">Esta equação usa a idade. Preencha para o percentual aparecer.</div>`
         : "";
 
@@ -552,7 +539,9 @@ function calcularCorpo() {
         faixaPeso ? `${mostrar(faixaPeso.minimo, 1)} – ${mostrar(faixaPeso.maximo, 1)}` : "—",
         faixaPeso ? "kg · IMC 18,5–24,9" : "",
       ],
-      ["Cintura", mostrar(cintura, 1, " cm"), riscoCintura(cintura, sexo) ?? ""],
+      // Campo vazio mostra travessão, não "0,0 cm": zero aqui leria como
+      // uma cintura medida de zero centímetros.
+      ["Cintura", cintura ? mostrar(cintura, 1, " cm") : "—", riscoCintura(cintura, sexo) ?? ""],
       ["Cintura/quadril", rcq === null ? "—" : mostrar(rcq, 2), riscoRCQ(rcq, sexo) ?? ""],
     ]
       .map(([t, v, apoio]) => `<dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd>`)
@@ -630,6 +619,30 @@ lerCorpo();
 for (const campo of document.querySelectorAll("#corpo input, #corpo select")) {
   campo.addEventListener("input", calcularCorpo);
 }
+
+/**
+ * Trocar de equação puxa junto a conversão daquele autor.
+ *
+ * Sem isto, escolher Petroski deixaria Siri ligado do protocolo anterior e
+ * o percentual sairia com a conta errada — parecendo certo. Ela ainda pode
+ * trocar a conversão depois, de propósito; o que não pode é herdar a do
+ * protocolo passado sem perceber.
+ */
+function seguirConversaoDoAutor() {
+  const dados = PROTOCOLOS[$("c-protocolo").value];
+  const seletor = $("c-equacao");
+  const proprio = !dados.percentual;
+  seletor.disabled = !proprio;
+  if (proprio) seletor.value = dados.conversao;
+  $("aviso-conversao").textContent = proprio
+    ? `${dados.rotulo} foi publicada com ${CONVERSOES[dados.conversao].rotulo}.`
+    : "Esta equação devolve o percentual direto — não passa por conversão.";
+}
+$("c-protocolo").addEventListener("change", () => {
+  seguirConversaoDoAutor();
+  calcularCorpo();
+});
+seguirConversaoDoAutor();
 if (!$("c-data").value) $("c-data").value = new Date().toISOString().slice(0, 10);
 calcularCorpo();
 

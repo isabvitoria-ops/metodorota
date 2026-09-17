@@ -212,8 +212,10 @@ export function slaughter(soma) {
  * As três conversões de densidade em percentual que a tabela usa.
  *
  * `siri` e `lohman` só parecem a mesma coisa: 495/D − 450 contra 498/D −
- * 453. A diferença chega a meio ponto percentual, e cada autor validou a
- * sua com a sua.
+ * 453. A diferença entre elas é 3 × (1 − D) / D — entre 0,05 e 0,3 ponto
+ * percentual num corpo comum, e maior justamente nas pacientes mais
+ * magras. Pequena demais para alguém estranhar olhando a tela, que é
+ * exatamente o motivo de cada autor precisar ficar com a sua.
  */
 export const CONVERSOES = {
   siri: { rotulo: "Siri", calcular: (d) => (4.95 / d - 4.5) * 100 },

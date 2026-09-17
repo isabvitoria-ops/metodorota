@@ -202,20 +202,15 @@
         <div class="linha">
           <div>
             <label for="c-protocolo">Equação</label>
-            <select id="c-protocolo">
-              <option value="pollock3">Jackson &amp; Pollock — 3 dobras</option>
-              <option value="pollock7">Jackson, Pollock &amp; Ward — 7 dobras</option>
-              <option value="pollock4">Jackson, Pollock &amp; Ward — 4 dobras (mulheres)</option>
-              <option value="durnin">Durnin &amp; Womersley — 4 dobras</option>
-              <option value="faulkner">Faulkner — 4 dobras</option>
-            </select>
+            <!-- As opções são montadas em app.mjs, a partir do mapa PROTOCOLOS.
+                 Duas listas para manter em sincronia é uma esperando ficar
+                 desatualizada em silêncio. -->
+            <select id="c-protocolo"></select>
           </div>
           <div>
-            <label for="c-equacao">Equação de gordura</label>
-            <select id="c-equacao">
-              <option value="siri">Siri (1961)</option>
-              <option value="brozek">Brozek (1963)</option>
-            </select>
+            <label for="c-equacao">Conversão em percentual</label>
+            <select id="c-equacao"></select>
+            <p class="nota" id="aviso-conversao"></p>
           </div>
           <div>
             <label for="c-atividade">Fator de atividade (Mifflin / HB / Cunningham)</label>
