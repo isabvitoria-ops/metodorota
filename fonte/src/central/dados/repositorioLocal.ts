@@ -42,8 +42,7 @@ import { PLANOS } from "./sementes/planos";
 import { CONFIGURACOES } from "./sementes/configuracoes";
 import { paraConfiguracoes } from "./mapeadores";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
-import type { Protocolo } from "@/central/types/protocolo";
-import { interpretarProtocolo } from "@/central/utils/interpretarProtocolo";
+import type { ConteudoProtocolo, Protocolo } from "@/central/types/protocolo";
 
 /**
  * Modo demonstração: o app inteiro funcionando sem banco nenhum.
@@ -667,7 +666,7 @@ export const repositorioLocal: Repositorio = {
       id: "demo",
       pacienteId: "demo",
       titulo: "Protocolo de emagrecimento",
-      conteudo: interpretarProtocolo(PROTOCOLO_DEMO),
+      conteudo: PROTOCOLO_DEMO,
       ajustes: "Essa semana, trocar o lanche da tarde por fruta com castanha.",
       situacao: "publicado",
       versao: 1,
@@ -719,44 +718,82 @@ export const repositorioLocal: Repositorio = {
 /**
  * Um dia de protocolo para a demonstração.
  *
- * É o formato real dela — três colunas, substituições embaixo do item, os
- * dois jantares como opções — passado pelo mesmo interpretador que a tela
- * usa. Assim a demonstração mostra o que vai acontecer de verdade, e não uma
- * maquete montada à mão que nunca passou pelo código.
+ * Escrito à mão, no mesmo formato que a tela dela monta: refeição, itens com
+ * quantidade e substituições, observação presa à refeição, e o jantar com
+ * duas versões. Serve para a demonstração mostrar a tela cheia sem banco
+ * nenhum ligado.
  */
-const PROTOCOLO_DEMO = [
-  "Orientações gerais",
-  "● Comer proteína em TODAS as refeições",
-  "● Beber muita água. Meta atual: 3L por dia",
-  "",
-  "CAFÉ DA MANHÃ",
-  "ALIMENTO\tQUANTIDADE\tSUBSTITUIÇÃO",
-  "Pão de forma\t2 fatias - 50g\tTapioca - 70g",
-  "\t\tPão francês - 1 unidade",
-  "Ovo\t2 unidades\tIogurte desnatado - 170g",
-  "Banana\t1 unidade\tMorango - 200g",
-  "- Chá de gengibre com limão depois da refeição.",
-  "",
-  "ALMOÇO",
-  "ALIMENTO\tQUANTIDADE\tSUBSTITUIÇÃO",
-  "Arroz cozido\t150g\tBatata doce cozida - 200g",
-  "Peito de frango grelhado\t120g\tPeixe branco grelhado - 140g",
-  "VEGETAIS: liberados todos os que não são tubérculos, mínimo 100g.",
-  "",
-  "JANTAR",
-  "ALIMENTO\tQUANTIDADE\tSUBSTITUIÇÃO",
-  "Arroz cozido\t150g\tMacarrão - 130g",
-  "Carne de panela\t100g\tPatinho moído - 110g",
-  "",
-  "JANTAR - HAMBÚRGUER",
-  "ALIMENTO\tQUANTIDADE\tSUBSTITUIÇÃO",
-  "Pão de hambúrguer\t60g",
-  "Patinho moído\t70g",
-  "Queijo mussarela\t20g",
-  "",
-  "ACORDE CEDO (ANTES DAS 9H)",
-  "Olhe para a luz natural logo ao acordar: abra a janela, sinta o dia.",
-].join("\n");
+const PROTOCOLO_DEMO: ConteudoProtocolo = {
+  orientacoes: [
+    "Comer proteína em TODAS as refeições",
+    "Beber muita água. Meta atual: 3L por dia",
+  ],
+  refeicoes: [
+    {
+      nome: "Café da manhã",
+      opcoes: [
+        {
+          rotulo: "",
+          itens: [
+            {
+              alimento: "Pão de forma",
+              quantidade: "2 fatias - 50g",
+              substituicoes: ["Tapioca - 70g", "Pão francês - 1 unidade"],
+            },
+            { alimento: "Ovo", quantidade: "2 unidades", substituicoes: ["Iogurte desnatado - 170g"] },
+            { alimento: "Banana", quantidade: "1 unidade", substituicoes: ["Morango - 200g"] },
+          ],
+          notas: ["Chá de gengibre com limão depois da refeição."],
+        },
+      ],
+    },
+    {
+      nome: "Almoço",
+      opcoes: [
+        {
+          rotulo: "",
+          itens: [
+            { alimento: "Arroz cozido", quantidade: "150g", substituicoes: ["Batata doce cozida - 200g"] },
+            {
+              alimento: "Peito de frango grelhado",
+              quantidade: "120g",
+              substituicoes: ["Peixe branco grelhado - 140g"],
+            },
+          ],
+          notas: ["VEGETAIS: liberados todos os que não são tubérculos, mínimo 100g."],
+        },
+      ],
+    },
+    {
+      nome: "Jantar",
+      opcoes: [
+        {
+          rotulo: "Padrão",
+          itens: [
+            { alimento: "Arroz cozido", quantidade: "150g", substituicoes: ["Macarrão - 130g"] },
+            { alimento: "Carne de panela", quantidade: "100g", substituicoes: ["Patinho moído - 110g"] },
+          ],
+          notas: [],
+        },
+        {
+          rotulo: "Hambúrguer",
+          itens: [
+            { alimento: "Pão de hambúrguer", quantidade: "60g", substituicoes: [] },
+            { alimento: "Patinho moído", quantidade: "70g", substituicoes: [] },
+            { alimento: "Queijo mussarela", quantidade: "20g", substituicoes: [] },
+          ],
+          notas: [],
+        },
+      ],
+    },
+  ],
+  secoes: [
+    {
+      titulo: "ACORDE CEDO (ANTES DAS 9H)",
+      paragrafos: ["Olhe para a luz natural logo ao acordar: abra a janela, sinta o dia."],
+    },
+  ],
+};
 
 // ------------------------------------------------- rastreabilidade: demonstração
 

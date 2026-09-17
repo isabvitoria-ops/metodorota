@@ -2472,3 +2472,19 @@ body:has(.central) {
   line-height: 1.6;
   color: var(--text-muted);
 }
+
+/* Montar o protocolo à mão: cada alimento é uma linha com seu próprio
+   "remover", e as setas reordenam a refeição. Sem o filete e o respiro, dez
+   alimentos seguidos viram uma parede de campos onde ela se perde. */
+.c-linha-item + .c-linha-item {
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--border);
+}
+
+.c-acoes-refeicao {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;
+}
