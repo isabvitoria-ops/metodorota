@@ -76,6 +76,34 @@ function montarLinhas(
     .sort((a, b) => a.item.nome.localeCompare(b.item.nome, "pt-BR"));
 }
 
+/**
+ * Os blocos do material, na ordem em que ela quer ler: verde, amarelo,
+ * vermelho, e no fim o que ela mesma classificou fora dessa escada.
+ *
+ * Agrupar foi pedido dela depois de gerar o primeiro PDF: com os alimentos
+ * um atrás do outro, uma folha com trinta linhas misturadas não responde
+ * "o que eu tolero?" — que é a pergunta que a paciente leva para a consulta.
+ */
+const GRUPOS: { tom: Linha["tom"]; titulo: string; apoio: string }[] = [
+  {
+    tom: "bom",
+    titulo: "Bem tolerados",
+    apoio: "Você testou e não relatou sintomas.",
+  },
+  {
+    tom: "atencao",
+    titulo: "Comer com atenção",
+    apoio: "Houve alguma resposta do corpo que vale observar. Não quer dizer cortar.",
+  },
+  {
+    tom: "grave",
+    titulo: "Pouco tolerados",
+    apoio: "Foram relatados vários sintomas depois destes. Vale conversar na consulta.",
+  },
+  { tom: "neutro", titulo: "Outros", apoio: "" },
+  { tom: "apagado", titulo: "Fora da sua alimentação", apoio: "" },
+];
+
 const CLASSE_DO_TOM: Record<Linha["tom"], string> = {
   bom: "melhor",
   atencao: "boa",
@@ -147,56 +175,69 @@ export function RastreioAlimentar({
         ))}
       </div>
 
-      <div className="c-bloco" style={{ marginTop: 12 }}>
-        {visiveis.map((linha) => (
-          <div className="c-rastreio-item" key={linha.item.id}>
-            <button
-              type="button"
-              className="c-rastreio-toque"
-              aria-expanded={aberto === linha.item.id}
-              onClick={() => definirAberto(aberto === linha.item.id ? null : linha.item.id)}
-            >
-              <span className="c-rastreio-nome">
-                <span className={`c-selo ${CLASSE_DO_TOM[linha.tom]}`}>{linha.rotulo}</span>
-                <span className="c-item-protocolo-nome">{linha.item.nome}</span>
+      {GRUPOS.map(({ tom, titulo, apoio }) => {
+        const doGrupo = visiveis.filter((l) => l.tom === tom);
+        if (doGrupo.length === 0) return null;
+        return (
+          <div key={tom} className="c-rastreio-grupo">
+            <h3 className="c-rastreio-grupo-titulo">
+              <span className={`c-selo ${CLASSE_DO_TOM[tom]}`}>{titulo}</span>
+              <span className="c-rastreio-grupo-conta">
+                {doGrupo.length} {doGrupo.length === 1 ? "alimento" : "alimentos"}
               </span>
-              <span className="c-rastreio-frase">{linha.frase}</span>
-            </button>
+            </h3>
+            {apoio && <p className="c-rastreio-grupo-apoio">{apoio}</p>}
 
-            {/* O detalhe é sempre montado e escondido por CSS, nunca
-                removido. É o que faz o PDF sair completo: no papel não há
-                como tocar para abrir, e um rastreio salvo pela metade não
-                serviria para levar à consulta. */}
-            {(
-              <div
-                className={`c-rastreio-detalhe ${aberto === linha.item.id ? "" : "fechado"}`}
-              >
-                {linha.registros.map((r) => (
-                  <div key={r.id} className="c-rastreio-teste">
-                    <p className="c-rastreio-data">
-                      {dataBonita(r.data)}
-                      {r.quantidade ? ` · ${r.quantidade}` : ""}
-                      {r.preparo ? ` · ${r.preparo}` : ""}
-                    </p>
-                    <p className="c-rastreio-sintomas">
-                      {temSintoma(r)
-                        ? r.sintomas
-                            .filter((s) => s !== "nenhum")
-                            .map(rotuloSintoma)
-                            .join(" · ")
-                        : "Sem sintomas"}
-                      {temSintoma(r) && r.intensidade
-                        ? ` — intensidade ${faixaDaIntensidade(r.intensidade)}`
-                        : ""}
-                    </p>
-                    {r.observacao && <p className="c-rastreio-observacao">{r.observacao}</p>}
+            <div className="c-bloco" style={{ marginTop: 8 }}>
+              {doGrupo.map((linha) => (
+                <div className="c-rastreio-item" key={linha.item.id}>
+                  <button
+                    type="button"
+                    className="c-rastreio-toque"
+                    aria-expanded={aberto === linha.item.id}
+                    onClick={() => definirAberto(aberto === linha.item.id ? null : linha.item.id)}
+                  >
+                    <span className="c-item-protocolo-nome">{linha.item.nome}</span>
+                    <span className="c-rastreio-frase">{linha.frase}</span>
+                  </button>
+
+                  {/* O detalhe é sempre montado e escondido por CSS, nunca
+                      removido. É o que faz o PDF sair completo: no papel não
+                      há como tocar para abrir, e um rastreio salvo pela
+                      metade não serviria para levar à consulta. */}
+                  <div
+                    className={`c-rastreio-detalhe ${aberto === linha.item.id ? "" : "fechado"}`}
+                  >
+                    {linha.registros.map((r) => (
+                      <div key={r.id} className="c-rastreio-teste">
+                        <p className="c-rastreio-data">
+                          {dataBonita(r.data)}
+                          {r.quantidade ? ` · ${r.quantidade}` : ""}
+                          {r.preparo ? ` · ${r.preparo}` : ""}
+                        </p>
+                        <p className="c-rastreio-sintomas">
+                          {temSintoma(r)
+                            ? r.sintomas
+                                .filter((x) => x !== "nenhum")
+                                .map(rotuloSintoma)
+                                .join(" · ")
+                            : "Sem sintomas"}
+                          {temSintoma(r) && r.intensidade
+                            ? ` — intensidade ${faixaDaIntensidade(r.intensidade)}`
+                            : ""}
+                        </p>
+                        {r.observacao && (
+                          <p className="c-rastreio-observacao">{r.observacao}</p>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
+        );
+      })}
 
       {/* Guardar o material: sem biblioteca de PDF e sem servidor. A janela
           de impressão do próprio aparelho vira PDF em qualquer celular ou

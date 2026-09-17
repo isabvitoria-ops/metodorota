@@ -2536,6 +2536,34 @@ body:has(.central) {
    três cores que já existem na paleta (melhor/boa/ocasional) — nada de
    semáforo novo. */
 
+/* Os blocos por tolerância: verde junto do verde, vermelho junto do
+   vermelho. O selo vira o título do bloco, então cada alimento dentro dele
+   não repete a etiqueta — a cor já foi dita uma vez. */
+.c-rastreio-grupo + .c-rastreio-grupo {
+  margin-top: 18px;
+}
+
+.c-rastreio-grupo-titulo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.c-rastreio-grupo-conta {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.c-rastreio-grupo-apoio {
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
 .c-rastreio-item + .c-rastreio-item {
   margin-top: 10px;
   padding-top: 10px;
@@ -2636,6 +2664,10 @@ body:has(.central) {
     margin-top: 16px;
     font-size: 11px;
     color: #555;
+  }
+
+  .c-rastreio-grupo {
+    break-inside: avoid;
   }
 
   /* No papel tudo aparece aberto: não há como tocar para expandir, e um
