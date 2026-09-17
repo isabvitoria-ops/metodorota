@@ -2376,9 +2376,14 @@ body:has(.central) {
    Então a substituição desce para baixo do item, menor e apagada: continua
    lendo "arroz OU batata doce", sem espremer nada. */
 
+/* Apertado de propósito. A primeira versão gastava 12px acima e 12 abaixo
+   de cada alimento: quatro itens já empurravam o almoço para fora da tela, e
+   ela reclamou com razão que "gasta muito espaço sem aproveitar". O plano de
+   papel que ela mandou de inspiração resolve isso com linha de tabela — é o
+   mesmo princípio aqui, sem virar tabela (que não cabe em 390px). */
 .c-item-protocolo + .c-item-protocolo {
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 1px solid var(--border);
 }
 
@@ -2404,9 +2409,9 @@ body:has(.central) {
 }
 
 .c-item-protocolo-trocas {
-  margin: 5px 0 0;
-  font-size: 13px;
-  line-height: 1.5;
+  margin: 3px 0 0;
+  font-size: 12.5px;
+  line-height: 1.45;
   color: var(--text-muted);
 }
 
@@ -2414,7 +2419,7 @@ body:has(.central) {
    Fica presa embaixo da refeição a que pertence, com um filete à esquerda
    para não se confundir com item da dieta. */
 .c-nota-protocolo {
-  margin: 10px 0 0;
+  margin: 8px 0 0;
   padding-left: 11px;
   border-left: 2px solid var(--accent-soft);
   font-size: 13.5px;
@@ -2516,4 +2521,10 @@ body:has(.central) {
   font-size: 13px;
   line-height: 1.5;
   color: var(--text-muted);
+}
+
+
+/* O horário da refeição, ao lado do nome, na tela dela. Curto e sem esticar. */
+.c-hora-refeicao {
+  flex: 0 0 92px;
 }

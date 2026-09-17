@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Paciente } from "@/central/types";
 import type {
   ConteudoProtocolo,
@@ -12,7 +12,7 @@ import type {
 import { CONTEUDO_VAZIO } from "@/central/types/protocolo";
 import { repositorio } from "@/central/dados/repositorio";
 import { dataBonita } from "@/central/utils/situacao";
-import { AreaTexto, Campo, Selecao, Texto, linhasDeLista, listaDeLinhas } from "./componentes/Campos";
+import { AreaDeLinhas, AreaTexto, Campo, Selecao, Texto } from "./componentes/Campos";
 
 /**
  * Protocolo alimentar — área da nutricionista.
@@ -120,12 +120,14 @@ export function Protocolos() {
         </button>
       </div>
 
-      {aba === "grupos" && (
+      {/* As duas ficam montadas, só uma aparece. Desmontar a de protocolo
+          ao ir em "Grupos" jogava fora o que ela tinha acabado de escrever —
+          era o "é como se não salvasse só porque fui para outra aba". */}
+      <div hidden={aba !== "grupos"}>
         <GruposDeAlimentos grupos={grupos} aoMudar={() => void carregarGrupos()} />
-      )}
+      </div>
 
-      {aba === "pacientes" && (
-        <>
+      <div hidden={aba !== "pacientes"}>
       <Campo rotulo="Buscar paciente">
         <Texto valor={busca} aoMudar={definirBusca} placeholder="Nome" />
       </Campo>
@@ -158,8 +160,7 @@ export function Protocolos() {
           aoMudar={() => void carregarResumos()}
         />
       )}
-        </>
-      )}
+      </div>
     </>
   );
 }
@@ -181,6 +182,10 @@ function EditorDoProtocolo({
   const [aviso, definirAviso] = useState<string | null>(null);
   const [erro, definirErro] = useState<string | null>(null);
   const [ocupado, definirOcupado] = useState(false);
+  const [guardando, definirGuardando] = useState<"parado" | "salvando" | "salvo">("parado");
+  // O que veio do banco. Enquanto for igual ao da tela, não há o que guardar
+  // — e é isso que impede o salvamento automático de disparar na abertura.
+  const espelho = useRef<string>("");
 
   const carregar = useCallback(async () => {
     const dados = await repositorio.protocoloDoPaciente(paciente.id);
@@ -189,6 +194,12 @@ function EditorDoProtocolo({
     definirTitulo(base?.titulo ?? "Protocolo alimentar");
     definirConteudo(base?.conteudo ?? CONTEUDO_VAZIO);
     definirAjustes(base?.ajustes ?? "");
+    espelho.current = JSON.stringify([
+      base?.titulo ?? "Protocolo alimentar",
+      base?.conteudo ?? CONTEUDO_VAZIO,
+      base?.ajustes ?? "",
+    ]);
+    definirGuardando("parado");
   }, [paciente.id]);
 
   useEffect(() => {
@@ -196,6 +207,35 @@ function EditorDoProtocolo({
       definirErro(e instanceof Error ? e.message : "Não consegui abrir o protocolo."),
     );
   }, [carregar]);
+
+  /**
+   * Guarda o rascunho sozinho, um segundo e meio depois de ela parar de
+   * escrever.
+   *
+   * Ela reclamou que "é como se não salvasse" ao mudar de assunto na tela.
+   * Um botão que só ela lembra de apertar é uma armadilha quando o que se
+   * perde é a dieta de alguém. Guardar sozinho nunca publica: a paciente
+   * continua vendo o que estava no ar.
+   */
+  useEffect(() => {
+    const atual = JSON.stringify([titulo, conteudo, ajustes]);
+    if (atual === espelho.current) return;
+    if (conteudo.refeicoes.length === 0 && conteudo.orientacoes.length === 0) return;
+
+    definirGuardando("salvando");
+    const relogio = setTimeout(() => {
+      void repositorio
+        .salvarRascunhoProtocolo(paciente.id, titulo, limpar(conteudo), ajustes.trim() || null)
+        .then(() => {
+          espelho.current = atual;
+          definirGuardando("salvo");
+          aoMudar();
+        })
+        .catch(() => definirGuardando("parado"));
+    }, 1500);
+
+    return () => clearTimeout(relogio);
+  }, [titulo, conteudo, ajustes, paciente.id, aoMudar]);
 
   async function executar(acao: () => Promise<void>, mensagem: string) {
     definirOcupado(true);
@@ -244,6 +284,11 @@ function EditorDoProtocolo({
         </div>
       )}
 
+      <p className="c-dica" aria-live="polite" style={{ minHeight: 18 }}>
+        {guardando === "salvando" && "Guardando…"}
+        {guardando === "salvo" && "Rascunho guardado. A paciente ainda não vê."}
+      </p>
+
       {publicado && (
         <p className="c-dica">
           No ar: versão {publicado.versao}
@@ -264,9 +309,9 @@ function EditorDoProtocolo({
       </Campo>
 
       <Campo rotulo="Orientações gerais" dica="Uma por linha. Aparecem antes das refeições.">
-        <AreaTexto
-          valor={linhasDeLista(conteudo.orientacoes)}
-          aoMudar={(v) => definirConteudo({ ...conteudo, orientacoes: listaDeLinhas(v) })}
+        <AreaDeLinhas
+          valor={conteudo.orientacoes}
+          aoMudar={(lista) => definirConteudo({ ...conteudo, orientacoes: lista })}
           linhas={3}
         />
       </Campo>
@@ -360,14 +405,14 @@ function EditorDoProtocolo({
             </button>
           </div>
           <Campo rotulo="Texto" dica="Um parágrafo por linha.">
-            <AreaTexto
-              valor={linhasDeLista(secao.paragrafos)}
+            <AreaDeLinhas
+              valor={secao.paragrafos}
               linhas={3}
-              aoMudar={(v) =>
+              aoMudar={(lista) =>
                 definirConteudo({
                   ...conteudo,
                   secoes: conteudo.secoes.map((x, j) =>
-                    j === i ? { ...x, paragrafos: listaDeLinhas(v) } : x,
+                    j === i ? { ...x, paragrafos: lista } : x,
                   ),
                 })
               }
@@ -530,6 +575,13 @@ function BlocoDaRefeicao({
     <div className="c-bloco">
       <div className="c-bloco-topo">
         <Texto valor={refeicao.nome} aoMudar={(v) => aoTrocar({ ...refeicao, nome: v })} />
+        <span className="c-hora-refeicao">
+          <Texto
+            valor={refeicao.horario ?? ""}
+            aoMudar={(v) => aoTrocar({ ...refeicao, horario: v })}
+            placeholder="08:00"
+          />
+        </span>
         <span className="c-acoes-refeicao">
           <button type="button" className="c-link" disabled={primeira} onClick={() => aoMover(-1)}>
             ↑
@@ -597,15 +649,15 @@ function BlocoDaRefeicao({
                   />
                 </Campo>
                 <Campo rotulo="Substituições" dica="Uma por linha. Pode não ter nenhuma.">
-                  <AreaTexto
-                    valor={linhasDeLista(item.substituicoes)}
+                  <AreaDeLinhas
+                    valor={item.substituicoes}
                     linhas={2}
                     placeholder={"Tapioca - 70g\nPão francês - 1 unidade"}
-                    aoMudar={(v) =>
+                    aoMudar={(lista) =>
                       trocarOpcao(iOpcao, {
                         ...opcao,
                         itens: opcao.itens.map((x, j) =>
-                          j === iItem ? { ...x, substituicoes: listaDeLinhas(v) } : x,
+                          j === iItem ? { ...x, substituicoes: lista } : x,
                         ),
                       })
                     }
@@ -671,10 +723,10 @@ function BlocoDaRefeicao({
             rotulo="Lembrete desta refeição"
             dica="Um por linha. Chá, suplementação, modo de preparo, vegetais liberados — aparece embaixo desta refeição, na tela dela."
           >
-            <AreaTexto
-              valor={linhasDeLista(opcao.notas)}
+            <AreaDeLinhas
+              valor={opcao.notas}
               linhas={2}
-              aoMudar={(v) => trocarOpcao(iOpcao, { ...opcao, notas: listaDeLinhas(v) })}
+              aoMudar={(lista) => trocarOpcao(iOpcao, { ...opcao, notas: lista })}
             />
           </Campo>
         </div>

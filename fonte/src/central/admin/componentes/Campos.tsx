@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 /**
  * Campos de formulário da área administrativa.
@@ -91,4 +91,54 @@ export function listaDeLinhas(texto: string): string[] {
 
 export function linhasDeLista(lista: string[]): string {
   return lista.join("\n");
+}
+
+/**
+ * Lista escrita como texto, uma por linha — sem comer o que está sendo digitado.
+ *
+ * DEFEITO QUE ISTO CONSERTA: a caixa comum guardava a lista já limpa e
+ * reescrevia o texto a partir dela a cada tecla. Como a limpeza tira espaço
+ * do fim e joga linha vazia fora, digitar "pão " apagava o espaço no mesmo
+ * instante — era impossível escrever "pão francês" — e apertar Enter não
+ * abria linha nova. Da cadeira dela parecia que a tela não estava salvando.
+ *
+ * Agora o texto cru mora aqui dentro enquanto ela escreve, e a lista limpa
+ * só sai para o pai. O texto só é reescrito quando a mudança vem de fora
+ * (trocar de paciente, carregar outro rascunho) — comparando a lista, nunca
+ * o texto, senão a ressincronização voltaria a comer o espaço.
+ */
+export function AreaDeLinhas({
+  valor,
+  aoMudar,
+  placeholder,
+  linhas = 2,
+}: {
+  valor: string[];
+  aoMudar: (lista: string[]) => void;
+  placeholder?: string;
+  linhas?: number;
+}) {
+  const [texto, definirTexto] = useState(() => linhasDeLista(valor));
+
+  useEffect(() => {
+    if (linhasDeLista(listaDeLinhas(texto)) !== linhasDeLista(valor)) {
+      definirTexto(linhasDeLista(valor));
+    }
+    // `texto` de propósito fora da lista: ele muda a cada tecla, e reagir a
+    // isso traria de volta exatamente o defeito que este componente conserta.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valor]);
+
+  return (
+    <textarea
+      className="c-textarea"
+      rows={linhas}
+      value={texto}
+      placeholder={placeholder}
+      onChange={(e) => {
+        definirTexto(e.target.value);
+        aoMudar(listaDeLinhas(e.target.value));
+      }}
+    />
+  );
 }

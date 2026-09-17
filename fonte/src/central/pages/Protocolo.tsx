@@ -119,7 +119,9 @@ function Refeicao({ refeicao }: { refeicao: RefeicaoProtocolo }) {
 
   return (
     <section className="c-secao">
-      <h2 className="c-secao-titulo">{refeicao.nome}</h2>
+      <h2 className="c-secao-titulo">
+        {refeicao.horario ? `${refeicao.horario} · ${refeicao.nome}` : refeicao.nome}
+      </h2>
 
       {opcoes.length > 1 && (
         <div className="c-chips" style={{ marginBottom: 12 }}>

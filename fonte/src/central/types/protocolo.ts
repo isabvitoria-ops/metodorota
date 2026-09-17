@@ -36,6 +36,8 @@ export interface OpcaoProtocolo {
 
 export interface RefeicaoProtocolo {
   nome: string;
+  /** "08:00". Opcional — o protocolo dela não usa, o da inspiração usa. */
+  horario?: string;
   opcoes: OpcaoProtocolo[];
 }
 
