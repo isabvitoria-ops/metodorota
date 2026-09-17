@@ -82,6 +82,13 @@ export interface Acesso {
    * tela não abre — o módulo simplesmente não existe para ela.
    */
   rastreio: boolean;
+  /**
+   * Se esta paciente já tem protocolo alimentar publicado.
+   *
+   * Sem protocolo, o atalho não aparece na home: um "Protocolo Alimentar"
+   * que abre vazio faz a paciente achar que perdeu alguma coisa.
+   */
+  protocolo: boolean;
 }
 
 export interface Configuracoes {

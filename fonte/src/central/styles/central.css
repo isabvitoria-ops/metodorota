@@ -2368,3 +2368,107 @@ body:has(.central) {
 .c-faixa:focus-visible::-moz-range-thumb {
   box-shadow: 0 0 0 4px var(--primary-soft);
 }
+
+/* ---------------------------------------------------------------- protocolo
+
+   A dieta na tela da paciente. O documento dela é uma tabela de três colunas;
+   num celular de 390px a terceira coluna some ou vira duas letras por linha.
+   Então a substituição desce para baixo do item, menor e apagada: continua
+   lendo "arroz OU batata doce", sem espremer nada. */
+
+.c-item-protocolo + .c-item-protocolo {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.c-item-protocolo-linha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.c-item-protocolo-nome {
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* A quantidade não quebra no meio ("3 fatias -\n75g" seria péssimo de ler),
+   e não encolhe: é o número que a paciente precisa acertar. */
+.c-item-protocolo-quantidade {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.c-item-protocolo-trocas {
+  margin: 5px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* Observação da refeição: o chá, a suplementação, os vegetais liberados.
+   Fica presa embaixo da refeição a que pertence, com um filete à esquerda
+   para não se confundir com item da dieta. */
+.c-nota-protocolo {
+  margin: 10px 0 0;
+  padding-left: 11px;
+  border-left: 2px solid var(--accent-soft);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.c-orientacoes {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 7px;
+  line-height: 1.55;
+}
+
+/* Os blocos de rotina ficam fechados: são texto longo, e a paciente entrou
+   aqui para ver o que comer, não para ler sobre melatonina. */
+.c-sanfona {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  padding: 12px 14px;
+}
+
+.c-sanfona + .c-sanfona {
+  margin-top: 8px;
+}
+
+.c-sanfona > summary {
+  cursor: pointer;
+  font-weight: 600;
+  line-height: 1.35;
+  list-style: none;
+}
+
+.c-sanfona > summary::-webkit-details-marker {
+  display: none;
+}
+
+.c-sanfona > summary::after {
+  content: "+";
+  float: right;
+  margin-left: 10px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.c-sanfona[open] > summary::after {
+  content: "−";
+}
+
+.c-sanfona-texto {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}

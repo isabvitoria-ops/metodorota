@@ -10,6 +10,7 @@ import { Guias } from "./pages/Guias";
 import { GuiaDetalhe } from "./pages/GuiaDetalhe";
 import { Desafio } from "./pages/Desafio";
 import { Rastreabilidade } from "./pages/Rastreabilidade";
+import { Protocolo } from "./pages/Protocolo";
 import { Salvos } from "./pages/Salvos";
 import { Busca } from "./pages/Busca";
 import { FaixaDemonstracao } from "./components/FaixaDemonstracao";
@@ -38,6 +39,7 @@ export function CentralApp() {
         <FaixaAdmin />
         <Routes>
           <Route index element={<Home />} />
+          <Route path="protocolo" element={<Protocolo />} />
           <Route path="trocas" element={<TrocaInteligente />} />
           {/* A tabela de substituições saiu da Central: a Troca Inteligente faz
               o mesmo trabalho e duas portas para a mesma coisa confundiam. O

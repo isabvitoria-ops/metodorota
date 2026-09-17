@@ -20,6 +20,13 @@ import type {
   ResumoIndicacao,
   StatusReintroducao,
 } from "@/central/types";
+import type {
+  ConteudoProtocolo,
+  FichaProtocolo,
+  Protocolo,
+  ResumoProtocolo,
+} from "@/central/types/protocolo";
+import { CONTEUDO_VAZIO } from "@/central/types/protocolo";
 import { semanaDoDesafio, situacaoDoDesafio, totalDeSemanas } from "@/central/utils/desafio";
 import { exigirSupabase } from "@/central/supabase/cliente";
 import { urlDaRota } from "@/central/utils/enderecos";
@@ -682,4 +689,108 @@ export const repositorioSupabase: Repositorio = {
     });
     erro("salvar o acompanhamento", error);
   },
+
+  // ------------------------------------------------------- protocolo alimentar
+
+  async meuProtocolo(): Promise<Protocolo | null> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("meu_protocolo");
+    erro("carregar seu protocolo", error);
+    return paraProtocolo(data as Linha | null);
+  },
+
+  async protocolosDasPacientes(): Promise<ResumoProtocolo[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("protocolos_das_pacientes");
+    erro("carregar os protocolos", error);
+    return ((data ?? []) as Linha[]).map((linha) => ({
+      pacienteId: texto(linha.pacienteId),
+      nome: texto(linha.nome),
+      situacao: linha.situacao === "publicado" ? "publicado" : "sem",
+      temRascunho: linha.temRascunho === true,
+      publicadoEm: textoOuNulo(linha.publicadoEm),
+    }));
+  },
+
+  async protocoloDoPaciente(pacienteId: string): Promise<FichaProtocolo> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("protocolo_do_paciente", { p_paciente: pacienteId });
+    erro("abrir o protocolo", error);
+    const ficha = (data ?? {}) as Linha;
+    return {
+      rascunho: paraProtocolo(ficha.rascunho as Linha | null),
+      publicado: paraProtocolo(ficha.publicado as Linha | null),
+      historico: ((ficha.historico ?? []) as Linha[]).map((v) => ({
+        id: texto(v.id),
+        titulo: texto(v.titulo),
+        versao: numero(v.versao),
+        publicadoEm: textoOuNulo(v.publicadoEm),
+        atualizadoEm: texto(v.atualizadoEm),
+      })),
+    };
+  },
+
+  async salvarRascunhoProtocolo(
+    pacienteId: string,
+    titulo: string,
+    conteudo: ConteudoProtocolo,
+    ajustes: string | null,
+  ) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("salvar_rascunho_protocolo", {
+      p_paciente: pacienteId,
+      p_titulo: titulo,
+      p_conteudo: conteudo,
+      p_ajustes: ajustes,
+    });
+    erro("salvar o rascunho", error);
+  },
+
+  async publicarProtocolo(pacienteId: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("publicar_protocolo", { p_paciente: pacienteId });
+    erro("publicar o protocolo", error);
+  },
+
+  async definirAjustesProtocolo(pacienteId: string, ajustes: string | null) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("definir_ajustes_protocolo", {
+      p_paciente: pacienteId,
+      p_ajustes: ajustes,
+    });
+    erro("salvar os ajustes", error);
+  },
+
+  async descartarRascunhoProtocolo(pacienteId: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("descartar_rascunho_protocolo", { p_paciente: pacienteId });
+    erro("descartar o rascunho", error);
+  },
+
+  async restaurarProtocolo(protocoloId: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("restaurar_protocolo", { p_protocolo: protocoloId });
+    erro("restaurar a versão", error);
+  },
 };
+
+/**
+ * O banco devolve a linha inteira; a tela quer os nomes do app.
+ *
+ * O conteúdo vem como veio — é documento dela, e mexer nele aqui seria mudar
+ * a dieta de alguém no meio do caminho.
+ */
+function paraProtocolo(linha: Linha | null | undefined): Protocolo | null {
+  if (!linha) return null;
+  return {
+    id: texto(linha.id),
+    pacienteId: texto(linha.paciente_id ?? ""),
+    titulo: texto(linha.titulo),
+    conteudo: (linha.conteudo as ConteudoProtocolo | null) ?? CONTEUDO_VAZIO,
+    ajustes: textoOuNulo(linha.ajustes),
+    situacao: (linha.situacao as Protocolo["situacao"]) ?? "rascunho",
+    versao: numero(linha.versao),
+    atualizadoEm: texto(linha.atualizado_em),
+    publicadoEm: textoOuNulo(linha.publicado_em),
+  };
+}

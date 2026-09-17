@@ -23,6 +23,7 @@ export const rotas = {
     `/comer-fora/${categoriaId}?opcao=${encodeURIComponent(opcaoId)}`,
   guias: "/guias",
   guia: (guiaId: string) => `/guias/${guiaId}`,
+  protocolo: "/protocolo",
   desafio: "/desafio",
   rastreabilidade: "/rastreabilidade",
   salvos: "/salvos",
@@ -45,6 +46,8 @@ export const rotas = {
   adminConfiguracoes: "/admin/configuracoes",
   adminDesafios: "/admin/desafios",
   adminRastreabilidade: "/admin/rastreabilidade",
+  adminProtocolos: "/admin/protocolos",
+  adminProtocolo: (pacienteId: string) => `/admin/protocolos/${pacienteId}`,
 };
 
 /** Prefixo antigo, mantido para não quebrar link já enviado a paciente. */

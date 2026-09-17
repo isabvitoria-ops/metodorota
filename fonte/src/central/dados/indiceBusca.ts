@@ -36,6 +36,14 @@ export function indiceBusca(): ItemIndice[] {
       palavras: ["comer fora", "restaurante", "delivery", "rua", "pedido"],
     },
     {
+      id: "ferramenta:protocolo",
+      tipo: "ferramenta",
+      titulo: "Protocolo Alimentar",
+      subtitulo: "Seu plano, com as substituições de cada item",
+      rota: rotas.protocolo,
+      palavras: ["protocolo", "dieta", "plano", "cardapio", "refeicao", "alimentar"],
+    },
+    {
       id: "ferramenta:guias",
       tipo: "ferramenta",
       titulo: "Guias",

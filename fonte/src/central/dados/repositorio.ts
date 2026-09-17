@@ -24,6 +24,12 @@ import type {
   StatusReintroducao,
   Unidade,
 } from "@/central/types";
+import type {
+  ConteudoProtocolo,
+  FichaProtocolo,
+  Protocolo,
+  ResumoProtocolo,
+} from "@/central/types/protocolo";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
 import { repositorioSupabase } from "./repositorioSupabase";
@@ -159,6 +165,31 @@ export interface Repositorio {
   ): Promise<void>;
   validarIndicacao(indicacaoId: string): Promise<void>;
   recusarIndicacao(indicacaoId: string, motivo?: string | null): Promise<void>;
+
+  // ------------------------------------------------------- protocolo alimentar
+  //
+  // O app não calcula dieta: ela calcula fora e cola aqui. Por isso não há
+  // método nenhum que some, converta ou estime — só guardar e mostrar.
+
+  /** O protocolo publicado da paciente, ou nulo se ela ainda não recebeu. */
+  meuProtocolo(): Promise<Protocolo | null>;
+
+  // Área da nutricionista
+  protocolosDasPacientes(): Promise<ResumoProtocolo[]>;
+  protocoloDoPaciente(pacienteId: string): Promise<FichaProtocolo>;
+  /** Salvar nunca publica: a paciente só vê quando ela mandar. */
+  salvarRascunhoProtocolo(
+    pacienteId: string,
+    titulo: string,
+    conteudo: ConteudoProtocolo,
+    ajustes: string | null,
+  ): Promise<void>;
+  publicarProtocolo(pacienteId: string): Promise<void>;
+  /** O recado da semana, que chega sem criar versão nova. */
+  definirAjustesProtocolo(pacienteId: string, ajustes: string | null): Promise<void>;
+  descartarRascunhoProtocolo(pacienteId: string): Promise<void>;
+  /** Traz uma versão antiga de volta como rascunho, para ela conferir. */
+  restaurarProtocolo(protocoloId: string): Promise<void>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

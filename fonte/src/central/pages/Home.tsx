@@ -16,6 +16,12 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
  */
 const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: string }[] = [
   {
+    rota: rotas.protocolo,
+    icone: "lista",
+    titulo: "Protocolo Alimentar",
+    descricao: "Seu plano, com as substituições de cada item.",
+  },
+  {
     rota: rotas.rastreabilidade,
     icone: "folha",
     titulo: "Rastreabilidade",
@@ -113,7 +119,9 @@ export function Home() {
                 Para quem não faz, o atalho não existe — em vez de existir e
                 abrir uma tela vazia explicando que não é para ela. */}
             {ATALHOS.filter(
-              (atalho) => atalho.rota !== rotas.rastreabilidade || acesso.rastreio,
+              (atalho) =>
+                (atalho.rota !== rotas.rastreabilidade || acesso.rastreio) &&
+                (atalho.rota !== rotas.protocolo || acesso.protocolo),
             ).map((atalho) => (
               <button key={atalho.rota} type="button" className="c-atalho" onClick={() => navegar(atalho.rota)}>
                 <span className="c-atalho-icone">

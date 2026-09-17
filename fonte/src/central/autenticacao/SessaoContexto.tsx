@@ -35,6 +35,7 @@ const ACESSO_DEMONSTRACAO: Acesso = {
   plano: null,
   // Na demonstração tudo fica visível, para dar para percorrer o app inteiro.
   rastreio: true,
+  protocolo: true,
 };
 
 const ACESSO_VAZIO: Acesso = {
@@ -46,6 +47,7 @@ const ACESSO_VAZIO: Acesso = {
   temAcesso: false,
   situacao: "sem_cadastro",
   rastreio: false,
+  protocolo: false,
   dataInicio: null,
   dataFim: null,
   diasRestantes: null,

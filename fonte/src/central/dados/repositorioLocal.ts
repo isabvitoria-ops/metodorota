@@ -42,6 +42,8 @@ import { PLANOS } from "./sementes/planos";
 import { CONFIGURACOES } from "./sementes/configuracoes";
 import { paraConfiguracoes } from "./mapeadores";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
+import type { Protocolo } from "@/central/types/protocolo";
+import { interpretarProtocolo } from "@/central/utils/interpretarProtocolo";
 
 /**
  * Modo demonstração: o app inteiro funcionando sem banco nenhum.
@@ -657,7 +659,104 @@ export const repositorioLocal: Repositorio = {
   async definirAcompanhamentoReintroducao() {
     throw new Error("Definir o acompanhamento precisa do banco. Configure o Supabase.");
   },
+
+  // ------------------------------------------------------- protocolo alimentar
+
+  async meuProtocolo(): Promise<Protocolo | null> {
+    return {
+      id: "demo",
+      pacienteId: "demo",
+      titulo: "Protocolo de emagrecimento",
+      conteudo: interpretarProtocolo(PROTOCOLO_DEMO),
+      ajustes: "Essa semana, trocar o lanche da tarde por fruta com castanha.",
+      situacao: "publicado",
+      versao: 1,
+      atualizadoEm: new Date().toISOString(),
+      publicadoEm: new Date().toISOString(),
+    };
+  },
+
+  // Estas duas respondem na demonstração em vez de reclamar: sem elas a tela
+  // de montar protocolo não abre, e é justamente a tela que precisa ser vista
+  // antes de mexer na dieta de alguém. Salvar e publicar continuam exigindo
+  // banco — em demonstração nada é salvo de verdade, e a faixa do topo avisa.
+  async protocolosDasPacientes() {
+    const pacientes = await repositorioLocal.listarPacientes();
+    return pacientes.map((p) => ({
+      pacienteId: p.id,
+      nome: p.nome,
+      situacao: "sem" as const,
+      temRascunho: false,
+      publicadoEm: null,
+    }));
+  },
+
+  async protocoloDoPaciente() {
+    return { rascunho: null, publicado: null, historico: [] };
+  },
+
+  async salvarRascunhoProtocolo() {
+    throw new Error("Escrever protocolo precisa do banco. Configure o Supabase.");
+  },
+
+  async publicarProtocolo() {
+    throw new Error("Publicar protocolo precisa do banco. Configure o Supabase.");
+  },
+
+  async definirAjustesProtocolo() {
+    throw new Error("Mudar os ajustes precisa do banco. Configure o Supabase.");
+  },
+
+  async descartarRascunhoProtocolo() {
+    throw new Error("Descartar rascunho precisa do banco. Configure o Supabase.");
+  },
+
+  async restaurarProtocolo() {
+    throw new Error("Restaurar versão precisa do banco. Configure o Supabase.");
+  },
 };
+
+/**
+ * Um dia de protocolo para a demonstração.
+ *
+ * É o formato real dela — três colunas, substituições embaixo do item, os
+ * dois jantares como opções — passado pelo mesmo interpretador que a tela
+ * usa. Assim a demonstração mostra o que vai acontecer de verdade, e não uma
+ * maquete montada à mão que nunca passou pelo código.
+ */
+const PROTOCOLO_DEMO = [
+  "Orientações gerais",
+  "● Comer proteína em TODAS as refeições",
+  "● Beber muita água. Meta atual: 3L por dia",
+  "",
+  "CAFÉ DA MANHÃ",
+  "ALIMENTO\tQUANTIDADE\tSUBSTITUIÇÃO",
+  "Pão de forma\t2 fatias - 50g\tTapioca - 70g",
+  "\t\tPão francês - 1 unidade",
+  "Ovo\t2 unidades\tIogurte desnatado - 170g",
+  "Banana\t1 unidade\tMorango - 200g",
+  "- Chá de gengibre com limão depois da refeição.",
+  "",
+  "ALMOÇO",
+  "ALIMENTO\tQUANTIDADE\tSUBSTITUIÇÃO",
+  "Arroz cozido\t150g\tBatata doce cozida - 200g",
+  "Peito de frango grelhado\t120g\tPeixe branco grelhado - 140g",
+  "VEGETAIS: liberados todos os que não são tubérculos, mínimo 100g.",
+  "",
+  "JANTAR",
+  "ALIMENTO\tQUANTIDADE\tSUBSTITUIÇÃO",
+  "Arroz cozido\t150g\tMacarrão - 130g",
+  "Carne de panela\t100g\tPatinho moído - 110g",
+  "",
+  "JANTAR - HAMBÚRGUER",
+  "ALIMENTO\tQUANTIDADE\tSUBSTITUIÇÃO",
+  "Pão de hambúrguer\t60g",
+  "Patinho moído\t70g",
+  "Queijo mussarela\t20g",
+  "",
+  "ACORDE CEDO (ANTES DAS 9H)",
+  "Olhe para a luz natural logo ao acordar: abra a janela, sinta o dia.",
+].join("\n");
 
 // ------------------------------------------------- rastreabilidade: demonstração
 
