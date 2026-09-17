@@ -247,3 +247,40 @@ test("as faixas de macros da Tabela 29", async () => {
   assert.deepEqual(FAIXAS_MACROS.who2003.proteina, [10, 15]);
   assert.deepEqual(FAIXAS_MACROS.sban1990.lipideo, [20, 25]);
 });
+
+test("os modelos da Tabela 2, conferidos linha a linha", async () => {
+  const c = await import("./calculos.mjs");
+
+  // Guedes (1985): 1,17136 − 0,06706 × log10(60) = 1,17136 − 0,11927 = 1,05209
+  perto(c.densidadeGuedes(60), 1.17136 - 0.06706 * Math.log10(60), 0.0000001);
+
+  // Petroski (1995), soma 60 aos 30:
+  // 1,10726863 − 0,00081201(60) + 0,00000212(3600) − 0,00041761(30)
+  perto(c.densidadePetroski(60, 30), 1.0536517, 0.0000001);
+
+  // Durnin & Rahaman (1967)
+  perto(c.densidadeDurninRahaman(60), 1.161 - 0.0632 * Math.log10(60), 0.0000001);
+
+  // Lean et al. (1996), soma 60 aos 30
+  perto(c.densidadeLean(60, 30), 1.1862 - 0.0684 * Math.log10(60) - 0.000601 * 30, 0.0000001);
+
+  // Thorland (1984), 3 e 7 dobras
+  perto(c.densidadeThorland3(60), 1.1136 - 0.00154 * 60 + 0.00000516 * 3600, 0.0000001);
+  perto(c.densidadeThorland7(100), 1.1091 - 0.00052 * 100 + 0.00000032 * 10000, 0.0000001);
+
+  // Katch & McArdle (1973): cada dobra com o seu coeficiente, sem somatório
+  perto(c.densidadeKatch(20, 20, 20), 1.09665 - 0.00103 * 20 - 0.00056 * 20 - 0.00054 * 20, 0.0000001);
+
+  // Slaughter (1988) devolve percentual direto: 1,21(30) − 0,008(900) − 5,5
+  perto(c.slaughter(30), 1.21 * 30 - 0.008 * 900 - 5.5, 0.0000001);
+});
+
+test("as três conversões de densidade são diferentes entre si", async () => {
+  const { CONVERSOES } = await import("./calculos.mjs");
+  const d = 1.05;
+  perto(CONVERSOES.siri.calcular(d), 21.4286, 0.0001);
+  perto(CONVERSOES.lohman.calcular(d), 21.2857, 0.0001);
+  perto(CONVERSOES.brozek.calcular(d), 21.0381, 0.0001);
+  // Meio ponto percentual separa a primeira da última — não são trocáveis.
+  assert.ok(Math.abs(CONVERSOES.siri.calcular(d) - CONVERSOES.brozek.calcular(d)) > 0.3);
+});

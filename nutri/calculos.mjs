@@ -139,6 +139,88 @@ export function faulkner(soma) {
   return soma * 0.153 + 5.783;
 }
 
+// ---------------------------------------------------------------------------
+// Os modelos da Tabela 2 que ela mandou (Páscoa, com a fonte de cada autor)
+//
+// Cada linha daquela tabela traz a equação de densidade E a conversão em
+// percentual que o autor usou. Não são intercambiáveis: Petroski e Lean
+// fecham com (498/D) − 453, Katch & McArdle com Brozek, e o resto com Siri.
+// Aplicar Siri em cima de todas seria trocar a conta do autor pela minha.
+// ---------------------------------------------------------------------------
+
+/** Guedes (1985) — universitários, 17 a 27 anos. Tríceps, supra-ilíaca e abdominal. */
+export function densidadeGuedes(soma) {
+  if (!soma) return null;
+  return 1.17136 - 0.06706 * Math.log10(soma);
+}
+
+/**
+ * Petroski (1995) — 18 a 66 anos.
+ * Subescapular, tríceps, supra-ilíaca e panturrilha medial.
+ */
+export function densidadePetroski(soma, idade) {
+  if (!soma || !idade) return null;
+  return 1.10726863 - 0.00081201 * soma + 0.00000212 * soma * soma - 0.00041761 * idade;
+}
+
+/** Durnin & Rahaman (1967) — 18 a 33. Bíceps, tríceps, subescapular e supra-ilíaca. */
+export function densidadeDurninRahaman(soma) {
+  if (!soma) return null;
+  return 1.161 - 0.0632 * Math.log10(soma);
+}
+
+/** Lean et al. (1996) — 17 a 65. Bíceps, tríceps, subescapular e supra-ilíaca. */
+export function densidadeLean(soma, idade) {
+  if (!soma || !idade) return null;
+  return 1.1862 - 0.0684 * Math.log10(soma) - 0.000601 * idade;
+}
+
+/** Thorland (1984), atletas de 14 a 19 — 3 dobras: tríceps, subescapular e axilar. */
+export function densidadeThorland3(soma) {
+  if (!soma) return null;
+  return 1.1136 - 0.00154 * soma + 0.00000516 * soma * soma;
+}
+
+/** Thorland (1984), atletas de 14 a 19 — 7 dobras. */
+export function densidadeThorland7(soma) {
+  if (!soma) return null;
+  return 1.1091 - 0.00052 * soma + 0.00000032 * soma * soma;
+}
+
+/**
+ * Katch & McArdle (1973) — universitários.
+ *
+ * Única da tabela que NÃO usa somatório: cada dobra entra com o seu próprio
+ * coeficiente. Somar as três antes daria outro número.
+ */
+export function densidadeKatch(triceps, subescapular, abdominal) {
+  if (!triceps || !subescapular || !abdominal) return null;
+  return 1.09665 - 0.00103 * triceps - 0.00056 * subescapular - 0.00054 * abdominal;
+}
+
+/**
+ * Slaughter (1988) — estudantes de 16 a 18. Tríceps e subescapular.
+ *
+ * Devolve o percentual direto; a densidade é derivada dele, não o contrário.
+ */
+export function slaughter(soma) {
+  if (!soma) return null;
+  return 1.21 * soma - 0.008 * soma * soma - 5.5;
+}
+
+/**
+ * As três conversões de densidade em percentual que a tabela usa.
+ *
+ * `siri` e `lohman` só parecem a mesma coisa: 495/D − 450 contra 498/D −
+ * 453. A diferença chega a meio ponto percentual, e cada autor validou a
+ * sua com a sua.
+ */
+export const CONVERSOES = {
+  siri: { rotulo: "Siri", calcular: (d) => (4.95 / d - 4.5) * 100 },
+  lohman: { rotulo: "(498/D) − 453", calcular: (d) => 498 / d - 453 },
+  brozek: { rotulo: "Brozek", calcular: (d) => (4.57 / d - 4.142) * 100 },
+};
+
 /** Massa de gordura em kg, a partir do percentual. */
 export function massaGorda(pesoKg, percentual) {
   if (!pesoKg || percentual === null || percentual === undefined) return null;
