@@ -96,6 +96,18 @@ export function siri(densidade) {
 }
 
 /**
+ * Brozek et al. (1963) — a outra conversão de densidade em percentual.
+ *
+ * %G = (4,57 / DC − 4,142) × 100. Dá um pouco menos que Siri em gordura
+ * alta e um pouco mais em gordura baixa; qual usar é escolha dela, e por
+ * isso as duas estão aqui em vez de eu decidir.
+ */
+export function brozek(densidade) {
+  if (!densidade) return null;
+  return (4.57 / densidade - 4.142) * 100;
+}
+
+/**
  * Faulkner (1968) — percentual direto, sem passar por densidade.
  *
  * Soma de tríceps, subescapular, supra-ilíaca e abdominal.
@@ -212,4 +224,90 @@ export function distribuicao(carboidratoG, proteinaG, lipideoG) {
 export function porQuilo(gramas, pesoKg) {
   if (!pesoKg) return null;
   return gramas / pesoKg;
+}
+
+
+// ---------------------------------------------------------------------------
+// Índices e faixas de referência
+// ---------------------------------------------------------------------------
+
+/**
+ * Relação cintura/quadril.
+ *
+ * Os pontos de corte são os da OMS (2008): risco aumentado a partir de 0,85
+ * na mulher e 0,90 no homem.
+ */
+export function relacaoCinturaQuadril(cinturaCm, quadrilCm) {
+  if (!cinturaCm || !quadrilCm) return null;
+  return cinturaCm / quadrilCm;
+}
+
+export function riscoRCQ(rcq, sexo) {
+  if (rcq === null) return null;
+  const corte = sexo === "masculino" ? 0.9 : 0.85;
+  return rcq >= corte ? "Risco aumentado" : "Baixo risco";
+}
+
+/**
+ * Circunferência da cintura, pontos de corte da OMS (2008) para risco
+ * metabólico: 80 cm na mulher, 94 cm no homem.
+ */
+export function riscoCintura(cinturaCm, sexo) {
+  if (!cinturaCm) return null;
+  const corte = sexo === "masculino" ? 94 : 80;
+  return cinturaCm < corte ? "Adequada" : "Aumentada";
+}
+
+/** Classificação do IMC para adultos, OMS. */
+export function classificarIMC(valor) {
+  if (!valor) return null;
+  if (valor < 18.5) return "Baixo peso";
+  if (valor < 25) return "Eutrófico";
+  if (valor < 30) return "Sobrepeso";
+  if (valor < 35) return "Obesidade grau I";
+  if (valor < 40) return "Obesidade grau II";
+  return "Obesidade grau III";
+}
+
+/** A faixa de peso que corresponde ao IMC 18,5 – 24,9 naquela altura. */
+export function pesoIdeal(alturaM) {
+  if (!alturaM) return null;
+  return { minimo: 18.5 * alturaM * alturaM, maximo: 24.9 * alturaM * alturaM };
+}
+
+// ---------------------------------------------------------------------------
+// Planejamento de macros
+// ---------------------------------------------------------------------------
+
+export const KCAL_POR_GRAMA = { carboidrato: 4, proteina: 4, lipideo: 9 };
+
+/**
+ * Do total de calorias e da divisão em percentual, quantos gramas de cada.
+ *
+ * Devolve também o g/kg quando o peso é informado, que é a leitura que ela
+ * usa para conferir se a proteína está onde ela quer.
+ */
+export function macrosPorPercentual(kcalTotal, percentuais, pesoKg) {
+  if (!kcalTotal) return null;
+  const saida = {};
+  for (const [macro, pct] of Object.entries(percentuais)) {
+    const kcal = (kcalTotal * pct) / 100;
+    const gramas = kcal / KCAL_POR_GRAMA[macro];
+    saida[macro] = { kcal, gramas, porQuilo: pesoKg ? gramas / pesoKg : null };
+  }
+  return saida;
+}
+
+/**
+ * VENTA — o ajuste calórico para chegar a um peso em um prazo.
+ *
+ * VENTA = (peso atual − peso desejado) × 7700 ÷ dias, e o consumo vira
+ * GET − VENTA. O peso desejado NÃO entra no gasto: o gasto continua sendo
+ * estimado com o peso de hoje, que é o que a pessoa carrega hoje.
+ *
+ * 7700 kcal por quilo é a equivalência clássica de Wishnofsky (1958).
+ */
+export function venta(pesoAtual, pesoDesejado, dias) {
+  if (!pesoAtual || !pesoDesejado || !dias) return null;
+  return ((pesoAtual - pesoDesejado) * 7700) / dias;
 }

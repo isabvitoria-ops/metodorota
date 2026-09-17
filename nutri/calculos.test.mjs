@@ -135,3 +135,64 @@ test("gramas por quilo de peso", () => {
   perto(porQuilo(120, 60), 2, 0.001);
   assert.equal(porQuilo(120, 0), null);
 });
+
+// ---------------------------------------------------------------------------
+// O que entrou depois dos prints que ela mandou
+// ---------------------------------------------------------------------------
+
+test("Brozek converte densidade em percentual", async () => {
+  const { brozek } = await import("./calculos.mjs");
+  // (4,57 / 1,05 − 4,142) × 100 = 21,0381
+  perto(brozek(1.05), 21.0381, 0.0001);
+});
+
+test("relação cintura/quadril e os cortes da OMS", async () => {
+  const { relacaoCinturaQuadril, riscoRCQ } = await import("./calculos.mjs");
+  // 61 / 87 = 0,7011 — é o caso real do PDF que ela mandou, que deu 0,70.
+  perto(relacaoCinturaQuadril(61, 87), 0.7011, 0.0001);
+  assert.equal(riscoRCQ(0.7011, "feminino"), "Baixo risco");
+  assert.equal(riscoRCQ(0.86, "feminino"), "Risco aumentado");
+  assert.equal(riscoRCQ(0.86, "masculino"), "Baixo risco");
+  assert.equal(riscoRCQ(0.91, "masculino"), "Risco aumentado");
+});
+
+test("cintura: 80 cm na mulher, 94 no homem", async () => {
+  const { riscoCintura } = await import("./calculos.mjs");
+  assert.equal(riscoCintura(61, "feminino"), "Adequada");
+  assert.equal(riscoCintura(81, "feminino"), "Aumentada");
+  assert.equal(riscoCintura(93, "masculino"), "Adequada");
+});
+
+test("classificação do IMC pela OMS", async () => {
+  const { classificarIMC } = await import("./calculos.mjs");
+  assert.equal(classificarIMC(18.4), "Baixo peso");
+  assert.equal(classificarIMC(18.9), "Eutrófico"); // o caso do PDF dela
+  assert.equal(classificarIMC(27), "Sobrepeso");
+  assert.equal(classificarIMC(32), "Obesidade grau I");
+  assert.equal(classificarIMC(41), "Obesidade grau III");
+});
+
+test("peso ideal bate com o PDF dela: 1,59 m dá 46,5 a 62,6 kg", async () => {
+  const { pesoIdeal } = await import("./calculos.mjs");
+  const faixa = pesoIdeal(1.59);
+  perto(faixa.minimo, 46.77, 0.05);
+  perto(faixa.maximo, 62.95, 0.05);
+});
+
+test("macros por percentual batem com o print: 2000 kcal em 50/30/20", async () => {
+  const { macrosPorPercentual } = await import("./calculos.mjs");
+  const r = macrosPorPercentual(2000, { carboidrato: 50, proteina: 30, lipideo: 20 }, 70);
+  perto(r.carboidrato.kcal, 1000, 0.001);
+  perto(r.carboidrato.gramas, 250, 0.001);
+  perto(r.proteina.gramas, 150, 0.001);
+  perto(r.lipideo.gramas, 44.44, 0.01);
+  perto(r.proteina.porQuilo, 2.14, 0.01);
+});
+
+test("VENTA: perder 2 kg em 30 dias pede 513 kcal a menos por dia", async () => {
+  const { venta } = await import("./calculos.mjs");
+  // (77 − 75) × 7700 / 30 = 513,33
+  perto(venta(77, 75, 30), 513.33, 0.01);
+  // Ganhar peso devolve negativo: o consumo sobe.
+  assert.ok(venta(75, 77, 30) < 0);
+});

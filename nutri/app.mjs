@@ -1,5 +1,7 @@
 import {
   ATIVIDADE,
+  brozek,
+  classificarIMC,
   cunningham,
   densidadeDurnin,
   densidadePollock3,
@@ -9,12 +11,18 @@ import {
   harrisBenedict,
   imc,
   massaGorda,
+  macrosPorPercentual,
   massaMagra,
   mifflin,
+  pesoIdeal,
+  relacaoCinturaQuadril,
+  riscoCintura,
+  riscoRCQ,
   porGramas,
   porQuilo,
   siri,
   somar,
+  venta,
 } from "./calculos.mjs";
 
 /**
@@ -475,7 +483,7 @@ function calcularCorpo() {
           : protocolo === "pollock7"
             ? densidadePollock7(soma, idade, sexo)
             : densidadeDurnin(soma, idade, sexo);
-      percentual = siri(densidade);
+      percentual = $("c-equacao").value === "brozek" ? brozek(densidade) : siri(densidade);
     }
   }
 
@@ -486,7 +494,16 @@ function calcularCorpo() {
   $("resultado-corpo").innerHTML =
     "<dl>" +
     [
-      ["Soma das dobras", mostrar(soma, 1, " mm"), `${usadas.length} dobras`],
+      ["Soma do protocolo", mostrar(soma, 1, " mm"), `${usadas.length} dobras · é esta que entra na conta`],
+      [
+        "Soma de todas as medidas",
+        mostrar(
+          DOBRAS.map(([c]) => num($(`dob-${c}`).value)).reduce((t, v) => t + v, 0),
+          1,
+          " mm",
+        ),
+        "todas as dobras anotadas",
+      ],
       ["Densidade", densidade ? mostrar(densidade, 4) : "—", densidade ? "g/cm³" : ""],
       ["Gordura", percentual === null ? "—" : mostrar(percentual, 2, "%"), percentual === null ? "" : "por Siri"],
       ["Massa gorda", mostrar(gorda, 1, " kg"), ""],
@@ -503,6 +520,28 @@ function calcularCorpo() {
       : !idade && soma > 0 && protocolo !== "faulkner"
         ? `<div class="aviso">Esta equação usa a idade. Preencha para o percentual aparecer.</div>`
         : "";
+
+  // Índices e faixas de referência
+  const cintura = num($("cir-cintura").value);
+  const quadril = num($("cir-quadril").value);
+  const rcq = relacaoCinturaQuadril(cintura, quadril);
+  const faixaPeso = pesoIdeal(alturaCm / 100);
+
+  $("resultado-faixas").innerHTML =
+    "<dl>" +
+    [
+      ["IMC", mostrar(indice, 1), classificarIMC(indice) ?? ""],
+      [
+        "Peso ideal",
+        faixaPeso ? `${mostrar(faixaPeso.minimo, 1)} – ${mostrar(faixaPeso.maximo, 1)}` : "—",
+        faixaPeso ? "kg · IMC 18,5–24,9" : "",
+      ],
+      ["Cintura", mostrar(cintura, 1, " cm"), riscoCintura(cintura, sexo) ?? ""],
+      ["Cintura/quadril", rcq === null ? "—" : mostrar(rcq, 2), riscoRCQ(rcq, sexo) ?? ""],
+    ]
+      .map(([t, v, apoio]) => `<dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd>`)
+      .join("") +
+    "</dl>";
 
   // Gasto energético
   const fator = num($("c-atividade").value) || 1;
@@ -623,3 +662,68 @@ carregarTaco()
     $("fonte-taco").textContent =
       "Não consegui carregar a tabela de alimentos. Recarregue a página; se continuar, me avise.";
   });
+
+
+// ---------------------------------------------------------------------------
+// Macros e gasto
+// ---------------------------------------------------------------------------
+
+function calcularMacros() {
+  const kcal = num($("m-kcal").value);
+  const peso = num($("m-peso").value);
+  const pct = {
+    carboidrato: num($("m-cho").value),
+    proteina: num($("m-ptn").value),
+    lipideo: num($("m-lip").value),
+  };
+  const soma = pct.carboidrato + pct.proteina + pct.lipideo;
+
+  $("m-soma").textContent =
+    soma === 100
+      ? "Soma 100% — fechado."
+      : `Soma ${mostrar(soma, 0)}%. Falta${soma > 100 ? "m" : ""} ${mostrar(Math.abs(100 - soma), 0)} ponto(s) para fechar 100%.`;
+  $("m-soma").style.color = soma === 100 ? "" : "var(--alerta)";
+
+  const r = macrosPorPercentual(kcal, pct, peso);
+  $("resultado-macros").innerHTML = r
+    ? "<dl>" +
+      [
+        ["Carboidrato", mostrar(r.carboidrato.gramas, 0, " g"), `${mostrar(r.carboidrato.kcal, 0)} kcal` + (peso ? ` · ${mostrar(r.carboidrato.porQuilo, 1)} g/kg` : "")],
+        ["Proteína", mostrar(r.proteina.gramas, 0, " g"), `${mostrar(r.proteina.kcal, 0)} kcal` + (peso ? ` · ${mostrar(r.proteina.porQuilo, 1)} g/kg` : "")],
+        ["Gordura", mostrar(r.lipideo.gramas, 0, " g"), `${mostrar(r.lipideo.kcal, 0)} kcal` + (peso ? ` · ${mostrar(r.lipideo.porQuilo, 1)} g/kg` : "")],
+      ]
+        .map(([t, v, apoio]) => `<dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd>`)
+        .join("") +
+      "</dl>"
+    : "<p class=\"nota\">Informe as calorias totais.</p>";
+
+  const ajuste = venta(num($("m-atual").value), num($("m-desejado").value), num($("m-dias").value));
+  $("resultado-venta").innerHTML =
+    ajuste === null
+      ? '<p class="nota">Preencha peso atual, peso desejado e prazo.</p>'
+      : "<dl>" +
+        [
+          [
+            ajuste > 0 ? "Déficit por dia" : "Superávit por dia",
+            mostrar(Math.abs(ajuste), 0, " kcal"),
+            `${mostrar(Math.abs(num($("m-atual").value) - num($("m-desejado").value)), 1)} kg em ${num($("m-dias").value)} dias`,
+          ],
+        ]
+          .map(([t, v, apoio]) => `<dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd>`)
+          .join("") +
+        "</dl>";
+}
+
+for (const campo of document.querySelectorAll("#macros input")) {
+  campo.addEventListener("input", calcularMacros);
+}
+for (const botao of document.querySelectorAll("#macros button[data-preset]")) {
+  botao.onclick = () => {
+    const [c, p, l] = botao.dataset.preset.split(",");
+    $("m-cho").value = c;
+    $("m-ptn").value = p;
+    $("m-lip").value = l;
+    calcularMacros();
+  };
+}
+calcularMacros();
