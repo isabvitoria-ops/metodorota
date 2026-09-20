@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { ItemDeReintroducao, RegistroDeReintroducao } from "@/central/types";
+import type {
+  ItemDeReintroducao,
+  MarcadorDoAlimento,
+  RegistroDeReintroducao,
+  SintomaReintroducao,
+} from "@/central/types";
 import {
   BRISTOL,
+  alimentosSemLigacao,
+  panoramaDeMarcadores,
   SINTOMAS,
   STATUS,
   faixaDaIntensidade,
@@ -248,4 +255,173 @@ test("nenhum texto de marcação acusa o alimento", () => {
   for (const palavra of ["evite", "cuidado", "perigo", "faz mal", "proib", "exclua"]) {
     assert.ok(!todos.includes(palavra), `a marcação diz "${palavra}"`);
   }
+});
+
+// ------------------------------------------------ panorama de marcadores
+
+function itemDe(
+  id: string,
+  nome: string,
+  marcacao: MarcadorDoAlimento[] = [],
+  doCatalogo = true,
+): ItemDeReintroducao {
+  return {
+    id,
+    alimentoId: doCatalogo ? `a-${id}` : null,
+    nome,
+    categoria: "outros",
+    semanaSugerida: null,
+    porcaoReferencia: null,
+    observacaoMaterial: null,
+    doCatalogo,
+    status: "em_teste",
+    notaNutri: null,
+    ordem: 0,
+    marcacao,
+    totalDeRegistros: 0,
+    ultimoRegistro: null,
+  };
+}
+
+function registroDe(
+  id: string,
+  itemId: string,
+  itemNome: string,
+  sintomas: SintomaReintroducao[],
+  marcacao: MarcadorDoAlimento[] = [],
+): RegistroDeReintroducao {
+  return {
+    id,
+    itemId,
+    itemNome,
+    data: "2026-09-01",
+    horario: null,
+    semana: 1,
+    quantidade: null,
+    preparo: null,
+    sintomas,
+    intensidade: null,
+    bristol: null,
+    observacao: null,
+    marcacao,
+    criadoEm: "2026-09-01T10:00:00.000Z",
+  };
+}
+
+const HISTAMINA_ALTA: MarcadorDoAlimento[] = [{ nome: "Histamina", nivel: "muito_alta" }];
+
+test("panorama: conta os registros com sintoma de cada marcador", () => {
+  const itens = [itemDe("1", "Abacate", HISTAMINA_ALTA)];
+  const registros = [
+    registroDe("r1", "1", "Abacate", ["gases"], HISTAMINA_ALTA),
+    registroDe("r2", "1", "Abacate", ["diarreia"], HISTAMINA_ALTA),
+    registroDe("r3", "1", "Abacate", ["nenhum"], HISTAMINA_ALTA),
+  ];
+  const [linha] = panoramaDeMarcadores(itens, registros);
+  assert.equal(linha?.marcador, "Histamina");
+  assert.equal(linha?.registros, 3);
+  assert.equal(linha?.registrosComSintoma, 2);
+  assert.deepEqual(linha?.alimentos, ["Abacate"]);
+});
+
+test("panorama: o denominador aparece — 2 de 3 não é 2 de 20", () => {
+  // É a diferença entre "sempre que come, passa mal" e "passou mal uma vez".
+  const itens = [itemDe("1", "Abacate", HISTAMINA_ALTA)];
+  const muitos = Array.from({ length: 20 }, (_, i) =>
+    registroDe(`r${i}`, "1", "Abacate", i < 2 ? ["gases"] : ["nenhum"], HISTAMINA_ALTA),
+  );
+  const [linha] = panoramaDeMarcadores(itens, muitos);
+  assert.equal(linha?.registrosComSintoma, 2);
+  assert.equal(linha?.registros, 20);
+});
+
+test("panorama: um alimento com dois marcadores conta nos dois", () => {
+  const dois: MarcadorDoAlimento[] = [
+    { nome: "Histamina", nivel: "muito_alta" },
+    { nome: "Oxalato", nivel: "alta" },
+  ];
+  const linhas = panoramaDeMarcadores(
+    [itemDe("1", "Abacate", dois)],
+    [registroDe("r1", "1", "Abacate", ["gases"], dois)],
+  );
+  assert.equal(linhas.length, 2);
+  for (const l of linhas) {
+    assert.equal(l.registrosComSintoma, 1);
+    assert.deepEqual(l.alimentos, ["Abacate"]);
+  }
+});
+
+test("panorama: guarda o nível mais alto visto naquele marcador", () => {
+  const linhas = panoramaDeMarcadores(
+    [
+      itemDe("1", "Pêra", [{ nome: "Histamina", nivel: "media" }]),
+      itemDe("2", "Abacate", [{ nome: "Histamina", nivel: "muito_alta" }]),
+    ],
+    [
+      registroDe("r1", "1", "Pêra", ["gases"], [{ nome: "Histamina", nivel: "media" }]),
+      registroDe("r2", "2", "Abacate", ["gases"], [{ nome: "Histamina", nivel: "muito_alta" }]),
+    ],
+  );
+  assert.equal(linhas[0]?.nivelMaisAlto, "muito_alta");
+  assert.deepEqual(linhas[0]?.alimentos, ["Abacate", "Pêra"]);
+});
+
+test("panorama: alimento sem marcação vira uma linha própria, no fim", () => {
+  const linhas = panoramaDeMarcadores(
+    [itemDe("1", "Abacate", HISTAMINA_ALTA), itemDe("2", "Carne boi", [], false)],
+    [
+      registroDe("r1", "1", "Abacate", ["gases"], HISTAMINA_ALTA),
+      registroDe("r2", "2", "Carne boi", ["diarreia"]),
+    ],
+  );
+  assert.equal(linhas.at(-1)?.marcador, null);
+  assert.equal(linhas.at(-1)?.registrosComSintoma, 1);
+  assert.deepEqual(linhas.at(-1)?.alimentos, ["Carne boi"]);
+  assert.equal(linhas.at(-1)?.nivelMaisAlto, null);
+});
+
+test("panorama: a marcação do item salva o registro que veio sem ela", () => {
+  const linhas = panoramaDeMarcadores(
+    [itemDe("1", "Abacate", HISTAMINA_ALTA)],
+    [registroDe("r1", "1", "Abacate", ["gases"])],
+  );
+  assert.equal(linhas[0]?.marcador, "Histamina");
+});
+
+test("panorama: quem teve mais sintomas vem primeiro", () => {
+  const linhas = panoramaDeMarcadores(
+    [
+      itemDe("1", "Abacate", [{ nome: "Histamina", nivel: "alta" }]),
+      itemDe("2", "Manga", [{ nome: "Oxalato", nivel: "alta" }]),
+    ],
+    [
+      registroDe("r1", "2", "Manga", ["gases"], [{ nome: "Oxalato", nivel: "alta" }]),
+      registroDe("r2", "2", "Manga", ["colica"], [{ nome: "Oxalato", nivel: "alta" }]),
+      registroDe("r3", "1", "Abacate", ["gases"], [{ nome: "Histamina", nivel: "alta" }]),
+    ],
+  );
+  assert.equal(linhas[0]?.marcador, "Oxalato");
+  assert.equal(linhas[1]?.marcador, "Histamina");
+});
+
+test("panorama: sem registro nenhum, nenhuma linha", () => {
+  assert.deepEqual(panoramaDeMarcadores([itemDe("1", "Pêra", HISTAMINA_ALTA)], []), []);
+});
+
+test("panorama: 'nenhum' não é sintoma", () => {
+  const linhas = panoramaDeMarcadores(
+    [itemDe("1", "Abacate", HISTAMINA_ALTA)],
+    [registroDe("r1", "1", "Abacate", ["nenhum"], HISTAMINA_ALTA)],
+  );
+  assert.equal(linhas[0]?.registros, 1);
+  assert.equal(linhas[0]?.registrosComSintoma, 0);
+});
+
+test("alimentosSemLigacao lista só os digitados à mão", () => {
+  const itens = [
+    itemDe("1", "Abacate", HISTAMINA_ALTA),
+    itemDe("2", "Mussarela de búfala", [], false),
+    itemDe("3", "Carne boi", [], false),
+  ];
+  assert.deepEqual(alimentosSemLigacao(itens), ["Carne boi", "Mussarela de búfala"]);
 });

@@ -3,6 +3,7 @@ import type {
   AlimentoDoMaterial,
   ItemDeReintroducao,
   Paciente,
+  RegistroDeReintroducao,
   StatusReintroducao,
 } from "@/central/types";
 import { repositorio } from "@/central/dados/repositorio";
@@ -10,8 +11,10 @@ import { useReintroducao } from "@/central/hooks/useReintroducao";
 import {
   CATEGORIAS,
   STATUS,
+  alimentosSemLigacao,
   faixaDaIntensidade,
-  mostrarMarcacao,
+  nivelPorExtenso,
+  panoramaDeMarcadores,
   porSemana,
   rotuloSintoma,
   status as infoStatus,
@@ -198,6 +201,7 @@ function PainelDaPaciente({
           {/* O mesmo rastreio que a paciente vê, com a mesma conta e as
               mesmas palavras. Duas leituras diferentes da mesma coisa seria
               o começo de uma conversa em que as duas estão certas. */}
+          <PanoramaDeMarcadores itens={dados?.itens ?? []} registros={dados?.registros ?? []} />
           <RastreioAlimentar
             itens={dados?.itens ?? []}
             registros={dados?.registros ?? []}
@@ -227,9 +231,83 @@ function PainelDaPaciente({
   );
 }
 
+// ------------------------------------------------------- panorama de marcadores
+
+/**
+ * O que os alimentos que caíram mal têm em comum — só para ela.
+ *
+ * Ela pediu: "preciso para ajudar a fechar diagnósticos". Até aqui a
+ * marcação só aparecia embaixo de um registro com sintoma, espalhada pela
+ * linha do tempo semana a semana: dava para ver um alimento de cada vez,
+ * nunca o conjunto.
+ *
+ * Isto conta, e só conta. O denominador vem sempre junto — "4 de 4" e "4 de
+ * 20" contam histórias opostas, e mostrar só o "4" esconderia qual das duas.
+ * Nenhuma linha aqui conclui nada; quem conclui é ela.
+ */
+function PanoramaDeMarcadores({
+  itens,
+  registros,
+}: {
+  itens: ItemDeReintroducao[];
+  registros: RegistroDeReintroducao[];
+}) {
+  const linhas = panoramaDeMarcadores(itens, registros);
+  const semLigacao = alimentosSemLigacao(itens);
+  if (linhas.length === 0) return null;
+
+  const comMarcador = linhas.filter((l) => l.marcador !== null);
+
+  return (
+    <section className="c-secao">
+      <h2 className="c-secao-titulo">O que esses alimentos têm em comum</h2>
+      <div className="c-bloco">
+        {linhas.map((linha) => (
+          <div className="c-item-protocolo" key={linha.marcador ?? "sem"}>
+            <div className="c-item-protocolo-linha">
+              <span className="c-item-protocolo-nome">
+                {linha.marcador ?? "Sem marcação no Mapa"}
+              </span>
+              <span className="c-item-protocolo-quantidade">
+                {linha.registrosComSintoma} de {linha.registros} com sintoma
+              </span>
+            </div>
+            <p className="c-item-protocolo-trocas">
+              {linha.nivelMaisAlto ? `até ${nivelPorExtenso(linha.nivelMaisAlto)} · ` : ""}
+              {linha.alimentos.join(", ")}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <p className="c-dica" style={{ marginTop: 8 }}>
+        Isto é contagem, não conclusão.
+        {comMarcador.length > 1
+          ? " Um alimento alto em dois marcadores conta nas duas linhas, porque a pergunta é quais marcadores aparecem — não qual é o culpado."
+          : ""}{" "}
+        Um alimento pode ter caído mal por qualquer outro motivo.
+      </p>
+
+      {semLigacao.length > 0 && (
+        <p className="c-nota-protocolo">
+          {semLigacao.length === 1
+            ? "1 alimento desta lista foi digitado à mão"
+            : `${semLigacao.length} alimentos desta lista foram digitados à mão`}{" "}
+          e por isso não têm marcação de oxalato, histamina ou lectina:{" "}
+          {semLigacao.join(", ")}. Adicionando o equivalente pelo Mapa, na aba ao lado, eles
+          passam a entrar nesta conta.
+        </p>
+      )}
+    </section>
+  );
+}
+
 // ------------------------------------------------------------ linha do tempo
 
 function LinhaDoTempo({ dados }: { dados: ReturnType<typeof useReintroducao>["dados"] }) {
+  // A marcação é do ALIMENTO, não do registro. Quando o registro chegar sem
+  // ela, o item ainda sabe — e é o mesmo alimento.
+  const marcacaoDoItem = new Map((dados?.itens ?? []).map((i) => [i.id, i.marcacao]));
   const registros = dados?.registros ?? [];
   const itens = dados?.itens ?? [];
   const [semanaVisivel, definirSemanaVisivel] = useState<number | "todas">("todas");
@@ -330,11 +408,19 @@ function LinhaDoTempo({ dados }: { dados: ReturnType<typeof useReintroducao>["da
                     )}
                     {r.bristol != null && <p className="c-dica">Bristol tipo {r.bristol}</p>}
                     {r.observacao && <p className="c-dica">“{r.observacao}”</p>}
-                    {/* Mesma regra da tela da paciente: só com sintoma. Aqui
-                        é onde a comparação entre alimentos acontece de fato. */}
-                    {mostrarMarcacao(r) && (
-                      <p className="c-marcacao">{textoDaMarcacao(r.marcacao)}</p>
-                    )}
+                    {/* Na tela da paciente a marcação só aparece com sintoma,
+                        e continua assim. Aqui não: esconder de quem tem
+                        formação que o alimento é alto em histamina não
+                        protege ninguém — atrapalha justamente quem precisa
+                        comparar um registro com o outro. */}
+                    {(() => {
+                      const marcacao = r.marcacao.length
+                        ? r.marcacao
+                        : (marcacaoDoItem.get(r.itemId) ?? []);
+                      return marcacao.length > 0 ? (
+                        <p className="c-marcacao">{textoDaMarcacao(marcacao)}</p>
+                      ) : null;
+                    })()}
                   </article>
                 );
               })}
@@ -400,6 +486,17 @@ function ListaDaPaciente({
                           item.totalDeRegistros === 1 ? "registro" : "registros"
                         }${item.ultimoRegistro ? ` · último em ${dataBonita(item.ultimoRegistro)}` : ""}`}
                   </span>
+                  {/* A marcação do alimento, sempre — é informação de
+                      referência sobre o alimento, não sobre a paciente. */}
+                  {item.marcacao.length > 0 ? (
+                    <span className="c-acao-descricao">{textoDaMarcacao(item.marcacao)}</span>
+                  ) : (
+                    !item.doCatalogo && (
+                      <span className="c-acao-descricao">
+                        Sem marcação — digitado à mão, fora do Mapa
+                      </span>
+                    )
+                  )}
                   {item.notaNutri && <span className="c-acao-descricao">“{item.notaNutri}”</span>}
                 </span>
                 <span className={`c-selo ${seloDoTom(info.tom)}`}>{info.rotulo}</span>

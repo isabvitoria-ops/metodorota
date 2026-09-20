@@ -217,3 +217,109 @@ export function temSintoma(registro: {
 }): boolean {
   return registro.sintomas.length > 0 && registro.sintomas[0] !== "nenhum";
 }
+
+/**
+ * O panorama de marcadores de uma paciente — só para a nutricionista.
+ *
+ * PARA QUE SERVE, nas palavras dela: "preciso para ajudar a fechar
+ * diagnósticos". Até aqui a marcação só aparecia embaixo de um registro com
+ * sintoma, espalhada pela linha do tempo semana a semana. Dava para ver um
+ * alimento de cada vez, nunca o padrão — e o padrão é a pergunta: os
+ * alimentos que caíram mal têm algo em comum?
+ *
+ * O QUE ISTO É: contagem. Quantos registros de alimentos altos em cada
+ * marcador tiveram sintoma, e em quais alimentos. Nada aqui conclui, e por
+ * isso o denominador vem junto: "4 de 4" e "4 de 12" contam histórias
+ * opostas, e mostrar só o "4" esconderia qual das duas.
+ *
+ * O QUE ISTO NÃO É: diagnóstico, nem sugestão de diagnóstico. Um alimento
+ * alto em histamina que caiu mal pode ter caído mal por qualquer outro
+ * motivo, e um alimento pode ser alto em dois marcadores ao mesmo tempo —
+ * nesse caso ele conta nas duas linhas, porque a pergunta é "quais
+ * marcadores aparecem", não "qual é o culpado".
+ *
+ * Fica fora da tela da paciente, e de propósito. Ela vê o que o corpo dela
+ * relatou; ler padrão em cima disso é trabalho de quem tem formação.
+ */
+export interface LinhaDoPanorama {
+  /** "Oxalato", "Histamina", "Lectina" ou `null` para os sem marcação. */
+  marcador: string | null;
+  /** O nível mais alto visto neste marcador, entre os alimentos contados. */
+  nivelMaisAlto: NivelDoMarcador | null;
+  registros: number;
+  registrosComSintoma: number;
+  /** Os alimentos que entraram nesta linha, em ordem alfabética. */
+  alimentos: string[];
+}
+
+const ORDEM_NIVEL: NivelDoMarcador[] = ["muito_baixa", "baixa", "media", "alta", "muito_alta"];
+
+export function panoramaDeMarcadores(
+  itens: ItemDeReintroducao[],
+  registros: RegistroDeReintroducao[],
+): LinhaDoPanorama[] {
+  const porItem = new Map(itens.map((i) => [i.id, i]));
+  const linhas = new Map<string, LinhaDoPanorama & { nomes: Set<string> }>();
+
+  const linha = (marcador: string | null) => {
+    const chave = marcador ?? "";
+    if (!linhas.has(chave)) {
+      linhas.set(chave, {
+        marcador,
+        nivelMaisAlto: null,
+        registros: 0,
+        registrosComSintoma: 0,
+        alimentos: [],
+        nomes: new Set(),
+      });
+    }
+    return linhas.get(chave)!;
+  };
+
+  for (const registro of registros) {
+    // A marcação do registro é a do alimento. Quando o registro não a
+    // trouxer, o item ainda pode ter — é o mesmo alimento.
+    const item = porItem.get(registro.itemId);
+    const marcacao = registro.marcacao.length ? registro.marcacao : (item?.marcacao ?? []);
+    const comSintoma = temSintoma(registro);
+
+    const destinos: (MarcadorDoAlimento | null)[] = marcacao.length ? marcacao : [null];
+    for (const m of destinos) {
+      const alvo = linha(m ? m.nome : null);
+      alvo.registros += 1;
+      if (comSintoma) alvo.registrosComSintoma += 1;
+      alvo.nomes.add(registro.itemNome);
+      if (m) {
+        const atual = alvo.nivelMaisAlto ? ORDEM_NIVEL.indexOf(alvo.nivelMaisAlto) : -1;
+        if (ORDEM_NIVEL.indexOf(m.nivel) > atual) alvo.nivelMaisAlto = m.nivel;
+      }
+    }
+  }
+
+  return [...linhas.values()]
+    .map(({ nomes, ...resto }) => ({
+      ...resto,
+      alimentos: [...nomes].sort((a, b) => a.localeCompare(b, "pt-BR")),
+    }))
+    .sort((a, b) => {
+      // Os sem marcação vão para o fim: são o que falta saber, não o achado.
+      if ((a.marcador === null) !== (b.marcador === null)) return a.marcador === null ? 1 : -1;
+      return (
+        b.registrosComSintoma - a.registrosComSintoma ||
+        b.registros - a.registros ||
+        String(a.marcador).localeCompare(String(b.marcador), "pt-BR")
+      );
+    });
+}
+
+/** Quantos alimentos da lista foram digitados à mão e por isso não têm marcação. */
+export function alimentosSemLigacao(itens: ItemDeReintroducao[]): string[] {
+  return itens
+    .filter((i) => !i.doCatalogo)
+    .map((i) => i.nome)
+    .sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
+export function nivelPorExtenso(nivel: NivelDoMarcador): string {
+  return NIVEL[nivel];
+}
