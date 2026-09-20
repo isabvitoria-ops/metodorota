@@ -23,6 +23,17 @@ import {
   venta,
 } from "./calculos.mjs";
 import { PROTOCOLOS } from "./protocolos.mjs";
+import {
+  apagarFicha,
+  fichaVazia,
+  lerFicha,
+  listarFichas,
+  migrarGavetaAntiga,
+  novoId,
+  restaurarBackup,
+  salvarFicha,
+  textoDoBackup,
+} from "./fichas.mjs";
 
 /**
  * A tela da bancada. Só amarra campo em conta: quem calcula é
@@ -88,27 +99,11 @@ function buscar(termo) {
 // Dieta
 // ---------------------------------------------------------------------------
 
-const CHAVE_DIETA = "nutri:dieta:v1";
-let dieta = { nome: "", peso: "", meta: "", refeicoes: [] };
+let dieta = { peso: "", meta: "", refeicoes: [] };
 
+/** A dieta não tem mais gaveta própria: ela é um pedaço da ficha aberta. */
 function guardarDieta() {
-  try {
-    localStorage.setItem(CHAVE_DIETA, JSON.stringify(dieta));
-  } catch {
-    /* navegador sem armazenamento: a conta continua funcionando na tela */
-  }
-}
-
-function lerDieta() {
-  try {
-    const guardado = localStorage.getItem(CHAVE_DIETA);
-    if (guardado) dieta = JSON.parse(guardado);
-  } catch {
-    /* ignora */
-  }
-  if (!dieta.refeicoes?.length) {
-    dieta.refeicoes = [{ nome: "Café da manhã", itens: [] }];
-  }
+  guardarFicha();
 }
 
 const MACROS = [
@@ -162,8 +157,10 @@ function desenharDieta() {
       const rodapeCelulas = [];
 
       const recalcular = () => {
+        // `TACO?`: abrir uma ficha com alimentos antes de a tabela terminar
+        // de carregar chegava aqui com TACO nulo e derrubava a tela inteira.
         refeicao.itens.forEach((item, iI) => {
-          const a = TACO.alimentos.find((x) => x.c === item.codigo);
+          const a = TACO?.alimentos.find((x) => x.c === item.codigo);
           MACROS.forEach(([chave, , casas], iM) => {
             const v = a ? porGramas(valorDe(a, chave), item.gramas) : null;
             const td = celulas[iI]?.[iM];
@@ -176,7 +173,7 @@ function desenharDieta() {
         MACROS.forEach(([chave, , casas], iM) => {
           const { total, faltando } = somar(
             refeicao.itens.map((item) => {
-              const a = TACO.alimentos.find((x) => x.c === item.codigo);
+              const a = TACO?.alimentos.find((x) => x.c === item.codigo);
               return a ? porGramas(valorDe(a, chave), item.gramas) : null;
             }),
           );
@@ -188,14 +185,16 @@ function desenharDieta() {
       };
 
       refeicao.itens.forEach((item, iI) => {
-        const alimento = TACO.alimentos.find((a) => a.c === item.codigo);
+        const alimento = TACO?.alimentos.find((a) => a.c === item.codigo);
         const tr = document.createElement("tr");
         const nomeTd = document.createElement("td");
         nomeTd.textContent = alimento ? alimento.n : item.nome;
         const gTd = document.createElement("td");
         const gInput = document.createElement("input");
-        gInput.type = "number";
-        gInput.step = "1";
+        // Texto com teclado numérico, não `type="number"`: ver o comentário
+        // em camposCorpo(). Vale igual para gramas — "62,5 g" existe.
+        gInput.type = "text";
+        gInput.inputMode = "decimal";
         gInput.value = item.gramas;
         gInput.style.width = "72px";
         gInput.style.textAlign = "right";
@@ -337,7 +336,16 @@ function totais() {
   const dist = distribuicao(soma.carboidrato, soma.proteina, soma.lipideos);
 
   const linhas = [
-    ["Calorias", mostrar(soma.energia_kcal, 0), meta ? `meta ${mostrar(meta, 0)} · ${mostrar(soma.energia_kcal - meta, 0)}` : ""],
+    // "meta 1600 · 150" não dizia se as 150 estavam acima ou abaixo. Agora diz.
+    [
+      "Calorias",
+      mostrar(soma.energia_kcal, 0),
+      meta
+        ? `meta ${mostrar(meta, 0)} · ${mostrar(Math.abs(soma.energia_kcal - meta), 0)} ${
+            soma.energia_kcal >= meta ? "acima" : "abaixo"
+          }`
+        : "",
+    ],
     ["Carboidrato", mostrar(soma.carboidrato, 1) + " g", dist ? `${mostrar(dist.carboidrato, 0)}%` + (peso ? ` · ${mostrar(porQuilo(soma.carboidrato, peso), 1)} g/kg` : "") : ""],
     ["Proteína", mostrar(soma.proteina, 1) + " g", dist ? `${mostrar(dist.proteina, 0)}%` + (peso ? ` · ${mostrar(porQuilo(soma.proteina, peso), 1)} g/kg` : "") : ""],
     ["Gordura", mostrar(soma.lipideos, 1) + " g", dist ? `${mostrar(dist.lipideo, 0)}%` + (peso ? ` · ${mostrar(porQuilo(soma.lipideos, peso), 1)} g/kg` : "") : ""],
@@ -363,7 +371,7 @@ function textoDaDieta() {
     if (!r.itens.length) continue;
     linhas.push(r.nome.toUpperCase());
     for (const item of r.itens) {
-      const a = TACO.alimentos.find((x) => x.c === item.codigo);
+      const a = TACO?.alimentos.find((x) => x.c === item.codigo);
       const kcal = a ? porGramas(valorDe(a, "energia_kcal"), item.gramas) : null;
       linhas.push(`  ${a ? a.n : item.nome} — ${item.gramas} g${kcal !== null ? ` (${mostrar(kcal, 0)} kcal)` : ""}`);
     }
@@ -401,8 +409,20 @@ const CIRCUNFERENCIAS = [
   ["pant_esq", "Panturrilha esquerda"],
 ];
 
-const CHAVE_CORPO = "nutri:corpo:v1";
-
+/**
+ * NENHUM campo de número nesta ferramenta usa `type="number"`, e isso é
+ * decisão, não descuido.
+ *
+ * DEFEITO QUE ISTO CONSERTA, e ele era grave: digitando "47,8" naquele
+ * campo, o navegador descartava a vírgula e juntava os dígitos. O peso
+ * virava 478 kg. Uma dobra de 9,6 mm virava 96 mm — e essa é a pior,
+ * porque 478 kg salta aos olhos e 96 mm não: sai um percentual de gordura
+ * errado com cara de certo. Conferido no navegador, acontecia tanto em
+ * pt-BR quanto em en-US.
+ *
+ * `type="text"` com `inputmode="decimal"` aceita a vírgula, continua
+ * abrindo o teclado numérico no celular, e `num()` converte na entrada.
+ */
 function camposCorpo() {
   // A lista de equações da tela é montada a partir do mapa acima, e não
   // escrita à mão no HTML. Duas listas para manter em sincronia é uma
@@ -426,13 +446,13 @@ function camposCorpo() {
   const dobras = $("dobras");
   for (const [chave, rotulo] of DOBRAS) {
     const div = document.createElement("div");
-    div.innerHTML = `<label for="dob-${chave}">${rotulo}</label><input id="dob-${chave}" type="number" step="0.5" />`;
+    div.innerHTML = `<label for="dob-${chave}">${rotulo}</label><input id="dob-${chave}" type="text" inputmode="decimal" />`;
     dobras.append(div);
   }
   const circ = $("circunferencias");
   for (const [chave, rotulo] of CIRCUNFERENCIAS) {
     const div = document.createElement("div");
-    div.innerHTML = `<label for="cir-${chave}">${rotulo}</label><input id="cir-${chave}" type="number" step="0.5" />`;
+    div.innerHTML = `<label for="cir-${chave}">${rotulo}</label><input id="cir-${chave}" type="text" inputmode="decimal" />`;
     circ.append(div);
   }
   const atividade = $("c-atividade");
@@ -575,30 +595,28 @@ function calcularCorpo() {
   guardarCorpo();
 }
 
-function guardarCorpo() {
-  const dados = { campos: {} };
-  for (const id of ["c-nome", "c-data", "c-sexo", "c-idade", "c-peso", "c-altura", "c-protocolo", "c-atividade"]) {
-    dados.campos[id] = $(id).value;
-  }
-  for (const [chave] of DOBRAS) dados.campos[`dob-${chave}`] = $(`dob-${chave}`).value;
-  for (const [chave] of CIRCUNFERENCIAS) dados.campos[`cir-${chave}`] = $(`cir-${chave}`).value;
-  try {
-    localStorage.setItem(CHAVE_CORPO, JSON.stringify(dados));
-  } catch {
-    /* ignora */
-  }
+/**
+ * Todos os campos da aba de composição.
+ *
+ * `c-equacao` e `c-fao` FALTAVAM nesta lista, e a falta tinha efeito
+ * visível: a paciente voltava com o protocolo certo mas com a conversão e
+ * o fator ocupacional zerados no primeiro item da lista, então o
+ * percentual de gordura e o gasto energético mudavam sozinhos entre uma
+ * abertura e outra.
+ */
+function idsDoCorpo() {
+  return [
+    "c-data", "c-sexo", "c-idade", "c-peso", "c-altura",
+    "c-protocolo", "c-equacao", "c-atividade", "c-fao",
+    ...DOBRAS.map(([c]) => `dob-${c}`),
+    ...CIRCUNFERENCIAS.map(([c]) => `cir-${c}`),
+  ];
 }
 
-function lerCorpo() {
-  try {
-    const guardado = JSON.parse(localStorage.getItem(CHAVE_CORPO) ?? "null");
-    if (!guardado) return;
-    for (const [id, valor] of Object.entries(guardado.campos ?? {})) {
-      if ($(id)) $(id).value = valor;
-    }
-  } catch {
-    /* ignora */
-  }
+const IDS_MACROS = ["m-kcal", "m-peso", "m-cho", "m-ptn", "m-lip", "m-atual", "m-desejado", "m-dias"];
+
+function guardarCorpo() {
+  guardarFicha();
 }
 
 // ---------------------------------------------------------------------------
@@ -615,7 +633,6 @@ document.querySelectorAll("nav button").forEach((botao) => {
 });
 
 camposCorpo();
-lerCorpo();
 for (const campo of document.querySelectorAll("#corpo input, #corpo select")) {
   campo.addEventListener("input", calcularCorpo);
 }
@@ -642,9 +659,6 @@ $("c-protocolo").addEventListener("change", () => {
   seguirConversaoDoAutor();
   calcularCorpo();
 });
-seguirConversaoDoAutor();
-if (!$("c-data").value) $("c-data").value = new Date().toISOString().slice(0, 10);
-calcularCorpo();
 
 $("nova-refeicao").onclick = () => {
   dieta.refeicoes.push({ nome: "Nova refeição", itens: [] });
@@ -663,9 +677,8 @@ $("copiar").onclick = async () => {
 };
 
 $("limpar-dieta").onclick = () => {
-  if (!window.confirm("Apagar a dieta que está na tela?")) return;
-  dieta = { nome: "", peso: "", meta: "", refeicoes: [{ nome: "Café da manhã", itens: [] }] };
-  $("d-nome").value = "";
+  if (!window.confirm("Apagar a dieta que está na tela? A avaliação física desta ficha continua.")) return;
+  dieta = { peso: "", meta: "", refeicoes: [{ nome: "Café da manhã", itens: [] }] };
   $("d-peso").value = "";
   $("d-meta").value = "";
   guardarDieta();
@@ -673,24 +686,19 @@ $("limpar-dieta").onclick = () => {
 };
 
 $("limpar-corpo").onclick = () => {
-  if (!window.confirm("Apagar a avaliação que está na tela?")) return;
+  if (!window.confirm("Apagar a avaliação que está na tela? A dieta desta ficha continua.")) return;
   for (const campo of document.querySelectorAll("#corpo input")) campo.value = "";
-  $("c-data").value = new Date().toISOString().slice(0, 10);
+  $("c-data").value = hoje();
   calcularCorpo();
 };
 
-for (const id of ["d-nome", "d-peso", "d-meta"]) {
+for (const id of ["d-peso", "d-meta"]) {
   $(id).addEventListener("input", () => {
     dieta[id.slice(2)] = $(id).value;
     guardarDieta();
     totais();
   });
 }
-
-lerDieta();
-$("d-nome").value = dieta.nome ?? "";
-$("d-peso").value = dieta.peso ?? "";
-$("d-meta").value = dieta.meta ?? "";
 
 carregarTaco()
   .then(desenharDieta)
@@ -714,10 +722,17 @@ function calcularMacros() {
   };
   const soma = pct.carboidrato + pct.proteina + pct.lipideo;
 
+  // Dizia "Faltam 20 pontos" quando a soma passava de 100 — onde sobravam,
+  // não faltavam. E o plural vinha do lado errado da comparação: "Falta 2"
+  // no singular para dois pontos.
+  const diferenca = Math.round(Math.abs(100 - soma));
+  const pontos = `${diferenca} ${diferenca === 1 ? "ponto" : "pontos"}`;
   $("m-soma").textContent =
     soma === 100
       ? "Soma 100% — fechado."
-      : `Soma ${mostrar(soma, 0)}%. Falta${soma > 100 ? "m" : ""} ${mostrar(Math.abs(100 - soma), 0)} ponto(s) para fechar 100%.`;
+      : soma > 100
+        ? `Soma ${mostrar(soma, 0)}%. ${diferenca === 1 ? "Sobra" : "Sobram"} ${pontos} para fechar 100%.`
+        : `Soma ${mostrar(soma, 0)}%. ${diferenca === 1 ? "Falta" : "Faltam"} ${pontos} para fechar 100%.`;
   $("m-soma").style.color = soma === 100 ? "" : "var(--alerta)";
 
   const r = macrosPorPercentual(kcal, pct, peso);
@@ -780,3 +795,233 @@ for (const botao of document.querySelectorAll("#macros button[data-preset]")) {
   };
 }
 calcularMacros();
+
+// ---------------------------------------------------------------------------
+// Fichas: quem está na tela, e como ela sai daqui sem se perder
+// ---------------------------------------------------------------------------
+
+const hoje = () => new Date().toISOString().slice(0, 10);
+
+/** A ficha aberta. Começa nova a cada abertura — nunca a paciente de ontem. */
+let fichaAtual = { id: novoId(), nome: "" };
+
+/** Lê a tela inteira: as três abas são a mesma paciente. */
+function fichaDaTela() {
+  const campos = (ids) => Object.fromEntries(ids.map((id) => [id, $(id)?.value ?? ""]));
+  return {
+    id: fichaAtual.id,
+    nome: $("f-nome").value.trim(),
+    dieta: { peso: $("d-peso").value, meta: $("d-meta").value, refeicoes: dieta.refeicoes },
+    corpo: campos(idsDoCorpo()),
+    macros: campos(IDS_MACROS),
+  };
+}
+
+function escreverEstado(texto, alerta = false) {
+  $("f-estado").textContent = texto;
+  $("f-estado").style.color = alerta ? "var(--alerta)" : "";
+}
+
+/**
+ * Como a tela está quando nada foi preenchido.
+ *
+ * Não dá para perguntar "os campos estão vazios?", porque vários nascem
+ * preenchidos: a data é a de hoje, o sexo é feminino, o protocolo é o
+ * primeiro da lista, os macros vêm 50/30/20. Perguntando pelo vazio, toda
+ * abertura da ferramenta gravava uma ficha "sem nome" na lista — foi o que
+ * apareceu ao conferir no navegador. A pergunta certa é outra: mudou
+ * alguma coisa em relação ao ponto de partida?
+ */
+let estadoLimpo = null;
+
+function estaComoNasceu(ficha) {
+  const { id, nome, ...resto } = ficha;
+  return !String(nome ?? "").trim() && JSON.stringify(resto) === estadoLimpo;
+}
+
+/**
+ * Grava a ficha aberta. Chamada a cada tecla — não há botão de salvar.
+ *
+ * Ficha intocada não vira registro, senão cada abertura da ferramenta
+ * deixaria uma linha vazia na lista.
+ */
+function guardarFicha() {
+  // Durante a montagem da tela ainda não há com o que comparar, e não há
+  // nada dela para gravar: o primeiro desenho dispara este caminho sozinho.
+  if (estadoLimpo === null) return;
+  const ficha = fichaDaTela();
+  if (estaComoNasceu(ficha) || fichaVazia(ficha)) return;
+  if (!salvarFicha(ficha)) {
+    escreverEstado("Não consegui gravar nesta ficha — a memória do navegador recusou. Baixe o backup antes de fechar.", true);
+    return;
+  }
+  desenharListaDeFichas();
+  escreverEstado(
+    `Salvo automaticamente em “${ficha.nome || "ficha sem nome"}”. ` +
+      "Fica na memória deste navegador: baixe o backup de vez em quando.",
+  );
+}
+
+/** A assinatura do que a lista mostra, para não redesenhar a cada tecla. */
+let listaDesenhada = "";
+
+function desenharListaDeFichas() {
+  const lista = $("f-lista");
+  const fichas = listarFichas();
+  const assinatura = fichas.map((f) => `${f.id}:${f.nome}`).join("|") + `#${fichaAtual.id}`;
+  if (assinatura === listaDesenhada) return;
+  listaDesenhada = assinatura;
+  lista.innerHTML = "";
+  const vazio = document.createElement("option");
+  vazio.value = "";
+  vazio.textContent = fichas.length ? `Abrir ficha salva… (${fichas.length})` : "Nenhuma ficha salva ainda";
+  lista.append(vazio);
+  for (const f of fichas) {
+    const opcao = document.createElement("option");
+    opcao.value = f.id;
+    const data = f.atualizadoEm ? new Date(f.atualizadoEm).toLocaleDateString("pt-BR") : "";
+    opcao.textContent = `${f.nome || "sem nome"}${data ? ` — ${data}` : ""}`;
+    lista.append(opcao);
+  }
+  lista.value = fichas.some((f) => f.id === fichaAtual.id) ? fichaAtual.id : "";
+}
+
+/**
+ * Põe um valor num campo, respeitando o que o campo aceita.
+ *
+ * Uma caixa de texto vazia é uma caixa vazia. Uma LISTA vazia não existe:
+ * atribuir "" a um `<select>` que não tem opção vazia deixa o seletor num
+ * estado sem valor, e foi assim que "nova ficha" derrubou a tela inteira na
+ * primeira tentativa — `c-sexo` voltava "" e a conta procurava as dobras de
+ * um sexo que não existe. Lista sem valor válido volta para a primeira
+ * opção. Vale também para um protocolo gravado que não exista mais.
+ */
+function definirCampo(id, valor) {
+  const campo = $(id);
+  if (!campo) return;
+  const texto = valor ?? "";
+  if (campo.tagName !== "SELECT") {
+    campo.value = texto;
+    return;
+  }
+  const existe = [...campo.options].some((o) => o.value === texto);
+  campo.value = existe ? texto : (campo.options[0]?.value ?? "");
+}
+
+/** Joga uma ficha (ou o vazio) na tela. */
+function mostrarFicha(ficha) {
+  fichaAtual = { id: ficha?.id ?? novoId(), nome: ficha?.nome ?? "" };
+  $("f-nome").value = ficha?.nome ?? "";
+
+  dieta = {
+    peso: ficha?.dieta?.peso ?? "",
+    meta: ficha?.dieta?.meta ?? "",
+    refeicoes: ficha?.dieta?.refeicoes?.length
+      ? ficha.dieta.refeicoes
+      : [{ nome: "Café da manhã", itens: [] }],
+  };
+  $("d-peso").value = dieta.peso;
+  $("d-meta").value = dieta.meta;
+
+  for (const id of idsDoCorpo()) definirCampo(id, ficha?.corpo?.[id]);
+  if (!$("c-data").value) $("c-data").value = hoje();
+
+  for (const id of IDS_MACROS) {
+    const guardado = ficha?.macros?.[id];
+    if (guardado !== undefined && guardado !== "") definirCampo(id, guardado);
+  }
+
+  seguirConversaoDoAutor();
+  desenharDieta();
+  calcularCorpo();
+  calcularMacros();
+  desenharListaDeFichas();
+  escreverEstado(
+    ficha
+      ? `Ficha de ${ficha.nome || "paciente sem nome"} aberta.`
+      : "Ficha nova. O que você digitar é salvo sozinho.",
+  );
+}
+
+$("f-nome").addEventListener("input", () => {
+  fichaAtual.nome = $("f-nome").value;
+  guardarFicha();
+});
+
+$("f-lista").addEventListener("change", () => {
+  const id = $("f-lista").value;
+  if (!id) return;
+  mostrarFicha(lerFicha(id));
+});
+
+$("f-nova").onclick = () => {
+  // O que está na tela já está gravado (salvamento a cada tecla), então
+  // "nova ficha" não pede confirmação: não há nada a perder.
+  mostrarFicha(null);
+  $("f-nome").focus();
+};
+
+$("f-apagar").onclick = () => {
+  const ficha = lerFicha(fichaAtual.id);
+  if (!ficha) {
+    escreverEstado("Esta ficha ainda não foi salva — não há o que apagar.");
+    return;
+  }
+  if (!window.confirm(`Apagar a ficha de ${ficha.nome || "paciente sem nome"}? Isto não volta atrás.`)) return;
+  apagarFicha(fichaAtual.id);
+  listaDesenhada = "";
+  mostrarFicha(null);
+  escreverEstado("Ficha apagada.");
+};
+
+$("f-backup").onclick = () => {
+  const arquivo = new Blob([textoDoBackup()], { type: "application/json" });
+  const url = URL.createObjectURL(arquivo);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `fichas-${hoje()}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+  escreverEstado(`Backup de ${listarFichas().length} ficha(s) baixado. Guarde fora do computador.`);
+};
+
+$("f-restaurar").onclick = () => $("f-arquivo").click();
+
+$("f-arquivo").addEventListener("change", async () => {
+  const arquivo = $("f-arquivo").files?.[0];
+  if (!arquivo) return;
+  try {
+    const r = restaurarBackup(await arquivo.text());
+    listaDesenhada = "";
+    desenharListaDeFichas();
+    escreverEstado(
+      `Backup restaurado: ${r.novas} ficha(s) nova(s), ${r.atualizadas} atualizada(s). ` +
+        "Nada do que já estava aqui foi apagado.",
+    );
+  } catch (e) {
+    escreverEstado(`Não consegui ler este arquivo: ${e.message}`, true);
+  }
+  $("f-arquivo").value = "";
+});
+
+// A aba de macros também é da paciente, e também não se perde.
+for (const campo of document.querySelectorAll("#macros input")) {
+  campo.addEventListener("input", guardarFicha);
+}
+
+// A paciente que estava na tela na versão antiga vira a primeira ficha, em
+// vez de sumir na atualização.
+const recuperada = migrarGavetaAntiga();
+mostrarFicha(null);
+// Feito o primeiro desenho, isto é o ponto de partida com que toda ficha
+// nova será comparada.
+{
+  const { id, nome, ...resto } = fichaDaTela();
+  estadoLimpo = JSON.stringify(resto);
+}
+if (recuperada) {
+  escreverEstado(
+    `Guardei o que estava na tela antes como a ficha “${recuperada.nome}”. ` +
+      "Ela está na lista de fichas salvas.",
+  );
+}
