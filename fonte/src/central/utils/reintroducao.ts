@@ -323,3 +323,40 @@ export function alimentosSemLigacao(itens: ItemDeReintroducao[]): string[] {
 export function nivelPorExtenso(nivel: NivelDoMarcador): string {
   return NIVEL[nivel];
 }
+
+// ------------------------------------------------ em que semana ela está
+
+/**
+ * A semana da paciente, contada do começo do acompanhamento.
+ *
+ * Mesma regra de `semana_da_reintroducao` no banco — sete dias por semana,
+ * a primeira é a do dia de início, e nada antes do início cai antes da
+ * semana 1. Está repetida aqui porque a tela precisa mostrar o resultado
+ * ANTES de salvar, e a conta tem de ser a mesma dos dois lados.
+ */
+export function semanaEm(inicio: string | null, hoje: string): number {
+  if (!inicio) return 1;
+  const dias = Math.floor((Date.parse(`${hoje}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86_400_000);
+  if (!Number.isFinite(dias) || dias < 0) return 1;
+  return Math.floor(dias / 7) + 1;
+}
+
+/**
+ * O caminho de volta: a data de início que coloca hoje na semana pedida.
+ *
+ * PARA QUE SERVE. As pacientes que começaram o rastreio no papel, antes de
+ * o aplicativo existir, chegam nele já no meio do caminho: a Daniela está
+ * na terceira semana e o app mostra a primeira, porque para ele o histórico
+ * começa no primeiro registro digitado. A nutricionista sabe a semana; o
+ * que ela não tem por que calcular de cabeça é a data.
+ *
+ * Isto põe hoje no PRIMEIRO dia da semana pedida. Não dá para adivinhar em
+ * que ponto da semana ela está, então a tela mostra a data resultante e
+ * deixa ajustar — quem souber o dia exato do começo acerta mais.
+ */
+export function inicioParaSemana(semana: number, hoje: string): string {
+  const pedida = Math.max(1, Math.floor(semana));
+  const data = new Date(`${hoje}T00:00:00Z`);
+  data.setUTCDate(data.getUTCDate() - (pedida - 1) * 7);
+  return data.toISOString().slice(0, 10);
+}

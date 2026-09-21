@@ -9,7 +9,9 @@ import type {
 import {
   BRISTOL,
   alimentosSemLigacao,
+  inicioParaSemana,
   panoramaDeMarcadores,
+  semanaEm,
   SINTOMAS,
   STATUS,
   faixaDaIntensidade,
@@ -424,4 +426,75 @@ test("alimentosSemLigacao lista só os digitados à mão", () => {
     itemDe("3", "Carne boi", [], false),
   ];
   assert.deepEqual(alimentosSemLigacao(itens), ["Carne boi", "Mussarela de búfala"]);
+});
+
+// ------------------------------------------------ em que semana ela está
+
+test("semanaEm: o dia do início é a semana 1", () => {
+  assert.equal(semanaEm("2026-09-01", "2026-09-01"), 1);
+  assert.equal(semanaEm("2026-09-01", "2026-09-07"), 1);
+});
+
+test("semanaEm: o sétimo dia depois já é a semana 2", () => {
+  assert.equal(semanaEm("2026-09-01", "2026-09-08"), 2);
+  assert.equal(semanaEm("2026-09-01", "2026-09-14"), 2);
+  assert.equal(semanaEm("2026-09-01", "2026-09-15"), 3);
+});
+
+test("semanaEm: sem data de início, semana 1", () => {
+  assert.equal(semanaEm(null, "2026-09-20"), 1);
+});
+
+test("semanaEm: data anterior ao início não cai antes da semana 1", () => {
+  assert.equal(semanaEm("2026-09-10", "2026-09-01"), 1);
+});
+
+test("inicioParaSemana: semana 1 é hoje", () => {
+  assert.equal(inicioParaSemana(1, "2026-09-20"), "2026-09-20");
+});
+
+test("inicioParaSemana: o caso da Daniela — terceira semana, duas para trás", () => {
+  assert.equal(inicioParaSemana(3, "2026-09-20"), "2026-09-06");
+  assert.equal(inicioParaSemana(4, "2026-09-20"), "2026-08-30");
+});
+
+test("inicioParaSemana: a ida e a volta fecham", () => {
+  for (let semana = 1; semana <= 30; semana += 1) {
+    assert.equal(semanaEm(inicioParaSemana(semana, "2026-09-20"), "2026-09-20"), semana);
+  }
+});
+
+test("inicioParaSemana: a ida e a volta fecham atravessando a virada do ano", () => {
+  for (const hoje of ["2026-01-05", "2026-03-01", "2026-12-31"]) {
+    for (let semana = 1; semana <= 12; semana += 1) {
+      assert.equal(semanaEm(inicioParaSemana(semana, hoje), hoje), semana, `${hoje} semana ${semana}`);
+    }
+  }
+});
+
+test("inicioParaSemana: semana inválida vira 1, nunca uma data no futuro", () => {
+  assert.equal(inicioParaSemana(0, "2026-09-20"), "2026-09-20");
+  assert.equal(inicioParaSemana(-5, "2026-09-20"), "2026-09-20");
+  assert.equal(inicioParaSemana(2.7, "2026-09-20"), "2026-09-13");
+});
+
+test("semanaEm dá o mesmo que a conta do banco, caso a caso", () => {
+  // Os dez casos rodados contra o Postgres de produção. Se um dia a regra
+  // mudar de um lado só, a tela e o histórico passariam a discordar sobre a
+  // semana da mesma paciente, e este teste é quem avisa.
+  const doBanco: [string, string, number][] = [
+    ["2026-09-01", "2026-09-01", 1],
+    ["2026-09-01", "2026-09-07", 1],
+    ["2026-09-01", "2026-09-08", 2],
+    ["2026-09-01", "2026-09-14", 2],
+    ["2026-09-01", "2026-09-15", 3],
+    ["2026-09-01", "2026-09-27", 4],
+    ["2026-08-24", "2026-09-21", 5],
+    ["2026-09-07", "2026-09-21", 3],
+    ["2026-09-10", "2026-09-01", 1],
+    ["2025-12-28", "2026-01-05", 2],
+  ];
+  for (const [inicio, dia, esperado] of doBanco) {
+    assert.equal(semanaEm(inicio, dia), esperado, `${inicio} → ${dia}`);
+  }
 });

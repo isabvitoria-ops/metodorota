@@ -14,14 +14,16 @@ import {
   alimentosSemLigacao,
   faixaDaIntensidade,
   nivelPorExtenso,
+  inicioParaSemana,
   panoramaDeMarcadores,
   porSemana,
+  semanaEm,
   rotuloSintoma,
   status as infoStatus,
   temSintoma,
   textoDaMarcacao,
 } from "@/central/utils/reintroducao";
-import { dataBonita } from "@/central/utils/situacao";
+import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { Campo, Selecao, Texto, AreaTexto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
 import { RastreioAlimentar } from "@/central/components/RastreioAlimentar";
@@ -733,6 +735,15 @@ function ModalClassificar({
 
 // ------------------------------------------------------------ acompanhamento
 
+/**
+ * Até a semana 24 na lista — meio ano.
+ *
+ * Quem estiver além disso ainda tem o campo de data ao lado, que não tem
+ * limite. Uma lista até 200 para cobrir o caso raro atrapalharia as outras
+ * todas.
+ */
+const SEMANAS = Array.from({ length: 24 }, (_, i) => i + 1);
+
 function Acompanhamento({
   paciente,
   inicio,
@@ -749,18 +760,51 @@ function Acompanhamento({
   const [dataInicio, definirDataInicio] = useState(inicio ?? "");
   const [texto, definirTexto] = useState(orientacao ?? "");
   const [feito, definirFeito] = useState(false);
+  const hoje = hojeSaoPaulo();
+  const semanaHoje = semanaEm(dataInicio || null, hoje);
+  const primeiroNome = paciente.nome.split(" ")[0] ?? paciente.nome;
 
   return (
     <>
+      {/* Ela pediu isto assim: "eu queria que no meu painel eu conseguisse
+          selecionar em qual semana o paciente já está". A paciente que
+          começou o rastreio no papel, antes de o aplicativo existir, chega
+          nele no meio do caminho — a Daniela está na terceira semana e o
+          app mostra a primeira, porque para ele a contagem começa no
+          primeiro registro digitado.
+
+          O campo de data já existia e resolvia, mas exigia que ela fizesse
+          a conta de cabeça. Agora os dois andam juntos: escolher a semana
+          escreve a data, mexer na data recalcula a semana. */}
       <div className="c-bloco">
-        <strong style={{ fontSize: 14 }}>Início do acompanhamento</strong>
+        <strong style={{ fontSize: 14 }}>Em que semana {primeiroNome} está</strong>
         <p className="c-dica">
-          Serve só para numerar as semanas no histórico. Deixando em branco, a semana 1 é a do
-          primeiro registro dela. Isso não cria prazo nenhum.
+          Se ela começou o rastreio com você antes do aplicativo, diga aqui em que semana ela
+          está hoje — a contagem se ajusta, na sua tela e na dela.
         </p>
-        <Campo rotulo="Data de início">
-          <Texto valor={dataInicio} aoMudar={definirDataInicio} tipo="date" />
-        </Campo>
+
+        <div className="c-duas-colunas">
+          <Campo rotulo="Semana de hoje">
+            <Selecao
+              valor={String(semanaHoje)}
+              aoMudar={(v) => definirDataInicio(inicioParaSemana(Number(v), hoje))}
+              opcoes={SEMANAS.map((n) => ({ valor: String(n), rotulo: `Semana ${n}` }))}
+            />
+          </Campo>
+          <Campo rotulo="Começou em" dica="Sabendo o dia exato, a data acerta mais que a semana.">
+            <Texto valor={dataInicio} aoMudar={definirDataInicio} tipo="date" />
+          </Campo>
+        </div>
+
+        <p className="c-nota-protocolo">
+          {dataInicio
+            ? `Hoje ${primeiroNome} está na semana ${semanaHoje}, contando de ${dataBonita(dataInicio)}. É o que ela vê na tela dela.`
+            : `Sem data de início, a semana 1 é a do primeiro registro dela — por isso quem começou no papel aparece na semana 1.`}
+        </p>
+        <p className="c-dica">
+          Mudar isto renumera os registros que ela já fez, e não apaga nenhum. Não cria prazo
+          nem cobrança.
+        </p>
       </div>
 
       <div className="c-bloco" style={{ marginTop: 14 }}>
