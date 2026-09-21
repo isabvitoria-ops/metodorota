@@ -24,6 +24,7 @@ import type {
 import type {
   CardioSessao,
   MetaSemanal,
+  PermissaoDeTreino,
   TipoDeMeta,
   ExercicioParaSalvar,
   SerieParaSalvar,
@@ -928,6 +929,21 @@ export const repositorioSupabase: Repositorio = {
     return data ? lerTreino(data as Linha) : null;
   },
 
+  async possoEscreverTreino(): Promise<PermissaoDeTreino> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("posso_escrever_treino");
+    erro("conferir se você pode escrever o treino", error);
+    const linha = (data ?? {}) as Linha;
+    return {
+      // `=== true`, e não "o que vier": uma resposta estranha do banco tem
+      // de cair para "não pode". O pior caso vira um botão que não aparece,
+      // e não uma tela que promete salvar e não salva.
+      pode: linha.pode === true,
+      motivo: (textoOuNulo(linha.motivo) as PermissaoDeTreino["motivo"]) ?? null,
+      meuTreinoId: textoOuNulo(linha.meuTreinoId),
+    };
+  },
+
   async sessoesDeTreino(pacienteId?: string | null): Promise<SessaoDeTreino[]> {
     const sb = exigirSupabase();
     // `p_paciente` nulo quer dizer "as minhas". Mandar o id de outra pessoa
@@ -974,9 +990,26 @@ export const repositorioSupabase: Repositorio = {
     return ((data ?? []) as Linha[]).map(lerTreino);
   },
 
+  async treinoLiberado(pacienteId: string): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("treino_liberado", { p_paciente: pacienteId });
+    erro("conferir a área de treino", error);
+    return data === true;
+  },
+
+  async definirTreinoDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("definir_treino_do_paciente", {
+      p_paciente: pacienteId,
+      p_ativo: ativo,
+    });
+    erro("liberar a área de treino", error);
+    return data === true;
+  },
+
   async salvarTreino(
     id: string | null,
-    pacienteId: string,
+    pacienteId: string | null,
     nome: string,
     observacao: string,
     ativo: boolean,
@@ -1126,6 +1159,10 @@ function lerTreino(linha: Linha): Treino {
     nome: texto(linha.nome),
     observacao: textoOuNulo(linha.observacao),
     ativo: linha.ativo === true,
+    // Sem `origem` na resposta — a lista da nutricionista antes da 0032 —
+    // o treino é dela: é o que era verdade para tudo que já existia.
+    origem: linha.origem === "paciente" ? "paciente" : "nutricionista",
+    podeEditar: linha.podeEditar === true,
     exercicios: ((linha.exercicios ?? []) as Linha[]).map((e, i) => ({
       id: texto(e.id),
       nome: texto(e.nome),

@@ -2,10 +2,12 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 import type {
   CardioSessao,
   MetaSemanal,
+  PermissaoDeTreino,
   SerieParaSalvar,
   SessaoDeTreino,
   Treino,
 } from "@/central/types/treino";
+import { MeuTreino } from "@/central/components/MeuTreino";
 import { PainelDaSemana } from "@/central/components/PainelDaSemana";
 import { RegistroDeCardio } from "@/central/components/RegistroDeCardio";
 import { repositorio } from "@/central/dados/repositorio";
@@ -40,6 +42,7 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
   const [sessoes, definirSessoes] = useState<SessaoDeTreino[]>([]);
   const [cardio, definirCardio] = useState<CardioSessao[]>([]);
   const [metas, definirMetas] = useState<MetaSemanal[]>([]);
+  const [permissao, definirPermissao] = useState<PermissaoDeTreino | null>(null);
   const [carregando, definirCarregando] = useState(true);
   const [registrando, definirRegistrando] = useState(false);
 
@@ -49,13 +52,20 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
     () => async () => {
       // As quatro juntas: quatro idas ao banco em série deixariam a tela
       // montando aos pedaços no celular dela.
-      const [t, s, c, m] = await Promise.all([
+      const [t, s, c, m, p] = await Promise.all([
         daNutri ? Promise.resolve(null) : repositorio.meuTreino(),
         repositorio.sessoesDeTreino(pacienteId ?? null),
         repositorio.sessoesDeCardio(pacienteId ?? null),
         repositorio.metasSemanais(pacienteId ?? null),
+        // Na tela da nutricionista não se pergunta: a permissão é sobre a
+        // paciente escrever o treino DELA, e ali quem está olhando é outra
+        // pessoa. Perguntar traria a resposta da conta errada.
+        daNutri ? Promise.resolve(null) : repositorio.possoEscreverTreino(),
       ]);
-      if (!daNutri) definirTreino(t);
+      if (!daNutri) {
+        definirTreino(t);
+        definirPermissao(p);
+      }
       definirSessoes(s);
       definirCardio(c);
       definirMetas(m);
@@ -89,6 +99,11 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
       {!daNutri && treino && (
         <PlanoDoTreino treino={treino} aoRegistrar={() => definirRegistrando(true)} />
       )}
+
+      {/* Depois do plano, não antes: quem já tem treino abre a tela para ver
+          o treino, e não para editá-lo. Quem não tem cai direto no convite
+          de escrever, porque aí não há plano nenhum acima. */}
+      {!daNutri && <MeuTreino treino={treino} permissao={permissao} aoMudar={carregar} />}
 
       {registrando && treino && (
         <RegistrarSessao

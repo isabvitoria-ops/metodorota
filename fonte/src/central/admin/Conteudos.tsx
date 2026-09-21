@@ -3,10 +3,8 @@ import type {
   CategoriaComerFora,
   DecisaoComerFora,
   EstabelecimentoComerFora,
-  Guia,
   NivelEscolha,
   OpcaoComerFora,
-  SecaoGuia,
 } from "@/central/types";
 import { catalogo } from "@/central/dados/catalogo";
 import { repositorio } from "@/central/dados/repositorio";
@@ -18,7 +16,17 @@ import { Modal } from "./componentes/Modal";
 import { AreaTexto, Campo, Selecao, Texto, linhasDeLista, listaDeLinhas } from "./componentes/Campos";
 
 /**
- * Conteúdos: guias e comer fora (§43 e §44 do briefing).
+ * Conteúdos: comer fora (§44 do briefing).
+ *
+ * OS GUIAS SAÍRAM, a pedido dela. Saíram da tela da paciente e saíram
+ * daqui — deixar o editor de pé cá dentro faria ela escrever material que
+ * ninguém veria do outro lado, que é pior do que não ter a tela.
+ *
+ * Nada foi apagado NO BANCO: os guias que ela já escreveu continuam lá, e
+ * `catalogo.guias()` continua sabendo lê-los. O que saiu foi a tela. O
+ * editor (`ModalGuia`) saiu junto, porque código morto que ninguém abre
+ * apodrece calado; ele está no histórico do repositório, inteiro, se a aba
+ * voltar.
  *
  * Editar conteúdo estruturado num celular é o tipo de tela que fica
  * impossível se cada item virar um formulário aninhado. A saída aqui é
@@ -30,15 +38,8 @@ import { AreaTexto, Campo, Selecao, Texto, linhasDeLista, listaDeLinhas } from "
  * item a item.
  */
 export function Conteudos() {
-  const [aba, definirAba] = useState<"guias" | "comer-fora">("guias");
   const versao = useCatalogo((e) => e.versao);
-  const [guiaEditando, definirGuia] = useState<Guia | "novo" | null>(null);
   const [categoriaEditando, definirCategoria] = useState<CategoriaComerFora | "nova" | null>(null);
-
-  const guias = useMemo(() => {
-    void versao;
-    return catalogo.guias();
-  }, [versao]);
 
   const categorias = useMemo(() => {
     void versao;
@@ -50,50 +51,20 @@ export function Conteudos() {
       <h1 className="c-titulo" style={{ fontSize: 28 }}>
         Conteúdos
       </h1>
-      <p className="c-subtitulo">Guias e material de comer fora. Só o que estiver publicado aparece para o paciente.</p>
-
-      <div className="c-chips" style={{ marginTop: 18 }}>
-        <button type="button" className="c-chip" aria-pressed={aba === "guias"} onClick={() => definirAba("guias")}>
-          Guias
-        </button>
-        <button
-          type="button"
-          className="c-chip"
-          aria-pressed={aba === "comer-fora"}
-          onClick={() => definirAba("comer-fora")}
-        >
-          Comer fora
-        </button>
-      </div>
+      <p className="c-subtitulo">Material de comer fora. Só o que estiver publicado aparece para o paciente.</p>
 
       <div className="c-barra-acoes">
         <button
           type="button"
           className="c-botao c-botao-pequeno"
-          onClick={() => (aba === "guias" ? definirGuia("novo") : definirCategoria("nova"))}
+          onClick={() => definirCategoria("nova")}
         >
-          {aba === "guias" ? "Novo guia" : "Nova categoria"}
+          Nova categoria
         </button>
       </div>
 
       <div className="c-tabela">
-        {aba === "guias"
-          ? guias.map((guia) => (
-              <div className="c-tabela-linha" key={guia.id}>
-                <button type="button" className="c-tabela-alvo" onClick={() => definirGuia(guia)}>
-                  <span style={{ flex: 1, minWidth: 170 }}>
-                    <span className="c-tabela-nome">{guia.titulo}</span>
-                    <span className="c-tabela-apoio">
-                      {guia.tema} · {guia.secoes.length} {guia.secoes.length === 1 ? "seção" : "seções"}
-                    </span>
-                  </span>
-                  <span className="c-tabela-coluna" style={{ minWidth: 110 }}>
-                    <SeloNeutro>{guia.status === "publicado" ? "Publicado" : "Rascunho"}</SeloNeutro>
-                  </span>
-                </button>
-              </div>
-            ))
-          : categorias.map((categoria) => (
+        {categorias.map((categoria) => (
               <div className="c-tabela-linha" key={categoria.id}>
                 <button type="button" className="c-tabela-alvo" onClick={() => definirCategoria(categoria)}>
                   <span style={{ flex: 1, minWidth: 170 }}>
@@ -107,13 +78,10 @@ export function Conteudos() {
                     <SeloNeutro>{categoria.status === "publicado" ? "Publicado" : "Rascunho"}</SeloNeutro>
                   </span>
                 </button>
-              </div>
-            ))}
+          </div>
+        ))}
       </div>
 
-      {guiaEditando && (
-        <ModalGuia guia={guiaEditando === "novo" ? null : guiaEditando} aoFechar={() => definirGuia(null)} />
-      )}
       {categoriaEditando && (
         <ModalCategoria
           categoria={categoriaEditando === "nova" ? null : categoriaEditando}
@@ -128,132 +96,6 @@ const STATUS: { valor: "rascunho" | "publicado"; rotulo: string }[] = [
   { valor: "rascunho", rotulo: "Rascunho (só você vê)" },
   { valor: "publicado", rotulo: "Publicado (paciente vê)" },
 ];
-
-function ModalGuia({ guia, aoFechar }: { guia: Guia | null; aoFechar: () => void }) {
-  const { comSalvamento, salvando, erro } = useCatalogo();
-  const [titulo, definirTitulo] = useState(guia?.titulo ?? "");
-  const [tema, definirTema] = useState(guia?.tema ?? "No dia a dia");
-  const [resumo, definirResumo] = useState(guia?.resumo ?? "");
-  const [ordem, definirOrdem] = useState(String(guia?.ordem ?? 99));
-  const [status, definirStatus] = useState<"rascunho" | "publicado">(
-    guia?.status === "publicado" ? "publicado" : "rascunho",
-  );
-  const [tags, definirTags] = useState(linhasDeLista(guia?.tags ?? []));
-  const [secoes, definirSecoes] = useState<SecaoGuia[]>(guia?.secoes ?? []);
-  const [aviso, definirAviso] = useState<string | null>(null);
-
-  function alterarSecao(indice: number, mudanca: Partial<SecaoGuia>) {
-    definirSecoes((atual) => atual.map((s, i) => (i === indice ? { ...s, ...mudanca } : s)));
-  }
-
-  async function salvar() {
-    definirAviso(null);
-    if (!titulo.trim()) return definirAviso("Escreva o título do guia.");
-    const identificador = guia?.id ?? gerarIdentificador(titulo);
-    if (!identificador) return definirAviso("O título precisa ter pelo menos uma letra ou número.");
-
-    const novo: Guia = {
-      id: identificador,
-      titulo: titulo.trim(),
-      tema: tema.trim() || "Outros",
-      resumo: resumo.trim() || null,
-      ordem: Number(ordem) || 99,
-      status: status === "publicado" ? "publicado" : "em-preparacao",
-      secoes: secoes.filter((s) => s.paragrafos.length > 0 || s.itens.length > 0 || s.titulo),
-      tags: listaDeLinhas(tags),
-    };
-    const deuCerto = await comSalvamento(() => repositorio.salvarGuia(novo));
-    if (deuCerto) aoFechar();
-  }
-
-  return (
-    <Modal titulo={guia ? "Editar guia" : "Novo guia"} aoFechar={aoFechar}>
-      <Campo rotulo="Título">
-        <Texto valor={titulo} aoMudar={definirTitulo} placeholder="Refeição livre" />
-      </Campo>
-      <div className="c-duas-colunas">
-        <Campo rotulo="Tema" dica="Agrupa na listagem.">
-          <Texto valor={tema} aoMudar={definirTema} placeholder="Digestão" />
-        </Campo>
-        <Campo rotulo="Ordem">
-          <Texto valor={ordem} aoMudar={definirOrdem} />
-        </Campo>
-      </div>
-      <Campo rotulo="Resumo" dica="Uma linha, aparece na listagem.">
-        <Texto valor={resumo} aoMudar={definirResumo} />
-      </Campo>
-      <Campo rotulo="Situação">
-        <Selecao valor={status} aoMudar={definirStatus} opcoes={STATUS} />
-      </Campo>
-      <Campo rotulo="Palavras de busca" dica="Uma por linha.">
-        <AreaTexto valor={tags} aoMudar={definirTags} linhas={2} />
-      </Campo>
-
-      <h3 className="c-secao-titulo" style={{ marginTop: 22 }}>
-        Seções
-      </h3>
-      {secoes.map((secao, indice) => (
-        <div className="c-bloco" key={indice}>
-          <div className="c-bloco-topo">
-            <strong style={{ fontSize: 14 }}>Seção {indice + 1}</strong>
-            <button
-              type="button"
-              className="c-link"
-              onClick={() => definirSecoes((a) => a.filter((_, i) => i !== indice))}
-            >
-              Remover
-            </button>
-          </div>
-          <Campo rotulo="Título da seção">
-            <Texto valor={secao.titulo ?? ""} aoMudar={(v) => alterarSecao(indice, { titulo: v })} />
-          </Campo>
-          <Campo rotulo="Parágrafos" dica="Um parágrafo por linha.">
-            <AreaTexto
-              valor={linhasDeLista(secao.paragrafos)}
-              aoMudar={(v) => alterarSecao(indice, { paragrafos: listaDeLinhas(v) })}
-              linhas={4}
-            />
-          </Campo>
-          <Campo rotulo="Marcadores" dica="Um por linha.">
-            <AreaTexto
-              valor={linhasDeLista(secao.itens)}
-              aoMudar={(v) => alterarSecao(indice, { itens: listaDeLinhas(v) })}
-              linhas={3}
-            />
-          </Campo>
-        </div>
-      ))}
-      <button
-        type="button"
-        className="c-botao c-botao-secundario c-botao-pequeno"
-        style={{ marginTop: 12 }}
-        onClick={() =>
-          definirSecoes((a) => [
-            ...a,
-            { id: `secao-${a.length + 1}`, titulo: "", paragrafos: [], itens: [] },
-          ])
-        }
-      >
-        Adicionar seção
-      </button>
-
-      {(aviso || erro) && (
-        <div className="c-aviso c-aviso-erro" role="alert">
-          <span>{aviso ?? erro}</span>
-        </div>
-      )}
-
-      <div className="c-modal-acoes">
-        <button type="button" className="c-botao c-botao-secundario" onClick={aoFechar}>
-          Cancelar
-        </button>
-        <button type="button" className="c-botao" onClick={() => void salvar()} disabled={salvando}>
-          {salvando ? "Salvando…" : "Salvar"}
-        </button>
-      </div>
-    </Modal>
-  );
-}
 
 const NIVEIS: { valor: NivelEscolha | "nenhum"; rotulo: string }[] = [
   { valor: "nenhum", rotulo: "Sem classificação" },

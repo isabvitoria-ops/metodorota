@@ -21,8 +21,9 @@ export const rotas = {
     `/comer-fora/${categoriaId}/${estabelecimentoId}`,
   opcao: (categoriaId: string, opcaoId: string) =>
     `/comer-fora/${categoriaId}?opcao=${encodeURIComponent(opcaoId)}`,
-  guias: "/guias",
-  guia: (guiaId: string) => `/guias/${guiaId}`,
+  // `guias` saiu a pedido dela. O endereço antigo não vira redirecionamento
+  // porque não há para onde mandar: cai no `*` e volta para a tela inicial,
+  // que é o destino certo para um link que não existe mais.
   protocolo: "/protocolo",
   avaliacao: "/avaliacao",
   treino: "/evolucao",

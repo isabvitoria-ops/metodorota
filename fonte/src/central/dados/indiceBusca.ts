@@ -44,14 +44,6 @@ export function indiceBusca(): ItemIndice[] {
       palavras: ["protocolo", "dieta", "plano", "cardapio", "refeicao", "alimentar"],
     },
     {
-      id: "ferramenta:guias",
-      tipo: "ferramenta",
-      titulo: "Guias",
-      subtitulo: "Orientações para situações do dia a dia",
-      rota: rotas.guias,
-      palavras: ["guia", "orientacao", "material"],
-    },
-    {
       id: "ferramenta:salvos",
       tipo: "ferramenta",
       titulo: "Salvos",
@@ -118,16 +110,10 @@ export function indiceBusca(): ItemIndice[] {
     }
   }
 
-  for (const guia of catalogo.guias()) {
-    itens.push({
-      id: `guia:${guia.id}`,
-      tipo: "guia",
-      titulo: guia.titulo,
-      subtitulo: guia.status === "em-preparacao" ? "Em preparação" : guia.resumo,
-      rota: rotas.guia(guia.id),
-      palavras: [...guia.tags, guia.tema],
-    });
-  }
+  // Os guias saíram da Central a pedido dela, e por isso saem do índice
+  // também: um resultado de busca que abre numa rota que não existe mais
+  // manda a paciente para a tela inicial sem dizer por quê. O conteúdo
+  // continua no banco, e volta junto se a aba voltar.
 
   cache = itens;
   return itens;

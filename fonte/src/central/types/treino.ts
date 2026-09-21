@@ -25,13 +25,45 @@ export interface ExercicioPlanejado {
   observacao: string | null;
 }
 
+/**
+ * Quem escreveu o treino.
+ *
+ * Não é enfeite de tela: é o que decide se a paciente pode mexer. Sem esta
+ * distinção, "treino da paciente" e "plano prescrito" seriam a mesma linha,
+ * e a única forma de saber qual é qual seria adivinhar pelo texto.
+ */
+export type OrigemDoTreino = "nutricionista" | "paciente";
+
 export interface Treino {
   id: string;
   nome: string;
   observacao: string | null;
   /** Só um treino fica ativo por paciente. É o que ela vê para registrar. */
   ativo: boolean;
+  origem: OrigemDoTreino;
+  /**
+   * Quem responde isto é o BANCO, não a tela. A tela usa para decidir se
+   * mostra o botão de editar; quem recusa a gravação é `salvar_treino`. Se a
+   * regra morasse só aqui, bastaria abrir o console do navegador para editar
+   * o plano que a nutricionista prescreveu.
+   */
+  podeEditar: boolean;
   exercicios: ExercicioPlanejado[];
+}
+
+/**
+ * Se a paciente pode escrever um treino agora — e por que não, quando não.
+ *
+ * Vem do banco pelo mesmo motivo de `podeEditar`, e por um segundo: o botão
+ * e a regra não podem discordar. No dia em que a tela achar que pode e o
+ * banco achar que não, quem digitou dez minutos de treino perde os dez
+ * minutos na hora de salvar.
+ */
+export interface PermissaoDeTreino {
+  pode: boolean;
+  motivo: "sem_cadastro" | "nao_liberado" | "treino_da_nutricionista" | null;
+  /** O treino que ela escreveu, se existe — mesmo desativado. */
+  meuTreinoId: string | null;
 }
 
 export interface SerieDaSessao {

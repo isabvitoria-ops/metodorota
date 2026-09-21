@@ -35,6 +35,18 @@ create or replace function bia() returns uuid language sql stable security defin
   select id from pacientes where email = 'treino-b@paciente.test' $$;
 grant execute on function dani(), bia() to anon, authenticated;
 
+-- A aba de treino nasce DESLIGADA (0033). Estas duas são liberadas pela
+-- nutricionista, pela porta da frente, para que o resto da bateria fale do
+-- que ela quer testar. A bateria 07 é quem prova o que acontece com a aba
+-- desligada.
+do $$ begin
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+  perform definir_treino_do_paciente(dani(), true);
+  perform definir_treino_do_paciente(bia(), true);
+  perform set_config('request.jwt.claim.sub', '', true);
+end $$;
+
+
 -- -----------------------------------------------------------------------------
 -- A profissional monta o plano
 -- -----------------------------------------------------------------------------

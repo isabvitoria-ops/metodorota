@@ -797,6 +797,22 @@ export const repositorioLocal: Repositorio = {
   },
 
   /**
+   * Na demonstração existe um plano ATIVO da nutricionista — e por isso a
+   * resposta aqui é "não pode", com o motivo certo.
+   *
+   * É o caminho mais valioso para a demonstração mostrar: quem abre quer ver
+   * que o plano prescrito não é editável pela paciente. Escrever o treino
+   * próprio, como toda escrita daqui, precisa do banco.
+   */
+  async possoEscreverTreino() {
+    return {
+      pode: false,
+      motivo: "treino_da_nutricionista" as const,
+      meuTreinoId: null,
+    };
+  },
+
+  /**
    * As sessões da demonstração são o caso do enunciado: 60×6, 60×7, 60×8,
    * 60×10, 62×6, 62×7.
    *
@@ -818,6 +834,15 @@ export const repositorioLocal: Repositorio = {
 
   async treinosDoPaciente() {
     return TREINO_DEMO ? [TREINO_DEMO] : [];
+  },
+
+  async treinoLiberado() {
+    // Na demonstração a área está ligada — é o que dá o que mostrar.
+    return true;
+  },
+
+  async definirTreinoDoPaciente() {
+    throw new Error("Liberar a área de treino precisa do banco. Configure o Supabase.");
   },
 
   async salvarTreino() {
@@ -901,6 +926,8 @@ const TREINO_DEMO: Treino = {
   nome: "Treino A — inferiores",
   observacao: "Aquecer 5 minutos antes.",
   ativo: true,
+  origem: "nutricionista",
+  podeEditar: false,
   exercicios: [
     {
       id: "ex-agacho",

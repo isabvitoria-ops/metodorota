@@ -493,7 +493,58 @@ body:has(.central) {
 /* ---------------------------------------------------------------- formulário */
 
 .c-campo {
+  /* `block` porque o padrão do <label> é `inline`, e aí o rótulo e o campo
+     fluem na MESMA LINHA. Era o que acontecia no formulário de cardio:
+     "Data[09/09/2026]", "Minutos[____]", tudo emendado, com os campos sem
+     ocupar a largura. Metade das telas já contornava isso escrevendo
+     `style={{ display: "block" }}` na mão; agora nenhuma precisa. */
+  display: block;
   margin-top: 18px;
+}
+
+/* O rótulo e o campo escritos SEM classe.
+ *
+ * O `:not([class])` é de propósito: quem já escreve `c-rotulo` e `c-input`
+ * continua exatamente como está, e só os elementos crus — que hoje saem sem
+ * estilo nenhum — são alcançados. Sem isso, arrumar o cardio mudaria a cara
+ * de telas que já estavam certas. */
+.c-campo > span:not([class]) {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.c-campo > input:not([class]),
+.c-campo > select:not([class]),
+.c-campo > textarea:not([class]) {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0 16px;
+  height: 52px;
+  font: inherit;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.c-campo > textarea:not([class]) {
+  height: auto;
+  min-height: 84px;
+  padding: 14px 16px;
+  line-height: 1.5;
+}
+
+.c-campo > input:not([class]):focus,
+.c-campo > select:not([class]):focus,
+.c-campo > textarea:not([class]):focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 
 .c-rotulo {
@@ -3761,8 +3812,26 @@ body:has(.central) {
 .c-linha-botoes-treino {
   display: flex;
   flex-wrap: wrap;
+  /* `center`, e não o `stretch` padrão do flex: a linha de confirmação do
+     "apagar" mistura texto e botão, e esticado o texto ficava colado no
+     topo da linha enquanto os botões ocupavam a altura toda. */
+  align-items: center;
   gap: 8px;
   margin-top: 14px;
+}
+
+/* "de [ 8 ] – [ 12 ]": dois campos pequenos que continuam pequenos.
+   Sem o `minmax(0, 1fr)`, um item de grid não encolhe abaixo do tamanho
+   natural do <input>, e a dupla estourava a largura do celular. */
+.c-faixa-repeticoes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.c-faixa-repeticoes > span {
+  color: var(--text-subtle);
 }
 
 .c-tabela-medidas tbody td {

@@ -6,8 +6,6 @@ import { TrocaInteligente } from "./pages/TrocaInteligente";
 import { ComerFora } from "./pages/ComerFora";
 import { CategoriaDetalhe } from "./pages/CategoriaDetalhe";
 import { EstabelecimentoDetalhe } from "./pages/EstabelecimentoDetalhe";
-import { Guias } from "./pages/Guias";
-import { GuiaDetalhe } from "./pages/GuiaDetalhe";
 import { Desafio } from "./pages/Desafio";
 import { Rastreabilidade } from "./pages/Rastreabilidade";
 import { Protocolo } from "./pages/Protocolo";
@@ -46,8 +44,6 @@ export function CentralApp() {
           <Route path="avaliacao" element={<Avaliacao />} />
           <Route path="evolucao" element={<Treino />} />
           <Route path="documentos" element={<Documentos />} />
-          <Route path="evolucao" element={<Treino />} />
-          <Route path="documentos" element={<Documentos />} />
           <Route path="trocas" element={<TrocaInteligente />} />
           {/* A tabela de substituições saiu da Central: a Troca Inteligente faz
               o mesmo trabalho e duas portas para a mesma coisa confundiam. O
@@ -61,8 +57,6 @@ export function CentralApp() {
             path="comer-fora/:categoriaId/:estabelecimentoId"
             element={<EstabelecimentoDetalhe />}
           />
-          <Route path="guias" element={<Guias />} />
-          <Route path="guias/:guiaId" element={<GuiaDetalhe />} />
           <Route path="desafio" element={<Desafio />} />
           <Route path="rastreabilidade" element={<Rastreabilidade />} />
           <Route path="salvos" element={<Salvos />} />

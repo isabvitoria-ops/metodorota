@@ -88,10 +88,16 @@ export function Treinos() {
 function PainelDoTreino({ paciente }: { paciente: Paciente }) {
   const [aba, definirAba] = useState<"plano" | "metas" | "painel" | "evolucao">("plano");
   const [treinos, definirTreinos] = useState<Treino[]>([]);
+  const [liberado, definirLiberado] = useState(false);
   const [carregando, definirCarregando] = useState(true);
 
   const carregar = useCallback(async () => {
-    definirTreinos(await repositorio.treinosDoPaciente(paciente.id).catch(() => []));
+    const [ts, lib] = await Promise.all([
+      repositorio.treinosDoPaciente(paciente.id).catch(() => []),
+      repositorio.treinoLiberado(paciente.id).catch(() => false),
+    ]);
+    definirTreinos(ts);
+    definirLiberado(lib);
     definirCarregando(false);
   }, [paciente.id]);
 
@@ -101,6 +107,12 @@ function PainelDoTreino({ paciente }: { paciente: Paciente }) {
 
   return (
     <>
+      <InterruptorDaAba
+        paciente={paciente}
+        liberado={liberado}
+        aoMudar={definirLiberado}
+      />
+
       <div className="c-admin-abas" style={{ marginTop: 16, marginBottom: 4 }}>
         <button
           type="button"
@@ -159,6 +171,71 @@ function PainelDoTreino({ paciente }: { paciente: Paciente }) {
         <EvolucaoTreino key={paciente.id} pacienteId={paciente.id} />
       </div>
     </>
+  );
+}
+
+/**
+ * O interruptor da aba de treino, paciente a paciente.
+ *
+ * Fica EM CIMA de tudo e em toda aba, igual ao da Rastreabilidade: é a
+ * primeira coisa a conferir quando ela achar que "não apareceu para a
+ * paciente".
+ *
+ * Quem manda é o valor que o BANCO devolveu depois de gravar, não o que o
+ * clique pediu. Um clique que falhou e uma tela que já virou o botão é
+ * exatamente o caso do `tornar-admin.sql`: rodou, não alterou nada, e não
+ * avisou ninguém.
+ */
+function InterruptorDaAba({
+  paciente,
+  liberado,
+  aoMudar,
+}: {
+  paciente: Paciente;
+  liberado: boolean;
+  aoMudar: (v: boolean) => void;
+}) {
+  const [ocupado, definirOcupado] = useState(false);
+  const [erro, definirErro] = useState<string | null>(null);
+
+  return (
+    <div className="c-bloco" style={{ marginTop: 16 }}>
+      <div className="c-bloco-topo">
+        <strong style={{ fontSize: 14 }}>
+          {liberado
+            ? `${paciente.nome} vê a área de Treino`
+            : `${paciente.nome} não vê a área de Treino`}
+        </strong>
+        <button
+          type="button"
+          className={`c-botao c-botao-pequeno ${liberado ? "c-botao-secundario" : ""}`}
+          disabled={ocupado}
+          onClick={async () => {
+            definirOcupado(true);
+            definirErro(null);
+            try {
+              aoMudar(await repositorio.definirTreinoDoPaciente(paciente.id, !liberado));
+            } catch (e) {
+              definirErro(e instanceof Error ? e.message : "Não consegui mudar.");
+            } finally {
+              definirOcupado(false);
+            }
+          }}
+        >
+          {liberado ? "Desligar" : "Ligar para ela"}
+        </button>
+      </div>
+      <p className="c-dica">
+        {liberado
+          ? "O atalho aparece na tela inicial dela, e ela pode registrar treino e cardio. Desligar não apaga nada: o histórico fica guardado e volta se você religar."
+          : "Nem toda paciente faz treino. Desligado, o atalho não aparece para ela e a área é como se não existisse — nem digitando o endereço. Você continua vendo o histórico dela por aqui."}
+      </p>
+      {erro && (
+        <div className="c-aviso c-aviso-erro" role="alert">
+          <span>{erro}</span>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -234,12 +311,25 @@ function EditorDoPlano({
             opcoes={[
               ...treinos.map((t) => ({
                 valor: t.id,
-                rotulo: `${t.nome}${t.ativo ? " — ativo" : ""}`,
+                // De quem é o treino vai no rótulo, e não só numa nota
+                // embaixo: a lista é onde ela escolhe qual abrir, e escolher
+                // sem saber que aquele foi escrito pela paciente é editar o
+                // texto de outra pessoa achando que é o seu.
+                rotulo: `${t.nome}${t.ativo ? " — ativo" : ""}${
+                  t.origem === "paciente" ? " · escrito pela paciente" : ""
+                }`,
               })),
               { valor: "", rotulo: "+ Montar um treino novo" },
             ]}
           />
         </Campo>
+      )}
+
+      {treinos.find((t) => t.id === id)?.origem === "paciente" && (
+        <p className="c-dica">
+          Este treino foi escrito pela própria paciente. Você pode ajustar, e o que você salvar
+          passa a valer como treino seu — ela deixa de poder editar.
+        </p>
       )}
 
       <Campo rotulo="Nome do treino">

@@ -29,6 +29,18 @@ create or replace function bete() returns uuid language sql stable security defi
   select id from pacientes where email = 'cardio-b@paciente.test' $$;
 grant execute on function carol(), bete() to anon, authenticated;
 
+-- A aba de treino nasce DESLIGADA (0033). Estas duas são liberadas pela
+-- nutricionista, pela porta da frente, para que o resto da bateria fale do
+-- que ela quer testar. A bateria 07 é quem prova o que acontece com a aba
+-- desligada.
+do $$ begin
+  perform set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+  perform definir_treino_do_paciente(carol(), true);
+  perform definir_treino_do_paciente(bete(), true);
+  perform set_config('request.jwt.claim.sub', '', true);
+end $$;
+
+
 -- -----------------------------------------------------------------------------
 -- A semana começa na segunda
 -- -----------------------------------------------------------------------------
@@ -142,8 +154,17 @@ select teste('a B não vê o cardio da A', (select count(*) from cardio_sessoes)
 select teste('nem as metas da A', (select count(*) from metas_semanais) = 0);
 select teste('e as listas dela voltam vazias',
   sessoes_de_cardio() = '[]'::jsonb and metas_semanais_de() = '[]'::jsonb);
-select teste('e sem meta nenhuma o atalho não aparece',
-  (meu_acesso() ->> 'treino')::boolean = false);
+-- A 0032 mudou o sentido desta linha DE PROPÓSITO, e o teste mudou junto.
+-- Antes o atalho de treino só aparecia para quem já tinha plano ou sessão.
+-- Depois que a paciente passou a poder escrever o treino dela, isso virou uma
+-- porta trancada por dentro: quem não tem nada é exatamente quem precisa
+-- entrar para escrever o primeiro. O atalho aparece para quem tem cadastro de
+-- paciente — e o que continua tendo de ser verdade é que ele não mostra NADA
+-- da outra, que são as três verificações logo acima.
+select teste('o atalho de treino aparece, para ela poder escrever o dela',
+  (meu_acesso() ->> 'treino')::boolean);
+select teste('mas a tela dela abre vazia: nada da outra paciente atravessa',
+  meu_treino() is null and sessoes_de_treino() = '[]'::jsonb);
 
 select teste('pedir o cardio da A pelo id é recusado',
   estado_de(format('select sessoes_de_cardio(%L)', carol())) = '42501');

@@ -22,12 +22,20 @@ const ICONES: Record<TipoFavorito, NomeIcone> = {
   guia: "guias",
 };
 
+/**
+ * Os guias saíram da Central, e por isso saem daqui.
+ *
+ * O `guia` continua no tipo do favorito de propósito: quem já tinha guardado
+ * um guia ainda tem a linha salva no navegador. Ela simplesmente não é
+ * listada — listar abriria uma rota que não existe mais, e a paciente cairia
+ * na tela inicial sem entender. Se a aba voltar, os salvos dela voltam com
+ * ela, porque nada foi apagado.
+ */
 const SECOES: { tipo: TipoFavorito; rotulo: string }[] = [
   { tipo: "troca", rotulo: "Trocas" },
   { tipo: "alimento", rotulo: "Alimentos" },
   { tipo: "categoria", rotulo: "Comer fora" },
   { tipo: "opcao", rotulo: "Opções" },
-  { tipo: "guia", rotulo: "Guias" },
 ];
 
 export function Salvos() {

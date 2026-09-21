@@ -38,6 +38,7 @@ import type {
 import type {
   CardioSessao,
   MetaSemanal,
+  PermissaoDeTreino,
   TipoDeMeta,
   ExercicioParaSalvar,
   SerieParaSalvar,
@@ -265,6 +266,14 @@ export interface Repositorio {
   meuTreino(): Promise<Treino | null>;
 
   /**
+   * Se a paciente pode escrever o treino dela agora.
+   *
+   * "Eu escrevo o treino do paciente, ou então ele mesmo pode escrever." A
+   * paciente escreve o DELA — nunca por cima do plano prescrito.
+   */
+  possoEscreverTreino(): Promise<PermissaoDeTreino>;
+
+  /**
    * As sessões realizadas. Sem `pacienteId`, as da própria paciente; com
    * `pacienteId`, as daquela paciente — e aí só a nutricionista passa.
    */
@@ -280,11 +289,27 @@ export interface Repositorio {
   ): Promise<void>;
   excluirSessaoTreino(id: string): Promise<void>;
 
-  // Área da nutricionista
   treinosDoPaciente(pacienteId: string): Promise<Treino[]>;
+
+  /**
+   * O interruptor da aba de treino, paciente a paciente — igual ao do
+   * rastreio. Devolve o estado GRAVADO, não o que foi pedido: é o que deixa
+   * a tela mostrar a verdade do banco em vez do palpite do clique.
+   */
+  treinoLiberado(pacienteId: string): Promise<boolean>;
+  definirTreinoDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean>;
+
+  /**
+   * Grava o plano inteiro de uma vez.
+   *
+   * `pacienteId` NULO quer dizer "o meu", e é o que a paciente manda. Ela
+   * não escolhe de quem é o treino: o banco ignora esse campo para quem não
+   * é a nutricionista, senão bastaria mandar o id de outra para escrever na
+   * ficha dela.
+   */
   salvarTreino(
     id: string | null,
-    pacienteId: string,
+    pacienteId: string | null,
     nome: string,
     observacao: string,
     ativo: boolean,

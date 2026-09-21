@@ -47,12 +47,6 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Estratégias para escolher melhor fora de casa.",
   },
   {
-    rota: rotas.guias,
-    icone: "guias",
-    titulo: "Guias",
-    descricao: "Orientações práticas para situações do dia a dia.",
-  },
-  {
     rota: rotas.documentos,
     icone: "documentos",
     titulo: "Meus documentos",
