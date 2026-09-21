@@ -76,3 +76,26 @@ fonte preservada dentro do próprio JSON (campos `nome`, `instituicao`,
 
 A TBCA (USP/FoRC) **não está aqui** e não foi coletada. Ver o relatório em
 `/tbca/LEIA-ME.md`.
+
+## USDA FoodData Central — `usda.json`
+
+1.882 alimentos com 14 nutrientes, do pacote *Supporting Data* do FoodData
+Central (USDA), arquivo `fndds_ingredient_nutrient_value.csv`. São os
+ingredientes que a FNDDS usa, boa parte vinda da SR Legacy.
+
+**Por que esta entra no site e a TBCA não:** o FoodData Central é obra do
+governo dos Estados Unidos e é de **domínio público** — pode ser
+redistribuído, inclusive num produto pago. A TBCA é CC BY-NC-ND, e por isso
+fica no navegador dela (ver `tabelaImportada.mjs`).
+
+**Os nomes ficam em inglês.** "Butter, stick, salted" continua assim.
+Traduzir 1.882 nomes por máquina, sem ninguém conferir, produziria erro de
+alimento — e errar o alimento é errar a prescrição. O que existe é uma lista
+curta de **apelidos de busca**: "manteiga" encontra "butter", e o nome
+mostrado continua o original, com a etiqueta USDA ao lado.
+
+O casamento do apelido é por **palavra inteira**. Por pedaço, "buttermilk"
+(leite fermentado) entrava na busca por "manteiga" — e um apelido errado faz
+escolher o alimento errado, que é pior do que não achar.
+
+Gerado por `scripts/extrair-usda.py`.

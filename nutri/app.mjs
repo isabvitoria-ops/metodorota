@@ -104,7 +104,7 @@ let TACO = null;
 let POS = {};
 let ALIMENTOS = [];
 
-const FONTES = { taco: "TACO", ibge: "IBGE", meu: "Meu" };
+const FONTES = { taco: "TACO", ibge: "IBGE", usda: "USDA", meu: "Meu" };
 
 /**
  * A etiqueta da tabela que ela carregou. Vem do arquivo, não daqui: se
@@ -119,8 +119,11 @@ function etiquetaDaFonte(fonte) {
   return FONTES[fonte] ?? fonte;
 }
 
-/** As duas tabelas, guardadas cruas para remontar a busca quando ela cadastra. */
+/** As tabelas, guardadas cruas para remontar a busca quando ela cadastra. */
 let BASE_TABELAS = [];
+
+/** Onde cada nutriente mora no vetor da USDA. Ver `extrair-usda.py`. */
+let POS_USDA = {};
 
 /** Nome e busca sem acento, para casar com o que ela digita. */
 const semAcento = (t) =>
@@ -130,11 +133,12 @@ const semAcento = (t) =>
     .toLowerCase();
 
 async function carregarTaco() {
-  const [taco, ibge] = await Promise.all([
+  const [taco, ibge, usda] = await Promise.all([
     fetch("./dados/taco.json").then((r) => r.json()),
-    // O IBGE é um extra: se faltar, a ferramenta continua com a TACO em vez
-    // de não abrir.
+    // O IBGE e a USDA são extras: se faltarem, a ferramenta continua com a
+    // TACO em vez de não abrir.
     fetch("./dados/ibge.json").then((r) => r.json()).catch(() => null),
+    fetch("./dados/usda.json").then((r) => r.json()).catch(() => null),
   ]);
 
   TACO = taco;
@@ -166,12 +170,36 @@ async function carregarTaco() {
     }
   }
 
+  if (usda) {
+    // Os nomes ficam em INGLÊS, como vieram. Traduzir 1.882 nomes por
+    // máquina, sem ninguém conferir, produziria erro de alimento — e errar
+    // o alimento é errar a prescrição. O que o extrator fez foi juntar
+    // APELIDOS de busca ao texto invisível: "manteiga" acha "Butter", e o
+    // nome mostrado continua o original, com a etiqueta USDA do lado.
+    POS_USDA = {};
+    usda.nutrientes.forEach((chave, i) => (POS_USDA[chave] = i));
+    for (const a of usda.alimentos) {
+      BASE_TABELAS.push({
+        id: `usda:${a.c}`,
+        fonte: "usda",
+        nome: a.n,
+        busca: a.b,
+        grupo: "USDA",
+        bruto: a,
+      });
+    }
+  }
+
   montarAlimentos();
 
   $("fonte-taco").innerHTML =
     `<strong>${TACO.alimentos.length}</strong> alimentos da ${TACO.nome} (${TACO.instituicao})` +
     (ibge
-      ? ` e <strong>${ibge.alimentos.length}</strong> da ${ibge.nome} (${ibge.instituicao})`
+      ? `, <strong>${ibge.alimentos.length}</strong> da ${ibge.nome} (${ibge.instituicao})`
+      : "") +
+    (usda
+      ? ` e <strong>${usda.alimentos.length}</strong> do ${usda.fonte} (${usda.instituicao}) — ` +
+        `esses com o nome em inglês, como vieram; procurar por “manteiga” acha “butter”`
       : "") +
     `, por 100 g. Cada alimento mostra de qual tabela veio. ` +
     `Valor que a tabela não traz aparece como “—” e não entra como zero na soma.`;
@@ -241,6 +269,13 @@ function valorDe(alimento, chave) {
     // Os campos dela já têm o nome interno, e o que ela deixou em branco é
     // nulo — nunca zero.
     const v = alimento.bruto[chave];
+    return v === undefined ? null : v;
+  }
+  if (alimento.fonte === "usda") {
+    const pos = POS_USDA[chave];
+    if (pos === undefined) return null;
+    // `null` no vetor é "a fonte não mediu", e continua null — nunca zero.
+    const v = alimento.bruto.v[pos];
     return v === undefined ? null : v;
   }
   if (alimento.fonte === "ibge") {
