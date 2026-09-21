@@ -10,6 +10,7 @@ import type {
   Favorito,
   Guia,
   IndicacaoPendente,
+  MarcadorDoAlimento,
   MeuDesafio,
   NovoPaciente,
   NovoRegistroDeReintroducao,
@@ -580,6 +581,15 @@ export const repositorioSupabase: Repositorio = {
       p_alimento: alimentoId,
     });
     erro("ligar o alimento ao Mapa", error);
+  },
+
+  async definirMarcacaoItem(itemId: string, marcacao: MarcadorDoAlimento[] | null) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("definir_marcacao_item", {
+      p_item: itemId,
+      p_marcacao: marcacao,
+    });
+    erro("gravar a marcação", error);
   },
 
   async desligarItemDoMapa(itemId: string) {

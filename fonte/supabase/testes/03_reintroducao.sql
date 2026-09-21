@@ -998,6 +998,152 @@ select teste('a paciente NÃO lança do Mapa por outra pessoa',
 commit;
 
 -- -----------------------------------------------------------------------------
+-- A marcação escrita pela nutricionista (0028)
+--
+-- O caso dela: "chocolate quente cremoso das Três Corações" não está em
+-- tabela nenhuma, mas a paciente testou. Sem marcação escrita à mão, esse
+-- alimento some do painel que ela usa para ler o padrão no fim.
+-- -----------------------------------------------------------------------------
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+select adicionar_item_livre_reintroducao(
+  (select id from pacientes where email = 'r-ana@paciente.test'),
+  'Chocolate quente cremoso Três Corações');
+
+select teste('alimento de marca nasce sem marcação nenhuma',
+  (select jsonb_array_length(i -> 'marcacao')
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+         -> 'itens') i
+    where i ->> 'nome' like 'Chocolate quente%') = 0);
+
+select definir_marcacao_item(
+  (select id from reintroducao_itens where nome_livre like 'Chocolate quente%'),
+  '[{"nome":"Lectina","nivel":"alta"},{"nome":"Oxalato","nivel":"muito_alta"}]'::jsonb);
+
+select teste('depois de ela escrever, a marcação existe',
+  (select jsonb_array_length(i -> 'marcacao')
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+         -> 'itens') i
+    where i ->> 'nome' like 'Chocolate quente%') = 2);
+
+select teste('e a tela sabe que a marcação é dela, não do Mapa',
+  (select i ->> 'marcacaoDaNutri'
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+         -> 'itens') i
+    where i ->> 'nome' like 'Chocolate quente%') = 'true');
+
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+select teste('a paciente vê a marcação escrita pela nutricionista',
+  (select jsonb_array_length(i -> 'marcacao')
+     from jsonb_array_elements(minha_reintroducao() -> 'itens') i
+    where i ->> 'nome' like 'Chocolate quente%') = 2);
+
+select teste('a paciente NÃO escreve marcação',
+  estado_de($$
+    select definir_marcacao_item(
+      (select id from reintroducao_itens where nome_livre like 'Chocolate quente%'),
+      '[{"nome":"Lectina","nivel":"alta"}]'::jsonb)
+  $$) = '42501');
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+-- Só média e acima entram, a mesma régua do Mapa.
+select definir_marcacao_item(
+  (select id from reintroducao_itens where nome_livre like 'Chocolate quente%'),
+  '[{"nome":"Lectina","nivel":"baixa"},{"nome":"Oxalato","nivel":"media"}]'::jsonb);
+
+select teste('nível abaixo de média não entra na marcação',
+  (select jsonb_array_length(i -> 'marcacao')
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+         -> 'itens') i
+    where i ->> 'nome' like 'Chocolate quente%') = 1);
+
+-- Lista vazia NÃO é o mesmo que nulo: é ela dizendo "não tem marcador".
+select definir_marcacao_item(
+  (select id from reintroducao_itens where nome_livre like 'Chocolate quente%'),
+  '[]'::jsonb);
+
+select teste('lista vazia é ela dizendo que não há marcador, e fica registrada',
+  (select i ->> 'marcacaoDaNutri'
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+         -> 'itens') i
+    where i ->> 'nome' like 'Chocolate quente%') = 'true');
+
+-- Nulo apaga o que ela escreveu, e a do Mapa volta a valer.
+select definir_marcacao_item(
+  (select id from reintroducao_itens where alimento_id = 'abacate'
+     and paciente_id = (select id from pacientes where email = 'r-ana@paciente.test')),
+  '[{"nome":"Lectina","nivel":"alta"}]'::jsonb);
+
+select teste('a marcação dela ganha da do Mapa no mesmo alimento',
+  (select i -> 'marcacao'
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+         -> 'itens') i
+    where i ->> 'nome' = 'Abacate / avocado')
+  = '[{"nome": "Lectina", "nivel": "alta"}]'::jsonb);
+
+select definir_marcacao_item(
+  (select id from reintroducao_itens where alimento_id = 'abacate'
+     and paciente_id = (select id from pacientes where email = 'r-ana@paciente.test')),
+  null);
+
+select teste('apagando a dela, a do Mapa volta',
+  (select jsonb_array_length(i -> 'marcacao')
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+         -> 'itens') i
+    where i ->> 'nome' = 'Abacate / avocado') = 2);
+
+select teste('marcador inventado é recusado',
+  estado_de($$
+    select definir_marcacao_item(
+      (select id from reintroducao_itens where nome_livre like 'Chocolate quente%'),
+      '[{"nome":"Glúten","nivel":"alta"}]'::jsonb)
+  $$) = '22023');
+
+select teste('nível inventado é recusado',
+  estado_de($$
+    select definir_marcacao_item(
+      (select id from reintroducao_itens where nome_livre like 'Chocolate quente%'),
+      '[{"nome":"Lectina","nivel":"altissima"}]'::jsonb)
+  $$) = '22023');
+
+select teste('o mesmo marcador duas vezes é recusado',
+  estado_de($$
+    select definir_marcacao_item(
+      (select id from reintroducao_itens where nome_livre like 'Chocolate quente%'),
+      '[{"nome":"Lectina","nivel":"alta"},{"nome":"Lectina","nivel":"media"}]'::jsonb)
+  $$) = '22023');
+
+select teste('o que não for lista é recusado',
+  estado_de($$
+    select definir_marcacao_item(
+      (select id from reintroducao_itens where nome_livre like 'Chocolate quente%'),
+      '{"nome":"Lectina"}'::jsonb)
+  $$) = '22023');
+
+select teste('item que não existe é recusado',
+  estado_de($$
+    select definir_marcacao_item('00000000-0000-0000-0000-0000000000ff', '[]'::jsonb)
+  $$) = 'P0002');
+commit;
+
+-- -----------------------------------------------------------------------------
 -- Resultado
 -- -----------------------------------------------------------------------------
 select

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type {
   AlimentoDoMaterial,
   ItemDeReintroducao,
+  MarcadorDoAlimento,
   Paciente,
   RegistroDeReintroducao,
   SintomaReintroducao,
@@ -370,6 +371,122 @@ function PanoramaDeMarcadores({
         </p>
       )}
     </section>
+  );
+}
+
+// ------------------------------------------------- a marcação escrita por ela
+
+const NIVEIS: { valor: string; rotulo: string }[] = [
+  { valor: "", rotulo: "Não marcar" },
+  { valor: "media", rotulo: "Média" },
+  { valor: "alta", rotulo: "Alta" },
+  { valor: "muito_alta", rotulo: "Muito alta" },
+];
+
+/**
+ * Ela escreve oxalato, histamina e lectina de um alimento, por conta.
+ *
+ * PARA QUE SERVE, nas palavras dela: "vamos supor que ela teste uma coisa
+ * muito nada a ver, tipo chocolate quente cremoso das Três Corações. Não
+ * está na lista, mas é uma coisa que ela pode ter testado. Eu quero depois
+ * conseguir editar e colocar lectina alta, oxalato alto, por minha conta.
+ * E aí depois aparece para ela também."
+ *
+ * Nenhuma tabela traz produto de marca, nem a receita que a paciente fez em
+ * casa. Sem esta tela esses alimentos ficam para sempre sem marcador e somem
+ * do painel que lê o padrão no fim do tratamento — que é justamente onde
+ * eles mais importariam, porque foram os testes fora do roteiro.
+ *
+ * Só média, alta e muito alta. É a mesma régua da Tabela dela: o material
+ * responde "o que este alimento tem de ALTO", e listar o que é baixo
+ * esconderia isso no meio.
+ */
+function ModalMarcacao({
+  item,
+  aoFechar,
+  aoSalvar,
+}: {
+  item: ItemDeReintroducao;
+  aoFechar: () => void;
+  aoSalvar: (acao: () => Promise<void>) => Promise<boolean>;
+}) {
+  const nivelAtual = (nome: string) =>
+    item.marcacao.find((m) => m.nome === nome)?.nivel ?? "";
+
+  const [oxalato, definirOxalato] = useState<string>(nivelAtual("Oxalato"));
+  const [histamina, definirHistamina] = useState<string>(nivelAtual("Histamina"));
+  const [lectina, definirLectina] = useState<string>(nivelAtual("Lectina"));
+  const [salvando, definirSalvando] = useState(false);
+
+  const escolhidos = [
+    { nome: "Oxalato", nivel: oxalato },
+    { nome: "Histamina", nivel: histamina },
+    { nome: "Lectina", nivel: lectina },
+  ].filter((m) => m.nivel) as MarcadorDoAlimento[];
+
+  function gravar(marcacao: MarcadorDoAlimento[] | null) {
+    definirSalvando(true);
+    void aoSalvar(() => repositorio.definirMarcacaoItem(item.id, marcacao)).then((deuCerto) => {
+      definirSalvando(false);
+      if (deuCerto) aoFechar();
+    });
+  }
+
+  return (
+    <Modal titulo={`Marcação de “${item.nome}”`} aoFechar={aoFechar}>
+      <p className="c-dica" style={{ marginTop: 0 }}>
+        Para o que nenhuma tabela traz — produto de marca, receita de casa. O que você marcar
+        aqui entra no painel de padrões e na tabela que {item.nome ? "a paciente" : "ela"} recebe
+        no fim.
+      </p>
+
+      {item.marcacaoDaNutri ? (
+        <p className="c-nota-protocolo">Esta marcação foi escrita por você.</p>
+      ) : item.marcacao.length > 0 ? (
+        <p className="c-nota-protocolo">
+          Hoje vale a marcação do Mapa: {textoDaMarcacao(item.marcacao)}. Marcando aqui, a sua
+          passa a valer no lugar dela.
+        </p>
+      ) : null}
+
+      {[
+        ["Oxalato", oxalato, definirOxalato],
+        ["Histamina", histamina, definirHistamina],
+        ["Lectina", lectina, definirLectina],
+      ].map(([nome, valor, definir]) => (
+        <Campo rotulo={nome as string} key={nome as string}>
+          <Selecao
+            valor={valor as string}
+            aoMudar={definir as (v: string) => void}
+            opcoes={NIVEIS}
+          />
+        </Campo>
+      ))}
+
+      <p className="c-dica">
+        Só média, alta e muito alta entram — é a régua do seu material, que responde o que o
+        alimento tem de alto. “Não marcar” nos três significa que você olhou e não há marcador.
+      </p>
+
+      <div className="c-modal-acoes">
+        <button type="button" className="c-botao c-botao-secundario" onClick={aoFechar}>
+          Cancelar
+        </button>
+        {item.marcacaoDaNutri && (
+          <button
+            type="button"
+            className="c-botao c-botao-secundario"
+            disabled={salvando}
+            onClick={() => gravar(null)}
+          >
+            Apagar a minha marcação
+          </button>
+        )}
+        <button type="button" className="c-botao" disabled={salvando} onClick={() => gravar(escolhidos)}>
+          {salvando ? "Gravando…" : "Gravar marcação"}
+        </button>
+      </div>
+    </Modal>
   );
 }
 
@@ -891,6 +1008,7 @@ function ListaDaPaciente({
   const [adicionando, definirAdicionando] = useState(false);
   const [classificando, definirClassificando] = useState<ItemDeReintroducao | null>(null);
   const [ligando, definirLigando] = useState<ItemDeReintroducao | null>(null);
+  const [marcando, definirMarcando] = useState<ItemDeReintroducao | null>(null);
   const semLigacao = itens.filter((i) => !i.doCatalogo);
 
   return (
@@ -964,7 +1082,14 @@ function ListaDaPaciente({
                   {/* A marcação do alimento, sempre — é informação de
                       referência sobre o alimento, não sobre a paciente. */}
                   {item.marcacao.length > 0 ? (
-                    <span className="c-acao-descricao">{textoDaMarcacao(item.marcacao)}</span>
+                    <span className="c-acao-descricao">
+                      {textoDaMarcacao(item.marcacao)}
+                      {item.marcacaoDaNutri ? " · marcação sua" : ""}
+                    </span>
+                  ) : item.marcacaoDaNutri ? (
+                    <span className="c-acao-descricao">
+                      Sem marcador — você conferiu e marcou assim
+                    </span>
                   ) : (
                     !item.doCatalogo && (
                       <span className="c-acao-descricao">
@@ -1025,6 +1150,14 @@ function ListaDaPaciente({
                     Ligar ao Mapa
                   </button>
                 )}
+                <button
+                  type="button"
+                  className="c-link"
+                  disabled={ocupado}
+                  onClick={() => definirMarcando(item)}
+                >
+                  {item.marcacaoDaNutri ? "Editar marcação" : "Marcar por mim"}
+                </button>
                 {item.totalDeRegistros === 0 && (
                   <button
                     type="button"
@@ -1057,6 +1190,14 @@ function ListaDaPaciente({
         <ModalClassificar
           item={classificando}
           aoFechar={() => definirClassificando(null)}
+          aoSalvar={aoMudar}
+        />
+      )}
+
+      {marcando && (
+        <ModalMarcacao
+          item={marcando}
+          aoFechar={() => definirMarcando(null)}
           aoSalvar={aoMudar}
         />
       )}

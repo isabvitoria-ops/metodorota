@@ -551,6 +551,7 @@ export const repositorioLocal: Repositorio = {
           observacaoMaterial: null,
           doCatalogo: false,
           ligadoDepois: false,
+          marcacaoDaNutri: false,
           status: "em_teste",
           notaNutri: null,
           ordem: 900,
@@ -658,6 +659,10 @@ export const repositorioLocal: Repositorio = {
 
   async ligarItemAoMapa() {
     throw new Error("Ligar ao Mapa precisa do banco. Configure o Supabase.");
+  },
+
+  async definirMarcacaoItem() {
+    throw new Error("Gravar a marcação precisa do banco. Configure o Supabase.");
   },
 
   async desligarItemDoMapa() {
@@ -929,6 +934,7 @@ function itensDoMaterialDemo(): ItemDeReintroducao[] {
     observacaoMaterial: a.observacao,
     doCatalogo: true,
     ligadoDepois: false,
+    marcacaoDaNutri: false,
     status: "nao_iniciado" as StatusReintroducao,
     notaNutri: null,
     ordem: i + 1,

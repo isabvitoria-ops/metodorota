@@ -13,6 +13,7 @@ import type {
   Guia,
   IndicacaoPendente,
   LinhaDoRanking,
+  MarcadorDoAlimento,
   MeuDesafio,
   NovoPaciente,
   NovoRegistroDeReintroducao,
@@ -162,6 +163,13 @@ export interface Repositorio {
    * É o que devolve oxalato, histamina e lectina a uma lista montada à mão.
    */
   ligarItemAoMapa(itemId: string, alimentoId: string): Promise<void>;
+  /**
+   * A marcação que ela escreve à mão para um alimento daquela paciente.
+   *
+   * Para o que nenhuma tabela traz — produto de marca, receita de casa. `null`
+   * apaga o que ela escreveu e devolve a vez à marcação do Mapa.
+   */
+  definirMarcacaoItem(itemId: string, marcacao: MarcadorDoAlimento[] | null): Promise<void>;
   desligarItemDoMapa(itemId: string): Promise<void>;
   registrarReintroducaoPorPaciente(
     pacienteId: string,

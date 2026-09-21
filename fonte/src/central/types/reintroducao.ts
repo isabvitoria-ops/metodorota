@@ -100,6 +100,13 @@ export interface ItemDeReintroducao {
   ordem: number;
   /** Vazio quando o alimento não está na tabela de oxalato/histamina/lectina. */
   marcacao: MarcadorDoAlimento[];
+  /**
+   * A marcação foi escrita pela nutricionista, não veio do Mapa.
+   *
+   * Só a tela dela usa. Na da paciente a origem não muda nada e seria uma
+   * palavra a mais sobre o próprio corpo.
+   */
+  marcacaoDaNutri: boolean;
   totalDeRegistros: number;
   ultimoRegistro: string | null;
 }
