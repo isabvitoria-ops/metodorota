@@ -21,11 +21,13 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon.svg", "robots.txt"],
       manifest: {
-        name: "Central do Paciente",
-        short_name: "Central",
+        name: "Isabela Marçal — Central do Paciente",
+        short_name: "Isabela Marçal",
         description: "Troca de alimentos, comer fora, substituições e guias do seu acompanhamento.",
-        theme_color: "#3A6355",
-        background_color: "#F6F4F1",
+        theme_color: "#38546C",
+        // Branco, como as telas passaram a ser: a tela de abertura do app
+        // instalado nao pode piscar creme antes de abrir no branco.
+        background_color: "#FFFFFF",
         display: "standalone",
         orientation: "portrait-primary",
         start_url: "/",

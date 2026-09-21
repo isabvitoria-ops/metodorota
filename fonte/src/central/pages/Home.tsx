@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Icone, type NomeIcone } from "@/central/components/Icone";
+import { Marca } from "@/central/components/Marca";
 import { BarraBusca } from "@/central/components/BarraBusca";
 import { useState } from "react";
 import { rotas } from "@/central/rotas";
@@ -74,7 +75,10 @@ export function Home() {
       <header className="c-cabecalho">
         <div className="c-cabecalho-linha">
           <div>
-            <p className="c-marca">{configuracoes.nomeCentral}</p>
+            {/* A logo no lugar do nome escrito: é a mesma informação, na
+                letra da marca. O `nomeCentral` continua valendo para o
+                título da aba e para quem usar o app com imagem desligada. */}
+            <Marca altura={30} />
             <h1 className="c-titulo">
               {primeiroNome ? `Olá, ${primeiroNome}.` : configuracoes.fraseHome}
             </h1>

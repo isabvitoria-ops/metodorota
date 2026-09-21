@@ -75,3 +75,46 @@ export interface SerieParaSalvar {
   repeticoes: string;
   observacao: string;
 }
+
+// ----------------------------------------------------------------- cardio
+
+/**
+ * Uma sessão de cardio registrada pela paciente.
+ *
+ * Distância e intensidade são NULAS quando não se aplicam: bicicleta
+ * ergométrica não tem distância na maioria dos aparelhos, e nem toda
+ * paciente tem zona de intensidade definida. Zero diria que ela andou zero
+ * quilômetro, que é afirmação diferente de "não dá para medir aqui".
+ */
+export interface CardioSessao {
+  id: string;
+  data: string;
+  tipo: string;
+  duracaoMin: number | null;
+  distanciaKm: number | null;
+  intensidade: string | null;
+  observacao: string | null;
+}
+
+// ---------------------------------------------------------- metas semanais
+
+export type TipoDeMeta = "treino" | "cardio";
+
+/**
+ * Uma meta que a PROFISSIONAL definiu para aquela semana.
+ *
+ * O aplicativo não cria meta, não ajusta meta e não sugere meta. "4 treinos
+ * por semana" é decisão clínica dela, tomada olhando para a paciente.
+ *
+ * O progresso NÃO mora aqui: é contado a partir das sessões, na hora. Ver
+ * `utils/metasSemanais.ts`.
+ */
+export interface MetaSemanal {
+  id: string;
+  /** A segunda-feira da semana. */
+  semanaInicio: string;
+  tipo: TipoDeMeta;
+  alvo: number;
+  /** "treinos", "minutos" — o que aparece ao lado do número. */
+  unidade: string;
+}

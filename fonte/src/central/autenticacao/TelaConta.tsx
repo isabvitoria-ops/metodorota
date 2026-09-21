@@ -1,6 +1,6 @@
 import type { FormEvent, ReactNode } from "react";
 import { Icone } from "@/central/components/Icone";
-import { useSessao } from "./SessaoContexto";
+import { Marca } from "@/central/components/Marca";
 
 /**
  * Moldura das telas de conta (entrar, definir senha, recuperar).
@@ -26,13 +26,13 @@ export function TelaConta({
   erro?: string | null;
   aviso?: string | null;
 }) {
-  const { configuracoes } = useSessao();
-
   return (
     <div className="central">
       <div className="c-conta">
         <div className="c-conta-caixa">
-          <p className="c-marca">{configuracoes.nomeCentral}</p>
+          {/* Maior aqui do que no cabeçalho: esta é a porta de entrada, e é
+              onde a paciente confere que chegou no lugar certo. */}
+          <Marca altura={44} />
           <h1 className="c-titulo" style={{ fontSize: 28, marginTop: 10 }}>
             {titulo}
           </h1>

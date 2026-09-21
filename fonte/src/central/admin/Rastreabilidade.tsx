@@ -230,7 +230,8 @@ function PainelDaPaciente({
             paciente={paciente}
             inicio={dados?.inicio ?? null}
             orientacao={dados?.orientacao ?? null}
-            etapas={etapasDoMaterial(material)}
+            material={material}
+            jaNaLista={(dados?.itens ?? []).map((i) => i.alimentoId).filter((x): x is string => Boolean(x))}
             ocupado={ocupado}
             aoMudar={comRecarga}
           />
@@ -1300,29 +1301,50 @@ function ModalAdicionar({
         <Texto valor={busca} aoMudar={definirBusca} placeholder="Nome do alimento" />
       </Campo>
 
-      {etapas.map((etapa) => (
+      {etapas.map((etapa) => {
+        const daEtapa = disponiveis.filter((a) => (a.semanaSugerida ?? 5) === etapa);
+        // "Marcar a etapa inteira": escolher nove alimentos um a um toda vez
+        // que a paciente avança de semana é trabalho que o material já
+        // resolveu. Continua sendo escolha dela — o botão só marca, e ela
+        // desmarca o que não servir antes de salvar.
+        const todosMarcados = daEtapa.every((a) => escolhidos.includes(a.id));
+        return (
         <div key={etapa} style={{ marginTop: 12 }}>
-          <strong style={{ fontSize: 13 }}>
-            {etapa === 5 ? "Fora do material" : `Etapa ${etapa}`}
-          </strong>
+          <div className="c-bloco-topo">
+            <strong style={{ fontSize: 13 }}>
+              {etapa === 5 ? "Fora do material" : `Etapa ${etapa}`}
+            </strong>
+            <button
+              type="button"
+              className="c-botao c-botao-pequeno c-botao-secundario"
+              onClick={() =>
+                definirEscolhidos((atuais) =>
+                  todosMarcados
+                    ? atuais.filter((id) => !daEtapa.some((a) => a.id === id))
+                    : [...new Set([...atuais, ...daEtapa.map((a) => a.id)])],
+                )
+              }
+            >
+              {todosMarcados ? "Desmarcar a etapa" : `Marcar os ${daEtapa.length}`}
+            </button>
+          </div>
           <div className="c-chips" style={{ marginTop: 8 }}>
-            {disponiveis
-              .filter((a) => (a.semanaSugerida ?? 5) === etapa)
-              .map((a) => (
-                <button
-                  key={a.id}
-                  type="button"
-                  className="c-chip"
-                  aria-pressed={escolhidos.includes(a.id)}
-                  onClick={() => alternar(a.id)}
-                >
-                  {a.nome}
-                  {a.porcaoReferencia ? ` (${a.porcaoReferencia})` : ""}
-                </button>
-              ))}
+            {daEtapa.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                className="c-chip"
+                aria-pressed={escolhidos.includes(a.id)}
+                onClick={() => alternar(a.id)}
+              >
+                {a.nome}
+                {a.porcaoReferencia ? ` (${a.porcaoReferencia})` : ""}
+              </button>
+            ))}
           </div>
         </div>
-      ))}
+        );
+      })}
 
       <Campo
         rotulo="Um alimento que não está no material"
@@ -1437,24 +1459,51 @@ function SemanaDaPaciente({
   paciente,
   inicio,
   orientacao,
-  etapas,
+  material,
+  jaNaLista,
   ocupado,
   aoMudar,
 }: {
   paciente: Paciente;
   inicio: string | null;
   orientacao: string | null;
-  etapas: number[];
+  material: AlimentoDoMaterial[];
+  /** Os alimentos do Mapa que a paciente já tem na lista dela. */
+  jaNaLista: string[];
   ocupado: boolean;
   aoMudar: (acao: () => Promise<void>) => Promise<boolean>;
 }) {
   const [data, definirData] = useState(inicio ?? "");
   const [feito, definirFeito] = useState(false);
   const hoje = hojeSaoPaulo();
+  const etapas = etapasDoMaterial(material);
   const semana = semanaEm(data || null, hoje);
   const primeiroNome = paciente.nome.split(" ")[0] ?? paciente.nome;
   const mudou = (data || "") !== (inicio ?? "");
   const passouDoMaterial = semana > etapas.length;
+
+  /**
+   * Os alimentos daquela etapa que ela ainda NÃO pôs na lista da paciente.
+   *
+   * DEFEITO QUE ISTO CONSERTA, relatado por ela: "coloquei minha paciente na
+   * semana 2 de rastreio, e para ela não apareceram os alimentos, continuou
+   * empacada na 1".
+   *
+   * Estava certo e parecia errado. O seletor de semana grava a DATA de
+   * início — é ela que faz a contagem andar. Só que a lista da paciente é
+   * outra coisa: são os alimentos que a nutricionista escolheu para ela, um
+   * a um, e nenhum deles entra sozinho. Mudar a semana mudava o número e
+   * não mexia na lista, então a tela da paciente continuava com os
+   * alimentos da etapa 1 — exatamente o que ela viu.
+   *
+   * Os alimentos continuam sendo escolha dela ("escolha só o que faz
+   * sentido para ela" é a regra da tela ao lado, e não vai virar automático
+   * pelas costas). O que faltava era o atalho: dizer quantos faltam daquela
+   * etapa e acrescentar os que faltam num clique.
+   */
+  const daEtapa = material.filter(
+    (a) => (a.semanaSugerida ?? 0) === semana && !jaNaLista.includes(a.id),
+  );
 
   function guardar(novaData: string) {
     definirData(novaData);
@@ -1487,6 +1536,38 @@ function SemanaDaPaciente({
           erro: a semana aqui conta dias corridos, e uma paciente pode levar mais tempo em
           cada etapa. Se a conta não bate, acerte pela data.
         </p>
+      )}
+
+      {/* O que faltava: mudar a semana mudava o número e não a lista dela. */}
+      {!mudou && daEtapa.length > 0 && (
+        <div className="c-aviso c-aviso-ok" role="status" style={{ display: "block" }}>
+          <strong style={{ display: "block", fontSize: 14 }}>
+            A etapa {semana} do seu material tem {daEtapa.length}{" "}
+            {daEtapa.length === 1 ? "alimento que" : "alimentos que"} {primeiroNome} ainda não
+            tem na lista.
+          </strong>
+          <p className="c-dica" style={{ marginTop: 4 }}>
+            Mudar a semana muda a contagem, não a lista: os alimentos continuam sendo a sua
+            escolha. {daEtapa.map((a) => a.nome).join(", ")}.
+          </p>
+          <button
+            type="button"
+            className="c-botao c-botao-pequeno"
+            style={{ marginTop: 8 }}
+            disabled={ocupado}
+            onClick={() => {
+              void aoMudar(async () => {
+                await repositorio.adicionarItensReintroducao(
+                  paciente.id,
+                  daEtapa.map((a) => a.id),
+                );
+              });
+            }}
+          >
+            Acrescentar {daEtapa.length === 1 ? "esse alimento" : `os ${daEtapa.length}`} à lista
+            dela
+          </button>
+        </div>
       )}
 
       {mudou && (

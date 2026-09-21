@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Icone } from "@/central/components/Icone";
+import { Marca } from "@/central/components/Marca";
 import { FaixaDemonstracao } from "@/central/components/FaixaDemonstracao";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { rotas } from "@/central/rotas";
@@ -38,7 +39,7 @@ const ABAS = [
 export function AdminApp() {
   const { pathname } = useLocation();
   const navegar = useNavigate();
-  const { acesso, sair, configuracoes } = useSessao();
+  const { acesso, sair } = useSessao();
   const barraDeAbas = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export function AdminApp() {
         <header className="c-admin-topo">
           <div className="c-admin-topo-linha">
             <div>
-              <p className="c-marca">{configuracoes.nomeCentral}</p>
+              <Marca altura={28} />
               <strong style={{ fontSize: 15 }}>Área da nutricionista</strong>
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
