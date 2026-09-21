@@ -573,6 +573,27 @@ export const repositorioSupabase: Repositorio = {
     erro("registrar o alimento", error);
   },
 
+  async registrarReintroducaoPorPaciente(
+    pacienteId: string,
+    registro: NovoRegistroDeReintroducao,
+  ) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("registrar_reintroducao_admin", {
+      p_paciente: pacienteId,
+      p_item: registro.itemId ?? null,
+      p_nome_novo: registro.nomeNovo ?? null,
+      p_data: registro.data ?? null,
+      p_horario: registro.horario ?? null,
+      p_quantidade: registro.quantidade ?? null,
+      p_preparo: registro.preparo ?? null,
+      p_sintomas: registro.sintomas ?? [],
+      p_intensidade: registro.intensidade ?? null,
+      p_bristol: registro.bristol ?? null,
+      p_observacao: registro.observacao ?? null,
+    });
+    erro("lançar o registro", error);
+  },
+
   async editarRegistroReintroducao(registroId: string, registro: NovoRegistroDeReintroducao) {
     const sb = exigirSupabase();
     const { error } = await sb.rpc("editar_registro_reintroducao", {

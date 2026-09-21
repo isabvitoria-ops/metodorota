@@ -655,6 +655,16 @@ export const repositorioLocal: Repositorio = {
     throw new Error("Classificar um alimento precisa do banco. Configure o Supabase.");
   },
 
+  async registrarReintroducaoPorPaciente(
+    _pacienteId: string,
+    registro: NovoRegistroDeReintroducao,
+  ) {
+    // Na demonstração há uma paciente só, então lançar "por ela" é lançar
+    // no mesmo diário. O que muda de verdade — escrever na ficha de outra
+    // pessoa — é o que o banco guarda, e está coberto pela bateria.
+    await repositorioLocal.registrarReintroducao(registro);
+  },
+
   async definirAcompanhamentoReintroducao() {
     throw new Error("Definir o acompanhamento precisa do banco. Configure o Supabase.");
   },

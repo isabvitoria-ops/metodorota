@@ -92,5 +92,31 @@ exception when others then
 end;
 $$;
 
+/**
+ * O código do erro, não só "deu erro".
+ *
+ * `recusou` acima devolve verdadeiro para QUALQUER falha, inclusive um erro
+ * de digitação no próprio teste — um teste assim passa sem provar nada. Onde
+ * o motivo da recusa importa ("42501 = não é sua", "22023 = dado inválido",
+ * "P0002 = não existe"), esta é a função a usar. Devolve '00000' quando
+ * nada falhou, que é o código do sucesso no Postgres.
+ */
+create or replace function estado_de(p_sql text)
+returns text
+language plpgsql
+as $$
+begin
+  execute p_sql;
+  return '00000';
+exception when others then
+  return sqlstate;
+end;
+$$;
+
+-- Sem `security definer`, de propósito: `estado_de` tem de rodar com os
+-- privilégios de quem chama, senão a recusa que ela mede não seria a mesma
+-- que a paciente encontraria.
+grant execute on function estado_de(text) to anon, authenticated;
+
 grant all on resultados_teste to anon, authenticated;
 grant usage, select on sequence resultados_teste_id_seq to anon, authenticated;

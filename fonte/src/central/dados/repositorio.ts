@@ -150,6 +150,16 @@ export interface Repositorio {
   /** O material dela, para montar a lista de cada paciente. */
   listarAlimentosDoMaterial(): Promise<AlimentoDoMaterial[]>;
   reintroducaoDoPaciente(pacienteId: string): Promise<Reintroducao>;
+  /**
+   * Lançar um registro no diário de uma paciente, com data para trás.
+   *
+   * Para quem fez rastreio no papel antes de o aplicativo existir: o
+   * histórico entra sem pedir que a paciente redigite semanas de diário.
+   */
+  registrarReintroducaoPorPaciente(
+    pacienteId: string,
+    registro: NovoRegistroDeReintroducao,
+  ): Promise<void>;
   /** Liga ou desliga o módulo inteiro para aquela paciente. */
   definirRastreioDoPaciente(pacienteId: string, ativo: boolean): Promise<void>;
   /** Quem já está com o rastreio ligado, para a lista de pacientes. */

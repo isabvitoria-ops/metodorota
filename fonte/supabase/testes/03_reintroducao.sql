@@ -665,6 +665,124 @@ select teste('a Tabela dela continua com os 283 alimentos',
 commit;
 
 -- -----------------------------------------------------------------------------
+-- Registro retroativo, lançado pela nutricionista (0025)
+--
+-- Quem fez rastreio no papel antes de o aplicativo existir chega nele com o
+-- histórico do lado de fora. Estes testes cobrem a porta nova e, sobretudo,
+-- que ela continua fechada para quem não é a nutricionista.
+-- -----------------------------------------------------------------------------
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+
+select teste('a paciente NÃO lança registro por outra pessoa',
+  estado_de($$
+    select registrar_reintroducao_admin(
+      (select id from pacientes where email = 'r-bia@paciente.test'),
+      p_nome_novo := 'Invasão')
+  $$) = '42501');
+
+select teste('a paciente NÃO lança nem no próprio diário por esta porta',
+  estado_de($$
+    select registrar_reintroducao_admin(
+      (select id from pacientes where email = 'r-ana@paciente.test'),
+      p_nome_novo := 'Pelo caminho errado')
+  $$) = '42501');
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+select teste('a nutricionista lança um retroativo de três semanas atrás',
+  registrar_reintroducao_admin(
+    (select id from pacientes where email = 'r-ana@paciente.test'),
+    p_nome_novo := 'Iogurte de cabra',
+    p_data := hoje_sp() - 21,
+    p_sintomas := array['gases']) is not null);
+
+select teste('o retroativo caiu na data pedida, não na de hoje',
+  (select data from reintroducao_registros r
+     join reintroducao_itens i on i.id = r.item_id
+    where i.nome_livre = 'Iogurte de cabra') = hoje_sp() - 21);
+
+select teste('o alimento novo entrou na lista da paciente certa',
+  (select p.email from reintroducao_itens i
+     join pacientes p on p.id = i.paciente_id
+    where i.nome_livre = 'Iogurte de cabra') = 'r-ana@paciente.test');
+
+select teste('o alimento novo nasce em teste, não classificado',
+  (select status from reintroducao_itens where nome_livre = 'Iogurte de cabra') = 'em_teste');
+
+-- "Teve um que ela já testou mais de uma vez."
+select teste('o mesmo alimento aceita um segundo registro, noutra data',
+  registrar_reintroducao_admin(
+    (select id from pacientes where email = 'r-ana@paciente.test'),
+    p_item := (select id from reintroducao_itens where nome_livre = 'Iogurte de cabra'),
+    p_data := hoje_sp() - 14,
+    p_sintomas := array['nenhum']) is not null);
+
+select teste('os dois registros estão no mesmo alimento, sem duplicá-lo',
+  (select count(*) from reintroducao_itens where nome_livre = 'Iogurte de cabra') = 1
+  and (select count(*) from reintroducao_registros r
+         join reintroducao_itens i on i.id = r.item_id
+        where i.nome_livre = 'Iogurte de cabra') = 2);
+
+select teste('a data no futuro é recusada — é o ano digitado errado',
+  estado_de($$
+    select registrar_reintroducao_admin(
+      (select id from pacientes where email = 'r-ana@paciente.test'),
+      p_nome_novo := 'Ano errado', p_data := hoje_sp() + 1)
+  $$) = '22023');
+
+select teste('e a recusa não deixou o alimento para trás',
+  (select count(*) from reintroducao_itens where nome_livre = 'Ano errado') = 0);
+
+select teste('sem alimento e sem nome, recusa',
+  estado_de($$
+    select registrar_reintroducao_admin(
+      (select id from pacientes where email = 'r-ana@paciente.test'))
+  $$) = '22023');
+
+select teste('sintoma inventado é recusado também por esta porta',
+  estado_de($$
+    select registrar_reintroducao_admin(
+      (select id from pacientes where email = 'r-ana@paciente.test'),
+      p_nome_novo := 'Qualquer', p_sintomas := array['enxaqueca_inventada'])
+  $$) = '22023');
+
+select teste('paciente que não existe é recusada',
+  estado_de($$
+    select registrar_reintroducao_admin(
+      '00000000-0000-0000-0000-0000000000ff', p_nome_novo := 'Fantasma')
+  $$) = 'P0002');
+
+select teste('alimento de OUTRA paciente não serve de item',
+  estado_de($$
+    select registrar_reintroducao_admin(
+      (select id from pacientes where email = 'r-bia@paciente.test'),
+      p_item := (select id from reintroducao_itens where nome_livre = 'Iogurte de cabra'))
+  $$) = '42501');
+commit;
+
+-- O retroativo tem de aparecer para a paciente como registro dela, e cair na
+-- semana certa da linha do tempo.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+
+select teste('a paciente vê o retroativo lançado pela nutricionista',
+  (select count(*) from jsonb_array_elements(minha_reintroducao() -> 'registros') r
+    where r ->> 'itemNome' = 'Iogurte de cabra') = 2);
+
+select teste('a Bia continua sem ver nada disso',
+  (select count(*) from reintroducao_registros r
+     join reintroducao_itens i on i.id = r.item_id
+    where i.nome_livre = 'Iogurte de cabra'
+      and r.paciente_id = (select id from pacientes where email = 'r-bia@paciente.test')) = 0);
+commit;
+
+-- -----------------------------------------------------------------------------
 -- Resultado
 -- -----------------------------------------------------------------------------
 select

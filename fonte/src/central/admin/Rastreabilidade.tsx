@@ -4,21 +4,24 @@ import type {
   ItemDeReintroducao,
   Paciente,
   RegistroDeReintroducao,
+  SintomaReintroducao,
   StatusReintroducao,
 } from "@/central/types";
 import { repositorio } from "@/central/dados/repositorio";
 import { useReintroducao } from "@/central/hooks/useReintroducao";
 import {
+  BRISTOL,
   CATEGORIAS,
+  SINTOMAS,
   STATUS,
   alimentosSemLigacao,
   faixaDaIntensidade,
-  nivelPorExtenso,
   inicioParaSemana,
+  nivelPorExtenso,
   panoramaDeMarcadores,
   porSemana,
-  semanaEm,
   rotuloSintoma,
+  semanaEm,
   status as infoStatus,
   temSintoma,
   textoDaMarcacao,
@@ -154,6 +157,7 @@ function PainelDaPaciente({
   aoMudarRastreio: () => void;
 }) {
   const { dados, carregando, erro, ocupado, comRecarga } = useReintroducao(paciente.id);
+  const [lancando, definirLancando] = useState(false);
 
   if (carregando) return <p className="c-contagem">Carregando…</p>;
 
@@ -196,6 +200,21 @@ function PainelDaPaciente({
             ? "O atalho aparece na tela inicial dela e ela pode registrar. Desligar não apaga nada: o histórico fica guardado e volta se você religar."
             : "Nem toda paciente precisa de rastreamento. Desligado, o atalho não aparece para ela e o módulo é como se não existisse. Adicionar alimentos à lista dela liga sozinho."}
         </p>
+
+        {/* A semana fica aqui, junto do interruptor, e não numa aba adentro:
+            é no momento de liberar para a paciente que ela sabe em que
+            semana a pessoa está. Quem começou no papel chega no aplicativo
+            no meio do caminho. */}
+        {ativo && (
+          <SemanaDaPaciente
+            key={paciente.id}
+            paciente={paciente}
+            inicio={dados?.inicio ?? null}
+            orientacao={dados?.orientacao ?? null}
+            ocupado={ocupado}
+            aoMudar={comRecarga}
+          />
+        )}
       </div>
 
       {aba === "Linha do tempo" && (
@@ -203,6 +222,30 @@ function PainelDaPaciente({
           {/* O mesmo rastreio que a paciente vê, com a mesma conta e as
               mesmas palavras. Duas leituras diferentes da mesma coisa seria
               o começo de uma conversa em que as duas estão certas. */}
+          <div className="c-admin-topo-linha" style={{ marginBottom: 12 }}>
+            <p className="c-dica" style={{ margin: 0 }}>
+              {(dados?.registros.length ?? 0) === 0
+                ? "Nenhum registro ainda."
+                : `${dados?.registros.length} ${dados?.registros.length === 1 ? "registro" : "registros"} no diário dela.`}
+            </p>
+            <button
+              type="button"
+              className="c-botao c-botao-pequeno"
+              onClick={() => definirLancando(true)}
+            >
+              Lançar registro
+            </button>
+          </div>
+
+          {lancando && (
+            <ModalRetroativo
+              paciente={paciente}
+              itens={dados?.itens ?? []}
+              aoFechar={() => definirLancando(false)}
+              aoSalvar={comRecarga}
+            />
+          )}
+
           <PanoramaDeMarcadores itens={dados?.itens ?? []} registros={dados?.registros ?? []} />
           <RastreioAlimentar
             itens={dados?.itens ?? []}
@@ -301,6 +344,229 @@ function PanoramaDeMarcadores({
         </p>
       )}
     </section>
+  );
+}
+
+// ------------------------------------------------------- lançar retroativo
+
+/**
+ * Lançar no diário da paciente um alimento que ela já testou.
+ *
+ * Ela pediu: "pelo meu acesso eu quero conseguir lançar os retroativos. Ela
+ * já testou uma gama de alimentos, teve um que já testou mais de uma vez."
+ *
+ * Quem fez rastreio no papel antes de o aplicativo existir tem semanas de
+ * diário do lado de fora. A alternativa a esta tela seria pedir à paciente
+ * que redigitasse tudo — pedir a quem menos tem obrigação de fazê-lo.
+ *
+ * "Salvar e lançar outro" existe por causa do "uma gama de alimentos": ela
+ * vai transcrever vários de uma vez, e guardar a data entre um e outro é o
+ * que separa transcrever de brigar com a tela.
+ */
+function ModalRetroativo({
+  paciente,
+  itens,
+  aoFechar,
+  aoSalvar,
+}: {
+  paciente: Paciente;
+  itens: ItemDeReintroducao[];
+  aoFechar: () => void;
+  aoSalvar: (acao: () => Promise<void>) => Promise<boolean>;
+}) {
+  const hoje = hojeSaoPaulo();
+  const [itemId, definirItemId] = useState("");
+  const [nomeNovo, definirNomeNovo] = useState("");
+  const [data, definirData] = useState(hoje);
+  const [horario, definirHorario] = useState("");
+  const [quantidade, definirQuantidade] = useState("");
+  const [preparo, definirPreparo] = useState("");
+  const [sintomas, definirSintomas] = useState<SintomaReintroducao[]>(["nenhum"]);
+  const [intensidade, definirIntensidade] = useState("");
+  const [bristol, definirBristol] = useState("");
+  const [observacao, definirObservacao] = useState("");
+  const [salvando, definirSalvando] = useState(false);
+  const [lancados, definirLancados] = useState<string[]>([]);
+
+  const comSintoma = sintomas.length > 0 && sintomas[0] !== "nenhum";
+  const escolhido = itens.find((i) => i.id === itemId);
+  const nome = escolhido?.nome ?? nomeNovo.trim();
+  const podeSalvar = Boolean(nome) && Boolean(data) && data <= hoje && !salvando;
+
+  function alternarSintoma(chave: SintomaReintroducao) {
+    definirSintomas((atual) => {
+      // "Nenhum" e qualquer outro é contradição — a mesma regra do banco,
+      // aplicada aqui para ela não montar um registro que será recusado.
+      if (chave === "nenhum") return ["nenhum"];
+      const sem = atual.filter((c) => c !== "nenhum");
+      return sem.includes(chave) ? sem.filter((c) => c !== chave) : [...sem, chave];
+    });
+  }
+
+  function limparParaOProximo() {
+    definirItemId("");
+    definirNomeNovo("");
+    definirHorario("");
+    definirQuantidade("");
+    definirPreparo("");
+    definirSintomas(["nenhum"]);
+    definirIntensidade("");
+    definirBristol("");
+    definirObservacao("");
+    // A data FICA: transcrevendo um dia de diário, ela é o que menos muda.
+  }
+
+  function lancar(continuar: boolean) {
+    definirSalvando(true);
+    const rotulo = `${nome} · ${dataBonita(data)}`;
+    void aoSalvar(() =>
+      repositorio.registrarReintroducaoPorPaciente(paciente.id, {
+        itemId: itemId || null,
+        nomeNovo: itemId ? null : nomeNovo.trim() || null,
+        data,
+        horario: horario || null,
+        quantidade: quantidade.trim() || null,
+        preparo: preparo.trim() || null,
+        sintomas: comSintoma ? sintomas : ["nenhum"],
+        intensidade: comSintoma && intensidade ? Number(intensidade) : null,
+        bristol: bristol ? Number(bristol) : null,
+        observacao: observacao.trim() || null,
+      }),
+    ).then((deuCerto) => {
+      definirSalvando(false);
+      if (!deuCerto) return;
+      definirLancados((atual) => [...atual, rotulo]);
+      if (continuar) limparParaOProximo();
+      else aoFechar();
+    });
+  }
+
+  return (
+    <Modal titulo={`Lançar registro de ${paciente.nome}`} aoFechar={aoFechar}>
+      <p className="c-dica" style={{ marginTop: 0 }}>
+        Para transcrever o que ela já testou fora do aplicativo. Entra no diário dela como
+        qualquer outro registro, na data que você puser.
+      </p>
+
+      <Campo rotulo="Alimento">
+        <Selecao
+          valor={itemId}
+          aoMudar={definirItemId}
+          opcoes={[
+            { valor: "", rotulo: "Outro — escrever o nome abaixo" },
+            ...itens.map((i) => ({ valor: i.id, rotulo: i.nome })),
+          ]}
+        />
+      </Campo>
+      {!itemId && (
+        <Campo
+          rotulo="Nome do alimento"
+          dica="Entra na lista dela. O mesmo alimento pode ser lançado quantas vezes ela tiver testado."
+        >
+          <Texto valor={nomeNovo} aoMudar={definirNomeNovo} placeholder="Iogurte de cabra" />
+        </Campo>
+      )}
+
+      <div className="c-duas-colunas">
+        <Campo rotulo="Data">
+          <Texto valor={data} aoMudar={definirData} tipo="date" />
+        </Campo>
+        <Campo rotulo="Horário (opcional)">
+          <Texto valor={horario} aoMudar={definirHorario} tipo="time" />
+        </Campo>
+      </div>
+      {data > hoje && (
+        <div className="c-aviso c-aviso-erro" role="alert">
+          <span>Esta data está no futuro. Registro retroativo é para trás.</span>
+        </div>
+      )}
+
+      {/* Os mesmos chips da tela da paciente, de propósito: ela transcreve
+          olhando para um diário que a paciente preencheu ali. */}
+      <div className="c-campo">
+        <span className="c-rotulo">O que ela sentiu</span>
+        <div className="c-chips">
+          {SINTOMAS.map((s) => (
+            <button
+              key={s.chave}
+              type="button"
+              className="c-chip"
+              aria-pressed={sintomas.includes(s.chave)}
+              onClick={() => alternarSintoma(s.chave)}
+            >
+              {s.rotulo}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {comSintoma && (
+        <div className="c-duas-colunas">
+          <Campo rotulo="Intensidade (0 a 10)">
+            <Selecao
+              valor={intensidade}
+              aoMudar={definirIntensidade}
+              opcoes={[
+                { valor: "", rotulo: "Não anotada" },
+                ...Array.from({ length: 11 }, (_, n) => ({
+                  valor: String(n),
+                  rotulo: `${n} — ${faixaDaIntensidade(n)}`,
+                })),
+              ]}
+            />
+          </Campo>
+          <Campo rotulo="Bristol (opcional)">
+            <Selecao
+              valor={bristol}
+              aoMudar={definirBristol}
+              opcoes={[
+                { valor: "", rotulo: "Não anotado" },
+                ...BRISTOL.map((b) => ({ valor: String(b.tipo), rotulo: `Tipo ${b.tipo} — ${b.descricao}` })),
+              ]}
+            />
+          </Campo>
+        </div>
+      )}
+
+      <div className="c-duas-colunas">
+        <Campo rotulo="Quantidade (opcional)">
+          <Texto valor={quantidade} aoMudar={definirQuantidade} placeholder="1 pote" />
+        </Campo>
+        <Campo rotulo="Preparo (opcional)">
+          <Texto valor={preparo} aoMudar={definirPreparo} placeholder="Cru" />
+        </Campo>
+      </div>
+
+      <Campo rotulo="Observação (opcional)">
+        <AreaTexto valor={observacao} aoMudar={definirObservacao} linhas={2} />
+      </Campo>
+
+      {lancados.length > 0 && (
+        <div className="c-aviso c-aviso-ok" role="status">
+          <span>
+            {lancados.length === 1 ? "Lançado: " : `${lancados.length} lançados: `}
+            {lancados.join(" · ")}
+          </span>
+        </div>
+      )}
+
+      <div className="c-modal-acoes">
+        <button type="button" className="c-botao c-botao-secundario" onClick={aoFechar}>
+          {lancados.length > 0 ? "Fechar" : "Cancelar"}
+        </button>
+        <button
+          type="button"
+          className="c-botao c-botao-secundario"
+          disabled={!podeSalvar}
+          onClick={() => lancar(true)}
+        >
+          Salvar e lançar outro
+        </button>
+        <button type="button" className="c-botao" disabled={!podeSalvar} onClick={() => lancar(false)}>
+          {salvando ? "Salvando…" : "Salvar"}
+        </button>
+      </div>
+    </Modal>
   );
 }
 
@@ -733,6 +999,95 @@ function ModalClassificar({
   );
 }
 
+// -------------------------------------------------------- em que semana ela está
+
+/**
+ * Em que semana a paciente está, escolhida por ela.
+ *
+ * Ela pediu assim: "quando eu libero a rastreabilidade para algum paciente,
+ * eu seleciono em qual semana ele tá". Quem fazia rastreio no papel antes de
+ * o aplicativo existir chega nele no meio do caminho — a Daniela está na
+ * terceira semana e o aplicativo mostra a primeira, porque para ele a
+ * contagem começa no primeiro registro digitado.
+ *
+ * O que fica gravado é a DATA de início, não o número da semana. É o que faz
+ * a semana andar sozinha: escolhida a 3 hoje, daqui a sete dias é a 4, sem
+ * ninguém voltar aqui. Guardar o número exigiria alguém atualizá-lo toda
+ * semana, e o dia em que esquecessem a contagem congelaria em silêncio.
+ */
+function SemanaDaPaciente({
+  paciente,
+  inicio,
+  orientacao,
+  ocupado,
+  aoMudar,
+}: {
+  paciente: Paciente;
+  inicio: string | null;
+  orientacao: string | null;
+  ocupado: boolean;
+  aoMudar: (acao: () => Promise<void>) => Promise<boolean>;
+}) {
+  const [data, definirData] = useState(inicio ?? "");
+  const [feito, definirFeito] = useState(false);
+  const hoje = hojeSaoPaulo();
+  const semana = semanaEm(data || null, hoje);
+  const primeiroNome = paciente.nome.split(" ")[0] ?? paciente.nome;
+  const mudou = (data || "") !== (inicio ?? "");
+
+  function guardar(novaData: string) {
+    definirData(novaData);
+    definirFeito(false);
+  }
+
+  return (
+    <div style={{ marginTop: 12, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
+      <div className="c-duas-colunas">
+        <Campo rotulo={`Em que semana ${primeiroNome} está hoje`}>
+          <Selecao
+            valor={String(semana)}
+            aoMudar={(v) => guardar(inicioParaSemana(Number(v), hoje))}
+            opcoes={SEMANAS.map((n) => ({ valor: String(n), rotulo: `Semana ${n}` }))}
+          />
+        </Campo>
+        <Campo rotulo="Começou em" dica="Sabendo o dia exato, a data acerta mais que a semana.">
+          <Texto valor={data} aoMudar={guardar} tipo="date" />
+        </Campo>
+      </div>
+
+      <p className="c-dica" style={{ marginTop: -2 }}>
+        {data
+          ? `Contando de ${dataBonita(data)}. Daqui a uma semana ela estará na ${semana + 1}: a contagem anda sozinha, você não precisa voltar aqui.`
+          : "Sem data, a semana 1 é a do primeiro registro dela — é por isso que quem começou no papel aparece na semana 1."}
+      </p>
+
+      {mudou && (
+        <button
+          type="button"
+          className="c-botao c-botao-pequeno"
+          style={{ marginTop: 8 }}
+          disabled={ocupado}
+          onClick={() => {
+            void aoMudar(() =>
+              // A orientação viaja junto sem ser tocada: a função do banco
+              // grava os dois campos de uma vez, e mandar nulo aqui apagaria
+              // o recado que ela escreveu para a paciente.
+              repositorio.definirAcompanhamentoReintroducao(
+                paciente.id,
+                data || null,
+                orientacao,
+              ),
+            ).then((deuCerto) => definirFeito(deuCerto));
+          }}
+        >
+          Salvar a semana
+        </button>
+      )}
+      {feito && !mudou && <p className="c-dica">Salvo. A contagem já mudou na tela dela.</p>}
+    </div>
+  );
+}
+
 // ------------------------------------------------------------ acompanhamento
 
 /**
@@ -757,56 +1112,11 @@ function Acompanhamento({
   ocupado: boolean;
   aoMudar: (acao: () => Promise<void>) => Promise<boolean>;
 }) {
-  const [dataInicio, definirDataInicio] = useState(inicio ?? "");
   const [texto, definirTexto] = useState(orientacao ?? "");
   const [feito, definirFeito] = useState(false);
-  const hoje = hojeSaoPaulo();
-  const semanaHoje = semanaEm(dataInicio || null, hoje);
-  const primeiroNome = paciente.nome.split(" ")[0] ?? paciente.nome;
 
   return (
     <>
-      {/* Ela pediu isto assim: "eu queria que no meu painel eu conseguisse
-          selecionar em qual semana o paciente já está". A paciente que
-          começou o rastreio no papel, antes de o aplicativo existir, chega
-          nele no meio do caminho — a Daniela está na terceira semana e o
-          app mostra a primeira, porque para ele a contagem começa no
-          primeiro registro digitado.
-
-          O campo de data já existia e resolvia, mas exigia que ela fizesse
-          a conta de cabeça. Agora os dois andam juntos: escolher a semana
-          escreve a data, mexer na data recalcula a semana. */}
-      <div className="c-bloco">
-        <strong style={{ fontSize: 14 }}>Em que semana {primeiroNome} está</strong>
-        <p className="c-dica">
-          Se ela começou o rastreio com você antes do aplicativo, diga aqui em que semana ela
-          está hoje — a contagem se ajusta, na sua tela e na dela.
-        </p>
-
-        <div className="c-duas-colunas">
-          <Campo rotulo="Semana de hoje">
-            <Selecao
-              valor={String(semanaHoje)}
-              aoMudar={(v) => definirDataInicio(inicioParaSemana(Number(v), hoje))}
-              opcoes={SEMANAS.map((n) => ({ valor: String(n), rotulo: `Semana ${n}` }))}
-            />
-          </Campo>
-          <Campo rotulo="Começou em" dica="Sabendo o dia exato, a data acerta mais que a semana.">
-            <Texto valor={dataInicio} aoMudar={definirDataInicio} tipo="date" />
-          </Campo>
-        </div>
-
-        <p className="c-nota-protocolo">
-          {dataInicio
-            ? `Hoje ${primeiroNome} está na semana ${semanaHoje}, contando de ${dataBonita(dataInicio)}. É o que ela vê na tela dela.`
-            : `Sem data de início, a semana 1 é a do primeiro registro dela — por isso quem começou no papel aparece na semana 1.`}
-        </p>
-        <p className="c-dica">
-          Mudar isto renumera os registros que ela já fez, e não apaga nenhum. Não cria prazo
-          nem cobrança.
-        </p>
-      </div>
-
       <div className="c-bloco" style={{ marginTop: 14 }}>
         <strong style={{ fontSize: 14 }}>Recado para {paciente.nome}</strong>
         <p className="c-dica">
@@ -831,9 +1141,12 @@ function Acompanhamento({
         onClick={() => {
           definirFeito(false);
           void aoMudar(() =>
+            // `inicio` vai junto sem ser tocado: a função do banco grava os
+            // dois campos de uma vez, então mandar nulo aqui apagaria a
+            // semana que ela acabou de escolher lá em cima.
             repositorio.definirAcompanhamentoReintroducao(
               paciente.id,
-              dataInicio || null,
+              inicio || null,
               texto.trim() || null,
             ),
           ).then((deuCerto) => definirFeito(deuCerto));
