@@ -895,6 +895,109 @@ select teste('nem desliga',
 commit;
 
 -- -----------------------------------------------------------------------------
+-- Retroativo escolhendo do Mapa (0027)
+--
+-- O caminho que faltava: transcrever do papel um alimento do Mapa, com o
+-- sintoma, sem passar por "digitar o nome" — que é o que fazia o alimento
+-- nascer sem marcação.
+-- -----------------------------------------------------------------------------
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+select teste('lançar do Mapa cria o item já ligado',
+  registrar_reintroducao_admin(
+    (select id from pacientes where email = 'r-bia@paciente.test'),
+    p_alimento := 'queijos-bufala',
+    p_data := hoje_sp() - 10,
+    p_sintomas := array['distensao']) is not null);
+
+select teste('e o item nasceu apontando para o Mapa, não como nome solto',
+  (select alimento_id from reintroducao_itens i
+     where i.paciente_id = (select id from pacientes where email = 'r-bia@paciente.test')
+       and i.alimento_id = 'queijos-bufala') = 'queijos-bufala');
+
+-- 'queijos-bufala' de propósito no teste acima: é um alimento do Mapa que
+-- NÃO está na Tabela de marcadores, e serve para provar que o caminho
+-- funciona mesmo sem marcação. Abaixo, um que está.
+select teste('alimento do Mapa sem marcador entra assim mesmo, sem marcação',
+  (select jsonb_array_length(r -> 'marcacao')
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-bia@paciente.test'))
+         -> 'registros') r
+    where r ->> 'itemNome' = 'Queijos de búfala') = 0);
+
+-- Em duas etapas de propósito: juntar a chamada e a conferência numa
+-- expressão só deixa a ordem de avaliação nas mãos do planejador, e a
+-- contagem pode ser tirada ANTES do insert. Já mordeu aqui.
+select registrar_reintroducao_admin(
+  (select id from pacientes where email = 'r-bia@paciente.test'),
+  p_alimento := 'abacate', p_data := hoje_sp() - 5,
+  p_sintomas := array['gases']);
+
+select teste('e um alimento do Mapa COM marcador nasce já marcado',
+  (select jsonb_array_length(r -> 'marcacao')
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-bia@paciente.test'))
+         -> 'registros') r
+    where r ->> 'itemNome' = 'Abacate / avocado') = 2);
+
+-- Lançar o MESMO alimento do Mapa de novo: é o "ela já testou mais de uma
+-- vez". Não pode criar um segundo item — o índice único não deixaria.
+select teste('o mesmo alimento do Mapa aceita um segundo registro',
+  registrar_reintroducao_admin(
+    (select id from pacientes where email = 'r-bia@paciente.test'),
+    p_alimento := 'queijos-bufala',
+    p_data := hoje_sp() - 3,
+    p_sintomas := array['nenhum']) is not null);
+
+select teste('e continua um item só, com dois registros',
+  (select count(*) from reintroducao_itens
+    where paciente_id = (select id from pacientes where email = 'r-bia@paciente.test')
+      and alimento_id = 'queijos-bufala') = 1
+  and (select count(*) from reintroducao_registros r
+         join reintroducao_itens i on i.id = r.item_id
+        where i.alimento_id = 'queijos-bufala'
+          and r.paciente_id = (select id from pacientes where email = 'r-bia@paciente.test')) = 2);
+
+select teste('alimento que não está no Mapa é recusado',
+  estado_de($$
+    select registrar_reintroducao_admin(
+      (select id from pacientes where email = 'r-bia@paciente.test'),
+      p_alimento := 'nao-existe')
+  $$) = 'P0002');
+
+-- Vindo os dois, o do Mapa manda: é o que tem ligação, e ligação é o que
+-- traz a marcação. O nome digitado seria o caminho pior dos dois.
+select registrar_reintroducao_admin(
+  (select id from pacientes where email = 'r-bia@paciente.test'),
+  p_alimento := 'manga', p_nome_novo := 'Manga escrita à mão',
+  p_sintomas := array['nenhum']);
+
+select teste('o nome digitado não virou item nenhum',
+  (select count(*) from reintroducao_itens
+    where paciente_id = (select id from pacientes where email = 'r-bia@paciente.test')
+      and nome_livre = 'Manga escrita à mão') = 0);
+
+select teste('e a manga entrou pelo Mapa, com a marcação dela',
+  (select count(*) from reintroducao_itens
+    where paciente_id = (select id from pacientes where email = 'r-bia@paciente.test')
+      and alimento_id = 'manga') = 1);
+commit;
+
+-- A porta continua fechada para a paciente, com a assinatura nova.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+select teste('a paciente NÃO lança do Mapa por outra pessoa',
+  estado_de($$
+    select registrar_reintroducao_admin(
+      (select id from pacientes where email = 'r-bia@paciente.test'),
+      p_alimento := 'manga')
+  $$) = '42501');
+commit;
+
+-- -----------------------------------------------------------------------------
 -- Resultado
 -- -----------------------------------------------------------------------------
 select

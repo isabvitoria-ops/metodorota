@@ -437,3 +437,19 @@ export function buscarNoMapa<T extends { nome: string; observacao: string | null
     .sort((x, y) => y.pontos - x.pontos || x.a.nome.localeCompare(y.a.nome, "pt-BR"))
     .map((x) => x.a);
 }
+
+/**
+ * Os alimentos do Mapa que ainda não estão na lista daquela paciente.
+ *
+ * É o que o lançamento retroativo oferece no grupo "Do Mapa". Os que já
+ * estão aparecem no primeiro grupo, como itens dela: repeti-los aqui daria
+ * duas linhas para a mesma coisa, e escolher a errada criaria um registro
+ * pendurado onde ela não esperava.
+ */
+export function doMapaQueFaltam<T extends { id: string }>(
+  material: T[],
+  itens: { alimentoId: string | null }[],
+): T[] {
+  const jaTem = new Set(itens.map((i) => i.alimentoId).filter(Boolean));
+  return material.filter((a) => !jaTem.has(a.id));
+}

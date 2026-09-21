@@ -16,6 +16,7 @@ import {
   STATUS,
   alimentosSemLigacao,
   buscarNoMapa,
+  doMapaQueFaltam,
   etapasDoMaterial,
   faixaDaIntensidade,
   inicioParaSemana,
@@ -252,15 +253,6 @@ function PainelDaPaciente({
             </button>
           </div>
 
-          {lancando && (
-            <ModalRetroativo
-              paciente={paciente}
-              itens={dados?.itens ?? []}
-              aoFechar={() => definirLancando(false)}
-              aoSalvar={comRecarga}
-            />
-          )}
-
           <PanoramaDeMarcadores itens={dados?.itens ?? []} registros={dados?.registros ?? []} />
           <RastreioAlimentar
             itens={dados?.itens ?? []}
@@ -277,8 +269,22 @@ function PainelDaPaciente({
           material={material}
           ocupado={ocupado}
           aoMudar={comRecarga}
+          aoLancar={() => definirLancando(true)}
         />
       )}
+      {/* Fora das abas: ela chega neste lançamento pela linha do tempo
+          ("é aqui que moram os registros") e pela lista da paciente ("é aqui
+          que eu adiciono alimentos"). As duas leituras estão certas. */}
+      {lancando && (
+        <ModalRetroativo
+          paciente={paciente}
+          itens={dados?.itens ?? []}
+          material={material}
+          aoFechar={() => definirLancando(false)}
+          aoSalvar={comRecarga}
+        />
+      )}
+
       {aba === "Acompanhamento" && (
         <Acompanhamento
           paciente={paciente}
@@ -487,16 +493,22 @@ function ModalLigarAoMapa({
 function ModalRetroativo({
   paciente,
   itens,
+  material,
   aoFechar,
   aoSalvar,
 }: {
   paciente: Paciente;
   itens: ItemDeReintroducao[];
+  material: AlimentoDoMaterial[];
   aoFechar: () => void;
   aoSalvar: (acao: () => Promise<void>) => Promise<boolean>;
 }) {
   const hoje = hojeSaoPaulo();
-  const [itemId, definirItemId] = useState("");
+  // `escolha` guarda de onde veio o alimento, porque o caminho muda o
+  // resultado: "item:" é um que já está na lista dela, "mapa:" entra ligado
+  // ao Mapa (e por isso com marcação), e vazio é nome escrito à mão, que
+  // entra solto. Um select só, três destinos.
+  const [escolha, definirEscolha] = useState("");
   const [nomeNovo, definirNomeNovo] = useState("");
   const [data, definirData] = useState(hoje);
   const [horario, definirHorario] = useState("");
@@ -510,9 +522,15 @@ function ModalRetroativo({
   const [lancados, definirLancados] = useState<string[]>([]);
 
   const comSintoma = sintomas.length > 0 && sintomas[0] !== "nenhum";
-  const escolhido = itens.find((i) => i.id === itemId);
-  const nome = escolhido?.nome ?? nomeNovo.trim();
+  const itemId = escolha.startsWith("item:") ? escolha.slice(5) : "";
+  const alimentoId = escolha.startsWith("mapa:") ? escolha.slice(5) : "";
+  const nome =
+    itens.find((i) => i.id === itemId)?.nome ??
+    material.find((a) => a.id === alimentoId)?.nome ??
+    nomeNovo.trim();
   const podeSalvar = Boolean(nome) && Boolean(data) && data <= hoje && !salvando;
+
+  const doMapa = doMapaQueFaltam(material, itens);
 
   function alternarSintoma(chave: SintomaReintroducao) {
     definirSintomas((atual) => {
@@ -525,7 +543,7 @@ function ModalRetroativo({
   }
 
   function limparParaOProximo() {
-    definirItemId("");
+    definirEscolha("");
     definirNomeNovo("");
     definirHorario("");
     definirQuantidade("");
@@ -543,7 +561,8 @@ function ModalRetroativo({
     void aoSalvar(() =>
       repositorio.registrarReintroducaoPorPaciente(paciente.id, {
         itemId: itemId || null,
-        nomeNovo: itemId ? null : nomeNovo.trim() || null,
+        alimentoId: alimentoId || null,
+        nomeNovo: itemId || alimentoId ? null : nomeNovo.trim() || null,
         data,
         horario: horario || null,
         quantidade: quantidade.trim() || null,
@@ -570,19 +589,37 @@ function ModalRetroativo({
       </p>
 
       <Campo rotulo="Alimento">
-        <Selecao
-          valor={itemId}
-          aoMudar={definirItemId}
-          opcoes={[
-            { valor: "", rotulo: "Outro — escrever o nome abaixo" },
-            ...itens.map((i) => ({ valor: i.id, rotulo: i.nome })),
-          ]}
-        />
+        <select
+          className="c-select"
+          value={escolha}
+          onChange={(e) => definirEscolha(e.target.value)}
+        >
+          <option value="">Outro — escrever o nome abaixo</option>
+          {itens.length > 0 && (
+            <optgroup label="Já na lista dela">
+              {itens.map((i) => (
+                <option key={i.id} value={`item:${i.id}`}>
+                  {i.nome}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          {doMapa.length > 0 && (
+            <optgroup label="Do Mapa — entra já com a marcação">
+              {doMapa.map((a) => (
+                <option key={a.id} value={`mapa:${a.id}`}>
+                  {a.nome}
+                  {a.semanaSugerida ? ` · etapa ${a.semanaSugerida}` : ""}
+                </option>
+              ))}
+            </optgroup>
+          )}
+        </select>
       </Campo>
-      {!itemId && (
+      {!escolha && (
         <Campo
           rotulo="Nome do alimento"
-          dica="Entra na lista dela. O mesmo alimento pode ser lançado quantas vezes ela tiver testado."
+          dica="Escrito à mão o alimento entra SEM marcação de oxalato, histamina ou lectina. Se ele estiver no Mapa, escolha por lá."
         >
           <Texto valor={nomeNovo} aoMudar={definirNomeNovo} placeholder="Iogurte de cabra" />
         </Campo>
@@ -829,12 +866,14 @@ function ListaDaPaciente({
   material,
   ocupado,
   aoMudar,
+  aoLancar,
 }: {
   paciente: Paciente;
   itens: ItemDeReintroducao[];
   material: AlimentoDoMaterial[];
   ocupado: boolean;
   aoMudar: (acao: () => Promise<void>) => Promise<boolean>;
+  aoLancar: () => void;
 }) {
   const [adicionando, definirAdicionando] = useState(false);
   const [classificando, definirClassificando] = useState<ItemDeReintroducao | null>(null);
@@ -849,14 +888,28 @@ function ListaDaPaciente({
             ? "Nenhum alimento na lista desta paciente."
             : `${itens.length} ${itens.length === 1 ? "alimento" : "alimentos"} na lista dela.`}
         </p>
-        <button
-          type="button"
-          className="c-botao c-botao-pequeno"
-          onClick={() => definirAdicionando(true)}
-        >
-          Adicionar alimentos
-        </button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button type="button" className="c-botao c-botao-secundario c-botao-pequeno" onClick={aoLancar}>
+            Adicionar com sintoma
+          </button>
+          <button
+            type="button"
+            className="c-botao c-botao-pequeno"
+            onClick={() => definirAdicionando(true)}
+          >
+            Adicionar alimentos
+          </button>
+        </div>
       </div>
+
+      {/* A diferença entre os dois botões, dita antes de ela clicar no
+          errado: um monta a lista do que ela AINDA vai testar, o outro
+          transcreve o que ela JÁ testou. */}
+      <p className="c-dica" style={{ marginTop: -4, marginBottom: 10 }}>
+        “Adicionar alimentos” monta a lista do que ela ainda vai testar. “Adicionar com
+        sintoma” é para o que ela já testou fora do aplicativo: entra o alimento e o que
+        ela sentiu, na data em que aconteceu.
+      </p>
 
       {/* O motivo real de a marcação não aparecer para ela. Dito aqui, na
           tela onde se resolve, e não só no painel. */}

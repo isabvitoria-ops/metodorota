@@ -146,6 +146,14 @@ export interface Reintroducao {
 export interface NovoRegistroDeReintroducao {
   itemId?: string | null;
   nomeNovo?: string | null;
+  /**
+   * Um alimento do Mapa, quando a nutricionista transcreve do papel.
+   *
+   * Só ela usa: entra na lista da paciente já ligado, e por isso já com a
+   * marcação. Pelo `nomeNovo` o alimento nasceria solto, sem oxalato nem
+   * histamina — exatamente o buraco que estamos fechando.
+   */
+  alimentoId?: string | null;
   data?: string | null;
   horario?: string | null;
   quantidade?: string | null;

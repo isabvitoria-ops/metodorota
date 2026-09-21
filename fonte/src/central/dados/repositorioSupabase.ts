@@ -597,6 +597,7 @@ export const repositorioSupabase: Repositorio = {
       p_paciente: pacienteId,
       p_item: registro.itemId ?? null,
       p_nome_novo: registro.nomeNovo ?? null,
+      p_alimento: registro.alimentoId ?? null,
       p_data: registro.data ?? null,
       p_horario: registro.horario ?? null,
       p_quantidade: registro.quantidade ?? null,

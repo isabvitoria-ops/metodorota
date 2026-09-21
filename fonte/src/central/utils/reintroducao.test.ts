@@ -10,6 +10,7 @@ import {
   BRISTOL,
   alimentosSemLigacao,
   buscarNoMapa,
+  doMapaQueFaltam,
   etapasDoMaterial,
   inicioParaSemana,
   opcoesDeSemana,
@@ -602,4 +603,26 @@ test("termo vazio devolve o Mapa inteiro, não uma lista vazia", () => {
 
 test("o que não existe no Mapa devolve nada, sem inventar parecido", () => {
   assert.deepEqual(buscarNoMapa(MAPA, "champagne"), []);
+});
+
+test("o grupo 'Do Mapa' não repete o que já está na lista dela", () => {
+  const material = [{ id: "abacate" }, { id: "manga" }, { id: "pera" }];
+  const itens = [
+    { alimentoId: "abacate" },
+    { alimentoId: null }, // digitado à mão: não tira ninguém do Mapa
+  ];
+  assert.deepEqual(
+    doMapaQueFaltam(material, itens).map((a) => a.id),
+    ["manga", "pera"],
+  );
+});
+
+test("lista vazia: o Mapa inteiro é oferecido", () => {
+  const material = [{ id: "abacate" }, { id: "manga" }];
+  assert.equal(doMapaQueFaltam(material, []).length, 2);
+});
+
+test("com tudo já na lista, o grupo fica vazio em vez de repetir", () => {
+  const material = [{ id: "abacate" }];
+  assert.deepEqual(doMapaQueFaltam(material, [{ alimentoId: "abacate" }]), []);
 });
