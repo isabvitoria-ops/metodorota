@@ -55,12 +55,9 @@ coisa subir. Toda tabela nova entra por aí.
 
 ## O que trava agora
 
-**A FASE 1 depende do arquivo da logo.** A logo chegou como imagem na
-conversa, não como arquivo, e a regra é "não redesenhar, não recriar com
-outra fonte, não alterar proporções". Desenhar uma aproximação seria
-exatamente o que a regra proíbe. Precisa do PNG ou do SVG original — de
-preferência SVG, que é o que imprime sem borrar em qualquer tamanho e o que
-pesa menos dentro do arquivo único.
+~~**A FASE 1 depende do arquivo da logo.**~~ **Resolvido.** Ela conectou o
+Google Drive e a arte veio de lá, do manual da designer — em vetor,
+extraída do próprio PDF de entrega. Ver `src/central/marca/LEIA-ME.md`.
 
 **A FASE 5 depende de decidir onde o PDF do treino é lido.** Este ambiente
 não alcança a internet, e a extração de PDF no navegador precisa de uma
@@ -90,9 +87,36 @@ O que entrou:
 O que NÃO entrou, de propósito, porque é fase seguinte: cardio, metas,
 gráficos e importação de PDF.
 
+## FASE 3 — feita
+
+**Cardio** é registro da paciente: ela anda, ela anota. Tipo, minutos,
+distância e intensidade — os dois últimos opcionais e **nulos** quando em
+branco, porque a bicicleta da academia não dá distância e nem toda paciente
+tem zona de intensidade. Zero diria que ela andou zero quilômetro.
+
+**Meta** é decisão da profissional. O aplicativo não cria, não ajusta e não
+sugere meta. Uma por tipo por semana — duas metas de treino na mesma semana
+fariam a tela mostrar "3/4" e "3/5" lado a lado, e nenhuma seria a resposta.
+
+**O progresso não tem tabela.** O desenho original previa
+`weekly_goal_progress`; guardado, ele envelheceria — a paciente apaga uma
+sessão lançada por engano e o contador continuaria em 3/4. Contado das
+sessões, o número é sempre o que está lá, e não existe um segundo lugar para
+a verdade morar.
+
+Duas contas que valem a pena registrar: **treino conta DIA** (dois registros
+no mesmo dia são um dia de treino, não dois) e **cardio conta MINUTO** (três
+caminhadas de dez minutos não valem o mesmo que três de trinta).
+
+A **consistência** são sempre sete quadradinhos, de segunda a domingo: a
+régua não pode mudar de tamanho a cada semana, senão comparar uma semana com
+a outra deixa de funcionar de olho. E o dia feito não se distingue só pela
+cor — ganha borda cheia e texto escuro, que é o que sobrevive a uma
+impressão em preto e branco.
+
 ## A ordem que está sendo seguida
 
-FASE 0 auditoria ✓ · FASE 1 marca (travada no arquivo) · FASE 2 treino ✓ ·
-FASE 3 cardio e metas · FASE 4 painéis e gráficos · FASE 5 importar PDF ·
+FASE 0 auditoria ✓ · FASE 1 marca ✓ · FASE 2 treino ✓ ·
+FASE 3 cardio e metas ✓ · FASE 4 painéis e gráficos · FASE 5 importar PDF ·
 FASE 6 Central de Documentos · FASE 7 PDF do protocolo · FASE 8 PDF da
 avaliação · FASE 9 rastreabilidade integrada · FASE 10 revisão.

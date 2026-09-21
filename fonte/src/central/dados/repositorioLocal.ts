@@ -42,7 +42,7 @@ import { PLANOS } from "./sementes/planos";
 import { CONFIGURACOES } from "./sementes/configuracoes";
 import { paraConfiguracoes } from "./mapeadores";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
-import type { SessaoDeTreino, Treino } from "@/central/types/treino";
+import type { CardioSessao, MetaSemanal, SessaoDeTreino, Treino } from "@/central/types/treino";
 import type {
   ConteudoProtocolo,
   DadosAvaliacao,
@@ -827,7 +827,74 @@ export const repositorioLocal: Repositorio = {
   async excluirTreino() {
     throw new Error("Apagar treino precisa do banco. Configure o Supabase.");
   },
+
+  // --------------------------------------------------------- cardio e metas
+
+  async sessoesDeCardio() {
+    return CARDIO_DEMO;
+  },
+
+  async registrarCardio() {
+    throw new Error("Registrar cardio precisa do banco. Configure o Supabase.");
+  },
+
+  async excluirCardio() {
+    throw new Error("Apagar registro precisa do banco. Configure o Supabase.");
+  },
+
+  async metasSemanais() {
+    return METAS_DEMO;
+  },
+
+  async definirMetaSemanal() {
+    throw new Error("Definir meta precisa do banco. Configure o Supabase.");
+  },
+
+  async excluirMetaSemanal() {
+    throw new Error("Apagar meta precisa do banco. Configure o Supabase.");
+  },
 };
+
+/**
+ * Cardio e metas da demonstração.
+ *
+ * As metas são as da SEMANA CORRENTE de propósito: metas de semana passada
+ * não aparecem na tela (seria cobrança por uma semana que já acabou), e a
+ * demonstração ficaria sem nada para mostrar.
+ *
+ * Os números são escolhidos para a tela mostrar os dois estados que
+ * importam: uma meta ainda em andamento (3 de 4 treinos) e uma quase lá
+ * (80 de 90 minutos).
+ */
+const CARDIO_DEMO: CardioSessao[] = (() => {
+  const d = new Date();
+  const segunda = new Date(d);
+  segunda.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  const dia = (n: number) => {
+    const x = new Date(segunda);
+    x.setDate(segunda.getDate() + n);
+    return x.toISOString().slice(0, 10);
+  };
+  return [
+    { id: "c3", data: dia(4), tipo: "Caminhada", duracaoMin: 20, distanciaKm: 2.1,
+      intensidade: "Leve", observacao: null },
+    { id: "c2", data: dia(2), tipo: "Bike", duracaoMin: 30, distanciaKm: null,
+      intensidade: null, observacao: "Na academia" },
+    { id: "c1", data: dia(0), tipo: "Caminhada", duracaoMin: 30, distanciaKm: 3.2,
+      intensidade: "Leve", observacao: null },
+  ];
+})();
+
+const METAS_DEMO: MetaSemanal[] = (() => {
+  const d = new Date();
+  const segunda = new Date(d);
+  segunda.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  const semana = segunda.toISOString().slice(0, 10);
+  return [
+    { id: "m1", semanaInicio: semana, tipo: "treino", alvo: 4, unidade: "treinos" },
+    { id: "m2", semanaInicio: semana, tipo: "cardio", alvo: 90, unidade: "minutos" },
+  ];
+})();
 
 const TREINO_DEMO: Treino = {
   id: "treino-demo",

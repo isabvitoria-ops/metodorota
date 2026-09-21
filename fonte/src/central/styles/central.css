@@ -3018,6 +3018,95 @@ body:has(.central) {
   color: var(--text);
 }
 
+/* ---- metas da semana e consistência ---- */
+
+.c-meta + .c-meta {
+  margin-top: 10px;
+}
+
+.c-meta-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.c-meta-nome {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.c-meta-numero {
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.c-meta-barra {
+  margin-top: 8px;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+  overflow: hidden;
+}
+
+.c-meta-barra > span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+  border-radius: var(--radius-pill);
+}
+
+.c-meta-rodape {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Sete quadradinhos, sempre: a régua não pode mudar de tamanho a cada
+   semana, senão comparar uma semana com a outra deixa de funcionar de olho.
+   E a marcação não depende SÓ de cor — o dia feito ganha borda cheia e
+   texto escuro, que é o que sobrevive a uma impressão em preto e branco e
+   a quem não distingue as cores. */
+.c-consistencia {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.c-dia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 12px;
+  color: var(--text-subtle);
+}
+
+.c-dia-treino {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.c-dia-cardio {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Fez os dois no mesmo dia: a borda diz cardio, o fundo diz treino. */
+.c-dia-treino.c-dia-cardio {
+  background: var(--primary-soft);
+  border-color: var(--accent);
+  color: var(--primary-dark);
+}
+
 .c-linha-botoes-treino {
   display: flex;
   flex-wrap: wrap;

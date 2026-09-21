@@ -1,9 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Paciente } from "@/central/types";
-import type { ExercicioParaSalvar, Treino } from "@/central/types/treino";
+import type { ExercicioParaSalvar, MetaSemanal, TipoDeMeta, Treino } from "@/central/types/treino";
 import { repositorio } from "@/central/dados/repositorio";
 import { Campo, Selecao, Texto } from "@/central/admin/componentes/Campos";
 import { EvolucaoTreino } from "@/central/components/EvolucaoTreino";
+import { hojeSaoPaulo, dataBonita } from "@/central/utils/situacao";
+import { domingoDaSemana, segundaDaSemana } from "@/central/utils/metasSemanais";
 
 /**
  * Treino — área da nutricionista.
@@ -76,7 +78,7 @@ export function Treinos() {
 }
 
 function PainelDoTreino({ paciente }: { paciente: Paciente }) {
-  const [aba, definirAba] = useState<"plano" | "evolucao">("plano");
+  const [aba, definirAba] = useState<"plano" | "metas" | "evolucao">("plano");
   const [treinos, definirTreinos] = useState<Treino[]>([]);
   const [carregando, definirCarregando] = useState(true);
 
@@ -101,6 +103,13 @@ function PainelDoTreino({ paciente }: { paciente: Paciente }) {
         </button>
         <button
           type="button"
+          className={`c-admin-aba ${aba === "metas" ? "ativo" : ""}`}
+          onClick={() => definirAba("metas")}
+        >
+          Metas da semana
+        </button>
+        <button
+          type="button"
           className={`c-admin-aba ${aba === "evolucao" ? "ativo" : ""}`}
           onClick={() => definirAba("evolucao")}
         >
@@ -121,6 +130,10 @@ function PainelDoTreino({ paciente }: { paciente: Paciente }) {
             aoMudar={() => void carregar()}
           />
         )}
+      </div>
+
+      <div hidden={aba !== "metas"}>
+        <MetasDaSemana key={paciente.id} paciente={paciente} />
       </div>
 
       <div hidden={aba !== "evolucao"}>
@@ -316,4 +329,144 @@ function deTreino(t: Treino): ExercicioParaSalvar[] {
     repeticoesMax: texto(e.repeticoesMax),
     observacao: e.observacao ?? "",
   }));
+}
+
+/**
+ * As metas da semana — e elas são decisão DELA.
+ *
+ * O aplicativo não cria meta, não ajusta e não sugere. "4 treinos por
+ * semana" é clínico, tomado olhando para a paciente; uma barra cheia na
+ * tela da paciente não vira "aumente para 5" em lugar nenhum.
+ *
+ * A SEMANA É SEMPRE A SEGUNDA. Quem define numa quarta e ajusta na quinta
+ * está falando da MESMA semana, e sem normalizar viravam duas — a tela da
+ * paciente mostraria "3/4" e "3/5" lado a lado, e nenhuma seria a resposta.
+ * O banco normaliza também; aqui é só para a tela dizer a data certa antes
+ * de salvar.
+ */
+function MetasDaSemana({ paciente }: { paciente: Paciente }) {
+  const hoje = hojeSaoPaulo();
+  const [semana, definirSemana] = useState(segundaDaSemana(hoje));
+  const [metas, definirMetas] = useState<MetaSemanal[]>([]);
+  const [treino, definirTreino] = useState("");
+  const [cardio, definirCardio] = useState("");
+  const [estado, definirEstado] = useState<string | null>(null);
+  const [erro, definirErro] = useState<string | null>(null);
+  const [salvando, definirSalvando] = useState(false);
+
+  const carregar = useCallback(async () => {
+    const lista = await repositorio.metasSemanais(paciente.id).catch(() => []);
+    definirMetas(lista);
+  }, [paciente.id]);
+
+  useEffect(() => {
+    void carregar();
+  }, [carregar]);
+
+  // Os campos acompanham a semana escolhida: trocar de semana sem isso
+  // deixaria na tela o alvo da semana anterior, e salvar o copiaria para a
+  // nova sem ela perceber.
+  useEffect(() => {
+    const daSemana = metas.filter((m) => segundaDaSemana(m.semanaInicio) === semana);
+    definirTreino(String(daSemana.find((m) => m.tipo === "treino")?.alvo ?? ""));
+    definirCardio(String(daSemana.find((m) => m.tipo === "cardio")?.alvo ?? ""));
+    definirEstado(null);
+  }, [metas, semana]);
+
+  async function guardar(tipo: TipoDeMeta, alvo: string, unidade: string) {
+    if (alvo.trim() === "") return;
+    definirSalvando(true);
+    definirErro(null);
+    try {
+      await repositorio.definirMetaSemanal(paciente.id, semana, tipo, alvo, unidade);
+      await carregar();
+      definirEstado("Meta salva. Ela já vê na tela dela.");
+    } catch (e) {
+      definirErro(e instanceof Error ? e.message : "Não consegui salvar.");
+    } finally {
+      definirSalvando(false);
+    }
+  }
+
+  const semanas = ultimasSemanas(hoje, 6);
+
+  return (
+    <>
+      <Campo rotulo="Semana" dica="A semana vai de segunda a domingo.">
+        <Selecao
+          valor={semana}
+          aoMudar={definirSemana}
+          opcoes={semanas.map((s) => ({
+            valor: s,
+            rotulo:
+              `${dataBonita(s)} a ${dataBonita(domingoDaSemana(s))}` +
+              (s === segundaDaSemana(hoje) ? " — esta semana" : ""),
+          }))}
+        />
+      </Campo>
+
+      <div className="c-bloco">
+        <div className="c-bloco-topo">
+          <strong>Treino de força</strong>
+        </div>
+        <Campo rotulo="Quantos treinos nesta semana" dica="Deixe em branco para não ter meta.">
+          <Texto valor={treino} aoMudar={definirTreino} />
+        </Campo>
+        <button
+          type="button"
+          className="c-botao c-botao-pequeno"
+          disabled={salvando || treino.trim() === ""}
+          onClick={() => void guardar("treino", treino, "treinos")}
+        >
+          Salvar a meta de treino
+        </button>
+      </div>
+
+      <div className="c-bloco">
+        <div className="c-bloco-topo">
+          <strong>Cardio</strong>
+        </div>
+        {/* MINUTOS, e não sessões: contar sessão diria que três caminhadas
+            de dez minutos valem o mesmo que três de trinta. */}
+        <Campo rotulo="Quantos minutos nesta semana" dica="Somados: três de 30 fecham 90.">
+          <Texto valor={cardio} aoMudar={definirCardio} />
+        </Campo>
+        <button
+          type="button"
+          className="c-botao c-botao-pequeno"
+          disabled={salvando || cardio.trim() === ""}
+          onClick={() => void guardar("cardio", cardio, "minutos")}
+        >
+          Salvar a meta de cardio
+        </button>
+      </div>
+
+      {erro && (
+        <div className="c-aviso c-aviso-erro" role="alert">
+          <span>{erro}</span>
+        </div>
+      )}
+      {estado && !erro && (
+        <div className="c-aviso c-aviso-ok" role="status">
+          <span>{estado}</span>
+        </div>
+      )}
+
+      <p className="c-dica" style={{ marginTop: 14 }}>
+        O progresso é contado sozinho, do que ela registrar. Você não precisa voltar aqui para
+        marcar nada — e apagar um registro por engano não deixa o contador travado, porque ele
+        não é guardado: é contado na hora.
+      </p>
+    </>
+  );
+}
+
+/** As últimas N segundas, da mais nova para a mais antiga. */
+function ultimasSemanas(hoje: string, quantas: number): string[] {
+  const inicio = segundaDaSemana(hoje);
+  return Array.from({ length: quantas }, (_, i) => {
+    const d = new Date(`${inicio}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() - i * 7);
+    return d.toISOString().slice(0, 10);
+  });
 }

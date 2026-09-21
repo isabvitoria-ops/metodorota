@@ -36,6 +36,9 @@ import type {
   ResumoProtocolo,
 } from "@/central/types/protocolo";
 import type {
+  CardioSessao,
+  MetaSemanal,
+  TipoDeMeta,
   ExercicioParaSalvar,
   SerieParaSalvar,
   SessaoDeTreino,
@@ -288,6 +291,37 @@ export interface Repositorio {
     exercicios: ExercicioParaSalvar[],
   ): Promise<void>;
   excluirTreino(id: string): Promise<void>;
+
+  // --------------------------------------------------------- cardio e metas
+  //
+  // O cardio é registro DELA (a paciente anda, a paciente anota). A meta é
+  // decisão da PROFISSIONAL — o app não cria meta, não ajusta e não sugere.
+
+  sessoesDeCardio(pacienteId?: string | null): Promise<CardioSessao[]>;
+  registrarCardio(
+    id: string | null,
+    pacienteId: string | null,
+    data: string,
+    tipo: string,
+    duracaoMin: string,
+    distanciaKm: string,
+    intensidade: string,
+    observacao: string,
+  ): Promise<void>;
+  excluirCardio(id: string): Promise<void>;
+
+  /** As metas. Sem `pacienteId`, as de quem chamou. */
+  metasSemanais(pacienteId?: string | null): Promise<MetaSemanal[]>;
+
+  // Área da nutricionista
+  definirMetaSemanal(
+    pacienteId: string,
+    semana: string,
+    tipo: TipoDeMeta,
+    alvo: string,
+    unidade: string,
+  ): Promise<void>;
+  excluirMetaSemanal(id: string): Promise<void>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

@@ -1,5 +1,13 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
-import type { SerieParaSalvar, SessaoDeTreino, Treino } from "@/central/types/treino";
+import type {
+  CardioSessao,
+  MetaSemanal,
+  SerieParaSalvar,
+  SessaoDeTreino,
+  Treino,
+} from "@/central/types/treino";
+import { PainelDaSemana } from "@/central/components/PainelDaSemana";
+import { RegistroDeCardio } from "@/central/components/RegistroDeCardio";
 import { repositorio } from "@/central/dados/repositorio";
 import { dataBonita } from "@/central/utils/situacao";
 import type { SessaoDoExercicio } from "@/central/utils/progressaoTreino";
@@ -30,6 +38,8 @@ import {
 export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
   const [treino, definirTreino] = useState<Treino | null>(null);
   const [sessoes, definirSessoes] = useState<SessaoDeTreino[]>([]);
+  const [cardio, definirCardio] = useState<CardioSessao[]>([]);
+  const [metas, definirMetas] = useState<MetaSemanal[]>([]);
   const [carregando, definirCarregando] = useState(true);
   const [registrando, definirRegistrando] = useState(false);
 
@@ -37,12 +47,18 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
 
   const carregar = useMemo(
     () => async () => {
-      const [t, s] = await Promise.all([
+      // As quatro juntas: quatro idas ao banco em série deixariam a tela
+      // montando aos pedaços no celular dela.
+      const [t, s, c, m] = await Promise.all([
         daNutri ? Promise.resolve(null) : repositorio.meuTreino(),
         repositorio.sessoesDeTreino(pacienteId ?? null),
+        repositorio.sessoesDeCardio(pacienteId ?? null),
+        repositorio.metasSemanais(pacienteId ?? null),
       ]);
       if (!daNutri) definirTreino(t);
       definirSessoes(s);
+      definirCardio(c);
+      definirMetas(m);
     },
     [daNutri, pacienteId],
   );
@@ -63,6 +79,11 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
 
   return (
     <>
+      {/* O painel primeiro: é a resposta de "como está a minha semana", que
+          é o que ela abre a tela para saber. O card educativo vem depois —
+          ele ensina, mas não é notícia. */}
+      <PainelDaSemana metas={metas} treinos={sessoes} cardio={cardio} />
+
       <ComoVoceEvolui />
 
       {!daNutri && treino && (
@@ -79,6 +100,12 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
           }}
         />
       )}
+
+      <RegistroDeCardio
+        sessoes={cardio}
+        somenteLeitura={daNutri}
+        aoMudar={carregar}
+      />
 
       {sessoes.length === 0 ? (
         <div className="c-bloco" style={{ marginTop: 14 }}>

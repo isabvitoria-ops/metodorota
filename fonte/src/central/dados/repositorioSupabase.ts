@@ -22,6 +22,9 @@ import type {
   StatusReintroducao,
 } from "@/central/types";
 import type {
+  CardioSessao,
+  MetaSemanal,
+  TipoDeMeta,
   ExercicioParaSalvar,
   SerieParaSalvar,
   SessaoDeTreino,
@@ -996,7 +999,113 @@ export const repositorioSupabase: Repositorio = {
     const { error } = await sb.rpc("excluir_treino", { p_id: id });
     erro("apagar o treino", error);
   },
+
+  // --------------------------------------------------------- cardio e metas
+
+  async sessoesDeCardio(pacienteId?: string | null): Promise<CardioSessao[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("sessoes_de_cardio", {
+      p_paciente: pacienteId ?? null,
+      p_limite: 200,
+    });
+    erro("carregar o cardio", error);
+    return ((data ?? []) as Linha[]).map((c) => ({
+      id: texto(c.id),
+      data: texto(c.data),
+      tipo: texto(c.tipo),
+      duracaoMin: numeroOuNulo(c.duracaoMin),
+      distanciaKm: numeroOuNulo(c.distanciaKm),
+      intensidade: textoOuNulo(c.intensidade),
+      observacao: textoOuNulo(c.observacao),
+    }));
+  },
+
+  async registrarCardio(
+    id: string | null,
+    pacienteId: string | null,
+    data: string,
+    tipo: string,
+    duracaoMin: string,
+    distanciaKm: string,
+    intensidade: string,
+    observacao: string,
+  ) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("registrar_cardio", {
+      p_id: id,
+      p_paciente: pacienteId,
+      p_data: data,
+      p_tipo: tipo,
+      // Campo em branco vai NULO, não zero: a bicicleta da academia não dá
+      // distância, e zero diria que ela andou zero quilômetro.
+      p_duracao: aNumero(duracaoMin),
+      p_distancia: aNumero(distanciaKm),
+      p_intensidade: intensidade,
+      p_observacao: observacao,
+    });
+    erro("registrar o cardio", error);
+  },
+
+  async excluirCardio(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("excluir_cardio", { p_id: id });
+    erro("apagar o registro", error);
+  },
+
+  async metasSemanais(pacienteId?: string | null): Promise<MetaSemanal[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("metas_semanais_de", {
+      p_paciente: pacienteId ?? null,
+      p_semanas: 12,
+    });
+    erro("carregar as metas", error);
+    return ((data ?? []) as Linha[]).map((m) => ({
+      id: texto(m.id),
+      semanaInicio: texto(m.semanaInicio),
+      tipo: m.tipo === "cardio" ? "cardio" : "treino",
+      alvo: numeroOuNulo(m.alvo) ?? 0,
+      unidade: texto(m.unidade),
+    }));
+  },
+
+  async definirMetaSemanal(
+    pacienteId: string,
+    semana: string,
+    tipo: TipoDeMeta,
+    alvo: string,
+    unidade: string,
+  ) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("definir_meta_semanal", {
+      p_paciente: pacienteId,
+      p_semana: semana,
+      p_tipo: tipo,
+      p_alvo: aNumero(alvo),
+      p_unidade: unidade,
+    });
+    erro("definir a meta", error);
+  },
+
+  async excluirMetaSemanal(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("excluir_meta_semanal", { p_id: id });
+    erro("apagar a meta", error);
+  },
 };
+
+/**
+ * O que a tela digitou, virando número para o banco.
+ *
+ * Vírgula vira ponto — ela escreve "3,2 km", não "3.2". E campo em branco
+ * vai NULO, nunca zero: os dois significam coisas diferentes, e o banco
+ * guarda a diferença.
+ */
+function aNumero(v: string): number | null {
+  const t = v.trim().replace(",", ".");
+  if (t === "") return null;
+  const n = Number(t);
+  return Number.isFinite(n) ? n : null;
+}
 
 /**
  * Número ou nulo, NUNCA zero por engano.
