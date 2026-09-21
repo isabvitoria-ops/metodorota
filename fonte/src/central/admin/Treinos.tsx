@@ -1,9 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Paciente } from "@/central/types";
-import type { ExercicioParaSalvar, MetaSemanal, TipoDeMeta, Treino } from "@/central/types/treino";
+import type {
+  CardioSessao,
+  ExercicioParaSalvar,
+  MetaSemanal,
+  SessaoDeTreino,
+  TipoDeMeta,
+  Treino,
+} from "@/central/types/treino";
 import { repositorio } from "@/central/dados/repositorio";
 import { Campo, Selecao, Texto } from "@/central/admin/componentes/Campos";
 import { EvolucaoTreino } from "@/central/components/EvolucaoTreino";
+import { PainelDeTreino } from "@/central/components/PainelDeTreino";
 import { hojeSaoPaulo, dataBonita } from "@/central/utils/situacao";
 import { domingoDaSemana, segundaDaSemana } from "@/central/utils/metasSemanais";
 
@@ -78,7 +86,7 @@ export function Treinos() {
 }
 
 function PainelDoTreino({ paciente }: { paciente: Paciente }) {
-  const [aba, definirAba] = useState<"plano" | "metas" | "evolucao">("plano");
+  const [aba, definirAba] = useState<"plano" | "metas" | "painel" | "evolucao">("plano");
   const [treinos, definirTreinos] = useState<Treino[]>([]);
   const [carregando, definirCarregando] = useState(true);
 
@@ -110,10 +118,17 @@ function PainelDoTreino({ paciente }: { paciente: Paciente }) {
         </button>
         <button
           type="button"
+          className={`c-admin-aba ${aba === "painel" ? "ativo" : ""}`}
+          onClick={() => definirAba("painel")}
+        >
+          Painel
+        </button>
+        <button
+          type="button"
           className={`c-admin-aba ${aba === "evolucao" ? "ativo" : ""}`}
           onClick={() => definirAba("evolucao")}
         >
-          Evolução dela
+          Sessão a sessão
         </button>
       </div>
 
@@ -134,6 +149,10 @@ function PainelDoTreino({ paciente }: { paciente: Paciente }) {
 
       <div hidden={aba !== "metas"}>
         <MetasDaSemana key={paciente.id} paciente={paciente} />
+      </div>
+
+      <div hidden={aba !== "painel"}>
+        <Painel key={paciente.id} pacienteId={paciente.id} />
       </div>
 
       <div hidden={aba !== "evolucao"}>
@@ -469,4 +488,39 @@ function ultimasSemanas(hoje: string, quantas: number): string[] {
     d.setUTCDate(d.getUTCDate() - i * 7);
     return d.toISOString().slice(0, 10);
   });
+}
+
+/**
+ * O painel carrega o seu próprio dado.
+ *
+ * Poderia receber pronto de cima, mas aí a aba "Sessão a sessão" e esta
+ * estariam sempre buscando as duas coisas juntas, e quem só abre o plano
+ * pagaria por três consultas que não vai ver.
+ */
+function Painel({ pacienteId }: { pacienteId: string }) {
+  const [treinos, definirTreinos] = useState<SessaoDeTreino[]>([]);
+  const [cardio, definirCardio] = useState<CardioSessao[]>([]);
+  const [metas, definirMetas] = useState<MetaSemanal[]>([]);
+  const [carregando, definirCarregando] = useState(true);
+
+  useEffect(() => {
+    let vivo = true;
+    void Promise.all([
+      repositorio.sessoesDeTreino(pacienteId).catch(() => []),
+      repositorio.sessoesDeCardio(pacienteId).catch(() => []),
+      repositorio.metasSemanais(pacienteId).catch(() => []),
+    ]).then(([t, c, m]) => {
+      if (!vivo) return;
+      definirTreinos(t);
+      definirCardio(c);
+      definirMetas(m);
+      definirCarregando(false);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [pacienteId]);
+
+  if (carregando) return <p className="c-dica">Carregando…</p>;
+  return <PainelDeTreino treinos={treinos} cardio={cardio} metas={metas} />;
 }

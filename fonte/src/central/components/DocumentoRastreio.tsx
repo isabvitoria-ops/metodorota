@@ -3,6 +3,7 @@ import type { ItemDeReintroducao, RegistroDeReintroducao } from "@/central/types
 import { dataBonita } from "@/central/utils/situacao";
 import type { DocumentoDeRastreio, LinhaDoDocumento } from "@/central/utils/documentoRastreio";
 import { montarDocumento } from "@/central/utils/documentoRastreio";
+import { FolhaDeDocumento } from "./FolhaDeDocumento";
 import { Marca } from "./Marca";
 
 /**
@@ -41,7 +42,8 @@ export function DocumentoRastreio({
   const doc = montarDocumento({ paciente, semana, itens, registros });
 
   return (
-    <article className="doc" aria-hidden="true">
+    <FolhaDeDocumento titulo={`Rastreabilidade Alimentar — ${doc.paciente}`}>
+      <article className="doc">
       <Cabecalho doc={doc} />
       <Resumo doc={doc} />
       <MapaDeTolerancia doc={doc} />
@@ -53,7 +55,8 @@ export function DocumentoRastreio({
 
       <ProximosTestes aTestar={doc.aTestar} />
       <Rodape paciente={doc.paciente} nutricionista={nutricionista} />
-    </article>
+      </article>
+    </FolhaDeDocumento>
   );
 }
 

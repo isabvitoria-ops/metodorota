@@ -1,5 +1,6 @@
 import type { ConteudoProtocolo, Protocolo } from "@/central/types/protocolo";
 import { dataBonita } from "@/central/utils/situacao";
+import { FolhaDeDocumento } from "./FolhaDeDocumento";
 import { Marca } from "./Marca";
 
 /**
@@ -27,7 +28,8 @@ export function DocumentoProtocolo({
   if (!conteudo || conteudo.refeicoes.length === 0) return null;
 
   return (
-    <article className="doc" aria-hidden="true">
+    <FolhaDeDocumento titulo={`Protocolo Alimentar — ${paciente}`}>
+      <article className="doc">
       <header className="doc-capa">
         <Marca altura={40} className="doc-marca" />
         <p className="doc-sobretitulo">Protocolo Alimentar</p>
@@ -122,6 +124,7 @@ export function DocumentoProtocolo({
         </p>
         <p>Nutricionista: {nutricionista}</p>
       </footer>
-    </article>
+      </article>
+    </FolhaDeDocumento>
   );
 }

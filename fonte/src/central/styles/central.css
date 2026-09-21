@@ -2671,18 +2671,22 @@ body:has(.central) {
   /* Em vez de esconder por visibilidade — que deixa o espaço ocupado e
      rendia uma segunda página em branco no arquivo salvo —, o que não vai
      para o papel sai do fluxo. */
-  .c-nav,
-  .c-faixa-demo,
-  .c-faixa-admin,
-  .c-cabecalho-pagina,
-  .c-cabecalho,
-  /* Tudo o que não é o DOCUMENTO sai do papel. O `.doc` precisa estar na
-     exceção: `.c-conteudo > *:not(...)` tem especificidade maior que `.doc`,
-     então sem nomeá-lo aqui o `display: block !important` dele perdia e o
-     documento saía em branco — que foi exatamente o que aconteceu. */
-  .c-conteudo > *:not(.doc),
-  .c-rastreio {
+  /* UMA REGRA, e ela vale em toda tela: o aplicativo inteiro sai do papel.
+     O documento não está aqui dentro — mora numa folha montada direto no
+     `body` (ver `FolhaDeDocumento`), e por isso não é atingido.
+
+     DEFEITO QUE ISTO CONSERTA: antes a regra listava `.c-conteudo > *`, que
+     é a casca da tela da PACIENTE. A área da nutricionista tem outra casca
+     e ia inteira para o papel — o PDF saía com nove páginas, a primeira
+     sendo o menu do aplicativo e o documento começando só na segunda. Uma
+     lista de exceções nunca ficaria completa: bastava uma tela nova. */
+  #root,
+  .central {
     display: none !important;
+  }
+
+  .folha-documento {
+    display: block !important;
   }
 
   .doc {
@@ -2766,7 +2770,8 @@ body:has(.central) {
    régua, porque é para ser impresso.
    ========================================================================= */
 
-.doc {
+.doc,
+.folha-documento {
   display: none;
 }
 
@@ -3690,6 +3695,67 @@ body:has(.central) {
   background: var(--primary-soft);
   border-color: var(--accent);
   color: var(--primary-dark);
+}
+
+/* ---- gráficos ---- */
+
+.c-grafico {
+  margin-top: 4px;
+}
+
+.c-grafico-faixa {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Barras e não linha: frequência é contagem por período, e uma linha
+   ligando duas semanas sugeriria que existe alguma coisa entre elas. */
+.c-barras {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 110px;
+  margin-top: 10px;
+}
+
+.c-barra-semana {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  min-width: 0;
+}
+
+.c-barra-valor {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 3px;
+  white-space: nowrap;
+}
+
+.c-barra-corpo {
+  width: 100%;
+  background: var(--primary);
+  border-radius: 4px 4px 0 0;
+  min-height: 2px;
+}
+
+/* A semana ZERADA fica como um risco, não somem: é o buraco que a
+   profissional quer enxergar. */
+.c-barra-zero {
+  background: var(--border-strong);
+}
+
+.c-barra-rotulo {
+  margin-top: 5px;
+  font-size: 9px;
+  color: var(--text-subtle);
+  white-space: nowrap;
 }
 
 .c-linha-botoes-treino {

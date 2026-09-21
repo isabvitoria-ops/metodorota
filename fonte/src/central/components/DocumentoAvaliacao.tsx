@@ -7,6 +7,7 @@ import {
   variacaoRecente,
   variacaoTotal,
 } from "@/central/utils/evolucaoAvaliacoes";
+import { FolhaDeDocumento } from "./FolhaDeDocumento";
 import { Marca } from "./Marca";
 
 /**
@@ -45,7 +46,8 @@ export function DocumentoAvaliacao({
   const circunferencias = tabelaDeMedidas(historico, "circunferencias", 4);
 
   return (
-    <article className="doc" aria-hidden="true">
+    <FolhaDeDocumento titulo={`Avaliação Física — ${paciente}`}>
+      <article className="doc">
       <header className="doc-capa">
         <Marca altura={40} className="doc-marca" />
         <p className="doc-sobretitulo">Avaliação Física</p>
@@ -93,7 +95,8 @@ export function DocumentoAvaliacao({
         </p>
         <p>Nutricionista: {nutricionista}</p>
       </footer>
-    </article>
+      </article>
+    </FolhaDeDocumento>
   );
 }
 
