@@ -2758,3 +2758,14 @@ body:has(.central) {
 .c-barra-magra {
   flex: 1;
 }
+
+/* Os campos de medida da avaliação: muitos e curtos, então uma grade que
+   cabe três no celular e seis no computador — e não dez linhas de campo. */
+.c-linha-medidas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+  gap: 8px 12px;
+}
+.c-linha-medidas .c-campo {
+  margin-bottom: 0;
+}

@@ -15,6 +15,13 @@ import { AVALIACAO_VAZIA, CONTEUDO_VAZIO } from "@/central/types/protocolo";
 import { repositorio } from "@/central/dados/repositorio";
 import { dataBonita } from "@/central/utils/situacao";
 import { AreaDeLinhas, AreaTexto, Campo, NumeroDecimal, Selecao, Texto } from "./componentes/Campos";
+import { numeroDeTexto, textoDeNumero } from "@/central/utils/numero";
+import {
+  CIRCUNFERENCIAS,
+  DOBRAS,
+  medidasPreenchidas,
+  valoresDeMedidas,
+} from "@/central/utils/medidasCorporais";
 import { hojeSaoPaulo, dataBonita as diaBonito } from "@/central/utils/situacao";
 
 /**
@@ -1048,6 +1055,24 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
     }
   }
 
+  // Os campos vêm da lista guardada e voltam para ela. Guardar o dicionário
+  // em estado próprio duplicaria a verdade: a lista já é a verdade.
+  const valoresDobras = valoresDeMedidas(dados.dobras);
+  const valoresCircunferencias = valoresDeMedidas(dados.circunferencias);
+
+  function mudarDobra(nome: string, valor: number | null) {
+    const atuais = { ...valoresDobras, [nome]: valor === null ? "" : textoDeNumero(valor) };
+    definirDados({ ...dados, dobras: medidasPreenchidas(DOBRAS, atuais) });
+  }
+
+  function mudarCircunferencia(nome: string, valor: number | null) {
+    const atuais = {
+      ...valoresCircunferencias,
+      [nome]: valor === null ? "" : textoDeNumero(valor),
+    };
+    definirDados({ ...dados, circunferencias: medidasPreenchidas(CIRCUNFERENCIAS, atuais) });
+  }
+
   const campoNumero = (
     rotulo: string,
     chave: keyof DadosAvaliacao,
@@ -1148,25 +1173,46 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
             {campoNumero("Soma das dobras (mm)", "somaDobras", "A do protocolo usado.")}
           </div>
 
-          <Campo rotulo="Dobras" dica="Uma por linha, no formato: Tríceps = 9,6 mm">
-            <AreaDeLinhas
-              valor={dados.dobras.map((d) => `${d.nome} = ${d.valor}`)}
-              linhas={4}
-              aoMudar={(linhas) =>
-                definirDados({ ...dados, dobras: linhas.map(paraMedida) })
-              }
-            />
-          </Campo>
+          {/* Um campo por dobra, como na ferramenta de cálculo — ela pediu
+              assim: "não quero tudo junto, quero tipo o meu de cálculo
+              pessoal, separado". Antes era uma caixa de texto onde ela
+              escrevia "Tríceps = 9,6 mm" por linha, e errar o formato
+              custava a medida inteira.
 
-          <Campo rotulo="Circunferências" dica="Uma por linha: Cintura = 61 cm">
-            <AreaDeLinhas
-              valor={dados.circunferencias.map((d) => `${d.nome} = ${d.valor}`)}
-              linhas={4}
-              aoMudar={(linhas) =>
-                definirDados({ ...dados, circunferencias: linhas.map(paraMedida) })
-              }
-            />
-          </Campo>
+              O que ela não medir fica em branco e NÃO vira linha nenhuma:
+              "não peguei dobra do peitoral, nem precisa aparecer pro
+              paciente". */}
+          <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
+            Dobras cutâneas (mm)
+          </h3>
+          <div className="c-linha-medidas">
+            {DOBRAS.map((campo) => (
+              <Campo rotulo={campo.nome} key={campo.nome}>
+                <NumeroDecimal
+                  valor={numeroDeTexto(valoresDobras[campo.nome] ?? "")}
+                  aoMudar={(v) => mudarDobra(campo.nome, v)}
+                />
+              </Campo>
+            ))}
+          </div>
+
+          <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
+            Circunferências (cm)
+          </h3>
+          <div className="c-linha-medidas">
+            {CIRCUNFERENCIAS.map((campo) => (
+              <Campo rotulo={campo.nome} key={campo.nome}>
+                <NumeroDecimal
+                  valor={numeroDeTexto(valoresCircunferencias[campo.nome] ?? "")}
+                  aoMudar={(v) => mudarCircunferencia(campo.nome, v)}
+                />
+              </Campo>
+            ))}
+          </div>
+
+          <p className="c-dica">
+            Deixe em branco o que você não mediu — não aparece para a paciente.
+          </p>
 
           <Campo rotulo="Observação" dica="Opcional. Aparece para a paciente.">
             <AreaTexto
@@ -1253,8 +1299,4 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
   );
 }
 
-/** "Tríceps = 9,6 mm" vira { nome, valor }. Sem "=", tudo vira nome. */
-function paraMedida(linha: string): { nome: string; valor: string } {
-  const [nome, ...resto] = linha.split("=");
-  return { nome: (nome ?? "").trim(), valor: resto.join("=").trim() };
-}
+
