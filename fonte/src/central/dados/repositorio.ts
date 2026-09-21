@@ -35,6 +35,12 @@ import type {
   Protocolo,
   ResumoProtocolo,
 } from "@/central/types/protocolo";
+import type {
+  ExercicioParaSalvar,
+  SerieParaSalvar,
+  SessaoDeTreino,
+  Treino,
+} from "@/central/types/treino";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
 import { repositorioSupabase } from "./repositorioSupabase";
@@ -246,6 +252,42 @@ export interface Repositorio {
     publicada: boolean,
   ): Promise<void>;
   excluirAvaliacaoFisica(id: string): Promise<void>;
+
+  // ------------------------------------------------------- evolução de treino
+  //
+  // O plano é dela; o registro do que foi feito é da paciente. O app não
+  // prescreve treino, não sugere carga e não monta série.
+
+  /** O treino ativo da paciente, com os exercícios. Nulo se não há. */
+  meuTreino(): Promise<Treino | null>;
+
+  /**
+   * As sessões realizadas. Sem `pacienteId`, as da própria paciente; com
+   * `pacienteId`, as daquela paciente — e aí só a nutricionista passa.
+   */
+  sessoesDeTreino(pacienteId?: string | null): Promise<SessaoDeTreino[]>;
+
+  registrarSessaoTreino(
+    id: string | null,
+    pacienteId: string | null,
+    treinoId: string | null,
+    data: string,
+    observacao: string,
+    series: SerieParaSalvar[],
+  ): Promise<void>;
+  excluirSessaoTreino(id: string): Promise<void>;
+
+  // Área da nutricionista
+  treinosDoPaciente(pacienteId: string): Promise<Treino[]>;
+  salvarTreino(
+    id: string | null,
+    pacienteId: string,
+    nome: string,
+    observacao: string,
+    ativo: boolean,
+    exercicios: ExercicioParaSalvar[],
+  ): Promise<void>;
+  excluirTreino(id: string): Promise<void>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

@@ -36,6 +36,9 @@ const TRACOS: Record<string, string> = {
   balanca: "M12 4v16M7 20h10M6 9h12l-2.5 5a3.5 3.5 0 0 1-7 0L6 9Z",
   taca: "M8 3h8l-1 6.5a3 3 0 0 1-6 0L8 3Zm4 9.5V20m-3.5 0h7",
   carrinho: "M3 4h2l2.4 10.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6M9 20h.01M17 20h.01",
+  // Uma linha que sobe, no traço dos outros. Nada de halter: a área é de
+  // acompanhamento nutricional, não de academia.
+  evolucao: "M4 19h16M6 16l4-5 3.5 3L19 7",
 };
 
 export type NomeIcone = keyof typeof TRACOS | string;

@@ -2905,6 +2905,117 @@ body:has(.central) {
   background: var(--surface);
 }
 
+/* ---------------------------------------------------- evolução de treino
+
+   Mesma paleta do resto, de propósito: um módulo com cor própria pareceria
+   um aplicativo diferente colado dentro deste. E nada de verde/vermelho na
+   progressão — não há sessão boa nem sessão ruim aqui. */
+
+.c-como-evolui {
+  margin-top: 4px;
+}
+
+.c-como-evolui-titulo {
+  margin: 0;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.c-como-evolui-frase {
+  margin: 6px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.c-como-evolui-escada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  margin: 12px 0;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.c-como-evolui-escada .c-seta {
+  color: var(--primary);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.c-como-evolui-rodape {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* A linha da mensagem: largura inteira, sob os números daquele dia. A zebra
+   da tabela conta em pares de linha, então ela é desligada aqui e o par
+   (números + mensagem) ganha o fundo junto — senão a mensagem apareceria com
+   a cor do dia seguinte. */
+.c-tabela-treino tbody tr {
+  background: transparent;
+}
+
+.c-tabela-treino .c-linha-com-nota th,
+.c-tabela-treino .c-linha-com-nota td {
+  padding-bottom: 2px;
+}
+
+.c-tabela-treino .c-linha-nota td {
+  padding-top: 0;
+  padding-bottom: 10px;
+  text-align: left;
+  white-space: normal;
+  border-bottom: 1px solid var(--border);
+}
+
+.c-tabela-treino tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.c-progrediu {
+  color: var(--primary-dark);
+  font-weight: 500;
+}
+
+/* Sinaliza, e manda conversar. Não propõe carga: quem decide a próxima
+   progressão é quem programou o treino. */
+.c-aviso-topo {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.c-tabela-registro input {
+  width: 74px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-campo);
+  border-radius: 8px;
+  font: inherit;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.c-linha-botoes-treino {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
 .c-tabela-medidas tbody td {
   color: var(--text);
   /* DEFEITO QUE ISTO FECHA: o texto escondido do travessão ("não medido

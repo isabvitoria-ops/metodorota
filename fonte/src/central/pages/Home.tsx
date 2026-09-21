@@ -28,6 +28,12 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Registre o que você reintroduziu e como se sentiu.",
   },
   {
+    rota: rotas.treino,
+    icone: "evolucao",
+    titulo: "Minha evolução",
+    descricao: "Seu treino registrado, e o que mudou de uma sessão para a outra.",
+  },
+  {
     rota: rotas.trocas,
     icone: "troca",
     titulo: "Troca inteligente",
@@ -121,7 +127,11 @@ export function Home() {
             {ATALHOS.filter(
               (atalho) =>
                 (atalho.rota !== rotas.rastreabilidade || acesso.rastreio) &&
-                (atalho.rota !== rotas.protocolo || acesso.protocolo),
+                (atalho.rota !== rotas.protocolo || acesso.protocolo) &&
+                // Mesma regra: sem treino ativo e sem nenhuma sessão
+                // registrada, a porta não existe — em vez de existir e abrir
+                // uma tela de evolução que não tem o que mostrar.
+                (atalho.rota !== rotas.treino || acesso.treino),
             ).map((atalho) => (
               <button key={atalho.rota} type="button" className="c-atalho" onClick={() => navegar(atalho.rota)}>
                 <span className="c-atalho-icone">

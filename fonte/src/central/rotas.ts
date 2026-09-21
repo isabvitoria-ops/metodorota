@@ -25,6 +25,7 @@ export const rotas = {
   guia: (guiaId: string) => `/guias/${guiaId}`,
   protocolo: "/protocolo",
   avaliacao: "/avaliacao",
+  treino: "/evolucao",
   desafio: "/desafio",
   rastreabilidade: "/rastreabilidade",
   salvos: "/salvos",
@@ -49,6 +50,8 @@ export const rotas = {
   adminRastreabilidade: "/admin/rastreabilidade",
   adminProtocolos: "/admin/protocolos",
   adminProtocolo: (pacienteId: string) => `/admin/protocolos/${pacienteId}`,
+  adminTreinos: "/admin/treinos",
+  adminTreino: (pacienteId: string) => `/admin/treinos/${pacienteId}`,
 };
 
 /** Prefixo antigo, mantido para não quebrar link já enviado a paciente. */

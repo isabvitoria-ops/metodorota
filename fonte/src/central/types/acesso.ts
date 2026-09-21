@@ -91,6 +91,13 @@ export interface Acesso {
   protocolo: boolean;
   /** Se ela já tem avaliação física publicada. */
   avaliacao: boolean;
+  /**
+   * Se há treino ativo ou alguma sessão já registrada.
+   *
+   * Sem nenhum dos dois o atalho não aparece: uma tela de evolução de
+   * treino aberta vazia não ensina nada, e ainda sugere que algo se perdeu.
+   */
+  treino: boolean;
 }
 
 export interface Configuracoes {

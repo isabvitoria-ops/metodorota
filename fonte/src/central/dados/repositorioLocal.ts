@@ -42,6 +42,7 @@ import { PLANOS } from "./sementes/planos";
 import { CONFIGURACOES } from "./sementes/configuracoes";
 import { paraConfiguracoes } from "./mapeadores";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
+import type { SessaoDeTreino, Treino } from "@/central/types/treino";
 import type {
   ConteudoProtocolo,
   DadosAvaliacao,
@@ -788,7 +789,141 @@ export const repositorioLocal: Repositorio = {
   async excluirAvaliacaoFisica() {
     throw new Error("Apagar avaliação precisa do banco. Configure o Supabase.");
   },
+
+  // ------------------------------------------------------- evolução de treino
+
+  async meuTreino() {
+    return TREINO_DEMO;
+  },
+
+  /**
+   * As sessões da demonstração são o caso do enunciado: 60×6, 60×7, 60×8,
+   * 60×10, 62×6, 62×7.
+   *
+   * De propósito: é a sequência em que "mais peso não é a única forma de
+   * evoluir" fica visível. Com sessões aleatórias, quem visse a
+   * demonstração não entenderia o que a tela está tentando mostrar.
+   */
+  async sessoesDeTreino() {
+    return SESSOES_DEMO;
+  },
+
+  async registrarSessaoTreino() {
+    throw new Error("Registrar treino precisa do banco. Configure o Supabase.");
+  },
+
+  async excluirSessaoTreino() {
+    throw new Error("Apagar treino precisa do banco. Configure o Supabase.");
+  },
+
+  async treinosDoPaciente() {
+    return TREINO_DEMO ? [TREINO_DEMO] : [];
+  },
+
+  async salvarTreino() {
+    throw new Error("Salvar treino precisa do banco. Configure o Supabase.");
+  },
+
+  async excluirTreino() {
+    throw new Error("Apagar treino precisa do banco. Configure o Supabase.");
+  },
 };
+
+const TREINO_DEMO: Treino = {
+  id: "treino-demo",
+  nome: "Treino A — inferiores",
+  observacao: "Aquecer 5 minutos antes.",
+  ativo: true,
+  exercicios: [
+    {
+      id: "ex-agacho",
+      nome: "Agachamento",
+      ordem: 0,
+      seriesPlanejadas: 3,
+      repeticoesMin: 8,
+      repeticoesMax: 10,
+      observacao: null,
+    },
+    {
+      id: "ex-leg",
+      nome: "Leg press",
+      ordem: 1,
+      seriesPlanejadas: 3,
+      repeticoesMin: 10,
+      repeticoesMax: 12,
+      observacao: null,
+    },
+    {
+      // Exercício sem carga: a coluna de carga fica em travessão, não em
+      // zero — e a evolução dele é por repetição.
+      id: "ex-prancha",
+      nome: "Prancha",
+      ordem: 2,
+      seriesPlanejadas: 3,
+      repeticoesMin: null,
+      repeticoesMax: null,
+      observacao: "Segundos, não repetições.",
+    },
+  ],
+};
+
+const SESSOES_DEMO: SessaoDeTreino[] = (() => {
+  const diasAtras = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.toISOString().slice(0, 10);
+  };
+  const dias = [17, 14, 10, 7, 3, 0];
+  const agacho: [number, number][] = [
+    [60, 6],
+    [60, 7],
+    [60, 8],
+    [60, 10],
+    [62, 6],
+    [62, 7],
+  ];
+  return dias
+    .map((dia, i) => {
+      const [carga, reps] = agacho[i]!;
+      return {
+        id: `sessao-demo-${i}`,
+        data: diasAtras(dia),
+        treinoId: "treino-demo",
+        observacao: null,
+        series: [
+          {
+            id: `s-${i}-1`,
+            exercicioId: "ex-agacho",
+            exercicioNome: "Agachamento",
+            numero: 1,
+            carga,
+            repeticoes: reps,
+            observacao: null,
+          },
+          {
+            id: `s-${i}-2`,
+            exercicioId: "ex-leg",
+            exercicioNome: "Leg press",
+            numero: 1,
+            carga: 80 + i * 5,
+            repeticoes: 12,
+            observacao: null,
+          },
+          {
+            id: `s-${i}-3`,
+            exercicioId: "ex-prancha",
+            exercicioNome: "Prancha",
+            numero: 1,
+            carga: null,
+            repeticoes: 30 + i * 5,
+            observacao: null,
+          },
+        ],
+      };
+    })
+    // Da mais nova para a mais antiga, como o banco entrega.
+    .reverse();
+})();
 
 /**
  * As três avaliações da demonstração, da mais nova para a mais antiga — a

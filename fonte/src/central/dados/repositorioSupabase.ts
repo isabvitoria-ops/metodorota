@@ -22,6 +22,12 @@ import type {
   StatusReintroducao,
 } from "@/central/types";
 import type {
+  ExercicioParaSalvar,
+  SerieParaSalvar,
+  SessaoDeTreino,
+  Treino,
+} from "@/central/types/treino";
+import type {
   AvaliacaoFisica,
   ConteudoProtocolo,
   DadosAvaliacao,
@@ -909,7 +915,137 @@ export const repositorioSupabase: Repositorio = {
     const { error } = await sb.rpc("excluir_avaliacao_fisica", { p_id: id });
     erro("apagar a avaliação", error);
   },
+
+  // ------------------------------------------------------- evolução de treino
+
+  async meuTreino(): Promise<Treino | null> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("meu_treino");
+    erro("carregar seu treino", error);
+    return data ? lerTreino(data as Linha) : null;
+  },
+
+  async sessoesDeTreino(pacienteId?: string | null): Promise<SessaoDeTreino[]> {
+    const sb = exigirSupabase();
+    // `p_paciente` nulo quer dizer "as minhas". Mandar o id de outra pessoa
+    // sendo paciente é recusado pelo BANCO, não pela tela — e é isso que a
+    // bateria 05 prova.
+    const { data, error } = await sb.rpc("sessoes_de_treino", {
+      p_paciente: pacienteId ?? null,
+      p_limite: 200,
+    });
+    erro("carregar os treinos", error);
+    return ((data ?? []) as Linha[]).map(lerSessao);
+  },
+
+  async registrarSessaoTreino(
+    id: string | null,
+    pacienteId: string | null,
+    treinoId: string | null,
+    data: string,
+    observacao: string,
+    series: SerieParaSalvar[],
+  ) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("registrar_sessao_treino", {
+      p_id: id,
+      p_paciente: pacienteId,
+      p_treino: treinoId,
+      p_data: data,
+      p_observacao: observacao,
+      p_series: series,
+    });
+    erro("registrar o treino", error);
+  },
+
+  async excluirSessaoTreino(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("excluir_sessao_treino", { p_id: id });
+    erro("apagar o treino", error);
+  },
+
+  async treinosDoPaciente(pacienteId: string): Promise<Treino[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("treinos_do_paciente", { p_paciente: pacienteId });
+    erro("carregar os treinos", error);
+    return ((data ?? []) as Linha[]).map(lerTreino);
+  },
+
+  async salvarTreino(
+    id: string | null,
+    pacienteId: string,
+    nome: string,
+    observacao: string,
+    ativo: boolean,
+    exercicios: ExercicioParaSalvar[],
+  ) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("salvar_treino", {
+      p_id: id,
+      p_paciente: pacienteId,
+      p_nome: nome,
+      p_observacao: observacao,
+      p_ativo: ativo,
+      p_exercicios: exercicios,
+    });
+    erro("salvar o treino", error);
+  },
+
+  async excluirTreino(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("excluir_treino", { p_id: id });
+    erro("apagar o treino", error);
+  },
 };
+
+/**
+ * Número ou nulo, NUNCA zero por engano.
+ *
+ * `Number(null)` é 0 em JavaScript. Passando por aqui, um exercício sem
+ * carga viraria um exercício de zero quilo — e zero soma como peso numa
+ * conta de volume, enquanto "não tem carga" não soma nada.
+ */
+function numeroOuNulo(v: unknown): number | null {
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+function lerTreino(linha: Linha): Treino {
+  return {
+    id: texto(linha.id),
+    nome: texto(linha.nome),
+    observacao: textoOuNulo(linha.observacao),
+    ativo: linha.ativo === true,
+    exercicios: ((linha.exercicios ?? []) as Linha[]).map((e, i) => ({
+      id: texto(e.id),
+      nome: texto(e.nome),
+      ordem: numeroOuNulo(e.ordem) ?? i,
+      seriesPlanejadas: numeroOuNulo(e.seriesPlanejadas),
+      repeticoesMin: numeroOuNulo(e.repeticoesMin),
+      repeticoesMax: numeroOuNulo(e.repeticoesMax),
+      observacao: textoOuNulo(e.observacao),
+    })),
+  };
+}
+
+function lerSessao(linha: Linha): SessaoDeTreino {
+  return {
+    id: texto(linha.id),
+    data: texto(linha.data),
+    treinoId: textoOuNulo(linha.treinoId),
+    observacao: textoOuNulo(linha.observacao),
+    series: ((linha.series ?? []) as Linha[]).map((s, i) => ({
+      id: texto(s.id),
+      exercicioId: textoOuNulo(s.exercicioId),
+      exercicioNome: texto(s.exercicioNome),
+      numero: numeroOuNulo(s.numero) ?? i + 1,
+      carga: numeroOuNulo(s.carga),
+      repeticoes: numeroOuNulo(s.repeticoes),
+      observacao: textoOuNulo(s.observacao),
+    })),
+  };
+}
 
 /**
  * O banco devolve a linha inteira; a tela quer os nomes do app.

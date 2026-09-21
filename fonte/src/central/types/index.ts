@@ -8,3 +8,4 @@ export type * from "./acesso";
 export type * from "./desafio";
 export type * from "./reintroducao";
 export type * from "./protocolo";
+export type * from "./treino";

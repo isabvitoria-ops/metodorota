@@ -13,6 +13,7 @@ import { ConfiguracoesAdmin } from "./Configuracoes";
 import { Desafios } from "./Desafios";
 import { RastreabilidadeAdmin } from "./Rastreabilidade";
 import { Protocolos } from "./Protocolos";
+import { Treinos } from "./Treinos";
 
 /**
  * Área da nutricionista.
@@ -25,6 +26,7 @@ const ABAS = [
   { rota: rotas.admin, rotulo: "Painel", fim: true },
   { rota: rotas.adminPacientes, rotulo: "Pacientes" },
   { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
+  { rota: rotas.adminTreinos, rotulo: "Treino" },
   { rota: rotas.adminAlimentos, rotulo: "Alimentos" },
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
   { rota: rotas.adminConteudos, rotulo: "Conteúdos" },
@@ -103,6 +105,7 @@ export function AdminApp() {
               <Route path="conteudos" element={<Conteudos />} />
               <Route path="desafios" element={<Desafios />} />
               <Route path="protocolos" element={<Protocolos />} />
+              <Route path="treinos" element={<Treinos />} />
               <Route path="rastreabilidade" element={<RastreabilidadeAdmin />} />
               <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
               <Route path="*" element={<Navigate to={rotas.admin} replace />} />
