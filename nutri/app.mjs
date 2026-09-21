@@ -47,6 +47,7 @@ import {
   salvarMedidas,
   tudoParaBackup,
 } from "./meusAlimentos.mjs";
+import { apagarTabela, importarTabela, lerTabela } from "./tabelaImportada.mjs";
 import {
   apagarFicha,
   fichaVazia,
@@ -104,6 +105,19 @@ let POS = {};
 let ALIMENTOS = [];
 
 const FONTES = { taco: "TACO", ibge: "IBGE", meu: "Meu" };
+
+/**
+ * A etiqueta da tabela que ela carregou. Vem do arquivo, não daqui: se
+ * amanhã ela carregar outra base, a etiqueta tem que mudar junto.
+ */
+function siglaImportada() {
+  return lerTabela()?.fonte?.sigla ?? "Importada";
+}
+
+function etiquetaDaFonte(fonte) {
+  if (fonte === "importada") return siglaImportada();
+  return FONTES[fonte] ?? fonte;
+}
 
 /** As duas tabelas, guardadas cruas para remontar a busca quando ela cadastra. */
 let BASE_TABELAS = [];
@@ -171,6 +185,18 @@ async function carregarTaco() {
  * salvou.
  */
 function montarAlimentos() {
+  const tabela = lerTabela();
+  const importados = (tabela?.alimentos ?? []).map((a) => ({
+    // O código da TBCA entra no id: é ele que permite conferir o alimento
+    // na fonte, linha por linha, se um número parecer estranho.
+    id: `imp:${a.codigo}`,
+    fonte: "importada",
+    nome: a.nome,
+    busca: semAcento(`${a.nome} ${a.grupo ?? ""} ${a.descricao ?? ""}`),
+    grupo: a.grupo ?? "",
+    bruto: a,
+  }));
+
   ALIMENTOS = [
     ...listarAlimentos().map((a) => ({
       id: a.id,
@@ -180,6 +206,7 @@ function montarAlimentos() {
       grupo: a.grupo ?? "Meus alimentos",
       bruto: a,
     })),
+    ...importados,
     ...BASE_TABELAS,
   ];
 }
@@ -204,6 +231,12 @@ const DO_IBGE = {
 
 function valorDe(alimento, chave) {
   if (!alimento) return null;
+  if (alimento.fonte === "importada") {
+    // O conversor já gravou com o nome interno, e o que a TBCA marca como
+    // traço, não analisado ou sem informação chegou aqui como nulo.
+    const v = alimento.bruto[chave];
+    return v === undefined ? null : v;
+  }
   if (alimento.fonte === "meu") {
     // Os campos dela já têm o nome interno, e o que ela deixou em branco é
     // nulo — nunca zero.
@@ -470,7 +503,7 @@ function desenharDieta() {
         if (alimento) {
           const marca = document.createElement("span");
           marca.className = "fonte";
-          marca.textContent = FONTES[alimento.fonte] ?? alimento.fonte;
+          marca.textContent = etiquetaDaFonte(alimento.fonte);
           nomeTd.append(" ", marca);
         }
 
@@ -635,7 +668,10 @@ function desenharDieta() {
  */
 function medidasDoAlimento(codigo) {
   const alimento = alimentoPorId(codigo);
-  const proprias = alimento?.fonte === "meu" ? (alimento.bruto.medidas ?? []) : [];
+  const proprias =
+    alimento?.fonte === "meu" || alimento?.fonte === "importada"
+      ? (alimento.bruto.medidas ?? [])
+      : [];
   const saida = [];
   for (const m of [MEDIDA_GRAMA, ...proprias, ...medidasDe(codigo)]) {
     const nome = String(m?.nome ?? "").trim();
@@ -729,7 +765,7 @@ function campoDeBusca(opcao) {
     achados.forEach((a, i) => {
       const linha = document.createElement("div");
       linha.innerHTML =
-        `${a.nome}<br><small>${FONTES[a.fonte] ?? a.fonte}${a.grupo ? ` · ${a.grupo}` : ""}</small>`;
+        `${a.nome}<br><small>${etiquetaDaFonte(a.fonte)}${a.grupo ? ` · ${a.grupo}` : ""}</small>`;
       if (i === 0) linha.className = "marcado";
       linha.onmousedown = (e) => {
         e.preventDefault();
@@ -1673,6 +1709,66 @@ function abrirAlimento(existente) {
 }
 
 $("novo-alimento").onclick = () => abrirAlimento(null);
+
+// --- a tabela que ela carrega do computador dela ---------------------------
+
+/**
+ * Diz o que está carregado, com a citação da fonte à vista.
+ *
+ * A citação não é enfeite: a licença da TBCA é BY, e atribuir é a condição
+ * de usar. Ficando só dentro do arquivo, ninguém a leria.
+ */
+function desenharEstadoDaTabela() {
+  const tabela = lerTabela();
+  const alvo = $("estado-tabela");
+  if (!tabela) {
+    alvo.textContent = "Nenhuma tabela carregada neste navegador.";
+    return;
+  }
+  const comMedida = tabela.alimentos.filter((a) => (a.medidas ?? []).length).length;
+  alvo.innerHTML =
+    `<strong>${tabela.alimentos.length}</strong> alimentos carregados` +
+    (comMedida ? `, ${comMedida} com medida caseira` : "") +
+    `. <br><small>${tabela.fonte.citacao || tabela.fonte.nome}</small>` +
+    (tabela.fonte.licenca ? `<br><small>${tabela.fonte.licenca}</small>` : "");
+}
+
+$("carregar-tabela").onclick = () => $("arquivo-tabela").click();
+
+$("arquivo-tabela").addEventListener("change", async () => {
+  const arquivo = $("arquivo-tabela").files?.[0];
+  if (!arquivo) return;
+  try {
+    const tabela = importarTabela(await arquivo.text());
+    // Remontar a busca na hora: sem isto os alimentos só apareceriam depois
+    // de recarregar a página, e ela concluiria que não carregou.
+    montarAlimentos();
+    desenharDieta();
+    desenharEstadoDaTabela();
+    window.alert(
+      `Carreguei ${tabela.alimentos.length} alimentos da ${tabela.fonte.sigla}. ` +
+        "Eles já aparecem na busca, com a etiqueta da tabela.",
+    );
+  } catch (e) {
+    window.alert(e.message);
+  }
+  $("arquivo-tabela").value = "";
+});
+
+$("apagar-tabela").onclick = () => {
+  const tabela = lerTabela();
+  if (!tabela) {
+    window.alert("Não há tabela carregada para apagar.");
+    return;
+  }
+  if (!window.confirm(`Apagar a tabela ${tabela.fonte.sigla} deste navegador?`)) return;
+  apagarTabela();
+  montarAlimentos();
+  desenharDieta();
+  desenharEstadoDaTabela();
+};
+
+desenharEstadoDaTabela();
 
 /**
  * Cria um grupo a partir do que está na refeição aberta.

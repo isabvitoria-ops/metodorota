@@ -1,4 +1,44 @@
-# TBCA — FASE A, e onde ela parou
+# TBCA — a FASE A parou por falta de rede; a planilha dela destravou
+
+**Atualização de 21/09/2026.** A nutricionista entregou a planilha
+`tbca_alimentos_selecionados.xlsx` — 24 alimentos escolhidos por ela,
+consultados na TBCA em 21/09/2026, com medidas caseiras. Era exatamente o
+que faltava no item 2 de "o que falta para destravar", abaixo: a fonte em
+arquivo, melhor que scraping por qualquer critério.
+
+O que foi feito com ela:
+
+* `nutri/scripts/converter-tbca.py` converte a planilha no arquivo que a
+  ferramenta importa. "tr", "NA" e "-" viram **nulo, nunca zero**; o código
+  BRC da TBCA é preservado para auditoria; a citação e a licença viajam
+  dentro do arquivo;
+* `nutri/tabelaImportada.mjs` guarda a tabela **no navegador dela**, e a
+  busca passa a mostrar os 24 alimentos com a etiqueta TBCA, com as medidas
+  caseiras da própria tabela.
+
+## E por que os dados NÃO estão neste repositório
+
+A aba "Fonte e notas" da planilha diz, com todas as letras:
+
+> Uso: seleção pessoal, sem fins comerciais, para apoio à prática clínica.
+> **Não redistribuir.** Os direitos sobre os dados são da TBCA/USP (licença
+> **CC BY-NC-ND 4.0**).
+
+NC é não comercial; ND é sem obras derivadas. A Central do Paciente é um
+serviço cobrado e este site é público: commitar os 24 alimentos aqui seria
+publicar uma cópia da base, que é o que a licença proíbe — e é o caso que a
+REGRA ZERO dela manda parar e documentar em vez de resolver por conta.
+
+O caminho que a licença permite é o que está implementado: **o arquivo é
+dela, fica no navegador dela, e nada sobe**. O script de conversão é
+versionado; a saída do script, não. `.gitignore` guarda essa regra.
+
+A recomendação da seção 2 continua de pé: para embutir a TBCA no produto,
+é preciso autorização escrita do FoRC/USP. É um e-mail.
+
+---
+
+# O relatório original da FASE A
 
 A nutricionista pediu uma pipeline completa de coleta, normalização,
 validação e importação da TBCA (Tabela Brasileira de Composição de

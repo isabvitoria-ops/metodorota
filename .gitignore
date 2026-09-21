@@ -1,0 +1,6 @@
+
+# A TBCA e CC BY-NC-ND ("nao redistribuir"): o conversor e versionado, a
+# saida dele nao. O arquivo e dela, e fica no computador dela.
+nutri/dados/tbca.json
+tbca/*.json
+tbca/*.xlsx

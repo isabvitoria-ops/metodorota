@@ -227,6 +227,25 @@
         </div>
         <div id="meus-alimentos"></div>
         <div id="meus-grupos"></div>
+
+        <h2>Tabela da TBCA (arquivo seu)</h2>
+        <!-- A TBCA e CC BY-NC-ND: nao comercial e sem derivados, e a propria
+             planilha diz "nao redistribuir". Por isso ela NAO vem dentro do
+             site: o arquivo e dela, fica no navegador dela, e nada sobe. -->
+        <p class="nota" style="margin-bottom: 10px">
+          A TBCA não pode ser publicada dentro do site: a licença dela é
+          <strong>CC BY-NC-ND</strong> — não comercial e sem redistribuição. Então o
+          arquivo é <strong>seu</strong>: você o carrega aqui uma vez e ele fica guardado
+          <strong>neste navegador</strong>, junto com as suas fichas. Nada é enviado para
+          lugar nenhum. Carregando, os alimentos passam a aparecer na busca com a
+          etiqueta <strong>TBCA</strong>, já com as medidas caseiras da própria tabela.
+        </p>
+        <div class="linha">
+          <button type="button" class="leve" id="carregar-tabela">Carregar arquivo da tabela</button>
+          <button type="button" class="leve" id="apagar-tabela">Apagar a tabela carregada</button>
+          <input id="arquivo-tabela" type="file" accept="application/json,.json" hidden />
+        </div>
+        <p class="nota" id="estado-tabela"></p>
         </p>
       </section>
 
