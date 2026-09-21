@@ -89,6 +89,12 @@ export interface ItemDeReintroducao {
   observacaoMaterial: string | null;
   /** `false` = nome digitado, fora do material. */
   doCatalogo: boolean;
+  /**
+   * Ligado ao Mapa depois, pela nutricionista — não escolhido do Mapa desde
+   * o começo. É o que separa "desfazer a ligação que eu fiz" de "tirar do
+   * Mapa um alimento que sempre foi de lá".
+   */
+  ligadoDepois: boolean;
   status: StatusReintroducao;
   notaNutri: string | null;
   ordem: number;

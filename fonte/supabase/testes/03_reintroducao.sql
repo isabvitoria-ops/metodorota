@@ -783,6 +783,118 @@ select teste('a Bia continua sem ver nada disso',
 commit;
 
 -- -----------------------------------------------------------------------------
+-- Ligar ao Mapa o alimento digitado à mão (0026)
+--
+-- A lista de uma paciente real tinha seis alimentos digitados e nenhuma
+-- marcação. Estes testes cobrem a ligação feita depois do fato — e, acima de
+-- tudo, que ela não renomeia o registro da paciente pelas costas dela.
+-- -----------------------------------------------------------------------------
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+select adicionar_item_livre_reintroducao(
+  (select id from pacientes where email = 'r-ana@paciente.test'), 'Abacate com mel');
+
+select teste('digitado à mão nasce sem marcação nenhuma',
+  (select jsonb_array_length(i -> 'marcacao')
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+         -> 'itens') i
+    where i ->> 'nome' = 'Abacate com mel') = 0);
+
+-- 'manga' porque a Ana já tem o abacate do Mapa na lista, e o índice único
+-- da 0014 não deixa dois itens dela apontarem para o mesmo alimento.
+select ligar_item_ao_mapa(
+  (select id from reintroducao_itens where nome_livre = 'Abacate com mel'), 'manga');
+
+select teste('depois de ligado, a marcação da manga aparece',
+  (select jsonb_array_length(i -> 'marcacao')
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+         -> 'itens') i
+    where i ->> 'nome' = 'Abacate com mel') = 1);
+
+select teste('e o nome que a paciente escreveu continua o dela',
+  (select count(*) from jsonb_array_elements(
+     reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+       -> 'itens') i
+    where i ->> 'nome' = 'Abacate com mel') = 1);
+
+select teste('a porção e a etapa do Mapa passam a valer',
+  (select i ->> 'porcaoReferencia' from jsonb_array_elements(
+     reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+       -> 'itens') i
+    where i ->> 'nome' = 'Abacate com mel') = '160g');
+
+-- Desligar é a saída para a ligação errada.
+select desligar_item_do_mapa(
+  (select id from reintroducao_itens where nome_livre = 'Abacate com mel'));
+
+select teste('desligado, a marcação some de novo',
+  (select jsonb_array_length(i -> 'marcacao')
+     from jsonb_array_elements(
+       reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+         -> 'itens') i
+    where i ->> 'nome' = 'Abacate com mel') = 0);
+
+select teste('e o nome dela sobreviveu à ida e à volta',
+  (select count(*) from reintroducao_itens where nome_livre = 'Abacate com mel') = 1);
+
+select teste('ligado por ela é marcado como ligado depois',
+  (select i ->> 'ligadoDepois' from jsonb_array_elements(
+     reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+       -> 'itens') i
+    where i ->> 'nome' = 'Abacate / avocado') = 'false');
+
+select teste('ligar ao alimento que a paciente já tem é recusado, com nome e tudo',
+  estado_de($$
+    select ligar_item_ao_mapa(
+      (select id from reintroducao_itens where nome_livre = 'Abacate com mel'), 'abacate')
+  $$) = '23505');
+
+select teste('alimento que não está no Mapa é recusado',
+  estado_de($$
+    select ligar_item_ao_mapa(
+      (select id from reintroducao_itens where nome_livre = 'Abacate com mel'),
+      'nao-existe-no-mapa')
+  $$) = 'P0002');
+
+select teste('item que não existe é recusado',
+  estado_de($$
+    select ligar_item_ao_mapa('00000000-0000-0000-0000-0000000000ff', 'abacate')
+  $$) = 'P0002');
+commit;
+
+-- O alimento que veio do Mapa continua exibindo o nome do Mapa: ele nasce sem
+-- nome próprio, então a inversão da leitura não muda nada para ele.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+select teste('alimento do Mapa continua com o nome do Mapa',
+  (select count(*) from jsonb_array_elements(
+     reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+       -> 'itens') i
+    where i ->> 'nome' = 'Abacate / avocado') = 1);
+commit;
+
+-- E a paciente não liga nada ao Mapa.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+select teste('a paciente NÃO liga alimento ao Mapa',
+  estado_de($$
+    select ligar_item_ao_mapa(
+      (select id from reintroducao_itens where nome_livre = 'Abacate com mel'), 'abacate')
+  $$) = '42501');
+select teste('nem desliga',
+  estado_de($$
+    select desligar_item_do_mapa(
+      (select id from reintroducao_itens where nome_livre = 'Abacate com mel'))
+  $$) = '42501');
+commit;
+
+-- -----------------------------------------------------------------------------
 -- Resultado
 -- -----------------------------------------------------------------------------
 select

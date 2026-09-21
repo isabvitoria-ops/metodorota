@@ -550,6 +550,7 @@ export const repositorioLocal: Repositorio = {
           porcaoReferencia: null,
           observacaoMaterial: null,
           doCatalogo: false,
+          ligadoDepois: false,
           status: "em_teste",
           notaNutri: null,
           ordem: 900,
@@ -653,6 +654,14 @@ export const repositorioLocal: Repositorio = {
 
   async definirStatusReintroducao() {
     throw new Error("Classificar um alimento precisa do banco. Configure o Supabase.");
+  },
+
+  async ligarItemAoMapa() {
+    throw new Error("Ligar ao Mapa precisa do banco. Configure o Supabase.");
+  },
+
+  async desligarItemDoMapa() {
+    throw new Error("Desfazer a ligação precisa do banco. Configure o Supabase.");
   },
 
   async registrarReintroducaoPorPaciente(
@@ -919,6 +928,7 @@ function itensDoMaterialDemo(): ItemDeReintroducao[] {
     porcaoReferencia: a.porcaoReferencia,
     observacaoMaterial: a.observacao,
     doCatalogo: true,
+    ligadoDepois: false,
     status: "nao_iniciado" as StatusReintroducao,
     notaNutri: null,
     ordem: i + 1,

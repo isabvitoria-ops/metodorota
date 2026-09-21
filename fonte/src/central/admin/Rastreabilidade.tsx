@@ -15,8 +15,11 @@ import {
   SINTOMAS,
   STATUS,
   alimentosSemLigacao,
+  buscarNoMapa,
+  etapasDoMaterial,
   faixaDaIntensidade,
   inicioParaSemana,
+  opcoesDeSemana,
   nivelPorExtenso,
   panoramaDeMarcadores,
   porSemana,
@@ -158,6 +161,17 @@ function PainelDaPaciente({
 }) {
   const { dados, carregando, erro, ocupado, comRecarga } = useReintroducao(paciente.id);
   const [lancando, definirLancando] = useState(false);
+  // Carregado aqui e emprestado às três telas que precisam dele: a semana
+  // (que não pode oferecer etapa que o material não tem), a lista e a
+  // ligação ao Mapa.
+  const [material, definirMaterial] = useState<AlimentoDoMaterial[]>([]);
+
+  useEffect(() => {
+    void repositorio
+      .listarAlimentosDoMaterial()
+      .then(definirMaterial)
+      .catch(() => definirMaterial([]));
+  }, []);
 
   if (carregando) return <p className="c-contagem">Carregando…</p>;
 
@@ -211,6 +225,7 @@ function PainelDaPaciente({
             paciente={paciente}
             inicio={dados?.inicio ?? null}
             orientacao={dados?.orientacao ?? null}
+            etapas={etapasDoMaterial(material)}
             ocupado={ocupado}
             aoMudar={comRecarga}
           />
@@ -259,6 +274,7 @@ function PainelDaPaciente({
         <ListaDaPaciente
           paciente={paciente}
           itens={dados?.itens ?? []}
+          material={material}
           ocupado={ocupado}
           aoMudar={comRecarga}
         />
@@ -344,6 +360,111 @@ function PanoramaDeMarcadores({
         </p>
       )}
     </section>
+  );
+}
+
+// ------------------------------------------------------------ ligar ao Mapa
+
+/**
+ * Apontar para o Mapa um alimento que ela digitou à mão.
+ *
+ * O QUE ISTO CONSERTA, e a descoberta foi olhando os dados da paciente dela:
+ * a lista da Daniela tinha seis alimentos e os seis digitados à mão — Carne
+ * de porco, Mussarela de búfala e companhia. Alimento digitado não tem
+ * ligação com o Mapa, e sem ligação não há oxalato, histamina nem lectina.
+ * Era isso, e não a numeração das semanas.
+ *
+ * A BUSCA AUTOMÁTICA POR NOME NÃO VOLTA. Ela foi tirada porque "champagne"
+ * achava "champignon": um marcador errado é pior que marcador nenhum, porque
+ * vira pista falsa numa investigação clínica. Quem escolhe é ela, olhando.
+ */
+function ModalLigarAoMapa({
+  item,
+  material,
+  jaNaLista,
+  aoFechar,
+  aoSalvar,
+}: {
+  item: ItemDeReintroducao;
+  material: AlimentoDoMaterial[];
+  jaNaLista: string[];
+  aoFechar: () => void;
+  aoSalvar: (acao: () => Promise<void>) => Promise<boolean>;
+}) {
+  const [busca, definirBusca] = useState(item.nome);
+  const [escolhido, definirEscolhido] = useState("");
+  const [salvando, definirSalvando] = useState(false);
+
+  // Por palavra, não pela frase inteira: ela escreve "Mussarela de búfala" e
+  // o Mapa chama "Queijos de búfala". Ver `buscarNoMapa`.
+  const achados = buscarNoMapa(material, busca).slice(0, 40);
+
+  return (
+    <Modal titulo={`Ligar “${item.nome}” ao Mapa`} aoFechar={aoFechar}>
+      <p className="c-dica" style={{ marginTop: 0 }}>
+        Escolha o alimento do Mapa que corresponde a este. Ele passa a trazer a marcação de
+        oxalato, histamina e lectina — e o nome que {item.nome.toLowerCase()} tem na lista
+        dela não muda.
+      </p>
+
+      <Campo rotulo="Buscar no Mapa">
+        <Texto valor={busca} aoMudar={definirBusca} placeholder="Nome do alimento" />
+      </Campo>
+
+      {achados.length === 0 ? (
+        <p className="c-contagem">
+          Nenhum alimento do Mapa com essas palavras. Tente uma só — “búfala”, “queijo”,
+          “porco” — ou apague a busca para ver o Mapa inteiro.
+        </p>
+      ) : (
+        <div className="c-chips" style={{ marginTop: 4 }}>
+          {achados.map((a) => {
+            const ocupado = jaNaLista.includes(a.id);
+            return (
+              <button
+                key={a.id}
+                type="button"
+                className="c-chip"
+                aria-pressed={escolhido === a.id}
+                disabled={ocupado}
+                title={
+                  ocupado
+                    ? "Esta paciente já tem este alimento na lista, vindo do Mapa."
+                    : undefined
+                }
+                onClick={() => definirEscolhido(a.id)}
+              >
+                {a.nome}
+                {a.semanaSugerida ? ` · etapa ${a.semanaSugerida}` : ""}
+                {ocupado ? " · já na lista" : ""}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="c-modal-acoes">
+        <button type="button" className="c-botao c-botao-secundario" onClick={aoFechar}>
+          Cancelar
+        </button>
+        <button
+          type="button"
+          className="c-botao"
+          disabled={!escolhido || salvando}
+          onClick={() => {
+            definirSalvando(true);
+            void aoSalvar(() => repositorio.ligarItemAoMapa(item.id, escolhido)).then(
+              (deuCerto) => {
+                definirSalvando(false);
+                if (deuCerto) aoFechar();
+              },
+            );
+          }}
+        >
+          {salvando ? "Ligando…" : "Ligar"}
+        </button>
+      </div>
+    </Modal>
   );
 }
 
@@ -705,16 +826,20 @@ function LinhaDoTempo({ dados }: { dados: ReturnType<typeof useReintroducao>["da
 function ListaDaPaciente({
   paciente,
   itens,
+  material,
   ocupado,
   aoMudar,
 }: {
   paciente: Paciente;
   itens: ItemDeReintroducao[];
+  material: AlimentoDoMaterial[];
   ocupado: boolean;
   aoMudar: (acao: () => Promise<void>) => Promise<boolean>;
 }) {
   const [adicionando, definirAdicionando] = useState(false);
   const [classificando, definirClassificando] = useState<ItemDeReintroducao | null>(null);
+  const [ligando, definirLigando] = useState<ItemDeReintroducao | null>(null);
+  const semLigacao = itens.filter((i) => !i.doCatalogo);
 
   return (
     <>
@@ -732,6 +857,18 @@ function ListaDaPaciente({
           Adicionar alimentos
         </button>
       </div>
+
+      {/* O motivo real de a marcação não aparecer para ela. Dito aqui, na
+          tela onde se resolve, e não só no painel. */}
+      {semLigacao.length > 0 && (
+        <p className="c-nota-protocolo" style={{ marginBottom: 10 }}>
+          {semLigacao.length === 1
+            ? "1 alimento desta lista foi digitado à mão"
+            : `${semLigacao.length} alimentos desta lista foram digitados à mão`}{" "}
+          e por isso não tem marcação de oxalato, histamina ou lectina. Use “Ligar ao Mapa”
+          em cada um para trazer a marcação — o nome que a paciente conhece não muda.
+        </p>
+      )}
 
       <div className="c-acoes">
         {itens.map((item) => {
@@ -778,6 +915,33 @@ function ListaDaPaciente({
                 >
                   Classificar
                 </button>
+                {item.doCatalogo ? (
+                  // Só onde há ligação feita por ela para desfazer. Num
+                  // alimento escolhido do Mapa desde o começo, "desfazer"
+                  // não desfaria nada — transformaria num nome solto o que
+                  // ela adicionou de propósito.
+                  item.ligadoDepois && (
+                    <button
+                      type="button"
+                      className="c-link"
+                      disabled={ocupado}
+                      onClick={() =>
+                        void aoMudar(() => repositorio.desligarItemDoMapa(item.id))
+                      }
+                    >
+                      Desfazer ligação
+                    </button>
+                  )
+                ) : (
+                  <button
+                    type="button"
+                    className="c-botao c-botao-secundario c-botao-pequeno"
+                    disabled={ocupado}
+                    onClick={() => definirLigando(item)}
+                  >
+                    Ligar ao Mapa
+                  </button>
+                )}
                 {item.totalDeRegistros === 0 && (
                   <button
                     type="button"
@@ -809,6 +973,16 @@ function ListaDaPaciente({
         <ModalClassificar
           item={classificando}
           aoFechar={() => definirClassificando(null)}
+          aoSalvar={aoMudar}
+        />
+      )}
+
+      {ligando && (
+        <ModalLigarAoMapa
+          item={ligando}
+          material={material}
+          jaNaLista={itens.map((i) => i.alimentoId).filter((id): id is string => id !== null)}
+          aoFechar={() => definirLigando(null)}
           aoSalvar={aoMudar}
         />
       )}
@@ -1019,12 +1193,14 @@ function SemanaDaPaciente({
   paciente,
   inicio,
   orientacao,
+  etapas,
   ocupado,
   aoMudar,
 }: {
   paciente: Paciente;
   inicio: string | null;
   orientacao: string | null;
+  etapas: number[];
   ocupado: boolean;
   aoMudar: (acao: () => Promise<void>) => Promise<boolean>;
 }) {
@@ -1034,6 +1210,7 @@ function SemanaDaPaciente({
   const semana = semanaEm(data || null, hoje);
   const primeiroNome = paciente.nome.split(" ")[0] ?? paciente.nome;
   const mudou = (data || "") !== (inicio ?? "");
+  const passouDoMaterial = semana > etapas.length;
 
   function guardar(novaData: string) {
     definirData(novaData);
@@ -1047,7 +1224,7 @@ function SemanaDaPaciente({
           <Selecao
             valor={String(semana)}
             aoMudar={(v) => guardar(inicioParaSemana(Number(v), hoje))}
-            opcoes={SEMANAS.map((n) => ({ valor: String(n), rotulo: `Semana ${n}` }))}
+            opcoes={opcoesDeSemana(etapas, semana)}
           />
         </Campo>
         <Campo rotulo="Começou em" dica="Sabendo o dia exato, a data acerta mais que a semana.">
@@ -1060,6 +1237,13 @@ function SemanaDaPaciente({
           ? `Contando de ${dataBonita(data)}. Daqui a uma semana ela estará na ${semana + 1}: a contagem anda sozinha, você não precisa voltar aqui.`
           : "Sem data, a semana 1 é a do primeiro registro dela — é por isso que quem começou no papel aparece na semana 1."}
       </p>
+      {passouDoMaterial && (
+        <p className="c-dica">
+          O material tem {etapas.length} etapas, e o calendário dela já passou disso. Não é
+          erro: a semana aqui conta dias corridos, e uma paciente pode levar mais tempo em
+          cada etapa. Se a conta não bate, acerte pela data.
+        </p>
+      )}
 
       {mudou && (
         <button
@@ -1090,14 +1274,7 @@ function SemanaDaPaciente({
 
 // ------------------------------------------------------------ acompanhamento
 
-/**
- * Até a semana 24 na lista — meio ano.
- *
- * Quem estiver além disso ainda tem o campo de data ao lado, que não tem
- * limite. Uma lista até 200 para cobrir o caso raro atrapalharia as outras
- * todas.
- */
-const SEMANAS = Array.from({ length: 24 }, (_, i) => i + 1);
+// ------------------------------------------------------------ acompanhamento
 
 function Acompanhamento({
   paciente,

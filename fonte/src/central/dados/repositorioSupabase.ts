@@ -573,6 +573,21 @@ export const repositorioSupabase: Repositorio = {
     erro("registrar o alimento", error);
   },
 
+  async ligarItemAoMapa(itemId: string, alimentoId: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("ligar_item_ao_mapa", {
+      p_item: itemId,
+      p_alimento: alimentoId,
+    });
+    erro("ligar o alimento ao Mapa", error);
+  },
+
+  async desligarItemDoMapa(itemId: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("desligar_item_do_mapa", { p_item: itemId });
+    erro("desfazer a ligação", error);
+  },
+
   async registrarReintroducaoPorPaciente(
     pacienteId: string,
     registro: NovoRegistroDeReintroducao,

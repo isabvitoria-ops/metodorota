@@ -360,3 +360,80 @@ export function inicioParaSemana(semana: number, hoje: string): string {
   data.setUTCDate(data.getUTCDate() - (pedida - 1) * 7);
   return data.toISOString().slice(0, 10);
 }
+
+// ------------------------------------------------ o Mapa e as suas etapas
+
+/**
+ * Quantas etapas o material dela tem, lidas do próprio material.
+ *
+ * DEFEITO QUE ISTO CONSERTA: o seletor de semana ia até 24, e ela reparou na
+ * hora — "nem existe semana 20 de reintrodução". O material tem quatro
+ * etapas. Sai do catálogo e não de um número escrito no código, para que
+ * mudar o material mude a lista junto. O 4 de reserva cobre o instante
+ * entre abrir a tela e o material chegar.
+ */
+export function etapasDoMaterial(material: { semanaSugerida: number | null }[]): number[] {
+  const maior = Math.max(0, ...material.map((a) => a.semanaSugerida ?? 0));
+  return Array.from({ length: maior || 4 }, (_, i) => i + 1);
+}
+
+/**
+ * As semanas oferecidas: as do material, mais a atual quando já passou.
+ *
+ * Uma paciente que leva seis semanas para vencer quatro etapas existe, e o
+ * seletor não pode ficar em branco para ela. O que não acontece mais é
+ * oferecer a semana 20 a quem tem quatro etapas.
+ */
+export function opcoesDeSemana(
+  etapas: number[],
+  atual: number,
+): { valor: string; rotulo: string }[] {
+  const numeros = atual > etapas.length ? [...etapas, atual] : etapas;
+  return numeros.map((n) => ({
+    valor: String(n),
+    rotulo: n > etapas.length ? `Semana ${n} — além do material` : `Semana ${n}`,
+  }));
+}
+
+/** Sem acento, minúsculo — para comparar o que ela escreveu com o do Mapa. */
+function semAcento(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+}
+
+/**
+ * Procurar no Mapa o alimento que corresponde ao que ela digitou.
+ *
+ * POR QUE NÃO É SÓ `includes`. A paciente escreveu "Mussarela de búfala" e o
+ * Mapa chama "Queijos de búfala": procurando a frase inteira não vem nada, e
+ * a tela diria que o Mapa não tem — quando tem. Procurando por PALAVRA,
+ * "búfala" encontra, e os que casam mais palavras vêm primeiro.
+ *
+ * A observação também é procurada, porque é onde moram os "Queijo de vaca."
+ * que ligam Muçarela, Parmesão e Prato à palavra "queijo".
+ *
+ * Isto é busca, não ligação automática: quem escolhe continua sendo ela. A
+ * adivinhação por nome foi tirada do sistema de propósito — era por ali que
+ * "champagne" virava "champignon" — e o que a torna perigosa é ligar sozinha,
+ * não mostrar candidatos para alguém olhar.
+ */
+export function buscarNoMapa<T extends { nome: string; observacao: string | null }>(
+  material: T[],
+  termo: string,
+): T[] {
+  const palavras = semAcento(termo)
+    .split(/[\s,./()-]+/)
+    .filter((p) => p.length >= 3);
+  if (palavras.length === 0) return material;
+
+  return material
+    .map((a) => {
+      const alvo = `${semAcento(a.nome)} ${semAcento(a.observacao ?? "")}`;
+      return { a, pontos: palavras.filter((p) => alvo.includes(p)).length };
+    })
+    .filter((x) => x.pontos > 0)
+    .sort((x, y) => y.pontos - x.pontos || x.a.nome.localeCompare(y.a.nome, "pt-BR"))
+    .map((x) => x.a);
+}

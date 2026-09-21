@@ -156,6 +156,13 @@ export interface Repositorio {
    * Para quem fez rastreio no papel antes de o aplicativo existir: o
    * histórico entra sem pedir que a paciente redigite semanas de diário.
    */
+  /**
+   * Aponta um alimento digitado à mão para um do Mapa, sem renomeá-lo.
+   *
+   * É o que devolve oxalato, histamina e lectina a uma lista montada à mão.
+   */
+  ligarItemAoMapa(itemId: string, alimentoId: string): Promise<void>;
+  desligarItemDoMapa(itemId: string): Promise<void>;
   registrarReintroducaoPorPaciente(
     pacienteId: string,
     registro: NovoRegistroDeReintroducao,

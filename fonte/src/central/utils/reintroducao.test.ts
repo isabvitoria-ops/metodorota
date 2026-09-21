@@ -9,7 +9,10 @@ import type {
 import {
   BRISTOL,
   alimentosSemLigacao,
+  buscarNoMapa,
+  etapasDoMaterial,
   inicioParaSemana,
+  opcoesDeSemana,
   panoramaDeMarcadores,
   semanaEm,
   SINTOMAS,
@@ -35,6 +38,7 @@ function item(parcial: Partial<ItemDeReintroducao>): ItemDeReintroducao {
     porcaoReferencia: "60g",
     observacaoMaterial: null,
     doCatalogo: true,
+    ligadoDepois: false,
     status: "nao_iniciado",
     notaNutri: null,
     ordem: 1,
@@ -276,6 +280,7 @@ function itemDe(
     porcaoReferencia: null,
     observacaoMaterial: null,
     doCatalogo,
+    ligadoDepois: false,
     status: "em_teste",
     notaNutri: null,
     ordem: 0,
@@ -497,4 +502,104 @@ test("semanaEm dá o mesmo que a conta do banco, caso a caso", () => {
   for (const [inicio, dia, esperado] of doBanco) {
     assert.equal(semanaEm(inicio, dia), esperado, `${inicio} → ${dia}`);
   }
+});
+
+// ------------------------------------------------ o Mapa e as suas etapas
+
+test("as etapas saem do material, não de um número escrito no código", () => {
+  const material = [
+    { semanaSugerida: 1 },
+    { semanaSugerida: 2 },
+    { semanaSugerida: 4 },
+    { semanaSugerida: null },
+  ];
+  assert.deepEqual(etapasDoMaterial(material), [1, 2, 3, 4]);
+});
+
+test("material ainda não carregado não deixa a lista vazia", () => {
+  assert.deepEqual(etapasDoMaterial([]), [1, 2, 3, 4]);
+});
+
+test("a semana 20 não é oferecida a quem tem quatro etapas", () => {
+  const opcoes = opcoesDeSemana([1, 2, 3, 4], 1);
+  assert.equal(opcoes.length, 4);
+  assert.deepEqual(opcoes.map((o) => o.rotulo), [
+    "Semana 1",
+    "Semana 2",
+    "Semana 3",
+    "Semana 4",
+  ]);
+});
+
+test("mas a paciente que já passou das quatro não fica sem opção", () => {
+  // Levar seis semanas para vencer quatro etapas acontece. O seletor não
+  // pode ficar em branco para ela.
+  const opcoes = opcoesDeSemana([1, 2, 3, 4], 6);
+  assert.equal(opcoes.length, 5);
+  assert.equal(opcoes.at(-1)?.valor, "6");
+  assert.match(opcoes.at(-1)?.rotulo ?? "", /além do material/);
+});
+
+// --- a busca no Mapa -------------------------------------------------------
+
+/** Nomes reais do material dela, como estão em produção. */
+const MAPA = [
+  { nome: "Abacate / avocado", observacao: null },
+  { nome: "Carne de porco", observacao: null },
+  { nome: "Queijos de búfala", observacao: null },
+  { nome: "Queijo cottage de búfala", observacao: "Prefira sem lactose." },
+  { nome: "Muçarela", observacao: "Queijo de vaca. Prefira sem lactose." },
+  { nome: "Parmesão", observacao: "Queijo de vaca. Prefira sem lactose." },
+  { nome: "Manga", observacao: null },
+  { nome: "Couve-flor", observacao: null },
+];
+
+test("o caso que motivou tudo: 'Mussarela de búfala' acha os queijos de búfala", () => {
+  // Procurando a frase inteira não viria nada, e a tela diria que o Mapa não
+  // tem o alimento — quando tem dois candidatos.
+  //
+  // Nenhum deles é "o certo" para o código: os dois casam a mesma palavra, e
+  // escolher entre "Queijos de búfala" e "Queijo cottage de búfala" é leitura
+  // clínica. O trabalho daqui é pôr os dois na frente dela.
+  const nomes = buscarNoMapa(MAPA, "Mussarela de búfala").map((a) => a.nome);
+  assert.ok(nomes.includes("Queijos de búfala"));
+  assert.ok(nomes.includes("Queijo cottage de búfala"));
+  assert.ok(!nomes.includes("Manga"), "e não traz o Mapa inteiro junto");
+});
+
+test("'Carne de porco' encontra o mesmo nome, e ele vem primeiro", () => {
+  assert.equal(buscarNoMapa(MAPA, "Carne de porco")[0]?.nome, "Carne de porco");
+});
+
+test("quem casa mais palavras vem antes", () => {
+  const achados = buscarNoMapa(MAPA, "queijo cottage búfala");
+  assert.equal(achados[0]?.nome, "Queijo cottage de búfala");
+});
+
+test("a observação também é procurada — é onde mora 'queijo de vaca'", () => {
+  const nomes = buscarNoMapa(MAPA, "queijo").map((a) => a.nome);
+  assert.ok(nomes.includes("Muçarela"), "Muçarela não tem 'queijo' no nome, só na observação");
+  assert.ok(nomes.includes("Parmesão"));
+});
+
+test("acento não atrapalha, nos dois sentidos", () => {
+  assert.ok(buscarNoMapa(MAPA, "bufala").some((a) => a.nome === "Queijos de búfala"));
+  assert.ok(buscarNoMapa(MAPA, "COUVE-FLOR").some((a) => a.nome === "Couve-flor"));
+  assert.ok(buscarNoMapa(MAPA, "parmesao").some((a) => a.nome === "Parmesão"));
+});
+
+test("palavrinha de ligação não traz o Mapa inteiro", () => {
+  // "de" tem duas letras e fica de fora, senão "Carne de porco" casaria com
+  // tudo que tem "de" e a ordem perderia o sentido.
+  assert.deepEqual(buscarNoMapa(MAPA, "de"), MAPA);
+  assert.equal(buscarNoMapa(MAPA, "porco").length, 1);
+});
+
+test("termo vazio devolve o Mapa inteiro, não uma lista vazia", () => {
+  assert.equal(buscarNoMapa(MAPA, "").length, MAPA.length);
+  assert.equal(buscarNoMapa(MAPA, "   ").length, MAPA.length);
+});
+
+test("o que não existe no Mapa devolve nada, sem inventar parecido", () => {
+  assert.deepEqual(buscarNoMapa(MAPA, "champagne"), []);
 });
