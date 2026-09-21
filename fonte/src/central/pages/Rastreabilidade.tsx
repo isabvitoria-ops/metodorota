@@ -31,6 +31,7 @@ import {
 import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { rotas } from "@/central/rotas";
 import { RastreioAlimentar } from "@/central/components/RastreioAlimentar";
+import { DocumentoRastreio } from "@/central/components/DocumentoRastreio";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 
 /**
@@ -52,7 +53,7 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
  */
 export function Rastreabilidade() {
   const { dados, carregando, erro, ocupado, comRecarga, definirErro } = useReintroducao();
-  const { acesso } = useSessao();
+  const { acesso, configuracoes } = useSessao();
   const [registrando, definirRegistrando] = useState(false);
   const [editando, definirEditando] = useState<RegistroDeReintroducao | null>(null);
   const [semanaVisivel, definirSemanaVisivel] = useState<number | "todas">("todas");
@@ -146,7 +147,18 @@ export function Rastreabilidade() {
             Vem antes da lista de alimentos de propósito: é o material que ela
             volta para consultar. A lista a testar é tarefa; o rastreio é
             resultado. */}
-        <RastreioAlimentar itens={itens} registros={registros} nome={acesso.nome} />
+        <RastreioAlimentar itens={itens} registros={registros} />
+
+        {/* O documento, que só existe no papel. Não é a tela impressa: tem
+            layout próprio, três tabelas, o mapa de tolerância e espaço para
+            os próximos testes. Ver `DocumentoRastreio`. */}
+        <DocumentoRastreio
+          paciente={acesso.nome ?? "Paciente"}
+          semana={dados?.semanaAtual ?? 1}
+          itens={itens}
+          registros={registros}
+          nutricionista={configuracoes.nomeNutricionista}
+        />
 
         {/* -------------------------------------------------- a lista dela */}
         {itens.length > 0 && (

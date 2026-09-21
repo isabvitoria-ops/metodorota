@@ -122,11 +122,9 @@ const CLASSE_DO_TOM: Record<Linha["tom"], string> = {
 export function RastreioAlimentar({
   itens,
   registros,
-  nome,
 }: {
   itens: ItemDeReintroducao[];
   registros: RegistroDeReintroducao[];
-  nome: string | null;
 }) {
   const [filtro, definirFiltro] = useState<Filtro>("todos");
   const [aberto, definirAberto] = useState<string | null>(null);
@@ -262,10 +260,6 @@ export function RastreioAlimentar({
         PDF”.
       </p>
 
-      {/* Só aparece no papel: identifica de quem é a folha. */}
-      <p className="c-so-impressao">
-        Rastreio alimentar{nome ? ` de ${nome}` : ""} · {dataBonita(new Date().toISOString().slice(0, 10))}
-      </p>
     </section>
   );
 }

@@ -2676,11 +2676,17 @@ body:has(.central) {
   .c-faixa-admin,
   .c-cabecalho-pagina,
   .c-cabecalho,
-  .c-conteudo > *:not(.c-rastreio) {
+  /* Tudo o que não é o DOCUMENTO sai do papel. O `.doc` precisa estar na
+     exceção: `.c-conteudo > *:not(...)` tem especificidade maior que `.doc`,
+     então sem nomeá-lo aqui o `display: block !important` dele perdia e o
+     documento saía em branco — que foi exatamente o que aconteceu. */
+  .c-conteudo > *:not(.doc),
+  .c-rastreio {
     display: none !important;
   }
 
-  .c-rastreio {
+  .doc {
+    display: block !important;
     margin: 0;
   }
 
@@ -2711,6 +2717,430 @@ body:has(.central) {
     border: 1px solid #999;
     background: none !important;
     color: #000 !important;
+  }
+
+}
+
+/* =========================================================================
+   O DOCUMENTO DE RASTREABILIDADE — papel, não tela
+
+   "Se ainda estiver parecendo uma exportação da tela do aplicativo,
+   refaça." Este bloco existe para isso: o documento tem layout próprio,
+   pensado desde o começo para A4, e não herda nada do desenho das telas.
+
+   Ele NÃO aparece na tela: `display: none` aqui, `display: block` dentro do
+   `@media print`. São os mesmos dados que a tela mostra, organizados de
+   outro jeito — mostrar os dois juntos seria pedir para a paciente ler tudo
+   duas vezes.
+
+   AS CORES SÃO SUAVES e nunca carregam sozinhas a informação: cada faixa
+   tem o nome escrito por extenso e uma borda à esquerda. Impresso em preto
+   e branco, o verde e o rosa somem e o documento continua legível — que é a
+   régua, porque é para ser impresso.
+   ========================================================================= */
+
+.doc {
+  display: none;
+}
+
+@page {
+  size: A4;
+  /* 14 mm em cima e embaixo sobram para o cabeçalho e o número de página
+     que o navegador imprime; 16 mm nas laterais é a margem que nenhuma
+     impressora doméstica come. */
+  margin: 14mm 16mm;
+}
+
+@media print {
+  .doc {
+    font-family: var(--font-body);
+    /* 10,5 pt: a fonte NÃO encolhe para caber tudo numa página. Uma tabela
+       de trinta alimentos vira três páginas legíveis, e não uma ilegível. */
+    font-size: 10.5pt;
+    line-height: 1.45;
+    color: #1f1d1b;
+  }
+
+  .doc * {
+    box-sizing: border-box;
+  }
+
+  /* ---- capa ---- */
+
+  .doc-capa {
+    border-bottom: 2px solid #38546c;
+    padding-bottom: 10mm;
+    margin-bottom: 8mm;
+  }
+
+  .doc-marca {
+    height: 14mm !important;
+    width: auto !important;
+    margin-bottom: 8mm;
+  }
+
+  .doc-sobretitulo {
+    margin: 0;
+    font-size: 10pt;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #5a7a8f;
+  }
+
+  /* O nome da paciente é a maior coisa da página: o documento é dela. */
+  .doc-nome {
+    margin: 2mm 0 0;
+    font-family: var(--font-display);
+    font-size: 26pt;
+    line-height: 1.1;
+    font-weight: 600;
+    color: #38546c;
+  }
+
+  .doc-lema {
+    margin: 1mm 0 0;
+    font-size: 11pt;
+    font-style: italic;
+    color: #5a7a8f;
+  }
+
+  .doc-periodo {
+    margin: 4mm 0 0;
+    font-size: 10pt;
+    color: #4a4540;
+  }
+
+  /* A caixa de destaque com a explicação que não pode sair. */
+  .doc-aviso {
+    margin: 6mm 0 0;
+    padding: 4mm 5mm;
+    border-left: 3px solid #5a7a8f;
+    background: #f4f7f9;
+    font-size: 10pt;
+    line-height: 1.5;
+  }
+
+  /* ---- seções ---- */
+
+  .doc-secao {
+    margin-top: 8mm;
+  }
+
+  /* Cada tabela começa em página nova. É a arquitetura que ela desenhou —
+     uma faixa por página — e é o que impede um bloco de três linhas de
+     ficar pendurado no pé da página anterior. */
+  .doc-quebra {
+    break-before: page;
+  }
+
+  .doc-titulo {
+    margin: 0 0 3mm;
+    font-family: var(--font-display);
+    font-size: 15pt;
+    font-weight: 600;
+    color: #38546c;
+  }
+
+  .doc-titulo-faixa {
+    display: flex;
+    align-items: center;
+    gap: 3mm;
+  }
+
+  .doc-nota {
+    margin: 0 0 4mm;
+    font-size: 9.5pt;
+    color: #5f5951;
+  }
+
+  .doc-vazio {
+    margin: 0;
+    font-size: 10pt;
+    color: #77706a;
+    font-style: italic;
+  }
+
+  /* ---- as três faixas ----
+
+     Tons dessaturados de propósito: nada de neon, e nada de infantil. E a
+     bolinha é só o reforço — quem diz a faixa é o título escrito. */
+
+  .doc-bem {
+    --faixa: #4f7a5f;
+    --faixa-fundo: #eef4ef;
+  }
+
+  .doc-obs {
+    --faixa: #8a6d2f;
+    --faixa-fundo: #faf5e9;
+  }
+
+  .doc-resp {
+    --faixa: #9b5045;
+    --faixa-fundo: #fbefec;
+  }
+
+  .doc-bola {
+    display: inline-block;
+    width: 3.5mm;
+    height: 3.5mm;
+    border-radius: 50%;
+    background: var(--faixa, #38546c);
+    flex: none;
+  }
+
+  /* ---- resumo ---- */
+
+  .doc-resumo {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4mm;
+  }
+
+  .doc-numero {
+    border: 1px solid #ddd8d1;
+    border-left: 3px solid var(--faixa, #38546c);
+    border-radius: 2mm;
+    padding: 4mm;
+    background: var(--faixa-fundo, #fbfaf9);
+  }
+
+  .doc-numero strong {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 22pt;
+    line-height: 1;
+    color: var(--faixa, #38546c);
+  }
+
+  .doc-numero span {
+    display: block;
+    margin-top: 1.5mm;
+    font-size: 9pt;
+    color: #4a4540;
+  }
+
+  /* ---- mapa de tolerância: a "cola" da cozinha ---- */
+
+  .doc-mapa-colunas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4mm;
+  }
+
+  .doc-coluna {
+    border: 1px solid #ddd8d1;
+    border-top: 3px solid var(--faixa);
+    border-radius: 2mm;
+    padding: 4mm;
+    background: var(--faixa-fundo);
+    break-inside: avoid;
+  }
+
+  .doc-coluna-titulo {
+    display: flex;
+    align-items: center;
+    gap: 2mm;
+    margin: 0 0 2mm;
+    font-weight: 600;
+    font-size: 10pt;
+    color: var(--faixa);
+  }
+
+  .doc-coluna ul {
+    margin: 0;
+    padding-left: 5mm;
+  }
+
+  .doc-coluna li {
+    margin-bottom: 1mm;
+    font-size: 10pt;
+  }
+
+  .doc-linha-aprendi {
+    margin: 0 0 2mm;
+    font-size: 10pt;
+  }
+
+  /* ---- tabelas ---- */
+
+  .doc-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 9.5pt;
+  }
+
+  /* O `<thead>` se repete sozinho a cada página quando a tabela passa de
+     uma — é comportamento de impressão do navegador para `<thead>`, e é por
+     isso que o cabeçalho é `<thead>` de verdade e não uma primeira linha. */
+  .doc-tabela thead th {
+    text-align: left;
+    padding: 2.5mm 3mm;
+    border-bottom: 1.5pt solid var(--faixa, #38546c);
+    font-size: 8.5pt;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--faixa, #38546c);
+    font-weight: 600;
+  }
+
+  .doc-tabela tbody th,
+  .doc-tabela tbody td {
+    padding: 2.5mm 3mm;
+    border-bottom: 0.5pt solid #e2ddd6;
+    vertical-align: top;
+    text-align: left;
+  }
+
+  .doc-tabela tbody th {
+    font-weight: 600;
+    width: 26%;
+  }
+
+  /* `break-inside` na LINHA, não na tabela: evitar na tabela inteira
+     empurraria uma tabela de trinta alimentos para a página seguinte e
+     deixaria meia página em branco. */
+  .doc-tabela tr {
+    break-inside: avoid;
+  }
+
+  .doc-tabela tbody tr:nth-child(odd) {
+    background: var(--faixa-fundo, #fbfaf9);
+  }
+
+  .doc-testes {
+    display: block;
+    margin-top: 0.8mm;
+    font-size: 8pt;
+    font-weight: 400;
+    color: #6b645c;
+  }
+
+  /* As linhas em branco dos próximos testes precisam de altura para caber
+     a letra dela. */
+  .doc-vazia tbody td,
+  .doc-vazia tbody th {
+    height: 9mm;
+  }
+
+  .doc-vazia tbody tr {
+    background: none;
+  }
+
+  /* ---- larguras das tabelas largas ----
+
+     Sem largura declarada, o navegador distribui pelo conteúdo e "Farinha
+     de batata-doce" quebra em três linhas enquanto "Leve" fica sozinho numa
+     coluna larga. Declaradas, cada coluna recebe o espaço do que ela
+     carrega. */
+  .doc-tabela-larga {
+    table-layout: fixed;
+  }
+
+  .doc-tabela-larga th:nth-child(1),
+  .doc-tabela-larga td:nth-child(1) {
+    width: 19%;
+  }
+
+  .doc-tabela-larga th:nth-child(2),
+  .doc-tabela-larga td:nth-child(2) {
+    width: 19%;
+  }
+
+  .doc-tabela-larga th:nth-child(3),
+  .doc-tabela-larga td:nth-child(3) {
+    width: 12%;
+  }
+
+  .doc-tabela-larga th:nth-child(4),
+  .doc-tabela-larga td:nth-child(4) {
+    width: 12%;
+  }
+
+  /* 15% de 178 mm são 26 mm: cabem "20/09/2026" e a folga de que uma data
+     precisa para nunca quebrar. */
+  .doc-tabela-larga th:nth-child(5),
+  .doc-tabela-larga td:nth-child(5) {
+    width: 15%;
+  }
+
+  .doc-tabela-larga th:nth-child(6),
+  .doc-tabela-larga td:nth-child(6) {
+    width: 23%;
+  }
+
+  /* DEFEITO QUE ISTO CONSERTA: com `table-layout: fixed`, uma palavra que
+     não cabe na coluna NÃO quebra — ela transborda por cima da vizinha, e
+     os cabeçalhos saíram escritos uns em cima dos outros
+     ("INTENSIDADEQUANTIDADEDATA"). "Intensidade" é uma palavra só e não tem
+     onde quebrar; então o espaçamento entre letras encolhe e a quebra passa
+     a ser permitida em qualquer ponto, como último recurso. */
+  /* Nas tabelas de seis colunas o cabeçalho sai em CAIXA NORMAL, e não em
+     maiúsculas espaçadas como nas outras.
+     "INTENSIDADE" em maiúscula não cabe numa coluna de 21 mm e saía partida
+     em "INTENSID / ADE"; em caixa normal a mesma palavra ocupa dois terços
+     do espaço e cabe inteira. A hierarquia continua vindo da cor e do peso. */
+  .doc-tabela-larga thead th {
+    font-size: 8pt;
+    letter-spacing: 0;
+    text-transform: none;
+    padding-left: 2mm;
+    padding-right: 2mm;
+  }
+
+  .doc-tabela-larga tbody th,
+  .doc-tabela-larga tbody td {
+    padding-left: 2mm;
+    padding-right: 2mm;
+  }
+
+  /* O corpo NÃO quebra em qualquer ponto: com `anywhere`, "20/09/2026"
+     saiu partido em "20/09/202" e "6" na linha de baixo. Uma data partida é
+     pior do que uma coluna apertada. */
+  .doc-data {
+    white-space: nowrap;
+  }
+
+  /* A tabela para preencher à mão precisa das linhas VERTICAIS: sem elas a
+     folha vira um campo aberto e a letra atravessa as colunas. */
+  .doc-vazia th,
+  .doc-vazia td {
+    border-right: 0.5pt solid #e2ddd6;
+  }
+
+  .doc-vazia th:last-child,
+  .doc-vazia td:last-child {
+    border-right: 0;
+  }
+
+  /* ---- rodapé ----
+
+     `position: fixed` no rodapé se REPETE em toda página impressa, no
+     Chrome e no Safari. É o que garante que cada folha solta continue
+     dizendo de quem é — e é o mais perto de numeração que dá para fazer
+     sem o rodapé do navegador, que viria junto com o endereço do site. */
+  .doc-rodape {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding-top: 2mm;
+    border-top: 0.5pt solid #ddd8d1;
+    font-size: 8pt;
+    color: #5f5951;
+    display: flex;
+    justify-content: space-between;
+    gap: 6mm;
+  }
+
+  .doc-rodape p {
+    margin: 0;
+  }
+
+  /* O espaço do rodapé fixo: sem ele, a última linha de cada página passa
+     por baixo do rodapé e some. */
+  .doc {
+    padding-bottom: 8mm;
   }
 }
 

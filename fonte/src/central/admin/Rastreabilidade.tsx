@@ -9,6 +9,7 @@ import type {
   StatusReintroducao,
 } from "@/central/types";
 import { repositorio } from "@/central/dados/repositorio";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { useReintroducao } from "@/central/hooks/useReintroducao";
 import {
   BRISTOL,
@@ -35,6 +36,7 @@ import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { Campo, Selecao, Texto, AreaTexto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
 import { RastreioAlimentar } from "@/central/components/RastreioAlimentar";
+import { DocumentoRastreio } from "@/central/components/DocumentoRastreio";
 
 /**
  * Rastreabilidade alimentar — área da nutricionista.
@@ -162,6 +164,7 @@ function PainelDaPaciente({
   aoMudarRastreio: () => void;
 }) {
   const { dados, carregando, erro, ocupado, comRecarga } = useReintroducao(paciente.id);
+  const { configuracoes } = useSessao();
   // `null` = fechado. String vazia = aberto sem alimento escolhido. Com
   // "item:<id>" = aberto já naquele alimento, que é o caminho de quem
   // clicou num da lista.
@@ -259,10 +262,17 @@ function PainelDaPaciente({
           </div>
 
           <PanoramaDeMarcadores itens={dados?.itens ?? []} registros={dados?.registros ?? []} />
-          <RastreioAlimentar
+          <RastreioAlimentar itens={dados?.itens ?? []} registros={dados?.registros ?? []} />
+
+          {/* O MESMO documento que a paciente imprime. Uma segunda versão
+              para ela divergiria da da paciente na primeira mudança — e a
+              que divergisse calada seria a que vai para a mão da pessoa. */}
+          <DocumentoRastreio
+            paciente={paciente.nome}
+            semana={dados?.semanaAtual ?? 1}
             itens={dados?.itens ?? []}
             registros={dados?.registros ?? []}
-            nome={paciente.nome}
+            nutricionista={configuracoes.nomeNutricionista}
           />
           <LinhaDoTempo dados={dados} />
         </>
