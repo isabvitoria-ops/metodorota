@@ -97,7 +97,17 @@ export function fichaVazia(ficha) {
   if (temCampo(ficha.macros)) return false;
   const dieta = ficha.dieta ?? {};
   if (String(dieta.peso ?? "").trim() || String(dieta.meta ?? "").trim()) return false;
-  return !(dieta.refeicoes ?? []).some((r) => (r.itens ?? []).length);
+  // DEFEITO QUE AS OPÇÕES CAUSARAM: aqui a pergunta era `r.itens`, que só
+  // existia quando a refeição tinha uma lista só. Desde que café da manhã
+  // passou a ter opções, os alimentos moram em `r.opcoes[].itens` — e uma
+  // dieta inteira montada era lida como ficha vazia, não era gravada, e
+  // sumia ao recarregar a página. Qualquer opção com alimento conta, não só
+  // a que está aberta: o que ela escreveu tem que sobreviver.
+  return !(dieta.refeicoes ?? []).some(
+    (r) =>
+      (r.itens ?? []).length ||
+      (r.opcoes ?? []).some((o) => (o.itens ?? []).length),
+  );
 }
 
 /**

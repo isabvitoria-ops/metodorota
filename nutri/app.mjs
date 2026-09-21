@@ -24,6 +24,30 @@ import {
 } from "./calculos.mjs";
 import { PROTOCOLOS } from "./protocolos.mjs";
 import {
+  MEDIDA_GRAMA,
+  acrescentarOpcao,
+  duplicarRefeicao,
+  gramasDoItem,
+  itensDoDia,
+  normalizarItem,
+  normalizarRefeicao,
+  opcaoAtiva,
+  refeicaoNova,
+  removerOpcao,
+} from "./dieta.mjs";
+import {
+  excluirAlimento,
+  excluirGrupo,
+  listarAlimentos,
+  listarGrupos,
+  medidasDe,
+  restaurarDoBackup,
+  salvarAlimento,
+  salvarGrupo,
+  salvarMedidas,
+  tudoParaBackup,
+} from "./meusAlimentos.mjs";
+import {
   apagarFicha,
   fichaVazia,
   lerFicha,
@@ -79,7 +103,10 @@ let TACO = null;
 let POS = {};
 let ALIMENTOS = [];
 
-const FONTES = { taco: "TACO", ibge: "IBGE" };
+const FONTES = { taco: "TACO", ibge: "IBGE", meu: "Meu" };
+
+/** As duas tabelas, guardadas cruas para remontar a busca quando ela cadastra. */
+let BASE_TABELAS = [];
 
 /** Nome e busca sem acento, para casar com o que ela digita. */
 const semAcento = (t) =>
@@ -99,7 +126,7 @@ async function carregarTaco() {
   TACO = taco;
   TACO.nutrientes.forEach((chave, i) => (POS[chave] = i));
 
-  ALIMENTOS = TACO.alimentos.map((a) => ({
+  BASE_TABELAS = TACO.alimentos.map((a) => ({
     id: `taco:${a.c}`,
     fonte: "taco",
     nome: a.n,
@@ -114,7 +141,7 @@ async function carregarTaco() {
       // preparo vazio deles, e escrevê-lo no nome só ocuparia espaço.
       const preparo = a.preparo && a.preparo !== "Não se aplica" ? a.preparo : "";
       const nome = preparo ? `${a.nome} (${preparo.toLowerCase()})` : a.nome;
-      ALIMENTOS.push({
+      BASE_TABELAS.push({
         id: `ibge:${a.codigo}:${a.preparo_codigo}`,
         fonte: "ibge",
         nome,
@@ -125,6 +152,8 @@ async function carregarTaco() {
     }
   }
 
+  montarAlimentos();
+
   $("fonte-taco").innerHTML =
     `<strong>${TACO.alimentos.length}</strong> alimentos da ${TACO.nome} (${TACO.instituicao})` +
     (ibge
@@ -132,6 +161,27 @@ async function carregarTaco() {
       : "") +
     `, por 100 g. Cada alimento mostra de qual tabela veio. ` +
     `Valor que a tabela não traz aparece como “—” e não entra como zero na soma.`;
+}
+
+/**
+ * Junta as tabelas com os alimentos dela numa busca só.
+ *
+ * Refeito a cada cadastro: sem isso, o whey que ela acabou de criar não
+ * apareceria na busca até recarregar a página, e ela concluiria que não
+ * salvou.
+ */
+function montarAlimentos() {
+  ALIMENTOS = [
+    ...listarAlimentos().map((a) => ({
+      id: a.id,
+      fonte: "meu",
+      nome: a.nome,
+      busca: semAcento(`${a.nome} ${a.grupo ?? ""}`),
+      grupo: a.grupo ?? "Meus alimentos",
+      bruto: a,
+    })),
+    ...BASE_TABELAS,
+  ];
 }
 
 /**
@@ -154,6 +204,12 @@ const DO_IBGE = {
 
 function valorDe(alimento, chave) {
   if (!alimento) return null;
+  if (alimento.fonte === "meu") {
+    // Os campos dela já têm o nome interno, e o que ela deixou em branco é
+    // nulo — nunca zero.
+    const v = alimento.bruto[chave];
+    return v === undefined ? null : v;
+  }
   if (alimento.fonte === "ibge") {
     const campo = DO_IBGE[chave];
     return campo ? (alimento.bruto[campo] ?? null) : null;
@@ -183,10 +239,19 @@ function buscar(termo) {
 
 /** O alimento de um item da dieta, pelo id composto. */
 function alimentoPorId(id) {
-  // Ficha salva antes das duas tabelas guardava só o código da TACO. Sem
-  // este recuo, toda dieta já montada perderia os alimentos de uma vez.
-  const alvo = String(id).includes(":") ? String(id) : `taco:${id}`;
-  return ALIMENTOS.find((a) => a.id === alvo) ?? null;
+  const bruto = String(id);
+  const direto = ALIMENTOS.find((a) => a.id === bruto);
+  if (direto) return direto;
+  // Ficha salva antes das duas tabelas guardava só o código da TACO — um
+  // número solto. Sem este recuo, toda dieta já montada perderia os
+  // alimentos de uma vez.
+  //
+  // DEFEITO QUE O ATALHO ANTIGO CAUSAVA: a regra era "não tem dois-pontos,
+  // então é TACO". O id de um alimento dela é `meu-1758…`, que também não
+  // tem dois-pontos — virava `taco:meu-1758…`, não achava nada, e as
+  // medidas caseiras dela (o "scoop = 30 g" do whey) sumiam da lista.
+  if (!/^\d+$/.test(bruto)) return null;
+  return ALIMENTOS.find((a) => a.id === `taco:${bruto}`) ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -208,6 +273,13 @@ const MACROS = [
   ["fibra_alimentar", "Fibra", 1],
 ];
 
+/**
+ * Desenha as refeições.
+ *
+ * Cada refeição tem horário, um botão de recolher, abas de opção e o menu
+ * de ações. A opção aberta é a que conta no total do dia — ver `dieta.mjs`,
+ * onde essa regra mora e é testada.
+ */
 function desenharDieta() {
   const caixa = $("refeicoes");
   caixa.innerHTML = "";
@@ -216,47 +288,157 @@ function desenharDieta() {
     const bloco = document.createElement("div");
     bloco.className = "refeicao";
 
+    // ---- topo: horário, nome, recolher, ações --------------------------
     const topo = document.createElement("div");
     topo.className = "refeicao-topo";
+
+    const recolher = document.createElement("button");
+    recolher.className = "mini recolher";
+    recolher.title = refeicao.recolhida ? "Abrir" : "Recolher";
+    recolher.textContent = refeicao.recolhida ? "▸" : "▾";
+    recolher.onclick = () => {
+      refeicao.recolhida = !refeicao.recolhida;
+      guardarDieta();
+      desenharDieta();
+    };
+
+    const hora = document.createElement("input");
+    hora.type = "time";
+    hora.className = "hora";
+    hora.value = refeicao.horario ?? "";
+    hora.oninput = () => {
+      refeicao.horario = hora.value;
+      guardarDieta();
+    };
+
     const nome = document.createElement("input");
     nome.value = refeicao.nome;
     nome.oninput = () => {
       refeicao.nome = nome.value;
       guardarDieta();
     };
+
+    const duplicar = document.createElement("button");
+    duplicar.className = "mini";
+    duplicar.textContent = "duplicar";
+    duplicar.title = "Copiar esta refeição inteira";
+    duplicar.onclick = () => {
+      dieta.refeicoes.splice(iR + 1, 0, duplicarRefeicao(refeicao));
+      guardarDieta();
+      desenharDieta();
+    };
+
     const remover = document.createElement("button");
     remover.className = "mini";
-    remover.textContent = "remover refeição";
+    remover.textContent = "remover";
     remover.onclick = () => {
+      if (!window.confirm(`Remover "${refeicao.nome}"?`)) return;
       dieta.refeicoes.splice(iR, 1);
       guardarDieta();
       desenharDieta();
     };
-    topo.append(nome, remover);
+
+    topo.append(recolher, hora, nome, duplicar, remover);
     bloco.append(topo);
 
-    if (refeicao.itens.length) {
+    // Recolhida mostra o resumo: é para isso que serve recolher.
+    if (refeicao.recolhida) {
+      const resumo = document.createElement("p");
+      resumo.className = "nota resumo-refeicao";
+      const itens = opcaoAtiva(refeicao).itens ?? [];
+      const kcal = somar(itens.map((it) => {
+        const a = alimentoPorId(it.codigo);
+        return a ? porGramas(valorDe(a, "energia_kcal"), gramasDoItem(it)) : null;
+      }));
+      resumo.textContent = itens.length
+        ? `${itens.map((it) => it.nome).join(", ")} · ${mostrar(kcal.total, 0)} kcal`
+        : "Sem alimentos.";
+      bloco.append(resumo);
+      caixa.append(bloco);
+      return;
+    }
+
+    // ---- abas de opção --------------------------------------------------
+    const abas = document.createElement("div");
+    abas.className = "opcoes";
+    refeicao.opcoes.forEach((opcao, iO) => {
+      const aba = document.createElement("button");
+      aba.className = "opcao";
+      aba.setAttribute("aria-pressed", String(iO === refeicao.opcaoAtiva));
+      aba.textContent = opcao.rotulo;
+      aba.onclick = () => {
+        refeicao.opcaoAtiva = iO;
+        guardarDieta();
+        desenharDieta();
+      };
+      aba.ondblclick = () => {
+        const novo = window.prompt("Nome desta opção:", opcao.rotulo);
+        if (novo && novo.trim()) {
+          opcao.rotulo = novo.trim();
+          guardarDieta();
+          desenharDieta();
+        }
+      };
+      abas.append(aba);
+    });
+
+    const maisOpcao = document.createElement("button");
+    maisOpcao.className = "mini";
+    maisOpcao.textContent = "+ opção";
+    maisOpcao.title = "Outra versão desta mesma refeição. Só a aberta entra no total do dia.";
+    maisOpcao.onclick = () => {
+      dieta.refeicoes[iR] = acrescentarOpcao(refeicao);
+      guardarDieta();
+      desenharDieta();
+    };
+    abas.append(maisOpcao);
+
+    if (refeicao.opcoes.length > 1) {
+      const tirarOpcao = document.createElement("button");
+      tirarOpcao.className = "mini";
+      tirarOpcao.textContent = "− opção";
+      tirarOpcao.onclick = () => {
+        dieta.refeicoes[iR] = removerOpcao(refeicao, refeicao.opcaoAtiva);
+        guardarDieta();
+        desenharDieta();
+      };
+      abas.append(tirarOpcao);
+    }
+    bloco.append(abas);
+
+    if (refeicao.opcoes.length > 1) {
+      const aviso = document.createElement("p");
+      aviso.className = "nota";
+      aviso.textContent =
+        "As opções são o mesmo horário: só a que está aberta entra no total do dia.";
+      bloco.append(aviso);
+    }
+
+    const opcao = opcaoAtiva(refeicao);
+
+    // ---- a tabela da opção aberta ---------------------------------------
+    if (opcao.itens.length) {
       const tabela = document.createElement("table");
       tabela.innerHTML =
-        "<thead><tr><th>Alimento</th><th>g</th>" +
+        "<thead><tr><th>Alimento</th><th>Qtd.</th><th>Medida</th><th>g</th>" +
         MACROS.map(([, r]) => `<th>${r}</th>`).join("") +
         "<th></th></tr></thead>";
       const corpo = document.createElement("tbody");
 
-      // As células ficam guardadas para serem reescritas quando ela mexe nas
-      // gramas. Redesenhar a tabela inteira a cada tecla tiraria o cursor do
-      // campo no meio do número — e foi assim que a primeira versão saiu:
-      // o total do dia mudava e a linha do alimento ficava parada.
+      // As células ficam guardadas para serem reescritas quando ela mexe na
+      // quantidade. Redesenhar a tabela a cada tecla tiraria o cursor do
+      // campo no meio do número.
       const celulas = [];
+      const gramasTd = [];
       const rodapeCelulas = [];
 
       const recalcular = () => {
-        // `TACO?`: abrir uma ficha com alimentos antes de a tabela terminar
-        // de carregar chegava aqui com TACO nulo e derrubava a tela inteira.
-        refeicao.itens.forEach((item, iI) => {
+        opcao.itens.forEach((item, iI) => {
           const a = alimentoPorId(item.codigo);
+          const g = gramasDoItem(item);
+          if (gramasTd[iI]) gramasTd[iI].textContent = mostrar(g, 0);
           MACROS.forEach(([chave, , casas], iM) => {
-            const v = a ? porGramas(valorDe(a, chave), item.gramas) : null;
+            const v = a ? porGramas(valorDe(a, chave), g) : null;
             const td = celulas[iI]?.[iM];
             if (td) {
               td.textContent = mostrar(v, casas);
@@ -266,9 +448,9 @@ function desenharDieta() {
         });
         MACROS.forEach(([chave, , casas], iM) => {
           const { total, faltando } = somar(
-            refeicao.itens.map((item) => {
+            opcao.itens.map((item) => {
               const a = alimentoPorId(item.codigo);
-              return a ? porGramas(valorDe(a, chave), item.gramas) : null;
+              return a ? porGramas(valorDe(a, chave), gramasDoItem(item)) : null;
             }),
           );
           if (rodapeCelulas[iM]) {
@@ -279,35 +461,98 @@ function desenharDieta() {
         totais();
       };
 
-      refeicao.itens.forEach((item, iI) => {
+      opcao.itens.forEach((item, iI) => {
         const alimento = alimentoPorId(item.codigo);
         const tr = document.createElement("tr");
+
         const nomeTd = document.createElement("td");
         nomeTd.textContent = alimento ? alimento.nome : item.nome;
         if (alimento) {
-          // De qual tabela veio, na própria linha: os nutrientes das duas não
-          // são os mesmos, e ela precisa saber disso ao olhar um "—".
           const marca = document.createElement("span");
           marca.className = "fonte";
-          marca.textContent = FONTES[alimento.fonte];
+          marca.textContent = FONTES[alimento.fonte] ?? alimento.fonte;
           nomeTd.append(" ", marca);
         }
-        const gTd = document.createElement("td");
-        const gInput = document.createElement("input");
-        // Texto com teclado numérico, não `type="number"`: ver o comentário
-        // em camposCorpo(). Vale igual para gramas — "62,5 g" existe.
-        gInput.type = "text";
-        gInput.inputMode = "decimal";
-        gInput.value = item.gramas;
-        gInput.style.width = "72px";
-        gInput.style.textAlign = "right";
-        gInput.oninput = () => {
-          item.gramas = num(gInput.value);
+
+        const qtdTd = document.createElement("td");
+        const qtdInput = document.createElement("input");
+        qtdInput.type = "text";
+        qtdInput.inputMode = "decimal";
+        qtdInput.value = String(item.quantidade).replace(".", ",");
+        qtdInput.style.width = "64px";
+        qtdInput.style.textAlign = "right";
+        qtdInput.oninput = () => {
+          item.quantidade = num(qtdInput.value);
           guardarDieta();
           recalcular();
         };
-        gTd.append(gInput);
-        tr.append(nomeTd, gTd);
+        qtdTd.append(qtdInput);
+
+        const medidaTd = document.createElement("td");
+        const medidaSel = document.createElement("select");
+        const medidas = medidasDoAlimento(item.codigo);
+        medidas.forEach((m, mI) => {
+          const op = document.createElement("option");
+          // A posição na lista, e não "nome|gramas": um nome com barra
+          // vertical quebraria a leitura de volta, e o par inteiro deixaria
+          // de casar assim que as gramas mudassem.
+          op.value = String(mI);
+          op.textContent = m.nome === "g" ? "g" : `${m.nome} (${mostrar(m.gramas, 0)} g)`;
+          medidaSel.append(op);
+        });
+
+        // "100 g de milho = 1 unidade": a medida caseira tem que poder nascer
+        // em cima de um alimento da TACO, não só dos que ela mesma cadastra.
+        // Fica aqui dentro, e não num botão à parte, porque é exatamente aqui
+        // que ela percebe que a medida falta.
+        const criar = document.createElement("option");
+        criar.value = "nova";
+        criar.textContent = "＋ criar medida…";
+        medidaSel.append(criar);
+
+        // A medida guardada é reencontrada PELO NOME. Se ela editar o whey e
+        // o scoop passar de 30 g para 32 g, a dieta já montada passa a
+        // contar 32 g — antes o par não casava com opção nenhuma, o select
+        // caía calado para "g" e a conta seguia com os 30 g velhos, que é o
+        // pior dos dois mundos: mostra uma coisa e soma outra.
+        const daLista = medidas.findIndex(
+          (m) => m.nome.toLowerCase() === String(item.medida?.nome ?? "").toLowerCase(),
+        );
+        const escolhida = daLista >= 0 ? daLista : 0;
+        const medidaAgora = medidas[escolhida] ?? { ...MEDIDA_GRAMA };
+        medidaSel.value = String(escolhida);
+        if (
+          medidaAgora.nome !== item.medida?.nome ||
+          medidaAgora.gramas !== item.medida?.gramas
+        ) {
+          item.medida = { ...medidaAgora };
+          guardarDieta();
+        }
+
+        // Trocar a unidade não muda o que a paciente come: o prato continua
+        // com as mesmas gramas, só escritas de outro jeito. 100 g de whey
+        // viram 3,33 scoops, e não 100 scoops — sem esta conversão o total
+        // do dia saltava de 380 kcal para 11.400 num clique de dropdown, e
+        // ela só descobriria conferindo a soma na mão.
+        medidaSel.onchange = () => {
+          if (medidaSel.value === "nova") {
+            criarMedida(item.codigo, alimento ? alimento.nome : item.nome);
+            desenharDieta();
+            return;
+          }
+          const antes = gramasDoItem(item);
+          item.medida = { ...(medidas[Number(medidaSel.value)] ?? MEDIDA_GRAMA) };
+          item.quantidade = Math.round((antes / item.medida.gramas) * 100) / 100;
+          qtdInput.value = String(item.quantidade).replace(".", ",");
+          guardarDieta();
+          recalcular();
+        };
+        medidaTd.append(medidaSel);
+
+        const gTd = document.createElement("td");
+        gramasTd[iI] = gTd;
+
+        tr.append(nomeTd, qtdTd, medidaTd, gTd);
 
         celulas[iI] = [];
         for (const [, ,] of MACROS) {
@@ -320,8 +565,9 @@ function desenharDieta() {
         const x = document.createElement("button");
         x.className = "mini";
         x.textContent = "×";
+        x.title = "Tirar este alimento";
         x.onclick = () => {
-          refeicao.itens.splice(iI, 1);
+          opcao.itens.splice(iI, 1);
           guardarDieta();
           desenharDieta();
         };
@@ -332,7 +578,7 @@ function desenharDieta() {
 
       const rodape = document.createElement("tfoot");
       const trF = document.createElement("tr");
-      trF.innerHTML = "<td>Subtotal</td><td></td>";
+      trF.innerHTML = "<td>Subtotal</td><td></td><td></td><td></td>";
       for (const [, ,] of MACROS) {
         const td = document.createElement("td");
         rodapeCelulas.push(td);
@@ -345,21 +591,94 @@ function desenharDieta() {
       recalcular();
     }
 
-    bloco.append(campoDeBusca(refeicao));
+    bloco.append(campoDeBusca(opcao));
+
+    // ---- grupos favoritos -----------------------------------------------
+    const grupos = listarGrupos();
+    if (grupos.length) {
+      const linha = document.createElement("div");
+      linha.className = "grupos-atalho";
+      const rotulo = document.createElement("span");
+      rotulo.className = "nota";
+      rotulo.textContent = "Grupos:";
+      linha.append(rotulo);
+      for (const g of grupos) {
+        const b = document.createElement("button");
+        b.className = "mini";
+        b.textContent = `+ ${g.nome}`;
+        b.title = `Acrescentar os ${g.itens.length} alimentos deste grupo`;
+        b.onclick = () => {
+          opcao.itens.push(...g.itens.map((i) => normalizarItem(i)));
+          guardarDieta();
+          desenharDieta();
+        };
+        linha.append(b);
+      }
+      bloco.append(linha);
+    }
+
     caixa.append(bloco);
   });
 
   totais();
 }
 
-/** Campo de busca com sugestões, teclado incluso. */
-function campoDeBusca(refeicao) {
+/**
+ * Todas as medidas que servem para aquele alimento, grama incluída.
+ *
+ * Duas fontes desembocam aqui: a medida que nasce junto com o alimento dela
+ * ("scoop = 30 g" no cadastro do whey) e a medida que ela cria depois, por
+ * cima de um alimento qualquer ("1 unidade = 100 g" no milho da TACO). Nada
+ * impede que as duas tenham o mesmo nome, e aí a lista mostraria "scoop"
+ * duas vezes, com gramas diferentes, sem ela saber qual é qual. Vence a de
+ * cima, e "g" nunca é sobrescrita.
+ */
+function medidasDoAlimento(codigo) {
+  const alimento = alimentoPorId(codigo);
+  const proprias = alimento?.fonte === "meu" ? (alimento.bruto.medidas ?? []) : [];
+  const saida = [];
+  for (const m of [MEDIDA_GRAMA, ...proprias, ...medidasDe(codigo)]) {
+    const nome = String(m?.nome ?? "").trim();
+    const gramas = Number(m?.gramas);
+    if (!nome || !Number.isFinite(gramas) || gramas <= 0) continue;
+    if (saida.some((x) => x.nome.toLowerCase() === nome.toLowerCase())) continue;
+    saida.push({ nome, gramas });
+  }
+  return saida;
+}
+
+/**
+ * Uma medida caseira nova para aquele alimento, das tabelas ou dela.
+ *
+ * Guarda em `salvarMedidas`, que é por código: a unidade que ela criou para
+ * o milho vale para toda dieta em que o milho entrar, hoje e daqui a seis
+ * meses. Não é um apelido daquela linha.
+ */
+function criarMedida(codigo, nome) {
+  const comoChama = window.prompt(`Como se chama a medida de "${nome}"? (ex.: unidade, colher, fatia)`);
+  if (comoChama === null || !comoChama.trim()) return;
+
+  const quanto = window.prompt(`Quantas gramas tem 1 ${comoChama.trim()} de "${nome}"?`);
+  if (quanto === null) return;
+
+  const novas = [...medidasDe(codigo), { nome: comoChama, gramas: quanto }];
+  const gravadas = salvarMedidas(codigo, novas);
+  if (!gravadas.some((m) => m.nome.toLowerCase() === comoChama.trim().toLowerCase())) {
+    window.alert(
+      `Não consegui guardar "${comoChama.trim()}". ` +
+        "As gramas têm que ser um número maior que zero, e o nome não pode repetir uma medida que já existe neste alimento.",
+    );
+  }
+}
+
+/** Campo de busca com sugestões, teclado incluso. Escreve na opção aberta. */
+function campoDeBusca(opcao) {
   const caixa = document.createElement("div");
   caixa.className = "busca";
   caixa.style.marginTop = "10px";
 
   const campo = document.createElement("input");
-  campo.placeholder = "Buscar alimento (TACO e IBGE) e apertar Enter";
+  campo.placeholder = "Buscar alimento e apertar Enter";
   const lista = document.createElement("div");
   lista.className = "sugestoes";
   lista.hidden = true;
@@ -373,7 +692,12 @@ function campoDeBusca(refeicao) {
   }
 
   function escolher(alimento) {
-    refeicao.itens.push({ codigo: alimento.id, nome: alimento.nome, gramas: 100 });
+    opcao.itens.push({
+      codigo: alimento.id,
+      nome: alimento.nome,
+      quantidade: 100,
+      medida: { ...MEDIDA_GRAMA },
+    });
     guardarDieta();
     fechar();
     campo.value = "";
@@ -386,19 +710,16 @@ function campoDeBusca(refeicao) {
     lista.innerHTML = "";
 
     // DEFEITO QUE ISTO CONSERTA: não achando nada, a caixa simplesmente não
-    // abria. Silêncio, na tela de quem está montando uma dieta, lê-se como
-    // "este alimento não existe nas tabelas" — foi o que aconteceu com
-    // "tapioca, goma", e a conclusão dela foi que faltava alimento no
-    // sistema. Dizer que a busca não achou, e o que tentar em seguida, custa
-    // três linhas.
+    // abria. Silêncio, para quem está montando uma dieta, lê-se como "este
+    // alimento não existe nas tabelas".
     if (!achados.length) {
       if (semAcento(campo.value).replace(/[^a-z0-9]/g, "").length < 2) return fechar();
       const aviso = document.createElement("div");
       aviso.className = "nada";
       aviso.innerHTML =
-        "Nada com essas palavras nas duas tabelas.<br><small>" +
-        "Tente uma palavra só, ou o nome genérico — as tabelas escrevem " +
-        "“Queijo, mozarela”, “Tapioca de goma”. Marca de produto elas não têm." +
+        "Nada com essas palavras nas tabelas.<br><small>" +
+        "Tente uma palavra só, ou o nome genérico. Marca de produto elas não têm — " +
+        "cadastre em “Meus alimentos”, ali embaixo." +
         "</small>";
       lista.append(aviso);
       lista.hidden = false;
@@ -408,7 +729,7 @@ function campoDeBusca(refeicao) {
     achados.forEach((a, i) => {
       const linha = document.createElement("div");
       linha.innerHTML =
-        `${a.nome}<br><small>${FONTES[a.fonte]}${a.grupo ? ` · ${a.grupo}` : ""}</small>`;
+        `${a.nome}<br><small>${FONTES[a.fonte] ?? a.fonte}${a.grupo ? ` · ${a.grupo}` : ""}</small>`;
       if (i === 0) linha.className = "marcado";
       linha.onmousedown = (e) => {
         e.preventDefault();
@@ -428,8 +749,6 @@ function campoDeBusca(refeicao) {
       lista.children[marcado]?.scrollIntoView({ block: "nearest" });
     } else if (e.key === "Enter") {
       e.preventDefault();
-      // `achados` está vazio quando o que a caixa mostra é o aviso de "nada
-      // encontrado": Enter ali não pode escolher coisa nenhuma.
       if (achados[marcado]) escolher(achados[marcado]);
     } else if (e.key === "Escape") {
       fechar();
@@ -442,7 +761,9 @@ function campoDeBusca(refeicao) {
 }
 
 function totais() {
-  const todos = dieta.refeicoes.flatMap((r) => r.itens);
+  // Só a opção aberta de cada refeição. Ver `itensDoDia` em dieta.mjs: duas
+  // opções de café da manhã somadas dariam dois cafés da manhã no dia.
+  const todos = itensDoDia(dieta.refeicoes);
   const soma = {};
   let faltouAlgo = 0;
 
@@ -450,7 +771,7 @@ function totais() {
     const { total, faltando } = somar(
       todos.map((item) => {
         const a = alimentoPorId(item.codigo);
-        return a ? porGramas(valorDe(a, chave), item.gramas) : null;
+        return a ? porGramas(valorDe(a, chave), gramasDoItem(item)) : null;
       }),
     );
     soma[chave] = total;
@@ -498,17 +819,39 @@ function totais() {
     : "";
 }
 
+/**
+ * A dieta em texto, para colar no WhatsApp.
+ *
+ * Sai com TODAS as opções, não só a aberta: para a paciente, "ou isto ou
+ * aquilo" é justamente o que ela precisa ler. Quem conta uma só é o total
+ * do dia, que é conta, não cardápio.
+ */
 function textoDaDieta() {
   const linhas = [];
-  if (dieta.nome) linhas.push(dieta.nome, "");
+  if ($("f-nome")?.value?.trim()) linhas.push($("f-nome").value.trim(), "");
+
   for (const r of dieta.refeicoes) {
-    if (!r.itens.length) continue;
-    linhas.push(r.nome.toUpperCase());
-    for (const item of r.itens) {
-      const a = alimentoPorId(item.codigo);
-      const kcal = a ? porGramas(valorDe(a, "energia_kcal"), item.gramas) : null;
-      linhas.push(`  ${a ? a.nome : item.nome} — ${item.gramas} g${kcal !== null ? ` (${mostrar(kcal, 0)} kcal)` : ""}`);
-    }
+    const temAlgo = r.opcoes.some((o) => o.itens.length);
+    if (!temAlgo) continue;
+    linhas.push(`${r.horario ? `${r.horario} · ` : ""}${r.nome.toUpperCase()}`);
+
+    r.opcoes.forEach((opcao, i) => {
+      if (!opcao.itens.length) return;
+      if (r.opcoes.length > 1) linhas.push(`  [${opcao.rotulo}]`);
+      for (const item of opcao.itens) {
+        const a = alimentoPorId(item.codigo);
+        const g = gramasDoItem(item);
+        const kcal = a ? porGramas(valorDe(a, "energia_kcal"), g) : null;
+        const medida =
+          item.medida.nome === "g"
+            ? `${mostrar(g, 0)} g`
+            : `${mostrar(item.quantidade, item.quantidade % 1 ? 1 : 0)} ${item.medida.nome} (${mostrar(g, 0)} g)`;
+        linhas.push(
+          `    ${a ? a.nome : item.nome} — ${medida}${kcal !== null ? ` · ${mostrar(kcal, 0)} kcal` : ""}`,
+        );
+      }
+      if (i < r.opcoes.length - 1 && r.opcoes[i + 1].itens.length) linhas.push("    — ou —");
+    });
     linhas.push("");
   }
   return linhas.join("\n");
@@ -795,7 +1138,7 @@ $("c-protocolo").addEventListener("change", () => {
 });
 
 $("nova-refeicao").onclick = () => {
-  dieta.refeicoes.push({ nome: "Nova refeição", itens: [] });
+  dieta.refeicoes.push(refeicaoNova());
   guardarDieta();
   desenharDieta();
 };
@@ -812,7 +1155,7 @@ $("copiar").onclick = async () => {
 
 $("limpar-dieta").onclick = () => {
   if (!window.confirm("Apagar a dieta que está na tela? A avaliação física desta ficha continua.")) return;
-  dieta = { peso: "", meta: "", refeicoes: [{ nome: "Café da manhã", itens: [] }] };
+  dieta = { peso: "", meta: "", refeicoes: [refeicaoNova("Café da manhã", "07:00")] };
   $("d-peso").value = "";
   $("d-meta").value = "";
   guardarDieta();
@@ -1050,9 +1393,11 @@ function mostrarFicha(ficha) {
   dieta = {
     peso: ficha?.dieta?.peso ?? "",
     meta: ficha?.dieta?.meta ?? "",
+    // Normaliza na abertura: a ficha pode ter sido salva antes das opções e
+    // das medidas caseiras, e sem isto os alimentos dela sumiriam.
     refeicoes: ficha?.dieta?.refeicoes?.length
-      ? ficha.dieta.refeicoes
-      : [{ nome: "Café da manhã", itens: [] }],
+      ? ficha.dieta.refeicoes.map(normalizarRefeicao)
+      : [refeicaoNova("Café da manhã", "07:00")],
   };
   $("d-peso").value = dieta.peso;
   $("d-meta").value = dieta.meta;
@@ -1109,7 +1454,11 @@ $("f-apagar").onclick = () => {
 };
 
 $("f-backup").onclick = () => {
-  const arquivo = new Blob([textoDoBackup()], { type: "application/json" });
+  // As fichas mais o que ela cadastrou: alimento e grupo que sumissem num
+  // backup restaurado seriam uma perda silenciosa.
+  const pacote = JSON.parse(textoDoBackup());
+  Object.assign(pacote, tudoParaBackup());
+  const arquivo = new Blob([JSON.stringify(pacote, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(arquivo);
   const link = document.createElement("a");
   link.href = url;
@@ -1125,11 +1474,15 @@ $("f-arquivo").addEventListener("change", async () => {
   const arquivo = $("f-arquivo").files?.[0];
   if (!arquivo) return;
   try {
-    const r = restaurarBackup(await arquivo.text());
+    const texto = await arquivo.text();
+    const r = restaurarBackup(texto);
+    const meus = restaurarDoBackup(JSON.parse(texto));
     listaDesenhada = "";
     desenharListaDeFichas();
+    recarregarMeus();
     escreverEstado(
-      `Backup restaurado: ${r.novas} ficha(s) nova(s), ${r.atualizadas} atualizada(s). ` +
+      `Backup restaurado: ${r.novas} ficha(s) nova(s), ${r.atualizadas} atualizada(s), ` +
+        `${meus.alimentos} alimento(s) seu(s), ${meus.grupos} grupo(s). ` +
         "Nada do que já estava aqui foi apagado.",
     );
   } catch (e) {
@@ -1159,3 +1512,210 @@ if (recuperada) {
       "Ela está na lista de fichas salvas.",
   );
 }
+
+// ---------------------------------------------------------------------------
+// Meus alimentos, minhas medidas e meus grupos
+// ---------------------------------------------------------------------------
+
+/**
+ * O que nenhuma tabela traz.
+ *
+ * "Quero poder adicionar na hora no banco de dados alimentos que não
+ * existem e escrever lá as infos nutricionais, tipo algum whey específico,
+ * ou algum pão." A TACO e o IBGE são tabelas de laboratório e de consumo —
+ * nenhuma das duas traz marca, e é justamente a marca que ela prescreve.
+ *
+ * O formulário é por 100 g, como as tabelas, para que os números se somem
+ * sem conversão escondida no meio. As medidas caseiras dela entram embaixo:
+ * é o "100 g de milho = 1 unidade".
+ */
+function desenharMeusAlimentos() {
+  const caixa = $("meus-alimentos");
+  caixa.innerHTML = "";
+  const meus = listarAlimentos();
+  if (!meus.length) {
+    const vazio = document.createElement("p");
+    vazio.className = "nota";
+    vazio.textContent = "Nenhum alimento seu ainda.";
+    caixa.append(vazio);
+    return;
+  }
+  for (const a of meus) {
+    const cartao = document.createElement("div");
+    cartao.className = "cartao-meu";
+    const nome = document.createElement("strong");
+    nome.textContent = a.nome;
+    const valores = document.createElement("span");
+    valores.className = "nota";
+    valores.textContent =
+      `por 100 g: ${mostrar(a.energia_kcal, 0)} kcal · ` +
+      `CHO ${mostrar(a.carboidrato, 1)} · PTN ${mostrar(a.proteina, 1)} · ` +
+      `LIP ${mostrar(a.lipideos, 1)} · Fibra ${mostrar(a.fibra_alimentar, 1)}` +
+      (a.medidas.length ? ` · ${a.medidas.map((m) => `${m.nome} = ${m.gramas} g`).join(", ")}` : "");
+    const editar = document.createElement("button");
+    editar.className = "mini";
+    editar.textContent = "editar";
+    editar.onclick = () => abrirAlimento(a);
+    const apagar = document.createElement("button");
+    apagar.className = "mini";
+    apagar.textContent = "apagar";
+    apagar.onclick = () => {
+      if (!window.confirm(`Apagar "${a.nome}"? As dietas que já usam este alimento ficam sem ele.`)) return;
+      excluirAlimento(a.id);
+      recarregarMeus();
+    };
+    cartao.append(nome, valores, editar, apagar);
+    caixa.append(cartao);
+  }
+}
+
+function desenharMeusGrupos() {
+  const caixa = $("meus-grupos");
+  caixa.innerHTML = "";
+  const grupos = listarGrupos();
+  if (!grupos.length) {
+    const vazio = document.createElement("p");
+    vazio.className = "nota";
+    vazio.textContent = "Nenhum grupo ainda. Monte uma refeição e clique em “Criar grupo”.";
+    caixa.append(vazio);
+    return;
+  }
+  for (const g of grupos) {
+    const cartao = document.createElement("div");
+    cartao.className = "cartao-meu";
+    const nome = document.createElement("strong");
+    nome.textContent = g.nome;
+    const itens = document.createElement("span");
+    itens.className = "nota";
+    itens.textContent = g.itens.length
+      ? g.itens.map((i) => i.nome).join(", ")
+      : "sem alimentos";
+    const apagar = document.createElement("button");
+    apagar.className = "mini";
+    apagar.textContent = "apagar grupo";
+    apagar.onclick = () => {
+      if (!window.confirm(`Apagar o grupo "${g.nome}"?`)) return;
+      excluirGrupo(g.id);
+      recarregarMeus();
+    };
+    cartao.append(nome, itens, apagar);
+
+    // "Poder excluir o que quero": cada alimento do grupo sai sozinho.
+    for (const item of g.itens) {
+      const tirar = document.createElement("button");
+      tirar.className = "mini";
+      tirar.textContent = `− ${item.nome}`;
+      tirar.title = `Tirar ${item.nome} do grupo`;
+      tirar.onclick = () => {
+        salvarGrupo({ ...g, itens: g.itens.filter((i) => i.codigo !== item.codigo) });
+        recarregarMeus();
+      };
+      cartao.append(tirar);
+    }
+    caixa.append(cartao);
+  }
+}
+
+function recarregarMeus() {
+  montarAlimentos();
+  desenharMeusAlimentos();
+  desenharMeusGrupos();
+  desenharDieta();
+}
+
+/**
+ * O formulário de um alimento dela.
+ *
+ * `prompt` em série, e não uma tela: são seis números e duas linhas de
+ * texto, usados de vez em quando. Uma tela inteira para isso ocuparia
+ * espaço permanente para resolver uma tarefa ocasional.
+ *
+ * Campo deixado em branco fica NULO, não zero — um whey sem fibra anotada
+ * tem fibra desconhecida, não fibra zero. Ver `conferirAlimento`.
+ */
+function abrirAlimento(existente) {
+  const atual = existente ?? {};
+  const perguntar = (rotulo, valor) => window.prompt(rotulo, valor ?? "");
+
+  const nome = perguntar("Nome do alimento:", atual.nome);
+  if (nome === null || !nome.trim()) return;
+
+  const campos = [
+    ["Calorias por 100 g (kcal):", "energia_kcal"],
+    ["Carboidrato por 100 g (g):", "carboidrato"],
+    ["Proteína por 100 g (g):", "proteina"],
+    ["Gordura por 100 g (g):", "lipideos"],
+    ["Fibra por 100 g (g) — em branco se não souber:", "fibra_alimentar"],
+  ];
+  const dados = { id: atual.id, nome, grupo: "Meus alimentos" };
+  for (const [rotulo, chave] of campos) {
+    const v = perguntar(rotulo, atual[chave] ?? "");
+    if (v === null) return;
+    dados[chave] = v;
+  }
+
+  const medidas = perguntar(
+    'Medidas caseiras, uma por linha: "unidade = 100" (o número é em gramas). Deixe em branco se não houver.',
+    (atual.medidas ?? []).map((m) => `${m.nome} = ${m.gramas}`).join("\n"),
+  );
+  if (medidas === null) return;
+  dados.medidas = medidas
+    .split("\n")
+    .map((l) => l.split("="))
+    .map(([n, g]) => ({ nome: (n ?? "").trim(), gramas: (g ?? "").trim() }));
+
+  try {
+    salvarAlimento(dados);
+    recarregarMeus();
+  } catch (e) {
+    window.alert(e.message);
+  }
+}
+
+$("novo-alimento").onclick = () => abrirAlimento(null);
+
+/**
+ * Cria um grupo a partir do que está na refeição aberta.
+ *
+ * "Criar um grupo de frutas já pré-pronto": a maneira natural é montar a
+ * lista uma vez na tela e guardá-la, não redigitar tudo numa tela à parte.
+ */
+$("novo-grupo").onclick = () => {
+  const comItens = dieta.refeicoes
+    .map((r) => ({ nome: r.nome, itens: opcaoAtiva(r).itens }))
+    .filter((r) => r.itens.length);
+
+  if (!comItens.length) {
+    window.alert(
+      "Monte uma refeição com os alimentos que você quer no grupo e clique aqui de novo.",
+    );
+    return;
+  }
+
+  const de =
+    comItens.length === 1
+      ? comItens[0]
+      : comItens[
+          Math.max(
+            0,
+            Number(
+              window.prompt(
+                "De qual refeição?\n" + comItens.map((r, i) => `${i + 1} — ${r.nome}`).join("\n"),
+                "1",
+              ),
+            ) - 1,
+          )
+        ];
+  if (!de) return;
+
+  const nome = window.prompt("Nome do grupo:", de.nome);
+  if (!nome || !nome.trim()) return;
+  try {
+    salvarGrupo({ nome, itens: de.itens });
+    recarregarMeus();
+  } catch (e) {
+    window.alert(e.message);
+  }
+};
+
+recarregarMeus();

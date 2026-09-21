@@ -260,3 +260,30 @@ test("ids não se repetem", () => {
   const ids = new Set(Array.from({ length: 500 }, novoId));
   assert.equal(ids.size, 500);
 });
+
+test("dieta montada com opções não é ficha vazia — senão nada é gravado", () => {
+  const comOpcoes = {
+    nome: "",
+    corpo: {},
+    macros: {},
+    dieta: {
+      peso: "",
+      meta: "",
+      refeicoes: [
+        {
+          nome: "Café da manhã",
+          opcaoAtiva: 0,
+          opcoes: [
+            { rotulo: "Principal", itens: [] },
+            { rotulo: "Opção 2", itens: [{ codigo: "taco:1", quantidade: 100 }] },
+          ],
+        },
+      ],
+    },
+  };
+  assert.equal(fichaVazia(comOpcoes), false);
+
+  const semNada = structuredClone(comOpcoes);
+  semNada.dieta.refeicoes[0].opcoes[1].itens = [];
+  assert.equal(fichaVazia(semNada), true);
+});

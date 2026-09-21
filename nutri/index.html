@@ -123,6 +123,21 @@
       .painel dd span { font-size: 12px; font-weight: 400; color: var(--apagado); }
       .aviso { background: #fdf6e6; border: 1px solid #e8d9b0; color: var(--alerta); border-radius: 8px; padding: 9px 11px; font-size: 13px; margin-top: 10px; }
       .nota { font-size: 12px; color: var(--apagado); margin: 6px 0 0; }
+      .refeicao-topo .recolher { font-size: 15px; width: 22px; }
+      .refeicao-topo .hora { width: 92px; flex: 0 0 auto; }
+      .opcoes { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+      .opcao {
+        background: none; border: 1px solid var(--borda); border-radius: 999px;
+        padding: 3px 11px; cursor: pointer; font: inherit; font-size: 12.5px; color: inherit;
+      }
+      .opcao[aria-pressed="true"] { background: var(--verde); color: #fff; border-color: var(--verde); }
+      .resumo-refeicao { margin: 0; }
+      .grupos-atalho { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+      .cartao-meu {
+        border: 1px solid var(--borda); border-radius: 9px; padding: 10px 12px; margin-top: 8px;
+        display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap;
+      }
+      .cartao-meu strong { flex: 1 1 160px; }
       .sugestoes .nada { color: var(--apagado); cursor: default; }
       .sugestoes .nada:hover { background: none; }
       .fonte {
@@ -199,6 +214,19 @@
           <button type="button" class="leve" id="copiar">Copiar como texto</button>
           <button type="button" class="leve" onclick="window.print()">Imprimir / PDF</button>
           <button type="button" class="leve" id="limpar-dieta">Limpar</button>
+        </div>
+
+        <h2>Meus alimentos e grupos</h2>
+        <p class="nota" style="margin-bottom: 10px">
+          O que nenhuma tabela traz: o whey de uma marca, o pão da padaria, a receita da
+          casa. E os grupos que você mais usa, para acrescentar de uma vez.
+        </p>
+        <div class="linha">
+          <button type="button" class="leve" id="novo-alimento">+ Cadastrar alimento</button>
+          <button type="button" class="leve" id="novo-grupo">+ Criar grupo</button>
+        </div>
+        <div id="meus-alimentos"></div>
+        <div id="meus-grupos"></div>
         </p>
       </section>
 
