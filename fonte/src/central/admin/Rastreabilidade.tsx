@@ -161,7 +161,10 @@ function PainelDaPaciente({
   aoMudarRastreio: () => void;
 }) {
   const { dados, carregando, erro, ocupado, comRecarga } = useReintroducao(paciente.id);
-  const [lancando, definirLancando] = useState(false);
+  // `null` = fechado. String vazia = aberto sem alimento escolhido. Com
+  // "item:<id>" = aberto já naquele alimento, que é o caminho de quem
+  // clicou num da lista.
+  const [lancando, definirLancando] = useState<string | null>(null);
   // Carregado aqui e emprestado às três telas que precisam dele: a semana
   // (que não pode oferecer etapa que o material não tem), a lista e a
   // ligação ao Mapa.
@@ -247,7 +250,7 @@ function PainelDaPaciente({
             <button
               type="button"
               className="c-botao c-botao-pequeno"
-              onClick={() => definirLancando(true)}
+              onClick={() => definirLancando("")}
             >
               Lançar registro
             </button>
@@ -269,18 +272,19 @@ function PainelDaPaciente({
           material={material}
           ocupado={ocupado}
           aoMudar={comRecarga}
-          aoLancar={() => definirLancando(true)}
+          aoLancar={(alimento = "") => definirLancando(alimento)}
         />
       )}
       {/* Fora das abas: ela chega neste lançamento pela linha do tempo
           ("é aqui que moram os registros") e pela lista da paciente ("é aqui
           que eu adiciono alimentos"). As duas leituras estão certas. */}
-      {lancando && (
+      {lancando !== null && (
         <ModalRetroativo
           paciente={paciente}
           itens={dados?.itens ?? []}
           material={material}
-          aoFechar={() => definirLancando(false)}
+          inicial={lancando}
+          aoFechar={() => definirLancando(null)}
           aoSalvar={comRecarga}
         />
       )}
@@ -494,12 +498,18 @@ function ModalRetroativo({
   paciente,
   itens,
   material,
+  inicial = "",
   aoFechar,
   aoSalvar,
 }: {
   paciente: Paciente;
   itens: ItemDeReintroducao[];
   material: AlimentoDoMaterial[];
+  /**
+   * O alimento já escolhido, quando ela chega aqui clicando num da lista.
+   * Mesmo formato do seletor: "item:<id>" ou "mapa:<id>".
+   */
+  inicial?: string;
   aoFechar: () => void;
   aoSalvar: (acao: () => Promise<void>) => Promise<boolean>;
 }) {
@@ -508,7 +518,7 @@ function ModalRetroativo({
   // resultado: "item:" é um que já está na lista dela, "mapa:" entra ligado
   // ao Mapa (e por isso com marcação), e vazio é nome escrito à mão, que
   // entra solto. Um select só, três destinos.
-  const [escolha, definirEscolha] = useState("");
+  const [escolha, definirEscolha] = useState(inicial);
   const [nomeNovo, definirNomeNovo] = useState("");
   const [data, definirData] = useState(hoje);
   const [horario, definirHorario] = useState("");
@@ -543,7 +553,10 @@ function ModalRetroativo({
   }
 
   function limparParaOProximo() {
-    definirEscolha("");
+    // Chegando por um alimento específico, "lançar outro" volta PARA ELE:
+    // é o caso do "ela testou mais de uma vez", e voltar para o vazio
+    // obrigaria a procurá-lo de novo a cada registro.
+    definirEscolha(inicial);
     definirNomeNovo("");
     definirHorario("");
     definirQuantidade("");
@@ -873,7 +886,7 @@ function ListaDaPaciente({
   material: AlimentoDoMaterial[];
   ocupado: boolean;
   aoMudar: (acao: () => Promise<void>) => Promise<boolean>;
-  aoLancar: () => void;
+  aoLancar: (alimento?: string) => void;
 }) {
   const [adicionando, definirAdicionando] = useState(false);
   const [classificando, definirClassificando] = useState<ItemDeReintroducao | null>(null);
@@ -889,7 +902,11 @@ function ListaDaPaciente({
             : `${itens.length} ${itens.length === 1 ? "alimento" : "alimentos"} na lista dela.`}
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button type="button" className="c-botao c-botao-secundario c-botao-pequeno" onClick={aoLancar}>
+          <button
+            type="button"
+            className="c-botao c-botao-secundario c-botao-pequeno"
+            onClick={() => aoLancar()}
+          >
             Adicionar com sintoma
           </button>
           <button
@@ -960,6 +977,19 @@ function ListaDaPaciente({
                 <span className={`c-selo ${seloDoTom(info.tom)}`}>{info.rotulo}</span>
               </div>
               <div className="c-acao-estado">
+                {/* Primeiro botão de cada alimento, e de propósito: ela
+                    disse "eu sei que ela não vai fazer", então registrar
+                    pela paciente é o caminho comum, não a exceção. Clicar
+                    no alimento e lançar o sintoma dele é o que ela tentou
+                    fazer sozinha antes de me perguntar. */}
+                <button
+                  type="button"
+                  className="c-botao c-botao-pequeno"
+                  disabled={ocupado}
+                  onClick={() => aoLancar(`item:${item.id}`)}
+                >
+                  Registrar sintoma
+                </button>
                 <button
                   type="button"
                   className="c-botao c-botao-secundario c-botao-pequeno"
@@ -1019,6 +1049,7 @@ function ListaDaPaciente({
           jaNaLista={itens.map((i) => i.alimentoId).filter((id): id is string => id !== null)}
           aoFechar={() => definirAdicionando(false)}
           aoSalvar={aoMudar}
+          aoLancar={aoLancar}
         />
       )}
 
@@ -1061,11 +1092,13 @@ function ModalAdicionar({
   jaNaLista,
   aoFechar,
   aoSalvar,
+  aoLancar,
 }: {
   paciente: Paciente;
   jaNaLista: string[];
   aoFechar: () => void;
   aoSalvar: (acao: () => Promise<void>) => Promise<boolean>;
+  aoLancar: (alimento?: string) => void;
 }) {
   const [material, definirMaterial] = useState<AlimentoDoMaterial[]>([]);
   const [escolhidos, definirEscolhidos] = useState<string[]>([]);
@@ -1093,7 +1126,7 @@ function ModalAdicionar({
     );
   }, []);
 
-  async function salvar() {
+  async function salvar(seguirParaSintomas = false) {
     definirSalvando(true);
     let deuCerto = true;
     if (escolhidos.length > 0) {
@@ -1107,7 +1140,12 @@ function ModalAdicionar({
       );
     }
     definirSalvando(false);
-    if (deuCerto) aoFechar();
+    if (!deuCerto) return;
+    aoFechar();
+    // Escolhendo do material, o registro já pode ir direto no alimento do
+    // Mapa: entra ligado, e por isso com a marcação. Sem isso ela teria de
+    // procurá-lo de novo na tela seguinte.
+    if (seguirParaSintomas) aoLancar(escolhidos[0] ? `mapa:${escolhidos[0]}` : "");
   }
 
   return (
@@ -1156,13 +1194,25 @@ function ModalAdicionar({
         <button type="button" className="c-botao c-botao-secundario" onClick={aoFechar}>
           Cancelar
         </button>
+        {/* O caminho que ela tentou sozinha: escolher os alimentos e, em
+            seguida, dizer o que a paciente sentiu em cada um. "Ela não vai
+            fazer" — então o registro é dela, e não pode ficar a duas telas
+            de distância. */}
+        <button
+          type="button"
+          className="c-botao c-botao-secundario"
+          disabled={salvando || (escolhidos.length === 0 && !nomeLivre.trim())}
+          onClick={() => void salvar(true)}
+        >
+          Adicionar e registrar
+        </button>
         <button
           type="button"
           className="c-botao"
           disabled={salvando || (escolhidos.length === 0 && !nomeLivre.trim())}
           onClick={() => void salvar()}
         >
-          {salvando ? "Salvando…" : "Adicionar"}
+          {salvando ? "Salvando…" : "Só adicionar"}
         </button>
       </div>
     </Modal>

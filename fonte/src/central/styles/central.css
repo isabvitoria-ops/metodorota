@@ -2157,6 +2157,18 @@ body:has(.central) {
   display: flex;
   gap: 10px;
   margin-top: 22px;
+  /* Três botões numa tela de 390px não cabem lado a lado: sem quebrar, o
+     texto de um deles vira três linhas dentro de um botão estreito. */
+  flex-wrap: wrap;
+}
+@media (max-width: 460px) {
+  .c-modal-acoes {
+    flex-direction: column-reverse;
+  }
+  .c-modal-acoes .c-botao,
+  .c-modal-acoes button {
+    width: 100%;
+  }
 }
 
 .c-modal-acoes .c-botao {
