@@ -361,15 +361,27 @@ export function porGramas(valorPor100g, gramas) {
 export function somar(valores) {
   let total = 0;
   let faltando = 0;
+  let contaram = 0;
   for (const v of valores) {
     if (v === null || v === undefined) faltando += 1;
-    else total += v;
+    else {
+      total += v;
+      contaram += 1;
+    }
   }
-  return { total, faltando };
+  // Nenhum valor conhecido devolve NULO, não zero. Com um alimento só, e a
+  // tabela dele sem gordura, a linha mostrava "—" e o total do dia mostrava
+  // "0,0 g" logo abaixo — a mesma ausência contada como medida em um lugar
+  // e como zero no outro, e é o total que ela lê ao fechar a prescrição.
+  return { total: contaram === 0 ? null : total, faltando, contaram };
 }
 
 /** Distribuição de macros em percentual das calorias totais. */
 export function distribuicao(carboidratoG, proteinaG, lipideoG) {
+  // Faltando um dos três, não há divisão a mostrar: o percentual sairia
+  // contando o desconhecido como zero, e 98% de carboidrato num prato cuja
+  // gordura ninguém mediu é um número que engana.
+  if (carboidratoG == null || proteinaG == null || lipideoG == null) return null;
   const kcal = carboidratoG * 4 + proteinaG * 4 + lipideoG * 9;
   if (!kcal) return null;
   return {

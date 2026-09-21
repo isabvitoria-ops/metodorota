@@ -116,9 +116,11 @@ test("valor ausente na TACO não vira zero", () => {
 });
 
 test("a soma avisa quantos valores faltaram em vez de fingir zero", () => {
-  assert.deepEqual(somar([10, 20, null, 30]), { total: 60, faltando: 1 });
-  assert.deepEqual(somar([null, null]), { total: 0, faltando: 2 });
-  assert.deepEqual(somar([]), { total: 0, faltando: 0 });
+  assert.deepEqual(somar([10, 20, null, 30]), { total: 60, faltando: 1, contaram: 3 });
+  // Nada conhecido é NULO. Era zero aqui, e o zero descia para o total do
+  // dia como se fosse medida — ver os testes de ausência mais abaixo.
+  assert.deepEqual(somar([null, null]), { total: null, faltando: 2, contaram: 0 });
+  assert.deepEqual(somar([]), { total: null, faltando: 0, contaram: 0 });
 });
 
 test("distribuição de macros em percentual das calorias", () => {
@@ -283,4 +285,45 @@ test("as três conversões de densidade são diferentes entre si", async () => {
   perto(CONVERSOES.brozek.calcular(d), 21.0381, 0.0001);
   // Meio ponto percentual separa a primeira da última — não são trocáveis.
   assert.ok(Math.abs(CONVERSOES.siri.calcular(d) - CONVERSOES.brozek.calcular(d)) > 0.3);
+});
+
+// --- ausência não vira zero, nem no total do dia ---------------------------
+
+test("somar: nenhum valor conhecido devolve nulo, não zero", () => {
+  const r = somar([null, undefined, null]);
+  assert.equal(r.total, null);
+  assert.equal(r.faltando, 3);
+  assert.equal(r.contaram, 0);
+});
+
+test("somar: com um valor conhecido, soma o que há e conta o que falta", () => {
+  const r = somar([2, null, 3]);
+  assert.equal(r.total, 5);
+  assert.equal(r.faltando, 1);
+  assert.equal(r.contaram, 2);
+});
+
+test("somar: zero medido é zero, e não se confunde com ausência", () => {
+  // A TACO e o IBGE registram 0,00 como medida real abaixo do limite de
+  // quantificação. Isso não é a mesma coisa que não ter medido.
+  const r = somar([0, 0]);
+  assert.equal(r.total, 0);
+  assert.equal(r.faltando, 0);
+});
+
+test("somar: lista vazia é nula, não zero", () => {
+  assert.equal(somar([]).total, null);
+});
+
+test("distribuicao: faltando um macro, não há divisão a mostrar", () => {
+  // 98% de carboidrato num prato cuja gordura ninguém mediu engana.
+  assert.equal(distribuicao(82, 2, null), null);
+  assert.equal(distribuicao(null, 2, 5), null);
+  assert.equal(distribuicao(82, null, 5), null);
+});
+
+test("distribuicao: com os três, a conta sai normal", () => {
+  const d = distribuicao(50, 25, 10);
+  assert.ok(d);
+  assert.equal(Math.round(d.kcal), 390);
 });

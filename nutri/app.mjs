@@ -55,17 +55,83 @@ const mostrar = (v, casas = 1, sufixo = "") =>
 // A tabela
 // ---------------------------------------------------------------------------
 
-/** Posição de cada nutriente no vetor compacto do arquivo. */
+/**
+ * Duas tabelas, uma busca só.
+ *
+ * POR QUE DUAS. Ela foi calcular uma dieta, escreveu "tapioca, goma" e não
+ * achou nada. Fui conferir: a TACO tem 597 alimentos e "goma de tapioca"
+ * não é um deles — a TACO é tabela de laboratório, de alimentos genéricos,
+ * e não traz marca nem todo preparo do dia a dia. A extração estava
+ * completa; faltava alimento na fonte, não no arquivo.
+ *
+ * A tabela do IBGE, que já estava extraída aqui do lado sem ser usada, tem
+ * "Tapioca de goma", "Goma de mandioca", "Farinha de tapioca" e mais 1.119
+ * alimentos, com energia e os quatro macros. Juntas cobrem muito mais do
+ * que cada uma sozinha.
+ *
+ * O QUE ELAS NÃO SÃO: uma coisa só. A TACO traz 66 nutrientes, o IBGE
+ * traz 5. Todo alimento carrega a sua fonte, aparece na tela com ela, e os
+ * números nunca se misturam — somar sódio da TACO com um alimento do IBGE
+ * que não tem sódio daria uma conta que parece completa e não é. O que
+ * falta continua "—", nunca zero.
+ */
 let TACO = null;
 let POS = {};
+let ALIMENTOS = [];
+
+const FONTES = { taco: "TACO", ibge: "IBGE" };
+
+/** Nome e busca sem acento, para casar com o que ela digita. */
+const semAcento = (t) =>
+  String(t ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
 async function carregarTaco() {
-  const resposta = await fetch("./dados/taco.json");
-  TACO = await resposta.json();
+  const [taco, ibge] = await Promise.all([
+    fetch("./dados/taco.json").then((r) => r.json()),
+    // O IBGE é um extra: se faltar, a ferramenta continua com a TACO em vez
+    // de não abrir.
+    fetch("./dados/ibge.json").then((r) => r.json()).catch(() => null),
+  ]);
+
+  TACO = taco;
   TACO.nutrientes.forEach((chave, i) => (POS[chave] = i));
-  $("fonte-taco").textContent =
-    `${TACO.alimentos.length} alimentos da ${TACO.nome} (${TACO.instituicao}), por ${TACO.base}. ` +
-    `Valores sem dado aparecem como “—” e não entram como zero na soma.`;
+
+  ALIMENTOS = TACO.alimentos.map((a) => ({
+    id: `taco:${a.c}`,
+    fonte: "taco",
+    nome: a.n,
+    busca: a.b,
+    grupo: a.g,
+    bruto: a,
+  }));
+
+  if (ibge) {
+    for (const a of ibge.alimentos) {
+      // O IBGE repete o mesmo alimento por preparo. "Não se aplica" é o
+      // preparo vazio deles, e escrevê-lo no nome só ocuparia espaço.
+      const preparo = a.preparo && a.preparo !== "Não se aplica" ? a.preparo : "";
+      const nome = preparo ? `${a.nome} (${preparo.toLowerCase()})` : a.nome;
+      ALIMENTOS.push({
+        id: `ibge:${a.codigo}:${a.preparo_codigo}`,
+        fonte: "ibge",
+        nome,
+        busca: semAcento(`${nome} ${a.grupo ?? ""}`),
+        grupo: a.grupo ?? "",
+        bruto: a,
+      });
+    }
+  }
+
+  $("fonte-taco").innerHTML =
+    `<strong>${TACO.alimentos.length}</strong> alimentos da ${TACO.nome} (${TACO.instituicao})` +
+    (ibge
+      ? ` e <strong>${ibge.alimentos.length}</strong> da ${ibge.nome} (${ibge.instituicao})`
+      : "") +
+    `, por 100 g. Cada alimento mostra de qual tabela veio. ` +
+    `Valor que a tabela não traz aparece como “—” e não entra como zero na soma.`;
 }
 
 /**
@@ -73,26 +139,54 @@ async function carregarTaco() {
  *
  * Traço e "sem dado" voltam null de propósito: na TACO eles não são zero, e
  * tratá-los como zero mudaria a conta de sódio, ferro e colesterol de
- * centenas de alimentos.
+ * centenas de alimentos. No IBGE vale o mesmo para o traço.
+ *
+ * Um nutriente que a tabela daquele alimento nem tem — sódio num alimento
+ * do IBGE — também é null. Não é o mesmo que zero, e a tela mostra "—".
  */
+const DO_IBGE = {
+  energia_kcal: "energia_kcal",
+  proteina: "proteina_g",
+  lipideos: "lipidios_g",
+  carboidrato: "carboidrato_g",
+  fibra_alimentar: "fibra_g",
+};
+
 function valorDe(alimento, chave) {
+  if (!alimento) return null;
+  if (alimento.fonte === "ibge") {
+    const campo = DO_IBGE[chave];
+    return campo ? (alimento.bruto[campo] ?? null) : null;
+  }
   const pos = POS[chave];
   if (pos === undefined) return null;
-  const achado = alimento.v.find(([p]) => p === pos);
+  const achado = alimento.bruto.v.find(([p]) => p === pos);
   return achado ? achado[1] : null;
 }
 
+/**
+ * Procurar nas duas tabelas.
+ *
+ * DEFEITO QUE A PONTUAÇÃO CAUSAVA: as palavras saíam quebradas só por
+ * espaço, então a vírgula grudava. Procurando "manteiga, tapioca" a palavra
+ * virava "manteiga," e não casava com "Tapioca, com manteiga" — onde
+ * "manteiga" está no fim, sem vírgula. Agora a pontuação separa como o
+ * espaço.
+ */
 function buscar(termo) {
-  const limpo = termo
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .trim();
-  if (limpo.length < 2 || !TACO) return [];
-  const palavras = limpo.split(/\s+/);
-  return TACO.alimentos
-    .filter((a) => palavras.every((p) => a.b.includes(p)))
-    .slice(0, 40);
+  const palavras = semAcento(termo)
+    .split(/[\s,.;:/()\-]+/)
+    .filter(Boolean);
+  if (!palavras.length || palavras.join("").length < 2) return [];
+  return ALIMENTOS.filter((a) => palavras.every((p) => a.busca.includes(p))).slice(0, 40);
+}
+
+/** O alimento de um item da dieta, pelo id composto. */
+function alimentoPorId(id) {
+  // Ficha salva antes das duas tabelas guardava só o código da TACO. Sem
+  // este recuo, toda dieta já montada perderia os alimentos de uma vez.
+  const alvo = String(id).includes(":") ? String(id) : `taco:${id}`;
+  return ALIMENTOS.find((a) => a.id === alvo) ?? null;
 }
 
 // ---------------------------------------------------------------------------
@@ -160,7 +254,7 @@ function desenharDieta() {
         // `TACO?`: abrir uma ficha com alimentos antes de a tabela terminar
         // de carregar chegava aqui com TACO nulo e derrubava a tela inteira.
         refeicao.itens.forEach((item, iI) => {
-          const a = TACO?.alimentos.find((x) => x.c === item.codigo);
+          const a = alimentoPorId(item.codigo);
           MACROS.forEach(([chave, , casas], iM) => {
             const v = a ? porGramas(valorDe(a, chave), item.gramas) : null;
             const td = celulas[iI]?.[iM];
@@ -173,22 +267,31 @@ function desenharDieta() {
         MACROS.forEach(([chave, , casas], iM) => {
           const { total, faltando } = somar(
             refeicao.itens.map((item) => {
-              const a = TACO?.alimentos.find((x) => x.c === item.codigo);
+              const a = alimentoPorId(item.codigo);
               return a ? porGramas(valorDe(a, chave), item.gramas) : null;
             }),
           );
           if (rodapeCelulas[iM]) {
-            rodapeCelulas[iM].textContent = mostrar(total, casas) + (faltando ? " *" : "");
+            rodapeCelulas[iM].textContent =
+              (total === null ? "—" : mostrar(total, casas)) + (faltando ? " *" : "");
           }
         });
         totais();
       };
 
       refeicao.itens.forEach((item, iI) => {
-        const alimento = TACO?.alimentos.find((a) => a.c === item.codigo);
+        const alimento = alimentoPorId(item.codigo);
         const tr = document.createElement("tr");
         const nomeTd = document.createElement("td");
-        nomeTd.textContent = alimento ? alimento.n : item.nome;
+        nomeTd.textContent = alimento ? alimento.nome : item.nome;
+        if (alimento) {
+          // De qual tabela veio, na própria linha: os nutrientes das duas não
+          // são os mesmos, e ela precisa saber disso ao olhar um "—".
+          const marca = document.createElement("span");
+          marca.className = "fonte";
+          marca.textContent = FONTES[alimento.fonte];
+          nomeTd.append(" ", marca);
+        }
         const gTd = document.createElement("td");
         const gInput = document.createElement("input");
         // Texto com teclado numérico, não `type="number"`: ver o comentário
@@ -256,7 +359,7 @@ function campoDeBusca(refeicao) {
   caixa.style.marginTop = "10px";
 
   const campo = document.createElement("input");
-  campo.placeholder = "Buscar alimento na TACO e apertar Enter";
+  campo.placeholder = "Buscar alimento (TACO e IBGE) e apertar Enter";
   const lista = document.createElement("div");
   lista.className = "sugestoes";
   lista.hidden = true;
@@ -270,7 +373,7 @@ function campoDeBusca(refeicao) {
   }
 
   function escolher(alimento) {
-    refeicao.itens.push({ codigo: alimento.c, nome: alimento.n, gramas: 100 });
+    refeicao.itens.push({ codigo: alimento.id, nome: alimento.nome, gramas: 100 });
     guardarDieta();
     fechar();
     campo.value = "";
@@ -281,10 +384,31 @@ function campoDeBusca(refeicao) {
     achados = buscar(campo.value);
     marcado = 0;
     lista.innerHTML = "";
-    if (!achados.length) return fechar();
+
+    // DEFEITO QUE ISTO CONSERTA: não achando nada, a caixa simplesmente não
+    // abria. Silêncio, na tela de quem está montando uma dieta, lê-se como
+    // "este alimento não existe nas tabelas" — foi o que aconteceu com
+    // "tapioca, goma", e a conclusão dela foi que faltava alimento no
+    // sistema. Dizer que a busca não achou, e o que tentar em seguida, custa
+    // três linhas.
+    if (!achados.length) {
+      if (semAcento(campo.value).replace(/[^a-z0-9]/g, "").length < 2) return fechar();
+      const aviso = document.createElement("div");
+      aviso.className = "nada";
+      aviso.innerHTML =
+        "Nada com essas palavras nas duas tabelas.<br><small>" +
+        "Tente uma palavra só, ou o nome genérico — as tabelas escrevem " +
+        "“Queijo, mozarela”, “Tapioca de goma”. Marca de produto elas não têm." +
+        "</small>";
+      lista.append(aviso);
+      lista.hidden = false;
+      return;
+    }
+
     achados.forEach((a, i) => {
       const linha = document.createElement("div");
-      linha.innerHTML = `${a.n}<br><small>${a.g} · código ${a.c}</small>`;
+      linha.innerHTML =
+        `${a.nome}<br><small>${FONTES[a.fonte]}${a.grupo ? ` · ${a.grupo}` : ""}</small>`;
       if (i === 0) linha.className = "marcado";
       linha.onmousedown = (e) => {
         e.preventDefault();
@@ -304,6 +428,8 @@ function campoDeBusca(refeicao) {
       lista.children[marcado]?.scrollIntoView({ block: "nearest" });
     } else if (e.key === "Enter") {
       e.preventDefault();
+      // `achados` está vazio quando o que a caixa mostra é o aviso de "nada
+      // encontrado": Enter ali não pode escolher coisa nenhuma.
       if (achados[marcado]) escolher(achados[marcado]);
     } else if (e.key === "Escape") {
       fechar();
@@ -323,7 +449,7 @@ function totais() {
   for (const [chave] of MACROS) {
     const { total, faltando } = somar(
       todos.map((item) => {
-        const a = TACO?.alimentos.find((x) => x.c === item.codigo);
+        const a = alimentoPorId(item.codigo);
         return a ? porGramas(valorDe(a, chave), item.gramas) : null;
       }),
     );
@@ -335,21 +461,29 @@ function totais() {
   const meta = num($("d-meta").value);
   const dist = distribuicao(soma.carboidrato, soma.proteina, soma.lipideos);
 
+  // "— g" seria estranho, e "0,0 g" seria mentira: o que não foi medido sai
+  // como travessão sozinho.
+  const gramas = (v) => (v === null ? "—" : `${mostrar(v, 1)} g`);
+  const apoio = (chave, valor) =>
+    dist
+      ? `${mostrar(dist[chave], 0)}%` + (peso ? ` · ${mostrar(porQuilo(valor, peso), 1)} g/kg` : "")
+      : "";
+
   const linhas = [
     // "meta 1600 · 150" não dizia se as 150 estavam acima ou abaixo. Agora diz.
     [
       "Calorias",
       mostrar(soma.energia_kcal, 0),
-      meta
+      meta && soma.energia_kcal !== null
         ? `meta ${mostrar(meta, 0)} · ${mostrar(Math.abs(soma.energia_kcal - meta), 0)} ${
             soma.energia_kcal >= meta ? "acima" : "abaixo"
           }`
         : "",
     ],
-    ["Carboidrato", mostrar(soma.carboidrato, 1) + " g", dist ? `${mostrar(dist.carboidrato, 0)}%` + (peso ? ` · ${mostrar(porQuilo(soma.carboidrato, peso), 1)} g/kg` : "") : ""],
-    ["Proteína", mostrar(soma.proteina, 1) + " g", dist ? `${mostrar(dist.proteina, 0)}%` + (peso ? ` · ${mostrar(porQuilo(soma.proteina, peso), 1)} g/kg` : "") : ""],
-    ["Gordura", mostrar(soma.lipideos, 1) + " g", dist ? `${mostrar(dist.lipideo, 0)}%` + (peso ? ` · ${mostrar(porQuilo(soma.lipideos, peso), 1)} g/kg` : "") : ""],
-    ["Fibra", mostrar(soma.fibra_alimentar, 1) + " g", ""],
+    ["Carboidrato", gramas(soma.carboidrato), apoio("carboidrato", soma.carboidrato)],
+    ["Proteína", gramas(soma.proteina), apoio("proteina", soma.proteina)],
+    ["Gordura", gramas(soma.lipideos), apoio("lipideo", soma.lipideos)],
+    ["Fibra", gramas(soma.fibra_alimentar), ""],
   ];
 
   $("total-dia").innerHTML =
@@ -371,9 +505,9 @@ function textoDaDieta() {
     if (!r.itens.length) continue;
     linhas.push(r.nome.toUpperCase());
     for (const item of r.itens) {
-      const a = TACO?.alimentos.find((x) => x.c === item.codigo);
+      const a = alimentoPorId(item.codigo);
       const kcal = a ? porGramas(valorDe(a, "energia_kcal"), item.gramas) : null;
-      linhas.push(`  ${a ? a.n : item.nome} — ${item.gramas} g${kcal !== null ? ` (${mostrar(kcal, 0)} kcal)` : ""}`);
+      linhas.push(`  ${a ? a.nome : item.nome} — ${item.gramas} g${kcal !== null ? ` (${mostrar(kcal, 0)} kcal)` : ""}`);
     }
     linhas.push("");
   }
