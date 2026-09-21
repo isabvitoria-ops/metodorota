@@ -114,9 +114,34 @@ a outra deixa de funcionar de olho. E o dia feito não se distingue só pela
 cor — ganha borda cheia e texto escuro, que é o que sobrevive a uma
 impressão em preto e branco.
 
+## FASES 6, 7, 8 e 9 — feitas
+
+**Meus documentos** (`/documentos`) é a central: três cartões, cada um com
+"Gerar PDF". O documento que ainda não existe fica visível e apagado, em vez
+de sumir — ver que ele vai existir é informação.
+
+Os três documentos têm **layout próprio de A4**, escrito do zero. Nenhum
+deles é a tela impressa: sem menu, sem botão, sem endereço de site.
+
+A rastreabilidade **não ganhou um segundo gerador**: é o mesmo
+`DocumentoRastreio` que já existia na tela dela, agora também acessível pela
+central. Era o pedido — "se o sistema já possui um gerador de PDF funcional,
+REUTILIZAR".
+
+Dois defeitos que só apareceram gerando o PDF de verdade:
+
+* **a folha saía em branco.** `window.print()` não espera o diálogo fechar
+  em vários navegadores — no Safari do iPhone, em particular, ele volta na
+  hora. Desmontar o documento na linha seguinte o tirava da página antes de
+  o diálogo lê-lo. Quem avisa que acabou é o evento `afterprint`, com um
+  prazo de 60 s como rede de segurança;
+* **um título fechava a página sozinho** ("Dobras cutâneas" no pé de uma
+  folha, com a tabela na seguinte). `break-after: avoid` no título, na nota
+  e no cabeçalho de tabela.
+
 ## A ordem que está sendo seguida
 
 FASE 0 auditoria ✓ · FASE 1 marca ✓ · FASE 2 treino ✓ ·
 FASE 3 cardio e metas ✓ · FASE 4 painéis e gráficos · FASE 5 importar PDF ·
-FASE 6 Central de Documentos · FASE 7 PDF do protocolo · FASE 8 PDF da
-avaliação · FASE 9 rastreabilidade integrada · FASE 10 revisão.
+FASE 6 Central de Documentos ✓ · FASE 7 PDF do protocolo ✓ · FASE 8 PDF
+da avaliação ✓ · FASE 9 rastreabilidade integrada ✓ · FASE 10 revisão.

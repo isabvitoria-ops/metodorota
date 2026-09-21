@@ -26,6 +26,7 @@ export const rotas = {
   protocolo: "/protocolo",
   avaliacao: "/avaliacao",
   treino: "/evolucao",
+  documentos: "/documentos",
   desafio: "/desafio",
   rastreabilidade: "/rastreabilidade",
   salvos: "/salvos",

@@ -39,6 +39,8 @@ const TRACOS: Record<string, string> = {
   // Uma linha que sobe, no traço dos outros. Nada de halter: a área é de
   // acompanhamento nutricional, não de academia.
   evolucao: "M4 19h16M6 16l4-5 3.5 3L19 7",
+  // Uma folha com dobra no canto, no traço dos outros.
+  documentos: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Zm0 0v5h5M9 13h6M9 17h4",
 };
 
 export type NomeIcone = keyof typeof TRACOS | string;

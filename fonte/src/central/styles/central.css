@@ -2721,8 +2721,35 @@ body:has(.central) {
 
 }
 
+/* ---- a Central de Documentos ---- */
+
+.c-doc-cartao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.c-doc-linha {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  /* `min-width: 0` para o texto poder encolher: sem ele, uma descrição
+     longa empurra o botão para fora do cartão no celular. */
+  min-width: 0;
+  flex: 1 1 220px;
+}
+
+/* O documento que ainda não existe fica visível e apagado, em vez de sumir:
+   ver que ele vai existir é informação — some, e a paciente acha que o
+   aplicativo não tem. */
+.c-doc-vazio {
+  opacity: 0.62;
+}
+
 /* =========================================================================
-   O DOCUMENTO DE RASTREABILIDADE — papel, não tela
+   OS DOCUMENTOS — papel, não tela
 
    "Se ainda estiver parecendo uma exportação da tela do aplicativo,
    refaça." Este bloco existe para isso: o documento tem layout próprio,
@@ -2839,6 +2866,15 @@ body:has(.central) {
     font-size: 15pt;
     font-weight: 600;
     color: #38546c;
+    /* Um título nunca fecha a página sozinho. "Dobras cutâneas" saiu no pé
+       de uma folha com a tabela na seguinte — quem vira a página perde de
+       vista o que está lendo. */
+    break-after: avoid;
+  }
+
+  .doc-nota,
+  .doc-tabela thead {
+    break-after: avoid;
   }
 
   .doc-titulo-faixa {
@@ -3111,6 +3147,125 @@ body:has(.central) {
   .doc-vazia th:last-child,
   .doc-vazia td:last-child {
     border-right: 0;
+  }
+
+  /* ---- protocolo ---- */
+
+  .doc-lista {
+    margin: 0;
+    padding-left: 5mm;
+  }
+
+  .doc-lista li {
+    margin-bottom: 1.5mm;
+  }
+
+  .doc-lista-nota {
+    margin-top: 2mm;
+    font-size: 9pt;
+    color: #5f5951;
+  }
+
+  .doc-paragrafo {
+    margin: 0 0 3mm;
+  }
+
+  /* Uma refeição não se parte ao meio: virar a página no meio do café da
+     manhã obriga a ler os dois lados ao mesmo tempo. Só quebra a que é
+     grande demais para uma página — e aí não há o que fazer. */
+  .doc-refeicao {
+    break-inside: avoid;
+  }
+
+  .doc-titulo-refeicao {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4mm;
+    border-bottom: 1pt solid #dfe5ea;
+    padding-bottom: 1.5mm;
+  }
+
+  .doc-horario {
+    font-family: var(--font-body);
+    font-size: 10pt;
+    font-weight: 400;
+    color: #5a7a8f;
+  }
+
+  .doc-opcao + .doc-opcao {
+    margin-top: 5mm;
+  }
+
+  .doc-opcao-rotulo {
+    margin: 0 0 1.5mm;
+    font-size: 9pt;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #5a7a8f;
+  }
+
+  .doc-tabela-protocolo {
+    table-layout: fixed;
+  }
+
+  .doc-tabela-protocolo th:nth-child(1),
+  .doc-tabela-protocolo td:nth-child(1) {
+    width: 34%;
+  }
+
+  .doc-tabela-protocolo th:nth-child(2),
+  .doc-tabela-protocolo td:nth-child(2) {
+    width: 18%;
+  }
+
+  .doc-tabela-protocolo th:nth-child(3),
+  .doc-tabela-protocolo td:nth-child(3) {
+    width: 48%;
+  }
+
+  /* ---- avaliação ---- */
+
+  .doc-resumo-tres {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .doc-numero strong small {
+    font-size: 10pt;
+    font-weight: 400;
+    color: #5f5951;
+  }
+
+  .doc-variacao {
+    display: block;
+    margin-top: 1.5mm;
+    font-size: 8.5pt;
+    color: #5f5951;
+  }
+
+  .doc-barra {
+    height: 7mm;
+    border-radius: 1.5mm;
+    overflow: hidden;
+    background: #dfe5ea;
+  }
+
+  .doc-barra-gorda {
+    display: block;
+    height: 100%;
+    background: #c9a961;
+  }
+
+  .doc-tabela-medidas {
+    table-layout: fixed;
+  }
+
+  .doc-ordinal {
+    display: block;
+    font-size: 7.5pt;
+    font-weight: 400;
+    color: #77706a;
   }
 
   /* ---- rodapé ----

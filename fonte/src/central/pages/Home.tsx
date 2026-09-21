@@ -53,6 +53,12 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Orientações práticas para situações do dia a dia.",
   },
   {
+    rota: rotas.documentos,
+    icone: "documentos",
+    titulo: "Meus documentos",
+    descricao: "Protocolo, avaliação e rastreio para imprimir e guardar.",
+  },
+  {
     rota: rotas.salvos,
     icone: "salvos",
     titulo: "Salvos",
