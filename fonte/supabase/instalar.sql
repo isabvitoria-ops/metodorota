@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql
 -- =============================================================================
 
 
@@ -7189,3 +7189,81 @@ as $$
     )
   );
 $$;
+
+
+-- ###########################################################################
+-- 0029_avaliacao_historico.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0029: a avaliação física com histórico
+--
+-- "E ao longo do tempo, com várias avaliações, quero que vá gerando
+-- evoluções."
+--
+-- A tela da paciente recebia só a ÚLTIMA avaliação. Com uma avaliação só
+-- não há evolução nenhuma para mostrar, e buscar as anteriores uma a uma
+-- seria uma ida ao banco por consulta feita.
+--
+-- Então `minha_avaliacao()` passa a devolver, junto, o histórico publicado
+-- dela: data e dados de cada avaliação, da mais nova para a mais antiga.
+-- São poucas linhas por paciente — uma por consulta — e é o que permite a
+-- coluna por avaliação e a linha do peso no tempo.
+--
+-- O QUE NÃO MUDA, e é de propósito:
+--
+--   * a RLS continua a mesma. Só entra avaliação PUBLICADA e só da própria
+--     paciente. Rascunho não vaza por este caminho novo;
+--   * nada é recalculado aqui. Os números são os que a nutricionista
+--     lançou; o app só os mostra lado a lado;
+--   * as chaves antigas (`id`, `data`, `dados`, `total`, `inicio`)
+--     continuam no mesmo lugar, com o mesmo significado. Uma versão antiga
+--     da tela continua funcionando contra esta função.
+-- =============================================================================
+
+create or replace function minha_avaliacao()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente uuid;
+  v_ultima avaliacoes_fisicas;
+  v_total integer;
+begin
+  v_paciente := meu_paciente_id();
+  if v_paciente is null then return null; end if;
+
+  select * into v_ultima from avaliacoes_fisicas
+  where paciente_id = v_paciente and publicada
+  order by data desc, criado_em desc
+  limit 1;
+
+  if v_ultima.id is null then return null; end if;
+
+  select count(*) into v_total from avaliacoes_fisicas
+  where paciente_id = v_paciente and publicada;
+
+  return jsonb_build_object(
+    'id', v_ultima.id,
+    'data', v_ultima.data,
+    'dados', v_ultima.dados,
+    'total', v_total,
+    'inicio', (select min(data) from avaliacoes_fisicas
+                where paciente_id = v_paciente and publicada),
+    -- O histórico inteiro, da mais nova para a mais antiga — a mesma ordem
+    -- de `avaliacoes_do_paciente`, para as duas telas lerem igual.
+    'historico', coalesce((
+      select jsonb_agg(jsonb_build_object('id', a.id, 'data', a.data, 'dados', a.dados)
+             order by a.data desc, a.criado_em desc)
+      from avaliacoes_fisicas a
+      where a.paciente_id = v_paciente and a.publicada
+    ), '[]'::jsonb)
+  );
+end;
+$$;
+
+revoke all on function minha_avaliacao() from anon, public;
+grant execute on function minha_avaliacao() to authenticated;

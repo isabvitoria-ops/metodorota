@@ -147,6 +147,14 @@ export interface MinhaAvaliacao {
   total: number;
   /** A data da primeira — o "ponto de partida". */
   inicio: string | null;
+  /**
+   * Todas as publicadas, da mais nova para a mais antiga.
+   *
+   * Vem junto com a última porque é dela que sai a evolução: uma coluna por
+   * avaliação e a linha do peso no tempo. Buscando depois, seria uma ida ao
+   * banco por consulta feita.
+   */
+  historico: { id: string; data: string; dados: DadosAvaliacao }[];
 }
 
 export const AVALIACAO_VAZIA: DadosAvaliacao = {

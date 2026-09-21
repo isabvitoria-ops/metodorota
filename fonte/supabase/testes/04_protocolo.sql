@@ -372,6 +372,37 @@ select teste('e sabe quantas já fez e desde quando',
 select teste('agora o atalho aparece', (meu_acesso() ->> 'avaliacao')::boolean);
 select teste('ela não consegue alterar a própria avaliação',
   nao_alterou('update avaliacoes_fisicas set publicada = false'));
+
+-- O histórico: é dele que sai a coluna por avaliação e a linha do peso no
+-- tempo. Sem ele na mesma chamada, mostrar evolução seria uma ida ao banco
+-- por consulta feita.
+select teste('o histórico traz as duas publicadas, mais nova primeiro',
+  jsonb_array_length(minha_avaliacao() -> 'historico') = 2
+  and (minha_avaliacao() -> 'historico' -> 0 ->> 'data')::date = hoje_sp()
+  and (minha_avaliacao() -> 'historico' -> 1 ->> 'data')::date = hoje_sp() - 30);
+select teste('e cada item do histórico traz os dados da avaliação',
+  (minha_avaliacao() -> 'historico' -> 1 -> 'dados' ->> 'peso') is not null);
+commit;
+
+-- Rascunho não pode entrar no histórico: um percentual lançado pela metade
+-- não pode chegar em quem vai lê-lo sobre o próprio corpo.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+select salvar_avaliacao_fisica(null, alana(), hoje_sp() + 1,
+  jsonb_build_object('metodo', 'rascunho', 'peso', 99.9), false);
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000f1', true);
+select teste('o rascunho NÃO entra no histórico da paciente',
+  jsonb_array_length(minha_avaliacao() -> 'historico') = 2
+  and not exists (
+    select 1 from jsonb_array_elements(minha_avaliacao() -> 'historico') h
+    where h -> 'dados' ->> 'metodo' = 'rascunho'));
+select teste('e o rascunho também não vira a avaliação mais recente dela',
+  (minha_avaliacao() -> 'dados' ->> 'metodo') = '3 Pregas: Protocolo de Guedes');
 commit;
 
 begin;

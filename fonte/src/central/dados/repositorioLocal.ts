@@ -42,7 +42,12 @@ import { PLANOS } from "./sementes/planos";
 import { CONFIGURACOES } from "./sementes/configuracoes";
 import { paraConfiguracoes } from "./mapeadores";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
-import type { ConteudoProtocolo, GrupoDoProtocolo, Protocolo } from "@/central/types/protocolo";
+import type {
+  ConteudoProtocolo,
+  DadosAvaliacao,
+  GrupoDoProtocolo,
+  Protocolo,
+} from "@/central/types/protocolo";
 
 /**
  * Modo demonstração: o app inteiro funcionando sem banco nenhum.
@@ -751,14 +756,54 @@ export const repositorioLocal: Repositorio = {
     throw new Error("Apagar grupo precisa do banco. Configure o Supabase.");
   },
 
-  // Uma avaliação de exemplo, com os números do material dela, para a
-  // demonstração mostrar a tela cheia.
+  /**
+   * Três avaliações de exemplo, para a demonstração mostrar a EVOLUÇÃO.
+   *
+   * Com uma só, a tela apareceria sem coluna de comparação e sem a linha do
+   * peso — e quem visse a demonstração concluiria que a evolução não existe.
+   * Elas trazem de propósito uma dobra medida numa consulta e não na outra:
+   * é o travessão, que é o caso que mais aparece na prática dela.
+   */
   async minhaAvaliacao() {
+    const historico = AVALIACOES_DEMO;
+    const ultima = historico[0]!;
     return {
-      id: "demo",
-      data: new Date().toISOString().slice(0, 10),
-      total: 1,
-      inicio: new Date().toISOString().slice(0, 10),
+      id: ultima.id,
+      data: ultima.data,
+      total: historico.length,
+      inicio: historico[historico.length - 1]!.data,
+      dados: ultima.dados,
+      historico,
+    };
+  },
+
+  async avaliacoesDoPaciente() {
+    return [];
+  },
+
+  async salvarAvaliacaoFisica() {
+    throw new Error("Lançar avaliação precisa do banco. Configure o Supabase.");
+  },
+
+  async excluirAvaliacaoFisica() {
+    throw new Error("Apagar avaliação precisa do banco. Configure o Supabase.");
+  },
+};
+
+/**
+ * As três avaliações da demonstração, da mais nova para a mais antiga — a
+ * mesma ordem em que o banco as entrega.
+ */
+const AVALIACOES_DEMO: { id: string; data: string; dados: DadosAvaliacao }[] = (() => {
+  const diasAtras = (n: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - n);
+    return d.toISOString().slice(0, 10);
+  };
+  return [
+    {
+      id: "demo-3",
+      data: diasAtras(0),
       dados: {
         metodo: "4 Pregas: Protocolo de Faulkner",
         peso: 47.8,
@@ -782,21 +827,65 @@ export const repositorioLocal: Repositorio = {
         ],
         observacao: null,
       },
-    };
-  },
-
-  async avaliacoesDoPaciente() {
-    return [];
-  },
-
-  async salvarAvaliacaoFisica() {
-    throw new Error("Lançar avaliação precisa do banco. Configure o Supabase.");
-  },
-
-  async excluirAvaliacaoFisica() {
-    throw new Error("Apagar avaliação precisa do banco. Configure o Supabase.");
-  },
-};
+    },
+    {
+      id: "demo-2",
+      data: diasAtras(45),
+      dados: {
+        metodo: "4 Pregas: Protocolo de Faulkner",
+        peso: 48.6,
+        altura: 159,
+        idade: 22,
+        percentualGordura: 11.8,
+        massaGorda: 5.7,
+        massaMagra: 42.9,
+        imc: 19.2,
+        somaDobras: 36.1,
+        dobras: [
+          { nome: "Tríceps", valor: "10,4 mm" },
+          { nome: "Subescapular", valor: "8,6 mm" },
+          { nome: "Supra-ilíaca", valor: "8,3 mm" },
+          { nome: "Abdominal", valor: "8,8 mm" },
+        ],
+        circunferencias: [
+          { nome: "Cintura", valor: "62,5 cm" },
+          { nome: "Abdômen", valor: "64,5 cm" },
+          { nome: "Quadril", valor: "87,5 cm" },
+        ],
+        observacao: null,
+      },
+    },
+    {
+      id: "demo-1",
+      data: diasAtras(110),
+      dados: {
+        metodo: "4 Pregas: Protocolo de Faulkner",
+        peso: 50.2,
+        altura: 159,
+        idade: 21,
+        percentualGordura: 13.4,
+        massaGorda: 6.7,
+        massaMagra: 43.5,
+        imc: 19.8,
+        somaDobras: 41.0,
+        dobras: [
+          { nome: "Tríceps", valor: "11,8 mm" },
+          { nome: "Subescapular", valor: "9,4 mm" },
+          { nome: "Supra-ilíaca", valor: "9,6 mm" },
+          { nome: "Abdominal", valor: "10,2 mm" },
+          // Medida nesta consulta e não nas seguintes: é o travessão.
+          { nome: "Coxa", valor: "18,0 mm" },
+        ],
+        circunferencias: [
+          { nome: "Cintura", valor: "64,0 cm" },
+          { nome: "Abdômen", valor: "66,0 cm" },
+          { nome: "Quadril", valor: "88,0 cm" },
+        ],
+        observacao: null,
+      },
+    },
+  ];
+})();
 
 /** Dois grupos de exemplo, no formato que ela monta. */
 const GRUPOS_DEMO: GrupoDoProtocolo[] = [

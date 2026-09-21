@@ -73,9 +73,18 @@ body {
   --accent: #9d5f5a;
   --accent-soft: #f4e9e7;
 
-  --background: #f6f4f1;
+  /* "Quero fundo branco, não essa cor creme." O fundo das telas era o creme
+     #f6f4f1. Passou a branco.
+
+     `--surface` continua branco e passa a coincidir com o fundo: o cartão
+     não se distingue mais pela cor, e sim pela sombra e pela borda — que já
+     estavam lá. `--surface-2`, o cartão de dentro, ficou um cinza frio bem
+     leve no lugar do creme: sobre branco ele precisa de alguma diferença
+     para continuar sendo um bloco, e qualquer calor aqui traria o creme de
+     volta pela porta dos fundos. */
+  --background: #ffffff;
   --surface: #ffffff;
-  --surface-2: #fbfaf8;
+  --surface-2: #f8f8f9;
 
   --text: #1f1d1b;
   /* Os dois tons de texto de apoio passam de 4,5:1 sobre o fundo e sobre o
@@ -88,9 +97,9 @@ body {
   /* `--border` desenha separador e contorno de cartão (decorativo);
      `--border-campo` desenha a moldura de campo, seletor e chip, que
      precisa de 3:1 para o controle ser identificável (WCAG 1.4.11). */
-  --border: #e6e1d9;
-  --border-strong: #d4cdc3;
-  --border-campo: #8a837b;
+  --border: #e4e4e7;
+  --border-strong: #cfcfd4;
+  --border-campo: #84848c;
 
   --success: #3d6650;
   --success-soft: #e6efe9;
@@ -129,7 +138,7 @@ body {
 /* O fundo do documento acompanha a Central para que o "puxar" do iOS não
    revele a cor do app que roda nas outras rotas. */
 body:has(.central) {
-  background: #f6f4f1;
+  background: #ffffff;
 }
 
 .central *,
@@ -2757,6 +2766,153 @@ body:has(.central) {
 
 .c-barra-magra {
   flex: 1;
+}
+
+/* Texto só para leitor de tela. O travessão da medida não feita é mudo:
+   sem isto, quem ouve a tabela ouviria "traço" e não saberia se a medida
+   foi zero ou não foi tirada. */
+.c-so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---- a variação entre duas avaliações ----
+
+   Verde e vermelho estão FORA de propósito: aqui não há mudança boa nem
+   mudança ruim. Perder peso é o objetivo de uma paciente e o problema de
+   outra, e a tela não sabe qual é qual. A seta diz a direção; o significado
+   é conversa de consulta. */
+.c-variacao {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.c-variacao-desde {
+  display: block;
+  color: var(--text-subtle);
+}
+
+/* ---- o peso desenhado no tempo ---- */
+.c-linha-tempo {
+  display: block;
+  width: 100%;
+  height: 84px;
+  /* O `viewBox` já reserva a folga para o raio das bolinhas das pontas, então
+     não há o que estourar. E `overflow: visible` num SVG esticado entrava na
+     largura rolável da PÁGINA: a tela inteira ganhava 14 px de rolagem
+     lateral no celular, por causa do desenho. */
+  overflow: hidden;
+}
+
+.c-linha-tempo polyline {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* `preserveAspectRatio: none` estica o desenho na horizontal, e com ele a
+     espessura do traço junto. Sem isto a linha sai mais fina de um lado. */
+  vector-effect: non-scaling-stroke;
+}
+
+.c-linha-tempo circle {
+  fill: var(--surface);
+  stroke: var(--primary);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.c-linha-tempo-pontas {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- a tabela de uma coluna por avaliação ----
+
+   No celular ela ROLA DE LADO em vez de espremer: três colunas de número
+   num telefone estreito quebrariam "16,4 mm" em duas linhas, e comparar
+   valores quebrados é pior do que rolar. */
+.c-tabela-rolagem {
+  margin-top: 12px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.c-tabela-medidas {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.c-tabela-medidas th,
+.c-tabela-medidas td {
+  padding: 9px 12px;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.c-tabela-medidas thead th:first-child,
+.c-tabela-medidas tbody th {
+  text-align: left;
+  font-weight: 500;
+  white-space: normal;
+}
+
+.c-tabela-medidas thead th {
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  vertical-align: bottom;
+}
+
+.c-coluna-ordinal {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.c-coluna-data {
+  display: block;
+}
+
+/* Zebra em vez de linha entre todas: com sete dobras e três colunas, uma
+   borda por linha vira grade, e a grade compete com os números. */
+.c-tabela-medidas tbody tr:nth-child(even) {
+  background: var(--surface);
+}
+
+.c-tabela-medidas tbody td {
+  color: var(--text);
+  /* DEFEITO QUE ISTO FECHA: o texto escondido do travessão ("não medido
+     nesta consulta") é `position: absolute`. Sem um ancestral posicionado,
+     ele se prende ao documento inteiro e ESCAPA do recorte da tabela que
+     rola — a página ganhava 14 px de rolagem lateral no celular por causa
+     de um texto invisível. Com isto, ele fica preso à própria célula. */
+  position: relative;
 }
 
 /* Os campos de medida da avaliação: muitos e curtos, então uma grade que

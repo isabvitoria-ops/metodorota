@@ -866,6 +866,11 @@ export const repositorioSupabase: Repositorio = {
       dados: (linha.dados ?? {}) as DadosAvaliacao,
       total: numero(linha.total),
       inicio: textoOuNulo(linha.inicio),
+      historico: ((linha.historico ?? []) as Linha[]).map((h) => ({
+        id: texto(h.id),
+        data: texto(h.data),
+        dados: (h.dados ?? {}) as DadosAvaliacao,
+      })),
     };
   },
 
