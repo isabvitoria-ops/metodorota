@@ -129,3 +129,100 @@ test("a mensagem vai codificada no endereço", () => {
   const link = linkDoWhatsapp("11999998888", "oi, tudo bem?");
   assert.ok(link?.includes("text=oi%2C%20tudo%20bem%3F") || link?.includes("text=oi%2C+tudo+bem%3F"));
 });
+
+/* -------------------------------------------------------------------------
+   O livro-caixa
+   ------------------------------------------------------------------------- */
+
+import {
+  textoDaForma,
+  mesCurto,
+  variacaoDoMes,
+  textoDaVariacaoMensal,
+  alturasDasBarras,
+  FORMAS_DE_PAGAMENTO,
+} from "./cobranca";
+
+test("toda forma de pagamento tem nome em português", () => {
+  for (const f of FORMAS_DE_PAGAMENTO) {
+    assert.ok(f.rotulo.length > 0, `${f.valor} sem rótulo`);
+    assert.equal(textoDaForma(f.valor), f.rotulo);
+  }
+});
+
+test("o mês sai curto o bastante para caber embaixo de uma barra", () => {
+  assert.equal(mesCurto("2026-10-01"), "out/26");
+  assert.equal(mesCurto("2026-01-01"), "jan/26");
+});
+
+test("a variação conta a diferença e a porcentagem", () => {
+  const v = variacaoDoMes(1200, 1000);
+  assert.equal(v.diferenca, 200);
+  assert.equal(v.porcentagem, 20);
+});
+
+test("queda também é contada", () => {
+  const v = variacaoDoMes(800, 1000);
+  assert.equal(v.diferenca, -200);
+  assert.equal(v.porcentagem, -20);
+});
+
+test("SEM MÊS ANTERIOR não há porcentagem — 'subiu 100%' a partir de nada não informa", () => {
+  assert.equal(variacaoDoMes(500, 0).porcentagem, null);
+});
+
+test("a frase do mês não dá veredito", () => {
+  const frases = [
+    textoDaVariacaoMensal(1200, 1000),
+    textoDaVariacaoMensal(800, 1000),
+    textoDaVariacaoMensal(1000, 1000),
+  ];
+  for (const f of frases) {
+    for (const veredito of ["ótimo", "ruim", "melhor", "pior", "parabéns", "atenção", "caiu muito"]) {
+      assert.ok(!f.toLowerCase().includes(veredito), `"${f}" deu veredito`);
+    }
+  }
+});
+
+test("a frase traz o valor e a porcentagem", () => {
+  const f = textoDaVariacaoMensal(1200, 1000);
+  assert.ok(f.includes("200,00"), f);
+  assert.ok(f.includes("20%"), f);
+  assert.ok(f.includes("a mais"), f);
+});
+
+test("mês igual ao anterior é dito assim, sem número", () => {
+  assert.equal(textoDaVariacaoMensal(1000, 1000), "igual ao mês passado");
+});
+
+test("dois meses zerados não viram 'primeiro mês'", () => {
+  assert.equal(textoDaVariacaoMensal(0, 0), "sem entradas neste mês nem no anterior");
+});
+
+test("primeiro mês com entrada é dito como primeiro", () => {
+  assert.equal(textoDaVariacaoMensal(500, 0), "primeiro mês com entradas");
+});
+
+test("as barras são proporcionais ao maior mês", () => {
+  const alturas = alturasDasBarras([
+    { mes: "2026-08-01", total: 500, entradas: 1 },
+    { mes: "2026-09-01", total: 1000, entradas: 2 },
+  ]);
+  assert.deepEqual(alturas, [50, 100]);
+});
+
+test("TODOS OS MESES ZERADOS não viram todas as barras cheias", () => {
+  const alturas = alturasDasBarras([
+    { mes: "2026-08-01", total: 0, entradas: 0 },
+    { mes: "2026-09-01", total: 0, entradas: 0 },
+  ]);
+  assert.deepEqual(alturas, [0, 0]);
+});
+
+test("lista vazia não quebra", () => {
+  assert.deepEqual(alturasDasBarras([]), []);
+});
+
+test("um mês só ocupa a altura inteira", () => {
+  assert.deepEqual(alturasDasBarras([{ mes: "2026-09-01", total: 300, entradas: 1 }]), [100]);
+});

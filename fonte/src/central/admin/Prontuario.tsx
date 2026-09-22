@@ -18,7 +18,6 @@ import {
 } from "@/central/utils/linhaDoTempo";
 import { CartaDeEncaminhamento } from "./CartaDeEncaminhamento";
 import { CheckinDoPaciente } from "@/central/components/CheckinDoPaciente";
-import { FaseDoPaciente } from "@/central/components/FaseDoPaciente";
 import { Exames } from "@/central/components/Exames";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { AcessosDaPaciente } from "./AcessosDaPaciente";
@@ -186,10 +185,6 @@ export function Prontuario() {
           ))}
         </section>
       )}
-
-      {/* A fase vem antes de tudo: e o enquadramento que faz o resto do
-          prontuario ser lido do jeito certo. */}
-      <FaseDoPaciente pacienteId={pacienteId} />
 
       <AcessosDaPaciente pacienteId={pacienteId} />
 

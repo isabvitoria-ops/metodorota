@@ -58,6 +58,8 @@ import type { Exame, EspacoDosExames } from "@/central/types/exame";
 import type {
   PainelFinanceiro,
   ValorDoPaciente,
+  Balanco,
+  FormaDePagamento,
 } from "@/central/types/financeiro";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
@@ -492,6 +494,29 @@ export interface Repositorio {
     valor: number | null,
     dia: number | null,
   ): Promise<{ valor: number | null; dia: number | null }>;
+
+  /**
+   * O balanço: meses, formas de pagamento e o livro-caixa.
+   *
+   * O dinheiro vem TODO daqui. Baixa de cobrança já entra no caixa, então
+   * não existe soma paralela a fazer na tela — contar duas vezes é
+   * impossível por construção.
+   */
+  balancoFinanceiro(meses: number): Promise<Balanco>;
+
+  /** Registra ou edita uma entrada avulsa (PIX, cartão, transferência…). */
+  registrarRecebimento(
+    id: string | null,
+    pacienteId: string | null,
+    descricao: string | null,
+    valor: number,
+    data: string | null,
+    forma: FormaDePagamento,
+    observacao: string | null,
+  ): Promise<string>;
+
+  /** Apaga uma entrada avulsa. A que veio de cobrança sai desfazendo a baixa. */
+  apagarRecebimento(id: string): Promise<boolean>;
 
   /** As respostas de uma paciente, para a nutricionista ler. */
   questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]>;

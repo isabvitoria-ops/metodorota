@@ -31,6 +31,9 @@ import { caminhoDoExame, porQueNaoServe, tipoPelaExtensao } from "@/central/util
 import type {
   PainelFinanceiro,
   ValorDoPaciente,
+  Balanco,
+  FormaDePagamento,
+  Recebimento,
   Cobranca,
 } from "@/central/types/financeiro";
 import type {
@@ -113,6 +116,7 @@ interface ValorDemo {
 }
 const guardaCobrancas = armazenamentoLocal<Cobranca>("central:demo:cobrancas:v1");
 const guardaValores = armazenamentoLocal<ValorDemo>("central:demo:valores:v1");
+const guardaRecebimentos = armazenamentoLocal<Recebimento>("central:demo:recebimentos:v1");
 
 interface MudancaDemo {
   id: string;
@@ -1349,6 +1353,107 @@ export const repositorioLocal: Repositorio = {
     };
   },
 
+  async balancoFinanceiro(meses: number): Promise<Balanco> {
+    const quantos = Math.min(Math.max(meses || 6, 1), 36);
+    const hoje = hojeLocal();
+    const [ano, mes] = [Number(hoje.slice(0, 4)), Number(hoje.slice(5, 7))];
+
+    // Os meses vêm de uma SÉRIE, e não dos recebimentos que existem: mês
+    // sem entrada tem que aparecer com zero, e não sumir. Igual ao banco.
+    const serie: string[] = [];
+    for (let i = quantos - 1; i >= 0; i--) {
+      const d = new Date(Date.UTC(ano, mes - 1 - i, 1));
+      serie.push(d.toISOString().slice(0, 10));
+    }
+    const primeiro = serie[0] ?? `${hoje.slice(0, 7)}-01`;
+    const todos = guardaRecebimentos.ler().filter((r) => r.data >= primeiro);
+    const doMes = (m: string) => todos.filter((r) => r.data.slice(0, 7) === m.slice(0, 7));
+
+    const porForma = new Map<FormaDePagamento, { total: number; entradas: number }>();
+    for (const r of todos) {
+      const atual = porForma.get(r.forma) ?? { total: 0, entradas: 0 };
+      porForma.set(r.forma, { total: atual.total + r.valor, entradas: atual.entradas + 1 });
+    }
+
+    const mesAtual = `${hoje.slice(0, 7)}-01`;
+    const anterior = new Date(Date.UTC(ano, mes - 2, 1)).toISOString().slice(0, 10);
+    // A média exclui o mês corrente, que ainda está acontecendo.
+    const fechados = serie.filter((m) => m !== mesAtual);
+
+    return {
+      meses: serie.map((m) => ({
+        mes: m,
+        total: doMes(m).reduce((t, r) => t + r.valor, 0),
+        entradas: doMes(m).length,
+      })),
+      porForma: [...porForma.entries()]
+        .map(([forma, v]) => ({ forma, ...v }))
+        .sort((a, b) => b.total - a.total),
+      totais: {
+        noPeriodo: todos.reduce((t, r) => t + r.valor, 0),
+        noMes: doMes(mesAtual).reduce((t, r) => t + r.valor, 0),
+        mesPassado: doMes(anterior).reduce((t, r) => t + r.valor, 0),
+        mediaMensal:
+          fechados.length === 0
+            ? 0
+            : Math.round(
+                (fechados.reduce((t, m) => t + doMes(m).reduce((x, r) => x + r.valor, 0), 0) /
+                  fechados.length) *
+                  100,
+              ) / 100,
+      },
+      recebimentos: [...todos].sort((a, b) => b.data.localeCompare(a.data)),
+    };
+  },
+
+  async registrarRecebimento(
+    id: string | null,
+    pacienteId: string | null,
+    descricao: string | null,
+    valor: number,
+    data: string | null,
+    forma: FormaDePagamento,
+    observacao: string | null,
+  ): Promise<string> {
+    if (valor <= 0) throw new Error("O valor precisa ser maior que zero.");
+    const atuais = guardaRecebimentos.ler();
+    if (id !== null && atuais.find((r) => r.id === id)?.deCobranca) {
+      throw new Error(
+        "Esta entrada veio de uma cobrança. Mude pela cobrança, para os dois não discordarem.",
+      );
+    }
+    const nomes = await repositorioLocal.valoresDosPacientes();
+    const idFinal = id ?? `rec-${Date.now()}`;
+    const linha: Recebimento = {
+      id: idFinal,
+      pacienteId,
+      paciente: pacienteId === null ? null : (nomes.find((p) => p.id === pacienteId)?.nome ?? null),
+      cobrancaId: null,
+      deCobranca: false,
+      descricao,
+      valor,
+      data: data ?? hojeLocal(),
+      forma,
+      observacao,
+    };
+    guardaRecebimentos.escrever(
+      id === null ? [...atuais, linha] : atuais.map((r) => (r.id === id ? linha : r)),
+    );
+    return idFinal;
+  },
+
+  async apagarRecebimento(id: string): Promise<boolean> {
+    const atuais = guardaRecebimentos.ler();
+    if (atuais.find((r) => r.id === id)?.deCobranca) {
+      throw new Error(
+        "Esta entrada veio de uma cobrança. Desfaça a baixa da cobrança para tirá-la do caixa.",
+      );
+    }
+    const depois = atuais.filter((r) => r.id !== id);
+    guardaRecebimentos.escrever(depois);
+    return depois.length < atuais.length;
+  },
+
   // ---------------------------------------------------------------------
   // Fases do método
   // ---------------------------------------------------------------------
@@ -1503,7 +1608,12 @@ export const repositorioLocal: Repositorio = {
       totais: {
         aberto: soma((c) => c.status === "aberta"),
         atrasado: soma((c) => c.status === "aberta" && c.vencimento < hoje),
-        recebidoNoMes: soma((c) => c.status === "paga" && (c.pagoEm ?? "") >= mes),
+        // DO CAIXA, e não das cobranças — a mesma pergunta em duas telas
+        // não pode ter duas contas diferentes.
+        recebidoNoMes: guardaRecebimentos
+          .ler()
+          .filter((r) => r.data >= mes)
+          .reduce((t, r) => t + r.valor, 0),
         previstoNoMes: soma((c) => c.status !== "cancelada" && c.competencia === mes),
       },
     };
@@ -1557,6 +1667,32 @@ export const repositorioLocal: Repositorio = {
   },
 
   async baixarCobranca(id: string, paga: boolean, forma: string | null, pagoEm: string | null) {
+    const cobranca = guardaCobrancas.ler().find((c) => c.id === id);
+    // A baixa alimenta o caixa, igual ao banco: quem dá baixa não precisa
+    // lembrar de registrar o recebimento, e por isso não há como contar
+    // duas vezes.
+    if (cobranca) {
+      const semEsta = guardaRecebimentos.ler().filter((r) => r.cobrancaId !== id);
+      guardaRecebimentos.escrever(
+        paga
+          ? [
+              ...semEsta,
+              {
+                id: `rec-cob-${id}`,
+                pacienteId: cobranca.pacienteId,
+                paciente: cobranca.paciente,
+                cobrancaId: id,
+                deCobranca: true,
+                descricao: `Acompanhamento ${cobranca.competencia.slice(5, 7)}/${cobranca.competencia.slice(0, 4)}`,
+                valor: cobranca.valor,
+                data: pagoEm ?? hojeLocal(),
+                forma: (forma ?? "pix") as FormaDePagamento,
+                observacao: null,
+              },
+            ]
+          : semEsta,
+      );
+    }
     guardaCobrancas.escrever(
       guardaCobrancas.ler().map((c) =>
         c.id === id
@@ -1575,6 +1711,7 @@ export const repositorioLocal: Repositorio = {
 
   async cancelarCobranca(id: string): Promise<boolean> {
     let mudou = false;
+    // Cancelar tira do caixa, se estava lá.
     guardaCobrancas.escrever(
       guardaCobrancas.ler().map((c) => {
         // Paga não se cancela por engano.
@@ -1583,6 +1720,9 @@ export const repositorioLocal: Repositorio = {
         return { ...c, status: "cancelada" as const, pagoEm: null, forma: null };
       }),
     );
+    if (mudou) {
+      guardaRecebimentos.escrever(guardaRecebimentos.ler().filter((r) => r.cobrancaId !== id));
+    }
     return mudou;
   },
 

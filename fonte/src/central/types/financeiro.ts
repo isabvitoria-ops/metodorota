@@ -47,3 +47,58 @@ export interface ValorDoPaciente {
   valorMensal: number | null;
   diaDeVencimento: number | null;
 }
+
+export type FormaDePagamento =
+  | "pix"
+  | "cartao"
+  | "transferencia"
+  | "dinheiro"
+  | "boleto"
+  | "outro";
+
+/**
+ * Uma entrada do livro-caixa.
+ *
+ * É a ÚNICA fonte do que entrou. Baixa de cobrança cria uma linha aqui —
+ * não existe soma paralela, e por isso contar duas vezes é impossível por
+ * construção. Ver o cabeçalho da migração 0046.
+ */
+export interface Recebimento {
+  id: string;
+  pacienteId: string | null;
+  /** Nulo quando a entrada não vem de paciente (palestra, material). */
+  paciente: string | null;
+  cobrancaId: string | null;
+  /** Nasceu de uma cobrança: não se edita nem se apaga por aqui. */
+  deCobranca: boolean;
+  descricao: string | null;
+  valor: number;
+  data: string;
+  forma: FormaDePagamento;
+  observacao: string | null;
+}
+
+export interface MesDoBalanco {
+  mes: string;
+  total: number;
+  entradas: number;
+}
+
+export interface TotalPorForma {
+  forma: FormaDePagamento;
+  total: number;
+  entradas: number;
+}
+
+export interface Balanco {
+  meses: MesDoBalanco[];
+  porForma: TotalPorForma[];
+  totais: {
+    noPeriodo: number;
+    noMes: number;
+    mesPassado: number;
+    /** Exclui o mês em curso, que ainda está acontecendo. */
+    mediaMensal: number;
+  };
+  recebimentos: Recebimento[];
+}

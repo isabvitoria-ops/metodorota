@@ -98,3 +98,82 @@ export function linkDoWhatsapp(telefone: string | null, mensagem: string): strin
   const comPais = numero.startsWith("55") ? numero : `55${numero}`;
   return `https://wa.me/${comPais}?text=${encodeURIComponent(mensagem)}`;
 }
+
+/* -------------------------------------------------------------------------
+   O livro-caixa
+   ------------------------------------------------------------------------- */
+
+import type { FormaDePagamento, MesDoBalanco } from "@/central/types/financeiro";
+
+const FORMAS: Record<FormaDePagamento, string> = {
+  pix: "PIX",
+  cartao: "Cartão",
+  transferencia: "Transferência",
+  dinheiro: "Dinheiro",
+  boleto: "Boleto",
+  outro: "Outro",
+};
+
+export function textoDaForma(f: FormaDePagamento): string {
+  return FORMAS[f] ?? f;
+}
+
+export const FORMAS_DE_PAGAMENTO = Object.entries(FORMAS).map(([valor, rotulo]) => ({
+  valor: valor as FormaDePagamento,
+  rotulo,
+}));
+
+/** "out/26" — curto o bastante para caber embaixo de uma barra no celular. */
+export function mesCurto(iso: string): string {
+  const [ano, mes] = iso.split("-");
+  const NOMES = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+  const i = Number(mes) - 1;
+  return NOMES[i] && ano ? `${NOMES[i]}/${ano.slice(2)}` : iso;
+}
+
+/**
+ * A comparação do mês com o anterior.
+ *
+ * `null` quando o mês passado foi zero: "subiu 100%" a partir de nada é
+ * um número que impressiona e não informa. E com zero nos dois, não houve
+ * variação nenhuma para relatar.
+ */
+export function variacaoDoMes(
+  noMes: number,
+  mesPassado: number,
+): { diferenca: number; porcentagem: number | null } {
+  const diferenca = noMes - mesPassado;
+  return {
+    diferenca,
+    porcentagem: mesPassado > 0 ? Math.round((diferenca / mesPassado) * 100) : null,
+  };
+}
+
+/**
+ * A frase da variação — sem veredito, como no resto do sistema.
+ *
+ * "R$ 300,00 a mais que o mês passado" e nunca "ótimo mês". Um mês menor
+ * pode ser férias, pode ser escolha, pode ser sazonalidade do consultório;
+ * quem sabe é ela.
+ */
+export function textoDaVariacaoMensal(noMes: number, mesPassado: number): string {
+  const { diferenca, porcentagem } = variacaoDoMes(noMes, mesPassado);
+  if (mesPassado === 0 && noMes === 0) return "sem entradas neste mês nem no anterior";
+  if (mesPassado === 0) return "primeiro mês com entradas";
+  if (diferenca === 0) return "igual ao mês passado";
+  const sinal = diferenca > 0 ? "a mais" : "a menos";
+  const pct = porcentagem === null ? "" : ` (${Math.abs(porcentagem)}%)`;
+  return `${reais(Math.abs(diferenca))} ${sinal} que o mês passado${pct}`;
+}
+
+/**
+ * A altura de cada barra, de 0 a 100.
+ *
+ * Com todos os meses zerados, todas as barras ficam em zero — e não em
+ * 100% cada uma, que é o que uma divisão por zero mal tratada produziria.
+ */
+export function alturasDasBarras(meses: MesDoBalanco[]): number[] {
+  const maior = Math.max(...meses.map((m) => m.total), 0);
+  if (maior <= 0) return meses.map(() => 0);
+  return meses.map((m) => Math.round((m.total / maior) * 100));
+}

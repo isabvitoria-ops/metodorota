@@ -35,6 +35,9 @@ import { caminhoDoExame, porQueNaoServe, tipoPelaExtensao } from "@/central/util
 import type {
   PainelFinanceiro,
   ValorDoPaciente,
+  Balanco,
+  FormaDePagamento,
+  Recebimento,
   Cobranca,
   SituacaoCobranca,
   StatusCobranca,
@@ -1664,6 +1667,65 @@ export const repositorioSupabase: Repositorio = {
     };
   },
 
+  async balancoFinanceiro(meses: number): Promise<Balanco> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("balanco_financeiro", { p_meses: meses });
+    erro("carregar o balanço", error);
+    const l = (data ?? {}) as Linha;
+    const totais = (l.totais ?? {}) as Linha;
+    return {
+      meses: (Array.isArray(l.meses) ? (l.meses as Linha[]) : []).map((m) => ({
+        mes: texto(m.mes),
+        total: numero(m.total),
+        entradas: numero(m.entradas),
+      })),
+      porForma: (Array.isArray(l.porForma) ? (l.porForma as Linha[]) : []).map((f) => ({
+        forma: texto(f.forma) as FormaDePagamento,
+        total: numero(f.total),
+        entradas: numero(f.entradas),
+      })),
+      totais: {
+        noPeriodo: numero(totais.noPeriodo),
+        noMes: numero(totais.noMes),
+        mesPassado: numero(totais.mesPassado),
+        mediaMensal: numero(totais.mediaMensal),
+      },
+      recebimentos: (Array.isArray(l.recebimentos) ? (l.recebimentos as Linha[]) : []).map(
+        paraRecebimento,
+      ),
+    };
+  },
+
+  async registrarRecebimento(
+    id: string | null,
+    pacienteId: string | null,
+    descricao: string | null,
+    valor: number,
+    data: string | null,
+    forma: FormaDePagamento,
+    observacao: string | null,
+  ): Promise<string> {
+    const sb = exigirSupabase();
+    const { data: resposta, error } = await sb.rpc("registrar_recebimento", {
+      p_id: id,
+      p_paciente: pacienteId,
+      p_descricao: descricao,
+      p_valor: valor,
+      p_data: data,
+      p_forma: forma,
+      p_observacao: observacao,
+    });
+    erro("registrar o recebimento", error);
+    return texto(resposta);
+  },
+
+  async apagarRecebimento(id: string): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("apagar_recebimento", { p_id: id });
+    erro("apagar o recebimento", error);
+    return data === true;
+  },
+
   async marcarRevisado(envioId: string, revisado: boolean): Promise<boolean> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("marcar_revisado", {
@@ -1884,5 +1946,21 @@ function paraExame(l: Linha): Exame {
     descricao: textoOuNulo(l.descricao),
     origem: texto(l.origem) === "paciente" ? "paciente" : "nutricionista",
     criadoEm: texto(l.criadoEm),
+  };
+}
+
+
+function paraRecebimento(l: Linha): Recebimento {
+  return {
+    id: texto(l.id),
+    pacienteId: textoOuNulo(l.pacienteId),
+    paciente: textoOuNulo(l.paciente),
+    cobrancaId: textoOuNulo(l.cobrancaId),
+    deCobranca: l.deCobranca === true,
+    descricao: textoOuNulo(l.descricao),
+    valor: numero(l.valor),
+    data: texto(l.data),
+    forma: texto(l.forma) as FormaDePagamento,
+    observacao: textoOuNulo(l.observacao),
   };
 }
