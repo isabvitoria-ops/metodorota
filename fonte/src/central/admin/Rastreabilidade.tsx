@@ -37,6 +37,7 @@ import { Campo, Selecao, Texto, AreaTexto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
 import { RastreioAlimentar } from "@/central/components/RastreioAlimentar";
 import { DocumentoRastreio } from "@/central/components/DocumentoRastreio";
+import { PadroesDoRastreio } from "@/central/components/PadroesDoRastreio";
 
 /**
  * Rastreabilidade alimentar — área da nutricionista.
@@ -260,6 +261,10 @@ function PainelDaPaciente({
               Lançar registro
             </button>
           </div>
+
+          {/* Antes do panorama de marcadores e da escada: é a leitura mais
+              ampla, e é o que ela quer ver primeiro ao abrir a ficha. */}
+          <PadroesDoRastreio registros={dados?.registros ?? []} />
 
           <PanoramaDeMarcadores itens={dados?.itens ?? []} registros={dados?.registros ?? []} />
           <RastreioAlimentar itens={dados?.itens ?? []} registros={dados?.registros ?? []} />

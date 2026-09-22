@@ -4157,3 +4157,22 @@ body:has(.central) {
   font-style: italic;
   color: var(--text-subtle);
 }
+
+
+/* As observacoes do rastreio: uma por linha, com marcador discreto. Numeros
+   alinhados e frases curtas -- e uma lista para ela varrer com o olho antes
+   de abrir a porta da sala, nao um paragrafo para ler. */
+.c-padroes {
+  margin: 0;
+  padding-left: 18px;
+  list-style: disc;
+}
+
+.c-padroes li {
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.c-padroes li + li {
+  margin-top: 6px;
+}

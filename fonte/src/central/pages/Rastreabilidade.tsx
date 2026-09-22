@@ -54,7 +54,16 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
 export function Rastreabilidade() {
   const { dados, carregando, erro, ocupado, comRecarga, definirErro } = useReintroducao();
   const { acesso, configuracoes } = useSessao();
-  const [registrando, definirRegistrando] = useState(false);
+  /**
+   * `false` fechado; `true` aberto sem alimento escolhido; um id quando ela
+   * veio pelo atalho de um alimento da lista.
+   *
+   * DEFEITO QUE ISTO FECHA: pelo atalho "Tive sintoma", o formulário abria
+   * com o PRIMEIRO alimento da lista selecionado, não com o que ela tocou.
+   * Quem não percebesse gravaria o sintoma no alimento errado — e o registro
+   * errado é pior do que o registro que não aconteceu, porque ele conta.
+   */
+  const [registrando, definirRegistrando] = useState<boolean | string>(false);
   const [editando, definirEditando] = useState<RegistroDeReintroducao | null>(null);
   const [semanaVisivel, definirSemanaVisivel] = useState<number | "todas">("todas");
 
@@ -175,6 +184,10 @@ export function Rastreabilidade() {
                   item={item}
                   ocupado={ocupado || Boolean(dados?.previa)}
                   aoMudar={comRecarga}
+                  aoRegistrarComSintoma={(id) => {
+                    definirErro(null);
+                    definirRegistrando(id);
+                  }}
                 />
               ))}
             </div>
@@ -248,6 +261,7 @@ export function Rastreabilidade() {
         <FormularioRegistro
           itens={disponiveis}
           registro={editando}
+          itemInicial={typeof registrando === "string" ? registrando : null}
           aoFechar={() => {
             definirRegistrando(false);
             definirEditando(null);
@@ -276,10 +290,12 @@ function CartaoItem({
   item,
   ocupado,
   aoMudar,
+  aoRegistrarComSintoma,
 }: {
   item: ItemDeReintroducao;
   ocupado: boolean;
   aoMudar: (acao: () => Promise<void>) => Promise<boolean>;
+  aoRegistrarComSintoma: (itemId: string) => void;
 }) {
   const info = status(item.status);
   const naoRelevante = item.status === "nao_relevante";
@@ -327,6 +343,21 @@ function CartaoItem({
             }
           >
             Nenhum sintoma
+          </button>
+        )}
+        {/* O outro atalho, e o que de fato faltava: "Nenhum sintoma" já
+            gravava em um toque, mas quem TEVE sintoma precisava abrir o
+            formulário e procurar o alimento numa lista de vinte. O registro
+            com sintoma é o que sustenta a leitura de padrões — deixá-lo
+            mais caro de fazer do que o outro enviesa o que ela registra. */}
+        {!naoRelevante && (
+          <button
+            type="button"
+            className="c-link"
+            disabled={ocupado}
+            onClick={() => aoRegistrarComSintoma(item.id)}
+          >
+            Tive sintoma
           </button>
         )}
         {podeEscolher && (
@@ -437,15 +468,18 @@ function CartaoRegistro({
 function FormularioRegistro({
   itens,
   registro,
+  itemInicial = null,
   aoFechar,
   aoSalvar,
 }: {
   itens: ItemDeReintroducao[];
   registro: RegistroDeReintroducao | null;
+  /** O alimento que ela tocou na lista, quando veio pelo atalho. */
+  itemInicial?: string | null;
   aoFechar: () => void;
   aoSalvar: (novo: NovoRegistroDeReintroducao) => Promise<boolean>;
 }) {
-  const [itemId, definirItemId] = useState(registro?.itemId ?? itens[0]?.id ?? "");
+  const [itemId, definirItemId] = useState(registro?.itemId ?? itemInicial ?? itens[0]?.id ?? "");
   const [outro, definirOutro] = useState(false);
   const [nomeNovo, definirNomeNovo] = useState("");
   const [data, definirData] = useState(registro?.data ?? hojeSaoPaulo());
@@ -453,7 +487,13 @@ function FormularioRegistro({
   const [quantidade, definirQuantidade] = useState(registro?.quantidade ?? "");
   const [preparo, definirPreparo] = useState(registro?.preparo ?? "");
   const [teveSintoma, definirTeveSintoma] = useState(
-    registro ? !(registro.sintomas.length === 0 || registro.sintomas[0] === "nenhum") : false,
+    registro
+      ? !(registro.sintomas.length === 0 || registro.sintomas[0] === "nenhum")
+      : // Vindo do atalho "Tive sintoma", a pergunta já está respondida: o
+        // formulário abre com a lista de sintomas aberta, e ela só marca
+        // qual. Abrir em "não" obrigaria a responder de novo o que o botão
+        // que ela acabou de tocar já disse.
+        itemInicial !== null,
   );
   const [sintomas, definirSintomas] = useState<SintomaReintroducao[]>(
     registro?.sintomas.filter((s) => s !== "nenhum") ?? [],
