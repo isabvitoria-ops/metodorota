@@ -38,6 +38,7 @@ const ACESSO_DEMONSTRACAO: Acesso = {
   protocolo: true,
   avaliacao: true,
   treino: true,
+  metas: true,
 };
 
 const ACESSO_VAZIO: Acesso = {
@@ -52,6 +53,7 @@ const ACESSO_VAZIO: Acesso = {
   protocolo: false,
   avaliacao: false,
   treino: false,
+  metas: false,
   dataInicio: null,
   dataFim: null,
   diasRestantes: null,

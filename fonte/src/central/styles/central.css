@@ -3698,6 +3698,23 @@ body:has(.central) {
   border-radius: var(--radius-pill);
 }
 
+/* A meta em destaque na tela inicial e um BOTAO: ela leva para "Minhas
+   metas". Um <button> traz a aparencia de botao do navegador junto --
+   fundo cinza, borda, texto centralizado -- e isso o deixa com a cara do
+   card que ele imita. */
+.c-meta-clicavel {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.c-meta-clicavel:hover {
+  border-color: var(--primary);
+}
+
 .c-meta-rodape {
   margin: 6px 0 0;
   font-size: 12px;

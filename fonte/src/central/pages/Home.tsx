@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Icone, type NomeIcone } from "@/central/components/Icone";
 import { Marca } from "@/central/components/Marca";
+import { MinhaMetaDeHoje } from "@/central/components/MinhaMetaDeHoje";
 import { BarraBusca } from "@/central/components/BarraBusca";
 import { useState } from "react";
 import { rotas } from "@/central/rotas";
@@ -33,6 +34,12 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     icone: "evolucao",
     titulo: "Minha evolução",
     descricao: "Seu treino registrado, e o que mudou de uma sessão para a outra.",
+  },
+  {
+    rota: rotas.metas,
+    icone: "evolucao",
+    titulo: "Minhas metas",
+    descricao: "O que combinamos, e quanto você já fez.",
   },
   {
     rota: rotas.trocas,
@@ -121,6 +128,8 @@ export function Home() {
           </div>
         )}
 
+        <MinhaMetaDeHoje />
+
         <CardDoDesafio />
 
         <section className="c-secao">
@@ -135,7 +144,13 @@ export function Home() {
                 // Mesma regra: sem treino ativo e sem nenhuma sessão
                 // registrada, a porta não existe — em vez de existir e abrir
                 // uma tela de evolução que não tem o que mostrar.
-                (atalho.rota !== rotas.treino || acesso.treino),
+                (atalho.rota !== rotas.treino || acesso.treino) &&
+                // Mesma regra de novo: sem meta combinada, a porta não
+                // existe. É a terceira vez que esta regra aparece, e é de
+                // propósito que ela apareça escrita: cada porta decide a
+                // própria existência, e uma lista de exceções num lugar só
+                // seria esquecida na próxima porta.
+                (atalho.rota !== rotas.metas || acesso.metas),
             ).map((atalho) => (
               <button key={atalho.rota} type="button" className="c-atalho" onClick={() => navegar(atalho.rota)}>
                 <span className="c-atalho-icone">

@@ -10,6 +10,7 @@ import { Desafio } from "./pages/Desafio";
 import { Rastreabilidade } from "./pages/Rastreabilidade";
 import { Protocolo } from "./pages/Protocolo";
 import { Avaliacao } from "./pages/Avaliacao";
+import { Metas } from "./pages/Metas";
 import { Treino } from "./pages/Treino";
 import { Documentos } from "./pages/Documentos";
 import { Salvos } from "./pages/Salvos";
@@ -43,6 +44,7 @@ export function CentralApp() {
           <Route path="protocolo" element={<Protocolo />} />
           <Route path="avaliacao" element={<Avaliacao />} />
           <Route path="evolucao" element={<Treino />} />
+          <Route path="metas" element={<Metas />} />
           <Route path="documentos" element={<Documentos />} />
           <Route path="trocas" element={<TrocaInteligente />} />
           {/* A tabela de substituições saiu da Central: a Troca Inteligente faz

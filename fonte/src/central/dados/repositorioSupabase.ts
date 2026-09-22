@@ -21,6 +21,7 @@ import type {
   ResumoIndicacao,
   StatusReintroducao,
 } from "@/central/types";
+import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type {
   CardioSessao,
   MetaSemanal,
@@ -1033,6 +1034,71 @@ export const repositorioSupabase: Repositorio = {
     erro("apagar o treino", error);
   },
 
+  // ------------------------------------------------- metas do acompanhamento
+
+  async metasDe(pacienteId?: string | null): Promise<Meta[]> {
+    const sb = exigirSupabase();
+    // `p_paciente` nulo quer dizer "as minhas". Mandar o id de outra pessoa
+    // sendo paciente é recusado pelo BANCO, não pela tela.
+    const { data, error } = await sb.rpc("metas_de", {
+      p_paciente: pacienteId ?? null,
+      p_dias: 120,
+    });
+    erro("carregar as metas", error);
+    return ((data ?? []) as Linha[]).map(lerMeta);
+  },
+
+  async salvarMeta(id: string | null, pacienteId: string | null, dados: MetaParaSalvar) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("salvar_meta", {
+      p_id: id,
+      p_paciente: pacienteId,
+      p_titulo: dados.titulo,
+      p_descricao: dados.descricao,
+      p_categoria: dados.categoria,
+      p_frequencia: dados.frequencia,
+      // Campo em branco vira NULO, nunca zero: alvo zero seria uma meta que
+      // nasce cumprida.
+      p_alvo: numeroOuNuloDeTexto(dados.alvo),
+      p_unidade: dados.unidade,
+      p_inicio: dados.inicio || null,
+      p_prazo: dados.prazo || null,
+      p_status: dados.status,
+    });
+    erro("salvar a meta", error);
+  },
+
+  async definirStatusMeta(id: string, status: StatusDaMeta): Promise<StatusDaMeta> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("definir_status_meta", { p_id: id, p_status: status });
+    erro("mudar o status da meta", error);
+    // O que voltou é o que ficou GRAVADO, não o que o clique pediu.
+    return (texto(data) || status) as StatusDaMeta;
+  },
+
+  async excluirMeta(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("excluir_meta", { p_id: id });
+    erro("apagar a meta", error);
+  },
+
+  async registrarMeta(metaId: string, data: string, quantidade: string, observacao: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("registrar_meta", {
+      p_meta: metaId,
+      p_data: data || null,
+      p_quantidade: numeroOuNuloDeTexto(quantidade),
+      p_observacao: observacao,
+    });
+    erro("marcar a meta", error);
+  },
+
+  async apagarRegistroMeta(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("apagar_registro_meta", { p_id: id });
+    erro("desmarcar", error);
+  },
+
   // --------------------------------------------------------- cardio e metas
 
   async sessoesDeCardio(pacienteId?: string | null): Promise<CardioSessao[]> {
@@ -1151,6 +1217,43 @@ function numeroOuNulo(v: unknown): number | null {
   if (v === null || v === undefined || v === "") return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * Texto de campo para número, ou nulo.
+ *
+ * Em branco é NULO e não zero — a regra de sempre. E vírgula vira ponto:
+ * ela digita "1,5" porque é assim que se escreve em português, e
+ * `Number("1,5")` é `NaN`.
+ */
+function numeroOuNuloDeTexto(v: string): number | null {
+  const limpo = (v ?? "").trim().replace(",", ".");
+  if (limpo === "") return null;
+  const n = Number(limpo);
+  return Number.isFinite(n) ? n : null;
+}
+
+function lerMeta(linha: Linha): Meta {
+  return {
+    id: texto(linha.id),
+    titulo: texto(linha.titulo),
+    descricao: textoOuNulo(linha.descricao),
+    categoria: textoOuNulo(linha.categoria),
+    frequencia: linha.frequencia === "semanal" ? "semanal" : "diaria",
+    alvo: numeroOuNulo(linha.alvo),
+    unidade: textoOuNulo(linha.unidade),
+    inicio: texto(linha.inicio),
+    prazo: textoOuNulo(linha.prazo),
+    status: ["ativa", "pausada", "concluida", "cancelada"].includes(texto(linha.status))
+      ? (texto(linha.status) as Meta["status"])
+      : "ativa",
+    registros: ((linha.registros ?? []) as Linha[]).map((r) => ({
+      id: texto(r.id),
+      data: texto(r.data),
+      quantidade: numeroOuNulo(r.quantidade),
+      observacao: textoOuNulo(r.observacao),
+    })),
+  };
 }
 
 function lerTreino(linha: Linha): Treino {

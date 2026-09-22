@@ -45,6 +45,7 @@ import type {
   SessaoDeTreino,
   Treino,
 } from "@/central/types/treino";
+import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
 import { repositorioSupabase } from "./repositorioSupabase";
@@ -316,6 +317,27 @@ export interface Repositorio {
     exercicios: ExercicioParaSalvar[],
   ): Promise<void>;
   excluirTreino(id: string): Promise<void>;
+
+  // ------------------------------------------------- metas do acompanhamento
+  //
+  // A meta é decisão clínica: quem cria, edita, pausa e apaga é ela. A
+  // paciente MARCA o que fez, e só na meta dela — e quem confere isso é o
+  // banco, não a tela.
+
+  /** Sem `pacienteId`, as da própria paciente. Com, as daquela paciente. */
+  metasDe(pacienteId?: string | null): Promise<Meta[]>;
+
+  salvarMeta(id: string | null, pacienteId: string | null, dados: MetaParaSalvar): Promise<void>;
+  definirStatusMeta(id: string, status: StatusDaMeta): Promise<StatusDaMeta>;
+  excluirMeta(id: string): Promise<void>;
+
+  registrarMeta(
+    metaId: string,
+    data: string,
+    quantidade: string,
+    observacao: string,
+  ): Promise<void>;
+  apagarRegistroMeta(id: string): Promise<void>;
 
   // --------------------------------------------------------- cardio e metas
   //

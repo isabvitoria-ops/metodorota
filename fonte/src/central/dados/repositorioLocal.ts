@@ -42,6 +42,7 @@ import { PLANOS } from "./sementes/planos";
 import { CONFIGURACOES } from "./sementes/configuracoes";
 import { paraConfiguracoes } from "./mapeadores";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
+import type { Meta } from "@/central/types/meta";
 import type { CardioSessao, MetaSemanal, SessaoDeTreino, Treino } from "@/central/types/treino";
 import type {
   ConteudoProtocolo,
@@ -853,6 +854,38 @@ export const repositorioLocal: Repositorio = {
     throw new Error("Apagar treino precisa do banco. Configure o Supabase.");
   },
 
+  // ------------------------------------------------- metas do acompanhamento
+
+  /**
+   * Três metas de demonstração, escolhidas para mostrar os três casos que a
+   * tela trata de forma diferente: diária com alvo, semanal com alvo, e a
+   * de "fez ou não fez". Com três metas parecidas, quem abre a demonstração
+   * não vê que elas se comportam de jeitos diferentes.
+   */
+  async metasDe() {
+    return METAS_ACOMPANHAMENTO_DEMO;
+  },
+
+  async salvarMeta() {
+    throw new Error("Salvar meta precisa do banco. Configure o Supabase.");
+  },
+
+  async definirStatusMeta() {
+    throw new Error("Mudar o status precisa do banco. Configure o Supabase.");
+  },
+
+  async excluirMeta() {
+    throw new Error("Apagar meta precisa do banco. Configure o Supabase.");
+  },
+
+  async registrarMeta() {
+    throw new Error("Marcar a meta precisa do banco. Configure o Supabase.");
+  },
+
+  async apagarRegistroMeta() {
+    throw new Error("Desmarcar precisa do banco. Configure o Supabase.");
+  },
+
   // --------------------------------------------------------- cardio e metas
 
   async sessoesDeCardio() {
@@ -920,6 +953,62 @@ const METAS_DEMO: MetaSemanal[] = (() => {
     { id: "m2", semanaInicio: semana, tipo: "cardio", alvo: 90, unidade: "minutos" },
   ];
 })();
+
+function diasAtras(n: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+
+const METAS_ACOMPANHAMENTO_DEMO: Meta[] = [
+  {
+    id: "meta-agua",
+    titulo: "Beber 2 litros de água",
+    descricao: "Espalhar ao longo do dia, sem deixar tudo para a noite.",
+    categoria: "Hidratação",
+    frequencia: "diaria",
+    alvo: 2,
+    unidade: "litros",
+    inicio: diasAtras(20),
+    prazo: null,
+    status: "ativa",
+    registros: [
+      { id: "r1", data: diasAtras(0), quantidade: 1.5, observacao: null },
+      { id: "r2", data: diasAtras(1), quantidade: 2, observacao: null },
+      { id: "r3", data: diasAtras(2), quantidade: 2, observacao: null },
+      { id: "r4", data: diasAtras(4), quantidade: 1, observacao: "Dia corrido" },
+    ],
+  },
+  {
+    id: "meta-marmita",
+    titulo: "Levar marmita para o trabalho",
+    descricao: null,
+    categoria: "Rotina",
+    frequencia: "semanal",
+    alvo: 3,
+    unidade: "dias",
+    inicio: diasAtras(20),
+    prazo: null,
+    status: "ativa",
+    registros: [
+      { id: "r5", data: diasAtras(0), quantidade: null, observacao: null },
+      { id: "r6", data: diasAtras(2), quantidade: null, observacao: null },
+    ],
+  },
+  {
+    id: "meta-sono",
+    titulo: "Dormir antes da meia-noite",
+    descricao: null,
+    categoria: null,
+    frequencia: "diaria",
+    alvo: null,
+    unidade: null,
+    inicio: diasAtras(10),
+    prazo: null,
+    status: "ativa",
+    registros: [{ id: "r7", data: diasAtras(1), quantidade: null, observacao: null }],
+  },
+];
 
 const TREINO_DEMO: Treino = {
   id: "treino-demo",

@@ -98,6 +98,13 @@ export interface Acesso {
    * treino aberta vazia não ensina nada, e ainda sugere que algo se perdeu.
    */
   treino: boolean;
+  /**
+   * Se a nutricionista já combinou alguma meta com ela.
+   *
+   * Mesma regra dos outros atalhos: uma tela de metas aberta vazia não
+   * ensina nada e ainda sugere que algo se perdeu.
+   */
+  metas: boolean;
 }
 
 export interface Configuracoes {

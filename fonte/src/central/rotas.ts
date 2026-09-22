@@ -27,6 +27,7 @@ export const rotas = {
   protocolo: "/protocolo",
   avaliacao: "/avaliacao",
   treino: "/evolucao",
+  metas: "/metas",
   documentos: "/documentos",
   desafio: "/desafio",
   rastreabilidade: "/rastreabilidade",
@@ -53,6 +54,7 @@ export const rotas = {
   adminProtocolos: "/admin/protocolos",
   adminProtocolo: (pacienteId: string) => `/admin/protocolos/${pacienteId}`,
   adminTreinos: "/admin/treinos",
+  adminMetas: "/admin/metas",
   adminTreino: (pacienteId: string) => `/admin/treinos/${pacienteId}`,
 };
 
