@@ -117,7 +117,14 @@
       .sugestoes div:hover, .sugestoes div.marcado { background: var(--verde-claro); }
       .sugestoes small { color: var(--apagado); }
       .painel { background: var(--verde-claro); border-radius: 9px; padding: 12px; margin-top: 12px; }
+      /* DEFEITO QUE O <div> CONSERTA: <dt> e <dd> são itens SEPARADOS do
+         grid, então cada um procura a própria coluna. Com cinco pares e
+         largura para nove colunas, o último valor caía sozinho na linha de
+         baixo -- "FIBRA" no fim de uma linha e "5,5 g" no começo da outra,
+         longe do rótulo. Agrupados, o par inteiro é um item só e nunca se
+         separa. Vale para os sete painéis: o mesmo desenho estava em todos. */
       .painel dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 0; }
+      .painel dl > div { min-width: 0; }
       .painel dt { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--apagado); }
       .painel dd { margin: 2px 0 0; font-size: 19px; font-weight: 600; }
       .painel dd span { font-size: 12px; font-weight: 400; color: var(--apagado); }

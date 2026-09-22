@@ -881,7 +881,7 @@ function totais() {
   $("total-dia").innerHTML =
     "<dl>" +
     linhas
-      .map(([t, v, apoio]) => `<dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd>`)
+      .map(([t, v, apoio]) => `<div><dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd></div>`)
       .join("") +
     "</dl>";
 
@@ -1081,7 +1081,7 @@ function calcularCorpo() {
       ["Massa magra", mostrar(magra, 1, " kg"), ""],
       ["IMC", mostrar(indice, 2), "kg/m²"],
     ]
-      .map(([t, v, apoio]) => `<dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd>`)
+      .map(([t, v, apoio]) => `<div><dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd></div>`)
       .join("") +
     "</dl>";
 
@@ -1112,7 +1112,7 @@ function calcularCorpo() {
       ["Cintura", cintura ? mostrar(cintura, 1, " cm") : "—", riscoCintura(cintura, sexo) ?? ""],
       ["Cintura/quadril", rcq === null ? "—" : mostrar(rcq, 2), riscoRCQ(rcq, sexo) ?? ""],
     ]
-      .map(([t, v, apoio]) => `<dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd>`)
+      .map(([t, v, apoio]) => `<div><dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd></div>`)
       .join("") +
     "</dl>";
 
@@ -1136,7 +1136,7 @@ function calcularCorpo() {
         tmbFao && fatorOcupacional ? `× ${fatorOcupacional} = ${mostrar(tmbFao * fatorOcupacional, 0)}` : "",
       ],
     ]
-      .map(([t, v, apoio]) => `<dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd>`)
+      .map(([t, v, apoio]) => `<div><dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd></div>`)
       .join("") +
     "</dl>";
 
@@ -1291,7 +1291,7 @@ function calcularMacros() {
         ["Proteína", mostrar(r.proteina.gramas, 0, " g"), `${mostrar(r.proteina.kcal, 0)} kcal` + (peso ? ` · ${mostrar(r.proteina.porQuilo, 1)} g/kg` : "")],
         ["Gordura", mostrar(r.lipideo.gramas, 0, " g"), `${mostrar(r.lipideo.kcal, 0)} kcal` + (peso ? ` · ${mostrar(r.lipideo.porQuilo, 1)} g/kg` : "")],
       ]
-        .map(([t, v, apoio]) => `<dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd>`)
+        .map(([t, v, apoio]) => `<div><dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd></div>`)
         .join("") +
       "</dl>"
     : "<p class=\"nota\">Informe as calorias totais.</p>";
@@ -1325,7 +1325,7 @@ function calcularMacros() {
             `${mostrar(Math.abs(num($("m-atual").value) - num($("m-desejado").value)), 1)} kg em ${num($("m-dias").value)} dias`,
           ],
         ]
-          .map(([t, v, apoio]) => `<dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd>`)
+          .map(([t, v, apoio]) => `<div><dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd></div>`)
           .join("") +
         "</dl>";
 }
