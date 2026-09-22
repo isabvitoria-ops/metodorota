@@ -872,6 +872,24 @@ export const repositorioLocal: Repositorio = {
     throw new Error("O backup precisa do banco. Configure o Supabase.");
   },
 
+  /** A demonstração tem marco e números: é o que dá o que mostrar. */
+  async oQueMudou() {
+    return {
+      temMarco: true,
+      desde: diasAtras(14),
+      dias: 14,
+      proximaConsulta: diasAtras(-1),
+      pesoAntes: 75,
+      pesoAgora: 72.8,
+      marcacoesDeMeta: 8,
+      metasAtivas: 3,
+      registrosDeRastreio: 5,
+      alimentosTestados: 3,
+      treinos: 4,
+      minutosDeCardio: 90,
+    };
+  },
+
   async consultasDe() {
     return CONSULTAS_DEMO;
   },

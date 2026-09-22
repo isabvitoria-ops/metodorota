@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Icone, type NomeIcone } from "@/central/components/Icone";
 import { Marca } from "@/central/components/Marca";
 import { MinhaMetaDeHoje } from "@/central/components/MinhaMetaDeHoje";
+import { OQueMudou } from "@/central/components/OQueMudou";
 import { BarraBusca } from "@/central/components/BarraBusca";
 import { useState } from "react";
 import { rotas } from "@/central/rotas";
@@ -127,6 +128,11 @@ export function Home() {
             </span>
           </div>
         )}
+
+        {/* Antes da meta de hoje: 'o que ja aconteceu' contextualiza 'o
+            que fazer agora'. Invertido, a primeira coisa da tela seria
+            uma tarefa. */}
+        <OQueMudou />
 
         <MinhaMetaDeHoje />
 

@@ -4176,3 +4176,14 @@ body:has(.central) {
 .c-padroes li + li {
   margin-top: 6px;
 }
+
+
+/* "há 14 dias" ao lado do titulo da secao: mesma linha, peso menor. Numa
+   linha propria viraria outra informacao; aqui e so a qualificacao do
+   titulo, que e o que ela e. */
+.c-secao-apoio {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--text-subtle);
+}

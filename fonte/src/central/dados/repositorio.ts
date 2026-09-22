@@ -47,6 +47,7 @@ import type {
 } from "@/central/types/treino";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
+import type { OQueMudou } from "@/central/types/oQueMudou";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
@@ -336,6 +337,14 @@ export interface Repositorio {
    * depois, e gravar um arquivo internamente inconsistente.
    */
   exportarTudo(): Promise<unknown>;
+
+  /**
+   * O resumo do período desde a última consulta — da própria paciente.
+   *
+   * Sem parâmetro de propósito: não há id para mandar errado. O banco
+   * resolve de quem é pelo `meu_paciente_id()`.
+   */
+  oQueMudou(): Promise<OQueMudou | null>;
 
   consultasDe(pacienteId: string): Promise<Consulta[]>;
   salvarConsulta(id: string | null, pacienteId: string | null, dados: ConsultaParaSalvar): Promise<void>;

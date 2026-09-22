@@ -23,6 +23,7 @@ import type {
 } from "@/central/types";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
+import type { OQueMudou } from "@/central/types/oQueMudou";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type {
   CardioSessao,
@@ -1050,6 +1051,30 @@ export const repositorioSupabase: Repositorio = {
     const { data, error } = await sb.rpc("exportar_tudo");
     erro("gerar o backup", error);
     return data;
+  },
+
+  async oQueMudou(): Promise<OQueMudou | null> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("o_que_mudou");
+    erro("carregar o seu resumo", error);
+    if (!data) return null;
+    const l = data as Linha;
+    return {
+      temMarco: l.temMarco === true,
+      desde: textoOuNulo(l.desde),
+      dias: numeroOuNulo(l.dias),
+      proximaConsulta: textoOuNulo(l.proximaConsulta),
+      pesoAntes: numeroOuNulo(l.pesoAntes),
+      pesoAgora: numeroOuNulo(l.pesoAgora),
+      marcacoesDeMeta: numeroOuNulo(l.marcacoesDeMeta) ?? 0,
+      metasAtivas: numeroOuNulo(l.metasAtivas) ?? 0,
+      registrosDeRastreio: numeroOuNulo(l.registrosDeRastreio) ?? 0,
+      alimentosTestados: numeroOuNulo(l.alimentosTestados) ?? 0,
+      // NULO continua nulo: é "a aba não está liberada", que é diferente
+      // de "ela não treinou".
+      treinos: numeroOuNulo(l.treinos),
+      minutosDeCardio: numeroOuNulo(l.minutosDeCardio),
+    };
   },
 
   async consultasDe(pacienteId: string): Promise<Consulta[]> {
