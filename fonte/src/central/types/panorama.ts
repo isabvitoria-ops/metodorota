@@ -14,6 +14,8 @@ export interface PanoramaDoPaciente {
   id: string;
   nome: string;
   email: string;
+  /** Nula nas pacientes cadastradas antes do campo existir. */
+  condicao: string | null;
   situacao: SituacaoPaciente;
   dataInicio: string | null;
   dataFim: string | null;

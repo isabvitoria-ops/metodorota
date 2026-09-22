@@ -162,6 +162,25 @@ function LinhaPaciente({ paciente, aoAbrir }: { paciente: Paciente; aoAbrir: () 
   );
 }
 
+/**
+ * As condições que ela atende, com "Outra" no fim.
+ *
+ * Lista curta e editável aqui no código de propósito: para AGRUPAR depois,
+ * os valores precisam ser os mesmos — "SII", "sii" e "Síndrome do Intestino
+ * Irritável" digitados à mão viram três grupos de uma coisa só. E "Outra"
+ * existe para nunca travar um cadastro por falta de opção.
+ */
+const CONDICOES = [
+  "SII",
+  "SIBO",
+  "Doença de Crohn",
+  "Retocolite ulcerativa",
+  "Sintomas gastrointestinais",
+  "Emagrecimento",
+  "Ganho de massa",
+  "Acompanhamento geral",
+];
+
 function ModalNovoPaciente({ planos, aoFechar }: { planos: Plano[]; aoFechar: () => void }) {
   const { criar, convidar } = usePacientes();
   const [nome, definirNome] = useState("");
@@ -171,6 +190,8 @@ function ModalNovoPaciente({ planos, aoFechar }: { planos: Plano[]; aoFechar: ()
   const [dataInicio, definirDataInicio] = useState(hojeSaoPaulo());
   const [dataFim, definirDataFim] = useState(somarDias(hojeSaoPaulo(), planos[0]?.duracaoDias ?? 30));
   const [observacoes, definirObservacoes] = useState("");
+  const [condicao, definirCondicao] = useState("");
+  const [outraCondicao, definirOutraCondicao] = useState("");
   const [enviarConvite, definirEnviarConvite] = useState(true);
   const [erro, definirErro] = useState<string | null>(null);
   const [salvando, definirSalvando] = useState(false);
@@ -193,6 +214,10 @@ function ModalNovoPaciente({ planos, aoFechar }: { planos: Plano[]; aoFechar: ()
     if (!nome.trim()) return definirErro("Escreva o nome do paciente.");
     if (!email.includes("@")) return definirErro("Escreva um e-mail válido.");
     if (dataFim < dataInicio) return definirErro("A data de fim não pode ser antes da de início.");
+    // OBRIGATÓRIO, e é o ponto do campo: opcional, ninguém preenche, e o dia
+    // em que ela quiser agrupar as pacientes vai encontrar tudo em branco.
+    const condicaoFinal = condicao === "Outra" ? outraCondicao.trim() : condicao;
+    if (!condicaoFinal) return definirErro("Escolha a condição principal.");
 
     definirSalvando(true);
     const dados: NovoPaciente = {
@@ -203,6 +228,7 @@ function ModalNovoPaciente({ planos, aoFechar }: { planos: Plano[]; aoFechar: ()
       dataInicio,
       dataFim,
       observacoes: observacoes.trim() || null,
+      condicao: condicaoFinal,
     };
     const paciente = await criar(dados);
     if (!paciente) {
@@ -223,6 +249,26 @@ function ModalNovoPaciente({ planos, aoFechar }: { planos: Plano[]; aoFechar: ()
       <Campo rotulo="E-mail" dica="É por ele que o convite chega e que o acesso é reconhecido.">
         <Texto valor={email} aoMudar={definirEmail} tipo="email" placeholder="paciente@email.com" />
       </Campo>
+      <Campo
+        rotulo="Condição principal"
+        dica="É por aqui que você vai conseguir agrupar as pacientes depois. Preencher agora custa cinco segundos; recuperar depois é impossível."
+      >
+        <Selecao
+          valor={condicao}
+          aoMudar={definirCondicao}
+          opcoes={[
+            { valor: "", rotulo: "Escolha" },
+            ...CONDICOES.map((c) => ({ valor: c, rotulo: c })),
+            { valor: "Outra", rotulo: "Outra…" },
+          ]}
+        />
+      </Campo>
+      {condicao === "Outra" && (
+        <Campo rotulo="Qual?">
+          <Texto valor={outraCondicao} aoMudar={definirOutraCondicao} placeholder="Escreva" />
+        </Campo>
+      )}
+
       <Campo rotulo="Telefone (opcional)">
         <Texto valor={telefone} aoMudar={definirTelefone} placeholder="(11) 90000-0000" />
       </Campo>

@@ -187,6 +187,7 @@ export const repositorioSupabase: Repositorio = {
         data_inicio: dados.dataInicio,
         data_fim: dados.dataFim,
         observacoes: dados.observacoes ?? null,
+        condicao: dados.condicao.trim() || null,
       })
       .select()
       .single();
@@ -1001,6 +1002,33 @@ export const repositorioSupabase: Repositorio = {
     return data === true;
   },
 
+  async acessosDoPaciente(pacienteId: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("acessos_do_paciente", { p_paciente: pacienteId });
+    erro("carregar os acessos", error);
+    const l = (data ?? {}) as Linha;
+    return {
+      rastreio: l.rastreio === true,
+      treino: l.treino === true,
+      // O desafio nasce LIGADO: na dúvida, o estado que não muda nada para
+      // quem já estava participando.
+      desafio: l.desafio !== false,
+      protocolo: l.protocolo === true,
+      avaliacao: l.avaliacao === true,
+      metas: l.metas === true,
+    };
+  },
+
+  async definirDesafioDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("definir_desafio_do_paciente", {
+      p_paciente: pacienteId,
+      p_ativo: ativo,
+    });
+    erro("liberar o desafio", error);
+    return data !== false;
+  },
+
   async definirTreinoDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("definir_treino_do_paciente", {
@@ -1331,6 +1359,7 @@ function lerPanorama(linha: Linha): PanoramaDoPaciente {
     id: texto(linha.id),
     nome: texto(linha.nome),
     email: texto(linha.email),
+    condicao: textoOuNulo(linha.condicao),
     situacao: texto(linha.situacao) as PanoramaDoPaciente["situacao"],
     dataInicio: textoOuNulo(linha.dataInicio),
     dataFim: textoOuNulo(linha.dataFim),

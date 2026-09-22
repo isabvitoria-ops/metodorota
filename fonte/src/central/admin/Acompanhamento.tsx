@@ -206,6 +206,11 @@ function Linha({
 function resumo(p: PanoramaDoPaciente, peso: number | null): string {
   const partes: string[] = [];
 
+  // A condicao vem primeiro: e o que ela usa para se situar antes de ler o
+  // resto. Vazio APARECE, em vez de sumir -- vazio escondido e como o
+  // relatorio do concorrente, 100% "nao informado" dois anos depois.
+  partes.push(p.condicao ?? "condição não informada");
+
   if (p.ultimaConsulta?.resumo) {
     partes.push(p.ultimaConsulta.resumo);
   } else if (p.ultimaConsulta) {

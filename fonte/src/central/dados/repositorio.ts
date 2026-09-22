@@ -301,6 +301,17 @@ export interface Repositorio {
    * a tela mostrar a verdade do banco em vez do palpite do clique.
    */
   treinoLiberado(pacienteId: string): Promise<boolean>;
+
+  /** Os interruptores e os estados de uma paciente, numa ida só. */
+  acessosDoPaciente(pacienteId: string): Promise<{
+    rastreio: boolean;
+    treino: boolean;
+    desafio: boolean;
+    protocolo: boolean;
+    avaliacao: boolean;
+    metas: boolean;
+  }>;
+  definirDesafioDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean>;
   definirTreinoDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean>;
 
   /**

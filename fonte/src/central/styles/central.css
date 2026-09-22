@@ -4193,3 +4193,35 @@ body:has(.central) {
   letter-spacing: normal;
   color: var(--text-subtle);
 }
+
+
+/* O mapa de acessos da paciente: nome e explicacao a esquerda, o controle
+   (ou o estado) a direita. Mesma linha para os dois tipos, para o olho
+   varrer a coluna da direita e ver o que aparece e o que nao aparece. */
+.c-acesso-linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.c-acesso-linha + .c-acesso-linha {
+  border-top: 1px solid var(--border);
+}
+
+.c-acesso-texto {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.c-acesso-texto strong {
+  display: block;
+  font-size: 14px;
+}
+
+.c-acesso-texto span {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}

@@ -41,6 +41,7 @@ function paciente(parcial: Partial<PanoramaDoPaciente> = {}): PanoramaDoPaciente
     id: "p1",
     nome: "Mariana Silva",
     email: "m@teste.test",
+    condicao: "SII",
     situacao: "ativo",
     dataInicio: dias(-60),
     // `dataFim` e `diasRestantes` coerentes entre si: é deles que o texto

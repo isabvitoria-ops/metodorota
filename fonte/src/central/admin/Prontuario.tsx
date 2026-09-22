@@ -18,6 +18,7 @@ import {
 } from "@/central/utils/linhaDoTempo";
 import { CartaDeEncaminhamento } from "./CartaDeEncaminhamento";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { AcessosDaPaciente } from "./AcessosDaPaciente";
 
 /**
  * O prontuário: tudo de uma paciente, em ordem cronológica.
@@ -53,6 +54,7 @@ export function Prontuario() {
   const [carregando, definirCarregando] = useState(true);
   const [erro, definirErro] = useState<string | null>(null);
   const [editando, definirEditando] = useState<Consulta | "nova" | null>(null);
+  const [filtro, definirFiltro] = useState<"tudo" | "consultas" | "metas" | "avaliacoes">("tudo");
 
   const carregar = useCallback(async () => {
     try {
@@ -80,9 +82,27 @@ export function Prontuario() {
     void carregar();
   }, [carregar]);
 
-  const linha = useMemo(
+  const linhaCompleta = useMemo(
     () => montarLinhaDoTempo(consultas, metas, avaliacoes, hoje),
     [consultas, metas, avaliacoes, hoje],
+  );
+
+  /**
+   * O filtro por tipo, para achar rápido sem rolar o histórico inteiro.
+   *
+   * `tudo` não é um caso especial: ele simplesmente não filtra. Escrever
+   * `if (filtro === "tudo") return linhaCompleta` seria um segundo caminho
+   * para o mesmo resultado, e é onde a divergência começa.
+   */
+  const linha = useMemo(
+    () =>
+      linhaCompleta.filter((e) => {
+        if (filtro === "consultas") return e.tipo === "consulta" || e.tipo === "consulta_agendada";
+        if (filtro === "metas") return e.tipo === "meta_criada" || e.tipo === "meta_encerrada";
+        if (filtro === "avaliacoes") return e.tipo === "avaliacao";
+        return true;
+      }),
+    [linhaCompleta, filtro],
   );
   const serie = useMemo(() => seriePeso(avaliacoes), [avaliacoes]);
 
@@ -164,6 +184,8 @@ export function Prontuario() {
         </section>
       )}
 
+      <AcessosDaPaciente pacienteId={pacienteId} />
+
       <CartaDeEncaminhamento
         paciente={paciente.nome}
         nutricionista={configuracoes.nomeNutricionista}
@@ -200,11 +222,40 @@ export function Prontuario() {
           </div>
         )}
 
+        {/* Os filtros só aparecem quando há o que filtrar: numa ficha com
+            três eventos eles ocupariam mais espaço do que a própria linha. */}
+        {linhaCompleta.length > 4 && (
+          <div className="c-chips" style={{ marginTop: 10 }}>
+            {(
+              [
+                ["tudo", `Tudo (${linhaCompleta.length})`],
+                ["consultas", "Consultas"],
+                ["metas", "Metas"],
+                ["avaliacoes", "Avaliações"],
+              ] as ["tudo" | "consultas" | "metas" | "avaliacoes", string][]
+            ).map(([valor, rotulo]) => (
+              <button
+                key={valor}
+                type="button"
+                className="c-chip"
+                aria-pressed={filtro === valor}
+                onClick={() => definirFiltro(valor)}
+              >
+                {rotulo}
+              </button>
+            ))}
+          </div>
+        )}
+
         {linha.length === 0 ? (
           <div className="c-bloco">
-            <p className="c-item-protocolo-nome">Nada registrado ainda</p>
+            <p className="c-item-protocolo-nome">
+              {linhaCompleta.length === 0 ? "Nada registrado ainda" : "Nada com esse filtro"}
+            </p>
             <p className="c-dica" style={{ marginTop: 6 }}>
-              Registre a primeira consulta e a linha do tempo começa aqui.
+              {linhaCompleta.length === 0
+                ? "Registre a primeira consulta e a linha do tempo começa aqui."
+                : "Escolha outro filtro para ver o resto."}
             </p>
           </div>
         ) : (

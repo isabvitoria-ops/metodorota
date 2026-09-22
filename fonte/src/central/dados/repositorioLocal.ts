@@ -172,6 +172,7 @@ export const repositorioLocal: Repositorio = {
       perfilId: `demo-${Date.now()}`,
       email,
       nome: dados.nome,
+      condicao: dados.condicao?.trim() || null,
       telefone: dados.telefone ?? null,
       planoId: dados.planoId,
       planoNome: PLANOS.find((p) => p.id === dados.planoId)?.nome ?? null,
@@ -844,6 +845,21 @@ export const repositorioLocal: Repositorio = {
     return true;
   },
 
+  async acessosDoPaciente() {
+    return {
+      rastreio: true,
+      treino: true,
+      desafio: true,
+      protocolo: true,
+      avaliacao: false,
+      metas: true,
+    };
+  },
+
+  async definirDesafioDoPaciente() {
+    throw new Error("Liberar o desafio precisa do banco. Configure o Supabase.");
+  },
+
   async definirTreinoDoPaciente() {
     throw new Error("Liberar a área de treino precisa do banco. Configure o Supabase.");
   },
@@ -1040,6 +1056,7 @@ const PANORAMA_DEMO: PanoramaDoPaciente[] = [
   {
     id: "pac-mariana",
     nome: "Mariana Silva",
+    condicao: "SII",
     email: "mariana@exemplo.test",
     situacao: "ativo",
     dataInicio: diasAtras(60),
@@ -1059,6 +1076,7 @@ const PANORAMA_DEMO: PanoramaDoPaciente[] = [
   {
     id: "pac-juliana",
     nome: "Juliana Ferreira",
+    condicao: "Emagrecimento",
     email: "juliana@exemplo.test",
     situacao: "ativo",
     dataInicio: diasAtras(90),
@@ -1074,6 +1092,7 @@ const PANORAMA_DEMO: PanoramaDoPaciente[] = [
   {
     id: "pac-renata",
     nome: "Renata Costa",
+    condicao: "SIBO",
     email: "renata@exemplo.test",
     situacao: "ativo",
     dataInicio: diasAtras(45),
@@ -1089,6 +1108,7 @@ const PANORAMA_DEMO: PanoramaDoPaciente[] = [
   {
     id: "pac-ana",
     nome: "Ana Luiza",
+    condicao: "Acompanhamento geral",
     email: "ana@exemplo.test",
     situacao: "ativo",
     dataInicio: diasAtras(5),

@@ -155,6 +155,7 @@ export function paraPaciente(l: Linha): Paciente {
     situacao: (texto(l.situacao) || "convite_pendente") as Paciente["situacao"],
     diasRestantes: numeroOuNulo(l.dias_restantes),
     observacoes: textoOuNulo(l.observacoes),
+    condicao: textoOuNulo(l.condicao),
     ultimoAcesso: textoOuNulo(l.ultimo_acesso),
     conviteEnviadoEm: textoOuNulo(l.convite_enviado_em),
     criadoEm: texto(l.criado_em),

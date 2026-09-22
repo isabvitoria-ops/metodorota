@@ -49,6 +49,8 @@ export interface Paciente {
   situacao: SituacaoPaciente;
   diasRestantes: number | null;
   observacoes: string | null;
+  /** Nula nas pacientes cadastradas antes deste campo existir. */
+  condicao: string | null;
   ultimoAcesso: string | null;
   conviteEnviadoEm: string | null;
   criadoEm: string;
@@ -122,6 +124,15 @@ export interface Configuracoes {
 export interface NovoPaciente {
   nome: string;
   email: string;
+  /**
+   * A queixa/condição principal — o eixo pelo qual ela vai querer agrupar
+   * as pacientes depois.
+   *
+   * OBRIGATÓRIO NO CADASTRO, e é o ponto todo: campo de segmentação custa
+   * cinco segundos na entrada e é impossível de recuperar depois. Ninguém
+   * reabre oitenta fichas para lembrar qual era a queixa de cada uma.
+   */
+  condicao: string;
   telefone?: string | null;
   planoId: string | null;
   dataInicio: string;
