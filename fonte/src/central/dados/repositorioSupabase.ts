@@ -1045,6 +1045,13 @@ export const repositorioSupabase: Repositorio = {
     return ((data ?? []) as Linha[]).map(lerPanorama);
   },
 
+  async exportarTudo(): Promise<unknown> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("exportar_tudo");
+    erro("gerar o backup", error);
+    return data;
+  },
+
   async consultasDe(pacienteId: string): Promise<Consulta[]> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("consultas_de", { p_paciente: pacienteId });

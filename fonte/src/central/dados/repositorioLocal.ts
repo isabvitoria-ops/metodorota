@@ -868,6 +868,10 @@ export const repositorioLocal: Repositorio = {
     return PANORAMA_DEMO;
   },
 
+  async exportarTudo() {
+    throw new Error("O backup precisa do banco. Configure o Supabase.");
+  },
+
   async consultasDe() {
     return CONSULTAS_DEMO;
   },

@@ -328,6 +328,15 @@ export interface Repositorio {
 
   panoramaDosPacientes(): Promise<PanoramaDoPaciente[]>;
 
+  /**
+   * Uma cópia de tudo, para ela guardar.
+   *
+   * Numa função só, e não trinta consultas: um backup montado de trinta
+   * idas ao banco pode pegar uma tabela antes de uma escrita e outra
+   * depois, e gravar um arquivo internamente inconsistente.
+   */
+  exportarTudo(): Promise<unknown>;
+
   consultasDe(pacienteId: string): Promise<Consulta[]>;
   salvarConsulta(id: string | null, pacienteId: string | null, dados: ConsultaParaSalvar): Promise<void>;
   excluirConsulta(id: string): Promise<void>;

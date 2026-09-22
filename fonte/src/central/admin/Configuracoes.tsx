@@ -3,6 +3,7 @@ import { repositorio } from "@/central/dados/repositorio";
 import { useCatalogo } from "@/central/hooks/useCatalogo";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { Campo, Texto } from "./componentes/Campos";
+import { BaixarBackup } from "@/central/components/BaixarBackup";
 
 /**
  * Configurações do app (§46, §47 do briefing).
@@ -98,6 +99,8 @@ export function ConfiguracoesAdmin() {
           {salvando ? "Salvando…" : "Salvar configurações"}
         </button>
       </div>
+
+      <BaixarBackup />
     </>
   );
 }
