@@ -9,6 +9,7 @@ import { Painel } from "./Painel";
 import { Pacientes } from "./Pacientes";
 import { Alimentos } from "./Alimentos";
 import { Questionarios } from "./Questionarios";
+import { Financeiro } from "./Financeiro";
 import { Equivalencias } from "./Equivalencias";
 import { Conteudos } from "./Conteudos";
 import { ConfiguracoesAdmin } from "./Configuracoes";
@@ -47,6 +48,7 @@ const ABAS = [
   { rota: rotas.adminTreinos, rotulo: "Treino" },
   { rota: rotas.adminMetas, rotulo: "Metas" },
   { rota: rotas.adminQuestionarios, rotulo: "Questionários" },
+  { rota: rotas.adminFinanceiro, rotulo: "Cobrança" },
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
   { rota: rotas.adminDesafios, rotulo: "Desafio" },
   { rota: rotas.adminRastreabilidade, rotulo: "Rastreabilidade" },
@@ -126,6 +128,7 @@ export function AdminApp() {
               <Route path="treinos" element={<Treinos />} />
               <Route path="metas" element={<Metas />} />
               <Route path="questionarios" element={<Questionarios />} />
+              <Route path="financeiro" element={<Financeiro />} />
               <Route path="acompanhamento" element={<Acompanhamento />} />
               {/* Sem aba propria: a ficha se abre pela lista, clicando na
                   paciente. Uma aba "Prontuario" no menu abriria em branco,

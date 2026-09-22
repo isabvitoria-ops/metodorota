@@ -26,6 +26,11 @@ import type {
   StatusReintroducao,
 } from "@/central/types";
 import type {
+  PainelFinanceiro,
+  ValorDoPaciente,
+  Cobranca,
+} from "@/central/types/financeiro";
+import type {
   Questionario,
   PerguntaQuestionario,
   PeriodicidadeQuestionario,
@@ -97,6 +102,14 @@ interface EnvioQuestionarioDemo {
 const guardaQuestionarios = armazenamentoLocal<Questionario>("central:demo:questionarios:v1");
 const guardaAtribuicoes = armazenamentoLocal<AtribuicaoDemo>("central:demo:questionario-pacientes:v1");
 const guardaEnviosQuest = armazenamentoLocal<EnvioQuestionarioDemo>("central:demo:questionario-envios:v1");
+
+interface ValorDemo {
+  id: string;
+  valorMensal: number | null;
+  diaDeVencimento: number | null;
+}
+const guardaCobrancas = armazenamentoLocal<Cobranca>("central:demo:cobrancas:v1");
+const guardaValores = armazenamentoLocal<ValorDemo>("central:demo:valores:v1");
 
 /**
  * Quem é "a paciente logada" na demonstração.
@@ -1238,6 +1251,124 @@ export const repositorioLocal: Repositorio = {
         respostas,
       },
     ]);
+  },
+
+  // ---------------------------------------------------------------------
+  // Cobrança
+  // ---------------------------------------------------------------------
+
+  async painelFinanceiro(): Promise<PainelFinanceiro> {
+    const hoje = hojeLocal();
+    const mes = `${hoje.slice(0, 7)}-01`;
+    const cobrancas = guardaCobrancas.ler().map((c) => ({
+      ...c,
+      // "atrasada" é CONTA, não coluna — igual ao banco. Ver a 0043.
+      situacao:
+        c.status === "paga"
+          ? ("paga" as const)
+          : c.status === "cancelada"
+            ? ("cancelada" as const)
+            : c.vencimento < hoje
+              ? ("atrasada" as const)
+              : ("aberta" as const),
+    }));
+    const soma = (f: (c: Cobranca) => boolean) =>
+      cobrancas.filter(f).reduce((t, c) => t + c.valor, 0);
+    return {
+      cobrancas: cobrancas.sort((a, b) => b.vencimento.localeCompare(a.vencimento)),
+      totais: {
+        aberto: soma((c) => c.status === "aberta"),
+        atrasado: soma((c) => c.status === "aberta" && c.vencimento < hoje),
+        recebidoNoMes: soma((c) => c.status === "paga" && (c.pagoEm ?? "") >= mes),
+        previstoNoMes: soma((c) => c.status !== "cancelada" && c.competencia === mes),
+      },
+    };
+  },
+
+  async valoresDosPacientes(): Promise<ValorDoPaciente[]> {
+    const valores = guardaValores.ler();
+    return mesclar(pacientesDaSemente(), guardaPacientes.ler())
+      .filter((p) => p.status !== "suspenso")
+      .map((p) => {
+        const v = valores.find((x) => x.id === p.id);
+        return {
+          id: p.id,
+          nome: p.nome,
+          telefone: p.telefone,
+          situacao: p.situacao,
+          valorMensal: v?.valorMensal ?? null,
+          diaDeVencimento: v?.diaDeVencimento ?? null,
+        };
+      })
+      .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  },
+
+  async gerarCobrancas(competencia: string): Promise<number> {
+    const mes = `${(competencia || hojeLocal()).slice(0, 7)}-01`;
+    const atuais = guardaCobrancas.ler();
+    const valores = await repositorioLocal.valoresDosPacientes();
+    const novas: Cobranca[] = [];
+    for (const v of valores) {
+      if (!v.valorMensal || v.valorMensal <= 0) continue;
+      // Sem duplicar o mês, igual ao `on conflict` do banco.
+      if (atuais.some((c) => c.pacienteId === v.id && c.competencia === mes)) continue;
+      const d = String(v.diaDeVencimento ?? 10).padStart(2, "0");
+      novas.push({
+        id: `cob-${v.id}-${mes}`,
+        pacienteId: v.id,
+        paciente: v.nome,
+        telefone: v.telefone,
+        competencia: mes,
+        valor: v.valorMensal,
+        vencimento: `${mes.slice(0, 7)}-${d}`,
+        status: "aberta",
+        situacao: "aberta",
+        pagoEm: null,
+        forma: null,
+        observacao: null,
+      });
+    }
+    guardaCobrancas.escrever([...atuais, ...novas]);
+    return novas.length;
+  },
+
+  async baixarCobranca(id: string, paga: boolean, forma: string | null, pagoEm: string | null) {
+    guardaCobrancas.escrever(
+      guardaCobrancas.ler().map((c) =>
+        c.id === id
+          ? {
+              ...c,
+              status: paga ? ("paga" as const) : ("aberta" as const),
+              // Desfazer limpa a data e a forma, igual ao banco.
+              pagoEm: paga ? (pagoEm ?? hojeLocal()) : null,
+              forma: paga ? forma : null,
+            }
+          : c,
+      ),
+    );
+    return paga ? "paga" : "aberta";
+  },
+
+  async cancelarCobranca(id: string): Promise<boolean> {
+    let mudou = false;
+    guardaCobrancas.escrever(
+      guardaCobrancas.ler().map((c) => {
+        // Paga não se cancela por engano.
+        if (c.id !== id || c.status === "paga") return c;
+        mudou = true;
+        return { ...c, status: "cancelada" as const, pagoEm: null, forma: null };
+      }),
+    );
+    return mudou;
+  },
+
+  async definirValorDoPaciente(pacienteId: string, valor: number | null, dia: number | null) {
+    const atuais = guardaValores.ler().filter((v) => v.id !== pacienteId);
+    guardaValores.escrever([
+      ...atuais,
+      { id: pacienteId, valorMensal: valor, diaDeVencimento: dia },
+    ]);
+    return { valor, dia };
   },
 
   async marcarRevisado(envioId: string, revisado: boolean): Promise<boolean> {

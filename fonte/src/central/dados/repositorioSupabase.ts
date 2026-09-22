@@ -29,6 +29,13 @@ import type {
   RespostaEnviada,
   QuestionarioDoPaciente,
 } from "@/central/types/questionario";
+import type {
+  PainelFinanceiro,
+  ValorDoPaciente,
+  Cobranca,
+  SituacaoCobranca,
+  StatusCobranca,
+} from "@/central/types/financeiro";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type { OQueMudou } from "@/central/types/oQueMudou";
@@ -1380,6 +1387,81 @@ export const repositorioSupabase: Repositorio = {
     erro("enviar suas respostas", error);
   },
 
+  async painelFinanceiro(desde: string | null): Promise<PainelFinanceiro> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("painel_financeiro", { p_desde: desde });
+    erro("carregar o financeiro", error);
+    const l = (data ?? {}) as Linha;
+    const totais = (l.totais ?? {}) as Linha;
+    return {
+      cobrancas: (Array.isArray(l.cobrancas) ? (l.cobrancas as Linha[]) : []).map(paraCobranca),
+      totais: {
+        aberto: numero(totais.aberto),
+        atrasado: numero(totais.atrasado),
+        recebidoNoMes: numero(totais.recebidoNoMes),
+        previstoNoMes: numero(totais.previstoNoMes),
+      },
+    };
+  },
+
+  async valoresDosPacientes(): Promise<ValorDoPaciente[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("valores_dos_pacientes");
+    erro("carregar os valores", error);
+    return ((data ?? []) as Linha[]).map((l) => ({
+      id: texto(l.id),
+      nome: texto(l.nome),
+      telefone: textoOuNulo(l.telefone),
+      situacao: texto(l.situacao),
+      valorMensal: l.valorMensal === null || l.valorMensal === undefined ? null : numero(l.valorMensal),
+      diaDeVencimento:
+        l.diaDeVencimento === null || l.diaDeVencimento === undefined
+          ? null
+          : numero(l.diaDeVencimento),
+    }));
+  },
+
+  async gerarCobrancas(competencia: string): Promise<number> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("gerar_cobrancas", { p_competencia: competencia });
+    erro("gerar as cobranças", error);
+    return numero(data);
+  },
+
+  async baixarCobranca(id: string, paga: boolean, forma: string | null, pagoEm: string | null) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("baixar_cobranca", {
+      p_id: id,
+      p_paga: paga,
+      p_forma: forma,
+      p_pago_em: pagoEm,
+    });
+    erro("dar baixa", error);
+    return texto(data);
+  },
+
+  async cancelarCobranca(id: string): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("cancelar_cobranca", { p_id: id });
+    erro("cancelar a cobrança", error);
+    return data === true;
+  },
+
+  async definirValorDoPaciente(pacienteId: string, valor: number | null, dia: number | null) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("definir_valor_do_paciente", {
+      p_paciente: pacienteId,
+      p_valor: valor,
+      p_dia: dia,
+    });
+    erro("definir o valor", error);
+    const l = (data ?? {}) as Linha;
+    return {
+      valor: l.valor === null || l.valor === undefined ? null : numero(l.valor),
+      dia: l.dia === null || l.dia === undefined ? null : numero(l.dia),
+    };
+  },
+
   async marcarRevisado(envioId: string, revisado: boolean): Promise<boolean> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("marcar_revisado", {
@@ -1565,5 +1647,23 @@ function paraProtocolo(linha: Linha | null | undefined): Protocolo | null {
     versao: numero(linha.versao),
     atualizadoEm: texto(linha.atualizado_em),
     publicadoEm: textoOuNulo(linha.publicado_em),
+  };
+}
+
+
+function paraCobranca(l: Linha): Cobranca {
+  return {
+    id: texto(l.id),
+    pacienteId: texto(l.pacienteId),
+    paciente: texto(l.paciente),
+    telefone: textoOuNulo(l.telefone),
+    competencia: texto(l.competencia),
+    valor: numero(l.valor),
+    vencimento: texto(l.vencimento),
+    status: texto(l.status) as StatusCobranca,
+    situacao: texto(l.situacao) as SituacaoCobranca,
+    pagoEm: textoOuNulo(l.pagoEm),
+    forma: textoOuNulo(l.forma),
+    observacao: textoOuNulo(l.observacao),
   };
 }

@@ -53,6 +53,10 @@ import type {
   RespostaEnviada,
   QuestionarioDoPaciente,
 } from "@/central/types/questionario";
+import type {
+  PainelFinanceiro,
+  ValorDoPaciente,
+} from "@/central/types/financeiro";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type { OQueMudou } from "@/central/types/oQueMudou";
@@ -371,6 +375,41 @@ export interface Repositorio {
    * criaria expectativa de resposta que o aplicativo não promete.
    */
   marcarRevisado(envioId: string, revisado: boolean): Promise<boolean>;
+
+  // ---------------------------------------------------------------------
+  // Cobrança
+  // ---------------------------------------------------------------------
+
+  /** As cobranças e os totais, numa ida só. */
+  painelFinanceiro(desde: string | null): Promise<PainelFinanceiro>;
+
+  /** Quanto cada paciente paga, para a tela poder mudar. */
+  valoresDosPacientes(): Promise<ValorDoPaciente[]>;
+
+  /**
+   * Gera as cobranças do mês para quem tem valor combinado.
+   *
+   * Apertar duas vezes no mesmo mês não duplica — e ela vai apertar de novo
+   * só para conferir. Devolve quantas foram criadas.
+   */
+  gerarCobrancas(competencia: string): Promise<number>;
+
+  /** Marca como paga, ou desfaz. Devolve o status GRAVADO. */
+  baixarCobranca(
+    id: string,
+    paga: boolean,
+    forma: string | null,
+    pagoEm: string | null,
+  ): Promise<string>;
+
+  /** Cancelar não apaga: a linha continua, com status cancelada. */
+  cancelarCobranca(id: string): Promise<boolean>;
+
+  definirValorDoPaciente(
+    pacienteId: string,
+    valor: number | null,
+    dia: number | null,
+  ): Promise<{ valor: number | null; dia: number | null }>;
 
   /** As respostas de uma paciente, para a nutricionista ler. */
   questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]>;
