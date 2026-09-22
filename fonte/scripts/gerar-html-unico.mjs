@@ -85,6 +85,19 @@ const js = ler(caminhoJs).replace(/<\/script/gi, "<\\/script");
 const favicon = readFileSync(path.join(pasta, "favicon.svg"), "utf8");
 const faviconEmDados = `data:image/svg+xml;base64,${Buffer.from(favicon).toString("base64")}`;
 
+// O CARIMBO DE VERSAO.
+//
+// Ela nao tem como saber se o que esta na tela e a versao nova ou uma copia
+// velha guardada pelo navegador -- e ja aconteceu de olhar, nao ver a
+// mudanca e nos dois acharmos que a publicacao falhou, quando o arquivo
+// publicado estava certo o tempo todo.
+//
+// O carimbo aparece em Configuracoes e no /diagnostico. Ela le a data ali e
+// a duvida acaba: ou bate com a do meu aviso, ou o navegador esta servindo
+// copia velha e o problema e outro.
+const agora = new Date();
+const versao = agora.toISOString().slice(0, 16).replace("T", " ") + " UTC";
+
 const titulo = html.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? "Central do Paciente";
 const descricao = html.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? "";
 
@@ -95,6 +108,13 @@ const pagina = `<!doctype html>
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#3A6355" />
     <meta name="description" content="${descricao}" />
+    <meta name="versao-do-site" content="${versao}" />
+    <!-- O navegador guarda HTML por padrao, e este arquivo E o aplicativo
+         inteiro: uma copia velha significa a Central inteira desatualizada,
+         sem nenhum aviso. Estas tres linhas mandam revalidar sempre. -->
+    <meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <link rel="icon" href="${faviconEmDados}" />
     <title>${titulo}</title>
     <style>${css}</style>
@@ -122,5 +142,5 @@ if (paraPages) {
 const mb = (pagina.length / 1024 / 1024).toFixed(2);
 const nome = paraPages ? "site-pages" : "site";
 console.log(
-  `${nome}/index.html gerado — ${mb} MB, arquivo único${paraPages ? " (+ 404.html idêntico)" : ""}`,
+  `${nome}/index.html gerado — ${mb} MB, arquivo único${paraPages ? " (+ 404.html idêntico)" : ""} — versão ${versao}`,
 );

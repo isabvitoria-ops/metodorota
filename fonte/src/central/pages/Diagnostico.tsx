@@ -5,6 +5,7 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { rotas } from "@/central/rotas";
 import { urlDaRota } from "@/central/utils/enderecos";
+import { versaoLegivel } from "@/central/utils/versaoDoSite";
 
 /**
  * Tela de diagnóstico.
@@ -39,6 +40,11 @@ export function Diagnostico() {
     // rede estiver fora, esta tela ainda serve — e ela existe justamente
     // para o caso de a rede estar fora.
     definirLinhas([
+      // A VERSAO VEM PRIMEIRO, de proposito. Quando ela manda o print
+      // dizendo "nao mudou nada", esta e a linha que resolve a duvida antes
+      // de qualquer outra: ou a data bate com a da publicacao, ou o
+      // navegador esta servindo copia velha e o resto do print nem importa.
+      { rotulo: "Versão do site", valor: versaoLegivel(), bom: null },
       {
         rotulo: "Modo",
         valor: MODO_DEMONSTRACAO ? "Demonstração (sem banco)" : "Conectado ao Supabase",

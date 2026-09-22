@@ -26,6 +26,18 @@ import { Treinos } from "./Treinos";
  * gerenciar, não consultar. As abas em vez de menu lateral porque isto
  * também vai ser aberto no celular entre um atendimento e outro.
  */
+/**
+ * As abas do menu dela.
+ *
+ * ALIMENTOS E CONTEUDOS SAIRAM DAQUI a pedido dela -- mas as TELAS
+ * continuam de pe, e as rotas tambem (`/admin/alimentos` e
+ * `/admin/conteudos` abrem normalmente se ela digitar o endereco).
+ *
+ * Apagar as telas junto seria outra coisa: ela perderia o unico lugar onde
+ * se cadastra alimento novo, e as equivalencias -- que ela quer manter --
+ * sao construidas em cima desses alimentos. Tirar do menu limpa a tela sem
+ * tirar nada de dentro.
+ */
 const ABAS = [
   { rota: rotas.admin, rotulo: "Painel", fim: true },
   { rota: rotas.adminAcompanhamento, rotulo: "Acompanhamento" },
@@ -33,9 +45,7 @@ const ABAS = [
   { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
   { rota: rotas.adminTreinos, rotulo: "Treino" },
   { rota: rotas.adminMetas, rotulo: "Metas" },
-  { rota: rotas.adminAlimentos, rotulo: "Alimentos" },
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
-  { rota: rotas.adminConteudos, rotulo: "Conteúdos" },
   { rota: rotas.adminDesafios, rotulo: "Desafio" },
   { rota: rotas.adminRastreabilidade, rotulo: "Rastreabilidade" },
   { rota: rotas.adminConfiguracoes, rotulo: "Configurações" },

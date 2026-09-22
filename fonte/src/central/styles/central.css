@@ -4225,3 +4225,65 @@ body:has(.central) {
   font-size: 12.5px;
   color: var(--text-muted);
 }
+
+/* O carimbo de versão: legível, mas sem competir com o resto da tela. */
+.c-bloco-discreto {
+  opacity: 0.85;
+}
+
+.c-versao-carimbo {
+  font-family: var(--fonte-mono, ui-monospace, "SFMono-Regular", Menlo, monospace);
+  font-size: 1.05rem;
+  margin: 0.25rem 0 0.5rem;
+  color: var(--tinta-forte);
+}
+
+/* -----------------------------------------------------------------------
+   Minimizar refeição no montador de protocolo
+   ----------------------------------------------------------------------- */
+
+.c-barra-recolher {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin: 12px 0 4px;
+}
+
+/* O triângulo fica antes do nome, com alvo de toque de dedo — 44px é o
+   mínimo que a mão acerta sem mirar. */
+.c-recolher {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--tinta-forte);
+  font-size: 1.1rem;
+  line-height: 1;
+  border-radius: 10px;
+}
+
+.c-recolher:hover {
+  background: var(--fundo-suave, rgba(0, 0, 0, 0.05));
+}
+
+.c-recolher:focus-visible {
+  outline: 2px solid var(--verde, #3a6355);
+  outline-offset: 2px;
+}
+
+/* Fechada, a refeição encolhe: menos margem, para caber mais no olho. */
+.c-bloco-recolhido {
+  padding-bottom: 10px;
+}
+
+.c-resumo-recolhido {
+  margin: 2px 0 0 44px;
+  font-size: 0.95rem;
+  color: var(--tinta-fraca, #6b6b6b);
+}

@@ -17,6 +17,13 @@ import { dataBonita } from "@/central/utils/situacao";
 import { AreaDeLinhas, AreaTexto, Campo, NumeroDecimal, Selecao, Texto } from "./componentes/Campos";
 import { numeroDeTexto, textoDeNumero } from "@/central/utils/numero";
 import {
+  alternar,
+  todas,
+  moverRecolhidas,
+  removerRecolhida,
+  resumoDaRefeicao,
+} from "@/central/utils/recolherRefeicoes";
+import {
   CIRCUNFERENCIAS,
   DOBRAS,
   medidasPreenchidas,
@@ -192,6 +199,9 @@ function EditorDoProtocolo({
   const [aviso, definirAviso] = useState<string | null>(null);
   const [erro, definirErro] = useState<string | null>(null);
   const [ocupado, definirOcupado] = useState(false);
+  // Quais refeicoes estao minimizadas. So visual -- ver
+  // `utils/recolherRefeicoes.ts` para o porque de morar aqui e nao no bloco.
+  const [recolhidas, definirRecolhidas] = useState<ReadonlySet<number>>(new Set<number>());
   const [guardando, definirGuardando] = useState<"parado" | "salvando" | "salvo">("parado");
   // O que veio do banco. Enquanto for igual ao da tela, não há o que guardar
   // — e é isso que impede o salvamento automático de disparar na abertura.
@@ -371,6 +381,30 @@ function EditorDoProtocolo({
         </p>
       )}
 
+      {/* Com o dia montado inteiro, a tela passa de cem campos. Fechar tudo
+          de uma vez e abrir so a refeicao em que ela esta mexendo e o que
+          ela pediu -- e o que torna a tela utilizavel num plano completo. */}
+      {conteudo.refeicoes.length > 1 && (
+        <div className="c-barra-recolher">
+          <button
+            type="button"
+            className="c-link"
+            onClick={() => definirRecolhidas(todas(conteudo.refeicoes.length))}
+            disabled={recolhidas.size === conteudo.refeicoes.length}
+          >
+            Minimizar todas
+          </button>
+          <button
+            type="button"
+            className="c-link"
+            onClick={() => definirRecolhidas(new Set<number>())}
+            disabled={recolhidas.size === 0}
+          >
+            Abrir todas
+          </button>
+        </div>
+      )}
+
       {conteudo.refeicoes.map((refeicao, iRefeicao) => (
         <BlocoDaRefeicao
           key={iRefeicao}
@@ -378,9 +412,17 @@ function EditorDoProtocolo({
           grupos={grupos}
           primeira={iRefeicao === 0}
           ultima={iRefeicao === conteudo.refeicoes.length - 1}
+          recolhida={recolhidas.has(iRefeicao)}
+          aoRecolher={() => definirRecolhidas(alternar(recolhidas, iRefeicao))}
           aoTrocar={(nova) => definirConteudo(trocarRefeicao(conteudo, iRefeicao, nova))}
-          aoRemover={() => definirConteudo(removerRefeicao(conteudo, iRefeicao))}
-          aoMover={(passo) => definirConteudo(moverRefeicao(conteudo, iRefeicao, passo))}
+          aoRemover={() => {
+            definirRecolhidas(removerRecolhida(recolhidas, iRefeicao));
+            definirConteudo(removerRefeicao(conteudo, iRefeicao));
+          }}
+          aoMover={(passo) => {
+            definirRecolhidas(moverRecolhidas(recolhidas, iRefeicao, iRefeicao + passo));
+            definirConteudo(moverRefeicao(conteudo, iRefeicao, passo));
+          }}
         />
       ))}
 
@@ -567,6 +609,8 @@ function BlocoDaRefeicao({
   grupos,
   primeira,
   ultima,
+  recolhida,
+  aoRecolher,
   aoTrocar,
   aoRemover,
   aoMover,
@@ -575,6 +619,8 @@ function BlocoDaRefeicao({
   grupos: GrupoDoProtocolo[];
   primeira: boolean;
   ultima: boolean;
+  recolhida: boolean;
+  aoRecolher: () => void;
   aoTrocar: (nova: RefeicaoProtocolo) => void;
   aoRemover: () => void;
   aoMover: (passo: -1 | 1) => void;
@@ -583,9 +629,26 @@ function BlocoDaRefeicao({
     aoTrocar({ ...refeicao, opcoes: refeicao.opcoes.map((o, j) => (j === iOpcao ? nova : o)) });
   }
 
+  // O identificador liga o botao ao trecho que ele abre e fecha, para quem
+  // navega por teclado ou leitor de tela saber o que o triangulo controla.
+  const idConteudo = `refeicao-${refeicao.nome.replace(/\s+/g, "-").toLowerCase()}`;
+
   return (
-    <div className="c-bloco">
+    <div className={`c-bloco${recolhida ? " c-bloco-recolhido" : ""}`}>
       <div className="c-bloco-topo">
+        <button
+          type="button"
+          className="c-recolher"
+          onClick={aoRecolher}
+          aria-expanded={!recolhida}
+          aria-controls={idConteudo}
+          title={recolhida ? "Abrir esta refeição" : "Minimizar esta refeição"}
+        >
+          <span aria-hidden="true">{recolhida ? "▸" : "▾"}</span>
+          <span className="c-so-leitor">
+            {recolhida ? "Abrir esta refeição" : "Minimizar esta refeição"}
+          </span>
+        </button>
         <Texto valor={refeicao.nome} aoMudar={(v) => aoTrocar({ ...refeicao, nome: v })} />
         <span className="c-hora-refeicao">
           <Texto
@@ -606,6 +669,16 @@ function BlocoDaRefeicao({
           </button>
         </span>
       </div>
+
+      {/* Fechada, ela ainda precisa ACHAR a refeicao sem abrir. Nome e hora
+          ja estao no cabecalho; o que falta e o tamanho. */}
+      {recolhida && <p className="c-resumo-recolhido">{resumoDaRefeicao(refeicao)}</p>}
+
+      {/* O conteudo sai da tela, mas NAO e desmontado: o que ela digitou e
+          nao salvou ainda continua exatamente onde estava. Trocar isto por
+          um `&&` faria a refeicao fechada perder o texto em edicao -- o pior
+          defeito possivel numa tela de montar plano. */}
+      <div id={idConteudo} hidden={recolhida}>
 
       {refeicao.opcoes.map((opcao, iOpcao) => (
         <div key={iOpcao} style={{ marginTop: iOpcao === 0 ? 8 : 16 }}>
@@ -759,6 +832,7 @@ function BlocoDaRefeicao({
       >
         + Acrescentar outra versão desta refeição
       </button>
+      </div>
     </div>
   );
 }

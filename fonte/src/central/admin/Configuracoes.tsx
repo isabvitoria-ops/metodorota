@@ -4,6 +4,7 @@ import { useCatalogo } from "@/central/hooks/useCatalogo";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { Campo, Texto } from "./componentes/Campos";
 import { BaixarBackup } from "@/central/components/BaixarBackup";
+import { versaoLegivel } from "@/central/utils/versaoDoSite";
 
 /**
  * Configurações do app (§46, §47 do briefing).
@@ -101,6 +102,20 @@ export function ConfiguracoesAdmin() {
       </div>
 
       <BaixarBackup />
+
+      {/* O carimbo fica no fim das Configuracoes, o lugar onde ela ja vem
+          conferir coisa do sistema. E a resposta para "sera que eu recebi a
+          atualizacao?" -- pergunta que ela nao tinha como responder antes,
+          porque copia velha do navegador abre sem dar erro nenhum. */}
+      <div className="c-bloco c-bloco-discreto">
+        <h2>Versão deste site</h2>
+        <p className="c-versao-carimbo">{versaoLegivel()}</p>
+        <p className="c-dica">
+          Se esta data for mais antiga do que a que eu te informei, seu navegador
+          está mostrando uma cópia guardada. Recarregue segurando <strong>Shift</strong>{" "}
+          (no computador) ou feche e reabra a aba (no celular).
+        </p>
+      </div>
     </>
   );
 }
