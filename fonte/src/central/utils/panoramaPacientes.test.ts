@@ -40,6 +40,8 @@ function paciente(parcial: Partial<PanoramaDoPaciente> = {}): PanoramaDoPaciente
   return {
     id: "p1",
     nome: "Mariana Silva",
+    fase: null,
+    faseDesde: null,
     email: "m@teste.test",
     condicao: "SII",
     situacao: "ativo",

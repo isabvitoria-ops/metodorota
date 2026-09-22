@@ -9,6 +9,7 @@ import { Painel } from "./Painel";
 import { Pacientes } from "./Pacientes";
 import { Alimentos } from "./Alimentos";
 import { Questionarios } from "./Questionarios";
+import { Fases } from "./Fases";
 import { Financeiro } from "./Financeiro";
 import { Equivalencias } from "./Equivalencias";
 import { Conteudos } from "./Conteudos";
@@ -47,6 +48,7 @@ const ABAS = [
   { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
   { rota: rotas.adminTreinos, rotulo: "Treino" },
   { rota: rotas.adminMetas, rotulo: "Metas" },
+  { rota: rotas.adminFases, rotulo: "Fases" },
   { rota: rotas.adminQuestionarios, rotulo: "Questionários" },
   { rota: rotas.adminFinanceiro, rotulo: "Cobrança" },
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
@@ -127,6 +129,7 @@ export function AdminApp() {
               <Route path="protocolos" element={<Protocolos />} />
               <Route path="treinos" element={<Treinos />} />
               <Route path="metas" element={<Metas />} />
+              <Route path="fases" element={<Fases />} />
               <Route path="questionarios" element={<Questionarios />} />
               <Route path="financeiro" element={<Financeiro />} />
               <Route path="acompanhamento" element={<Acompanhamento />} />

@@ -4,6 +4,7 @@ import { Marca } from "@/central/components/Marca";
 import { MinhaMetaDeHoje } from "@/central/components/MinhaMetaDeHoje";
 import { OQueMudou } from "@/central/components/OQueMudou";
 import { CheckinPendente } from "@/central/components/CheckinPendente";
+import { MinhaFase } from "@/central/components/MinhaFase";
 import { BarraBusca } from "@/central/components/BarraBusca";
 import { useState } from "react";
 import { rotas } from "@/central/rotas";
@@ -136,6 +137,8 @@ export function Home() {
         <OQueMudou />
 
         <CheckinPendente />
+
+        <MinhaFase />
 
         <MinhaMetaDeHoje />
 

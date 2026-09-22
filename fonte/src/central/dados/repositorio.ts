@@ -53,6 +53,7 @@ import type {
   RespostaEnviada,
   QuestionarioDoPaciente,
 } from "@/central/types/questionario";
+import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type {
   PainelFinanceiro,
   ValorDoPaciente,
@@ -375,6 +376,50 @@ export interface Repositorio {
    * criaria expectativa de resposta que o aplicativo não promete.
    */
   marcarRevisado(envioId: string, revisado: boolean): Promise<boolean>;
+
+  // ---------------------------------------------------------------------
+  // Fases do método
+  // ---------------------------------------------------------------------
+
+  /** As fases dela, com quantas pacientes estão em cada uma agora. */
+  listarFases(): Promise<Fase[]>;
+
+  salvarFase(
+    id: string | null,
+    nome: string,
+    descricao: string | null,
+    ordem: number,
+    ativa: boolean,
+  ): Promise<string>;
+
+  /**
+   * Apaga a fase — ou desativa, se alguém já passou por ela.
+   *
+   * Devolve "apagada" ou "desativada", para a tela dizer o que aconteceu de
+   * verdade em vez de supor.
+   */
+  excluirFase(id: string): Promise<string>;
+
+  /**
+   * Move a paciente para uma fase, gravando uma LINHA NOVA.
+   *
+   * Mover é evento com data, não edição de campo — é isso que deixa
+   * responder "quanto tempo ela ficou na restrição" seis meses depois.
+   */
+  moverDeFase(
+    pacienteId: string,
+    faseId: string,
+    inicio: string | null,
+    observacao: string | null,
+  ): Promise<void>;
+
+  apagarMudancaDeFase(id: string): Promise<boolean>;
+
+  /** Por onde a paciente passou, para o prontuário. */
+  fasesDoPaciente(pacienteId: string): Promise<MudancaDeFase[]>;
+
+  /** O caminho inteiro com o ponto dela marcado — para a própria paciente. */
+  minhaFase(): Promise<MinhaFase>;
 
   // ---------------------------------------------------------------------
   // Cobrança

@@ -25,6 +25,7 @@ import type {
   ResumoIndicacao,
   StatusReintroducao,
 } from "@/central/types";
+import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type {
   PainelFinanceiro,
   ValorDoPaciente,
@@ -110,6 +111,25 @@ interface ValorDemo {
 }
 const guardaCobrancas = armazenamentoLocal<Cobranca>("central:demo:cobrancas:v1");
 const guardaValores = armazenamentoLocal<ValorDemo>("central:demo:valores:v1");
+
+interface MudancaDemo {
+  id: string;
+  pacienteId: string;
+  faseId: string;
+  inicio: string;
+  observacao: string | null;
+}
+const guardaFases = armazenamentoLocal<Fase>("central:demo:fases:v1");
+const guardaMudancasDeFase = armazenamentoLocal<MudancaDemo>("central:demo:paciente-fases:v1");
+
+/** A fase mais recente de uma paciente, ou nula. Mesma regra do banco. */
+function faseAtualDe(pacienteId: string): string | null {
+  const minhas = guardaMudancasDeFase
+    .ler()
+    .filter((m) => m.pacienteId === pacienteId)
+    .sort((a, b) => b.inicio.localeCompare(a.inicio));
+  return minhas[0]?.faseId ?? null;
+}
 
 /**
  * Quem é "a paciente logada" na demonstração.
@@ -1254,6 +1274,134 @@ export const repositorioLocal: Repositorio = {
   },
 
   // ---------------------------------------------------------------------
+  // Fases do método
+  // ---------------------------------------------------------------------
+
+  async listarFases(): Promise<Fase[]> {
+    const historico = guardaMudancasDeFase.ler();
+    return guardaFases
+      .ler()
+      .map((f) => ({
+        ...f,
+        // Quantas estão NESTA fase agora: pela mudança mais recente de cada
+        // paciente, e não por quantas já passaram — igual ao banco.
+        pacientes: new Set(
+          historico
+            .filter((m) => m.faseId === f.id)
+            .filter((m) => faseAtualDe(m.pacienteId) === f.id)
+            .map((m) => m.pacienteId),
+        ).size,
+        temHistorico: historico.some((m) => m.faseId === f.id),
+      }))
+      .sort((a, b) => a.ordem - b.ordem || a.nome.localeCompare(b.nome, "pt-BR"));
+  },
+
+  async salvarFase(
+    id: string | null,
+    nome: string,
+    descricao: string | null,
+    ordem: number,
+    ativa: boolean,
+  ): Promise<string> {
+    const lista = guardaFases.ler();
+    const idFinal = id ?? `fase-${Date.now()}`;
+    const nova: Fase = {
+      id: idFinal,
+      nome,
+      descricao,
+      ordem,
+      ativa,
+      pacientes: 0,
+      temHistorico: false,
+    };
+    guardaFases.escrever(
+      id === null ? [...lista, nova] : lista.map((f) => (f.id === id ? nova : f)),
+    );
+    return idFinal;
+  },
+
+  async excluirFase(id: string): Promise<string> {
+    // Com histórico, desativa: apagar levaria o passado de quem passou por
+    // ela. Igual ao banco.
+    if (guardaMudancasDeFase.ler().some((m) => m.faseId === id)) {
+      guardaFases.escrever(
+        guardaFases.ler().map((f) => (f.id === id ? { ...f, ativa: false } : f)),
+      );
+      return "desativada";
+    }
+    guardaFases.escrever(guardaFases.ler().filter((f) => f.id !== id));
+    return "apagada";
+  },
+
+  async moverDeFase(
+    pacienteId: string,
+    faseId: string,
+    inicio: string | null,
+    observacao: string | null,
+  ): Promise<void> {
+    const quando = inicio ?? hojeLocal();
+    const atuais = guardaMudancasDeFase.ler();
+    // O clique repetido não vira linha.
+    if (atuais.some((m) => m.pacienteId === pacienteId && m.faseId === faseId && m.inicio === quando)) {
+      return;
+    }
+    guardaMudancasDeFase.escrever([
+      ...atuais,
+      { id: `mud-${Date.now()}`, pacienteId, faseId, inicio: quando, observacao },
+    ]);
+  },
+
+  async apagarMudancaDeFase(id: string): Promise<boolean> {
+    const antes = guardaMudancasDeFase.ler();
+    const depois = antes.filter((m) => m.id !== id);
+    guardaMudancasDeFase.escrever(depois);
+    return depois.length < antes.length;
+  },
+
+  async fasesDoPaciente(pacienteId: string): Promise<MudancaDeFase[]> {
+    const fases = guardaFases.ler();
+    return guardaMudancasDeFase
+      .ler()
+      .filter((m) => m.pacienteId === pacienteId)
+      .map((m) => ({
+        id: m.id,
+        faseId: m.faseId,
+        fase: fases.find((f) => f.id === m.faseId)?.nome ?? "(fase apagada)",
+        inicio: m.inicio,
+        observacao: m.observacao,
+      }))
+      .sort((a, b) => b.inicio.localeCompare(a.inicio));
+  },
+
+  async minhaFase(): Promise<MinhaFase> {
+    const eu = pacienteDemoId();
+    const atual = faseAtualDe(eu);
+    if (atual === null) return { temFase: false, fases: [] };
+    const mudanca = guardaMudancasDeFase
+      .ler()
+      .filter((m) => m.pacienteId === eu && m.faseId === atual)
+      .sort((a, b) => b.inicio.localeCompare(a.inicio))[0];
+    return {
+      temFase: true,
+      atualId: atual,
+      desde: mudanca?.inicio,
+      // As ativas MAIS a fase em que ela está, mesmo desativada — senão
+      // desativar tiraria do mapa quem estava nela.
+      fases: guardaFases
+        .ler()
+        .filter((f) => f.ativa || f.id === atual)
+        .sort((a, b) => a.ordem - b.ordem)
+        .map((f) => ({
+          id: f.id,
+          nome: f.nome,
+          descricao: f.descricao,
+          ordem: f.ordem,
+          atual: f.id === atual,
+        })),
+    };
+  },
+
+  // ---------------------------------------------------------------------
   // Cobrança
   // ---------------------------------------------------------------------
 
@@ -1491,6 +1639,8 @@ function seguidos(ate: number, passo = 1): number[] {
 const PANORAMA_DEMO: PanoramaDoPaciente[] = [
   {
     id: "pac-mariana",
+    fase: "Reintrodução",
+    faseDesde: "2026-09-01",
     nome: "Mariana Silva",
     condicao: "SII",
     email: "mariana@exemplo.test",
@@ -1511,6 +1661,8 @@ const PANORAMA_DEMO: PanoramaDoPaciente[] = [
   },
   {
     id: "pac-juliana",
+    fase: "Manutenção",
+    faseDesde: "2026-08-15",
     nome: "Juliana Ferreira",
     condicao: "Emagrecimento",
     email: "juliana@exemplo.test",
@@ -1527,6 +1679,8 @@ const PANORAMA_DEMO: PanoramaDoPaciente[] = [
   },
   {
     id: "pac-renata",
+    fase: "Restrição",
+    faseDesde: "2026-09-10",
     nome: "Renata Costa",
     condicao: "SIBO",
     email: "renata@exemplo.test",
@@ -1543,6 +1697,8 @@ const PANORAMA_DEMO: PanoramaDoPaciente[] = [
   },
   {
     id: "pac-ana",
+    fase: null,
+    faseDesde: null,
     nome: "Ana Luiza",
     condicao: "Acompanhamento geral",
     email: "ana@exemplo.test",

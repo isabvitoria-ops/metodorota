@@ -29,6 +29,7 @@ import type {
   RespostaEnviada,
   QuestionarioDoPaciente,
 } from "@/central/types/questionario";
+import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type {
   PainelFinanceiro,
   ValorDoPaciente,
@@ -1387,6 +1388,106 @@ export const repositorioSupabase: Repositorio = {
     erro("enviar suas respostas", error);
   },
 
+  // ---------------------------------------------------------------------
+  // Fases do método
+  // ---------------------------------------------------------------------
+
+  async listarFases(): Promise<Fase[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("listar_fases");
+    erro("carregar as fases", error);
+    return ((data ?? []) as Linha[]).map((l) => ({
+      id: texto(l.id),
+      nome: texto(l.nome),
+      descricao: textoOuNulo(l.descricao),
+      ordem: numero(l.ordem),
+      ativa: l.ativa !== false,
+      pacientes: numero(l.pacientes),
+      temHistorico: l.temHistorico === true,
+    }));
+  },
+
+  async salvarFase(
+    id: string | null,
+    nome: string,
+    descricao: string | null,
+    ordem: number,
+    ativa: boolean,
+  ): Promise<string> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("salvar_fase", {
+      p_id: id,
+      p_nome: nome,
+      p_descricao: descricao,
+      p_ordem: ordem,
+      p_ativa: ativa,
+    });
+    erro("salvar a fase", error);
+    return texto(data);
+  },
+
+  async excluirFase(id: string): Promise<string> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("excluir_fase", { p_id: id });
+    erro("excluir a fase", error);
+    return texto(data);
+  },
+
+  async moverDeFase(
+    pacienteId: string,
+    faseId: string,
+    inicio: string | null,
+    observacao: string | null,
+  ): Promise<void> {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("mover_de_fase", {
+      p_paciente: pacienteId,
+      p_fase: faseId,
+      p_inicio: inicio,
+      p_observacao: observacao,
+    });
+    erro("mudar a fase", error);
+  },
+
+  async apagarMudancaDeFase(id: string): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("apagar_mudanca_de_fase", { p_id: id });
+    erro("apagar a mudança", error);
+    return data === true;
+  },
+
+  async fasesDoPaciente(pacienteId: string): Promise<MudancaDeFase[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("fases_do_paciente", { p_paciente: pacienteId });
+    erro("carregar o histórico de fases", error);
+    return ((data ?? []) as Linha[]).map((l) => ({
+      id: texto(l.id),
+      faseId: texto(l.faseId),
+      fase: texto(l.fase),
+      inicio: texto(l.inicio),
+      observacao: textoOuNulo(l.observacao),
+    }));
+  },
+
+  async minhaFase(): Promise<MinhaFase> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("minha_fase");
+    erro("carregar sua fase", error);
+    const l = (data ?? {}) as Linha;
+    return {
+      temFase: l.temFase === true,
+      atualId: textoOuNulo(l.atualId) ?? undefined,
+      desde: textoOuNulo(l.desde) ?? undefined,
+      fases: (Array.isArray(l.fases) ? (l.fases as Linha[]) : []).map((f) => ({
+        id: texto(f.id),
+        nome: texto(f.nome),
+        descricao: textoOuNulo(f.descricao),
+        ordem: numero(f.ordem),
+        atual: f.atual === true,
+      })),
+    };
+  },
+
   async painelFinanceiro(desde: string | null): Promise<PainelFinanceiro> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("painel_financeiro", { p_desde: desde });
@@ -1550,6 +1651,8 @@ function lerPanorama(linha: Linha): PanoramaDoPaciente {
     nome: texto(linha.nome),
     email: texto(linha.email),
     condicao: textoOuNulo(linha.condicao),
+    fase: textoOuNulo(linha.fase),
+    faseDesde: textoOuNulo(linha.faseDesde),
     situacao: texto(linha.situacao) as PanoramaDoPaciente["situacao"],
     dataInicio: textoOuNulo(linha.dataInicio),
     dataFim: textoOuNulo(linha.dataFim),

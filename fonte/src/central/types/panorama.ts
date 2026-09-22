@@ -16,6 +16,9 @@ export interface PanoramaDoPaciente {
   email: string;
   /** Nula nas pacientes cadastradas antes do campo existir. */
   condicao: string | null;
+  /** A fase atual do método. Nula quando ela ainda não foi colocada em uma. */
+  fase: string | null;
+  faseDesde: string | null;
   situacao: SituacaoPaciente;
   dataInicio: string | null;
   dataFim: string | null;
