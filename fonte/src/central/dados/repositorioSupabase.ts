@@ -21,6 +21,14 @@ import type {
   ResumoIndicacao,
   StatusReintroducao,
 } from "@/central/types";
+import type {
+  Questionario,
+  PerguntaQuestionario,
+  PeriodicidadeQuestionario,
+  MeuQuestionario,
+  RespostaEnviada,
+  QuestionarioDoPaciente,
+} from "@/central/types/questionario";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type { OQueMudou } from "@/central/types/oQueMudou";
@@ -63,6 +71,9 @@ import {
   numero,
   texto,
   textoOuNulo,
+  paraQuestionario,
+  paraMeuQuestionario,
+  paraQuestionarioDoPaciente,
   type Linha,
 } from "./mapeadores";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
@@ -1291,6 +1302,103 @@ export const repositorioSupabase: Repositorio = {
     const { error } = await sb.rpc("excluir_meta_semanal", { p_id: id });
     erro("apagar a meta", error);
   },
+
+  // ---------------------------------------------------------------------
+  // Questionários e check-in semanal
+  // ---------------------------------------------------------------------
+
+  async listarQuestionarios(): Promise<Questionario[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("listar_questionarios");
+    erro("carregar os questionários", error);
+    return ((data ?? []) as Linha[]).map(paraQuestionario);
+  },
+
+  async salvarQuestionario(
+    id: string | null,
+    titulo: string,
+    descricao: string | null,
+    periodicidade: PeriodicidadeQuestionario,
+    ativo: boolean,
+    perguntas: PerguntaQuestionario[],
+  ): Promise<string> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("salvar_questionario", {
+      p_id: id,
+      p_titulo: titulo,
+      p_descricao: descricao,
+      p_periodicidade: periodicidade,
+      p_ativo: ativo,
+      p_perguntas: perguntas.map((p) => ({
+        // Pergunta nova vai sem id; o banco cria. Mandar string vazia faria
+        // o `::uuid` estourar.
+        id: p.id ?? null,
+        texto: p.texto,
+        tipo: p.tipo,
+        obrigatoria: p.obrigatoria,
+        opcoes: p.opcoes,
+        peso: p.peso,
+        invertida: p.invertida,
+      })),
+    });
+    erro("salvar o questionário", error);
+    return String(data);
+  },
+
+  async definirQuestionarioDoPaciente(
+    questionarioId: string,
+    pacienteId: string,
+    ativo: boolean,
+  ): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("definir_questionario_do_paciente", {
+      p_questionario: questionarioId,
+      p_paciente: pacienteId,
+      p_ativo: ativo,
+    });
+    erro("atribuir o questionário", error);
+    return data === true;
+  },
+
+  async meusQuestionarios(): Promise<MeuQuestionario[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("meus_questionarios");
+    erro("carregar seus questionários", error);
+    return ((data ?? []) as Linha[]).map(paraMeuQuestionario);
+  },
+
+  async responderQuestionario(questionarioId: string, respostas: RespostaEnviada[]) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("responder_questionario", {
+      p_questionario: questionarioId,
+      p_respostas: respostas.map((r) => ({
+        perguntaId: r.perguntaId,
+        numero: r.numero,
+        texto: r.texto,
+      })),
+    });
+    erro("enviar suas respostas", error);
+  },
+
+  async marcarRevisado(envioId: string, revisado: boolean): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("marcar_revisado", {
+      p_envio: envioId,
+      p_revisado: revisado,
+    });
+    erro("marcar como revisado", error);
+    return data === true;
+  },
+
+  async questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("questionarios_do_paciente", {
+      p_paciente: pacienteId,
+    });
+    erro("carregar as respostas", error);
+    return ((data ?? []) as Linha[]).map(paraQuestionarioDoPaciente);
+  },
+
 };
 
 /**

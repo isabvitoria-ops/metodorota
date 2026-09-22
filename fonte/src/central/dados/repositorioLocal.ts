@@ -25,6 +25,14 @@ import type {
   ResumoIndicacao,
   StatusReintroducao,
 } from "@/central/types";
+import type {
+  Questionario,
+  PerguntaQuestionario,
+  PeriodicidadeQuestionario,
+  MeuQuestionario,
+  RespostaEnviada,
+  QuestionarioDoPaciente,
+} from "@/central/types/questionario";
 import {
   semanaDoDesafio,
   situacaoDoDesafio,
@@ -70,6 +78,108 @@ const guardaAlimentos = armazenamentoLocal<Alimento>("central:demo:alimentos:v1"
 const guardaEquivalencias = armazenamentoLocal<Equivalencia>("central:demo:equivalencias:v1");
 const guardaComerFora = armazenamentoLocal<CategoriaComerFora>("central:demo:comer-fora:v1");
 const guardaGuias = armazenamentoLocal<Guia>("central:demo:guias:v1");
+
+// Questionários da demo. Guardados de verdade, para a tela ser clicável sem
+// banco -- ver os métodos lá embaixo.
+interface AtribuicaoDemo {
+  questionarioId: string;
+  pacienteId: string;
+}
+interface EnvioQuestionarioDemo {
+  id: string;
+  revisado?: boolean;
+  questionarioId: string;
+  pacienteId: string;
+  periodo: string;
+  respondidoEm: string;
+  respostas: RespostaEnviada[];
+}
+const guardaQuestionarios = armazenamentoLocal<Questionario>("central:demo:questionarios:v1");
+const guardaAtribuicoes = armazenamentoLocal<AtribuicaoDemo>("central:demo:questionario-pacientes:v1");
+const guardaEnviosQuest = armazenamentoLocal<EnvioQuestionarioDemo>("central:demo:questionario-envios:v1");
+
+/**
+ * Quem é "a paciente logada" na demonstração.
+ *
+ * A demo não tem login de verdade: o lado da paciente sempre mostra a mesma
+ * pessoa. Para o questionário isso importa, porque atribuir é ligar um
+ * questionário a UMA paciente — e se os dois lados não concordassem sobre
+ * quem ela é, atribuir na tela da nutricionista não apareceria na tela da
+ * paciente, e pareceria defeito.
+ *
+ * Então a paciente da demo é a PRIMEIRA da lista. Quem experimenta cadastra
+ * uma pessoa, atribui o check-in a ela e responde — o circuito fecha.
+ *
+ * Sem paciente nenhuma cadastrada, o identificador é fixo e nada casa, que é
+ * o comportamento certo: não há a quem atribuir.
+ */
+/**
+ * As pacientes da demonstração, derivadas do panorama.
+ *
+ * A demo tinha DUAS listas de paciente que não se conheciam: o panorama
+ * (Acompanhamento) trazia quatro pessoas de mentira, e `listarPacientes`
+ * (Pacientes, Protocolo, Metas, Questionários) começava vazia. Quem abria a
+ * demonstração via quatro pacientes numa aba e "nenhuma paciente ainda" na
+ * seguinte — e o prontuário de qualquer uma cadastrada por ela respondia
+ * "não encontrei essa paciente", porque o prontuário lê pelo panorama.
+ *
+ * Derivar a lista do panorama faz as duas concordarem. Não é enfeite: sem
+ * isso não há como experimentar montar um questionário e ler a resposta no
+ * prontuário, que é justamente o circuito que a demonstração existe para
+ * mostrar.
+ */
+function pacientesDaSemente(): Paciente[] {
+  return PANORAMA_DEMO.map((p) => ({
+    id: p.id,
+    perfilId: p.id,
+    email: p.email,
+    nome: p.nome,
+    telefone: null,
+    planoId: "mensal",
+    planoNome: "Mensal",
+    // O panorama admite data nula (paciente sem período definido); a ficha
+    // não. Hoje é o padrão honesto aqui: é uma semente de demonstração, e
+    // uma data inventada no passado faria a situação parecer vencida.
+    dataInicio: p.dataInicio ?? hojeLocal(),
+    dataFim: p.dataFim ?? hojeLocal(),
+    status: "ativo" as const,
+    situacao: p.situacao,
+    diasRestantes: p.diasRestantes,
+    observacoes: null,
+    condicao: p.condicao,
+    ultimoAcesso: null,
+    conviteEnviadoEm: null,
+    criadoEm: p.dataInicio ?? hojeLocal(),
+  }));
+}
+
+function pacienteDemoId(): string {
+  // A MESMA lista que a tela da nutricionista mostra -- semente incluída.
+  // Lendo só o que foi salvo no navegador, atribuir a uma paciente da
+  // semente não apareceria do lado da paciente, e pareceria defeito.
+  const primeira = mesclar(pacientesDaSemente(), guardaPacientes.ler())
+    .slice()
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))[0];
+  return primeira?.id ?? "demo-paciente";
+}
+
+const hojeLocal = (): string => new Date().toISOString().slice(0, 10);
+
+/**
+ * A segunda-feira da semana de um dia.
+ *
+ * Tem que dar o MESMO resultado do `semana_de()` do Postgres, senão a demo
+ * e o banco discordariam sobre a que semana pertence uma resposta -- e a
+ * demo deixaria de valer como ensaio do comportamento real.
+ * `getUTCDay()` devolve 0 para domingo, então domingo recua 6 dias.
+ */
+function segundaDaSemana(iso: string): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  const diaDaSemana = d.getUTCDay();
+  const recuo = diaDaSemana === 0 ? 6 : diaDaSemana - 1;
+  d.setUTCDate(d.getUTCDate() - recuo);
+  return d.toISOString().slice(0, 10);
+}
 const guardaFavoritos = armazenamentoLocal<Favorito>("central:favoritos:v1");
 const guardaPacientes = armazenamentoLocal<Paciente>("central:demo:pacientes:v1");
 const guardaHistorico = armazenamentoLocal<EventoHistorico>("central:demo:historico:v1");
@@ -150,8 +260,7 @@ export const repositorioLocal: Repositorio = {
 
   async listarPacientes() {
     const alerta = configuracoesAtuais().alertaVencimentoDias;
-    return guardaPacientes
-      .ler()
+    return mesclar(pacientesDaSemente(), guardaPacientes.ler())
       .map((p) => comSituacao(p, alerta))
       .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
   },
@@ -975,6 +1084,202 @@ export const repositorioLocal: Repositorio = {
   async excluirMetaSemanal() {
     throw new Error("Apagar meta precisa do banco. Configure o Supabase.");
   },
+  // ---------------------------------------------------------------------
+  // Questionários e check-in semanal
+  // ---------------------------------------------------------------------
+  //
+  // A demo guarda de verdade: a nutricionista monta um check-in, a paciente
+  // responde, e a pontuação aparece — tudo em memória. Sem isto a tela de
+  // questionário seria a única da Central impossível de experimentar sem
+  // banco, e as que nascem assim nascem sem ninguém ter clicado nelas.
+
+  async listarQuestionarios(): Promise<Questionario[]> {
+    return guardaQuestionarios.ler().map((q) => ({
+      ...q,
+      pacientes: guardaAtribuicoes.ler().filter((a) => a.questionarioId === q.id).length,
+      respostas: guardaEnviosQuest.ler().filter((e) => e.questionarioId === q.id).length,
+      perguntas: q.perguntas.map((pg) => ({
+        ...pg,
+        respondida: guardaEnviosQuest
+          .ler()
+          .some((e) => e.respostas.some((r) => r.perguntaId === pg.id)),
+      })),
+    }));
+  },
+
+  async salvarQuestionario(
+    id: string | null,
+    titulo: string,
+    descricao: string | null,
+    periodicidade: PeriodicidadeQuestionario,
+    ativo: boolean,
+    perguntas: PerguntaQuestionario[],
+  ): Promise<string> {
+    const lista = guardaQuestionarios.ler();
+    const idFinal = id ?? `q-${Date.now()}`;
+    const comIds = perguntas.map((pg, i) => ({
+      ...pg,
+      id: pg.id ?? `pg-${idFinal}-${i}-${Date.now()}`,
+    }));
+    const novo: Questionario = {
+      id: idFinal,
+      titulo,
+      descricao,
+      periodicidade,
+      ativo,
+      criadoEm: new Date().toISOString(),
+      pacientes: 0,
+      respostas: 0,
+      perguntas: comIds,
+    };
+    guardaQuestionarios.escrever(
+      id === null ? [...lista, novo] : lista.map((q) => (q.id === id ? novo : q)),
+    );
+    return idFinal;
+  },
+
+  async definirQuestionarioDoPaciente(
+    questionarioId: string,
+    pacienteId: string,
+    ativo: boolean,
+  ): Promise<boolean> {
+    const atuais = guardaAtribuicoes.ler();
+    const tem = atuais.some(
+      (a) => a.questionarioId === questionarioId && a.pacienteId === pacienteId,
+    );
+    if (ativo && !tem) {
+      guardaAtribuicoes.escrever([...atuais, { questionarioId, pacienteId }]);
+      return true;
+    }
+    if (!ativo && tem) {
+      // Tira da lista, mas NÃO apaga os envios — igual ao banco.
+      guardaAtribuicoes.escrever(
+        atuais.filter(
+          (a) => !(a.questionarioId === questionarioId && a.pacienteId === pacienteId),
+        ),
+      );
+      return false;
+    }
+    return ativo;
+  },
+
+  async meusQuestionarios(): Promise<MeuQuestionario[]> {
+    const semana = segundaDaSemana(hojeLocal());
+    const meus = guardaAtribuicoes.ler().filter((a) => a.pacienteId === pacienteDemoId());
+    return guardaQuestionarios
+      .ler()
+      .filter((q) => q.ativo && meus.some((a) => a.questionarioId === q.id))
+      .map((q) => {
+        const enviados = guardaEnviosQuest
+          .ler()
+          .filter((e) => e.questionarioId === q.id && e.pacienteId === pacienteDemoId());
+        const periodo = q.periodicidade === "semanal" ? semana : hojeLocal();
+        return {
+          id: q.id,
+          titulo: q.titulo,
+          descricao: q.descricao,
+          periodicidade: q.periodicidade,
+          periodo,
+          pendente: !enviados.some(
+            (e) => q.periodicidade !== "semanal" || e.periodo === semana,
+          ),
+          // Peso e inversão NÃO saem daqui, igual ao banco.
+          perguntas: q.perguntas.map((pg) => ({
+            id: pg.id ?? "",
+            texto: pg.texto,
+            tipo: pg.tipo,
+            obrigatoria: pg.obrigatoria,
+            opcoes: pg.opcoes,
+          })),
+          enviados: enviados
+            .map((e) => ({
+              periodo: e.periodo,
+              respondidoEm: e.respondidoEm,
+              respostas: e.respostas,
+            }))
+            .sort((a, b) => b.periodo.localeCompare(a.periodo)),
+        };
+      });
+  },
+
+  async responderQuestionario(questionarioId: string, respostas: RespostaEnviada[]) {
+    const q = guardaQuestionarios.ler().find((x) => x.id === questionarioId);
+    if (!q) return;
+    // O PERÍODO É CALCULADO AQUI, e não recebido — igual ao banco.
+    const periodo = q.periodicidade === "semanal" ? segundaDaSemana(hojeLocal()) : hojeLocal();
+    const atuais = guardaEnviosQuest.ler();
+    const existente = atuais.find(
+      (e) =>
+        e.questionarioId === questionarioId &&
+        e.pacienteId === pacienteDemoId() &&
+        e.periodo === periodo,
+    );
+    if (existente) {
+      // Reenviar na mesma semana atualiza; o que não veio continua lá.
+      const porId = new Map(existente.respostas.map((r) => [r.perguntaId, r]));
+      for (const r of respostas) porId.set(r.perguntaId, r);
+      guardaEnviosQuest.escrever(
+        atuais.map((e) =>
+          e === existente
+            ? { ...e, respondidoEm: new Date().toISOString(), respostas: [...porId.values()] }
+            : e,
+        ),
+      );
+      return;
+    }
+    guardaEnviosQuest.escrever([
+      ...atuais,
+      {
+        id: `env-${Date.now()}`,
+        questionarioId,
+        pacienteId: pacienteDemoId(),
+        periodo,
+        respondidoEm: new Date().toISOString(),
+        respostas,
+      },
+    ]);
+  },
+
+  async marcarRevisado(envioId: string, revisado: boolean): Promise<boolean> {
+    const atuais = guardaEnviosQuest.ler();
+    guardaEnviosQuest.escrever(
+      atuais.map((e) => (e.id === envioId ? { ...e, revisado } : e)),
+    );
+    return revisado;
+  },
+
+  async questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]> {
+    return guardaQuestionarios.ler().map((q) => ({
+      id: q.id,
+      titulo: q.titulo,
+      periodicidade: q.periodicidade,
+      ativo: q.ativo,
+      atribuido: guardaAtribuicoes
+        .ler()
+        .some((a) => a.questionarioId === q.id && a.pacienteId === pacienteId),
+      // Aqui peso e inversão VÃO: é a régua de quem pontua.
+      perguntas: q.perguntas.map((pg) => ({
+        id: pg.id ?? "",
+        texto: pg.texto,
+        tipo: pg.tipo,
+        peso: pg.peso,
+        invertida: pg.invertida,
+        opcoes: pg.opcoes,
+      })),
+      envios: guardaEnviosQuest
+        .ler()
+        .filter((e) => e.questionarioId === q.id && e.pacienteId === pacienteId)
+        .map((e) => ({
+          id: e.id,
+          periodo: e.periodo,
+          respondidoEm: e.respondidoEm,
+          revisado: e.revisado === true,
+          respostas: e.respostas,
+        }))
+        .sort((a, b) => b.periodo.localeCompare(a.periodo)),
+    }));
+  },
+
 };
 
 /**
@@ -1650,6 +1955,7 @@ const MARCACAO_DEMO: Record<string, MarcadorDoAlimento[]> = {
   manga: [{ nome: "Oxalato", nivel: "alta" }],
   "pêra": [{ nome: "Histamina", nivel: "media" }],
   // Pêssego é baixo nos três: fica sem marcação, e é assim que deve ser.
+
 };
 
 /** A escada de benefícios da indicação (0013_desafio_ajustes.sql). */

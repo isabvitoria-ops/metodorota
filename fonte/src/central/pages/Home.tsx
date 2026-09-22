@@ -3,6 +3,7 @@ import { Icone, type NomeIcone } from "@/central/components/Icone";
 import { Marca } from "@/central/components/Marca";
 import { MinhaMetaDeHoje } from "@/central/components/MinhaMetaDeHoje";
 import { OQueMudou } from "@/central/components/OQueMudou";
+import { CheckinPendente } from "@/central/components/CheckinPendente";
 import { BarraBusca } from "@/central/components/BarraBusca";
 import { useState } from "react";
 import { rotas } from "@/central/rotas";
@@ -133,6 +134,8 @@ export function Home() {
             que fazer agora'. Invertido, a primeira coisa da tela seria
             uma tarefa. */}
         <OQueMudou />
+
+        <CheckinPendente />
 
         <MinhaMetaDeHoje />
 

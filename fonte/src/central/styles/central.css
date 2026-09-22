@@ -4287,3 +4287,178 @@ body:has(.central) {
   font-size: 0.95rem;
   color: var(--tinta-fraca, #6b6b6b);
 }
+
+/* -----------------------------------------------------------------------
+   Questionários e check-in semanal
+   ----------------------------------------------------------------------- */
+
+.c-pergunta {
+  margin-top: 18px;
+}
+
+.c-pergunta-texto {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: var(--tinta-forte);
+}
+
+/* A escala de 0 a 10 no celular: onze alvos numa faixa de 390px dariam
+   botões de 30px, que o dedo erra. Então ela quebra em duas linhas em vez
+   de encolher — errar o número aqui é registrar o sintoma errado. */
+.c-escala {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.c-escala-numero {
+  flex: 1 1 auto;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--borda, #d8d8d2);
+  border-radius: 10px;
+  background: var(--papel, #fff);
+  color: var(--tinta-forte);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.c-escala-numero:hover {
+  border-color: var(--verde, #3a6355);
+}
+
+.c-escala-numero[aria-pressed="true"] {
+  background: var(--verde, #3a6355);
+  border-color: var(--verde, #3a6355);
+  color: #fff;
+  font-weight: 600;
+}
+
+.c-escala-numero:focus-visible {
+  outline: 2px solid var(--verde, #3a6355);
+  outline-offset: 2px;
+}
+
+/* A série de pontuação no prontuário. */
+.c-serie-pontuacao {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  min-height: 90px;
+  margin-top: 10px;
+}
+
+.c-barra-semana {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.c-barra-semana > .barra {
+  width: 100%;
+  background: var(--verde, #3a6355);
+  border-radius: 4px 4px 0 0;
+  min-height: 3px;
+}
+
+.c-barra-semana > .rotulo {
+  font-size: 0.75rem;
+  color: var(--tinta-fraca, #6b6b6b);
+  white-space: nowrap;
+}
+
+/* -----------------------------------------------------------------------
+   Histórico longitudinal do check-in
+   ----------------------------------------------------------------------- */
+
+/* A rolagem fica NA TABELA. No celular, seis colunas não cabem em 390px, e
+   deixar a página rolar de lado quebraria todo o resto da tela junto. */
+.c-rolagem-tabela {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 10px -4px 0;
+  padding: 0 4px;
+}
+
+.c-tabela-checkin {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.c-tabela-checkin th,
+.c-tabela-checkin td {
+  padding: 8px 10px;
+  text-align: center;
+  border-bottom: 1px solid var(--borda, #e6e6e0);
+  white-space: nowrap;
+}
+
+.c-tabela-checkin thead th {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca, #6b6b6b);
+  font-weight: 600;
+  /* Enunciado longo não pode esticar a tabela até o infinito. */
+  max-width: 150px;
+  white-space: normal;
+}
+
+.c-tabela-checkin tbody th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--tinta-forte);
+}
+
+.c-celula-carinha {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.c-carinha {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+}
+
+/* A cor reforça a carinha; ela sozinha nunca carrega a informação — quem
+   não distingue as cores lê o rosto, e o leitor de tela lê a descrição. */
+.c-carinha.nivel-muito-baixo { background: #fdecec; }
+.c-carinha.nivel-baixo       { background: #fdf0e3; }
+.c-carinha.nivel-medio       { background: #fbf7e2; }
+.c-carinha.nivel-alto        { background: #eef6ec; }
+.c-carinha.nivel-muito-alto  { background: #e4f1e6; }
+
+.c-sem-resposta {
+  color: var(--tinta-fraca, #9a9a94);
+}
+
+.c-celula-score strong {
+  color: var(--verde, #3a6355);
+}
+
+.c-variacao {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--tinta-fraca, #6b6b6b);
+}
+
+.c-celula-revisado input {
+  width: 20px;
+  height: 20px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .c-carinha.nivel-muito-baixo { background: #4a2a2a; }
+  .c-carinha.nivel-baixo       { background: #4a3a26; }
+  .c-carinha.nivel-medio       { background: #45412a; }
+  .c-carinha.nivel-alto        { background: #2b3d2c; }
+  .c-carinha.nivel-muito-alto  { background: #24402a; }
+}

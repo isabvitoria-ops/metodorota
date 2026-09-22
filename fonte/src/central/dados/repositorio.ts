@@ -45,6 +45,14 @@ import type {
   SessaoDeTreino,
   Treino,
 } from "@/central/types/treino";
+import type {
+  Questionario,
+  PerguntaQuestionario,
+  PeriodicidadeQuestionario,
+  MeuQuestionario,
+  RespostaEnviada,
+  QuestionarioDoPaciente,
+} from "@/central/types/questionario";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type { OQueMudou } from "@/central/types/oQueMudou";
@@ -313,6 +321,59 @@ export interface Repositorio {
   }>;
   definirDesafioDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean>;
   definirTreinoDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean>;
+
+  // ---------------------------------------------------------------------
+  // Questionários e check-in semanal
+  // ---------------------------------------------------------------------
+
+  /** Os questionários dela, com perguntas e quantas pacientes respondem. */
+  listarQuestionarios(): Promise<Questionario[]>;
+
+  /**
+   * Grava o questionário inteiro, perguntas incluídas.
+   *
+   * `id` nulo cria. As perguntas são regravadas por completo, como o
+   * protocolo — mas as JÁ RESPONDIDAS não são apagadas mesmo saindo da
+   * lista: apagar a pergunta levaria a resposta em cascata.
+   */
+  salvarQuestionario(
+    id: string | null,
+    titulo: string,
+    descricao: string | null,
+    periodicidade: PeriodicidadeQuestionario,
+    ativo: boolean,
+    perguntas: PerguntaQuestionario[],
+  ): Promise<string>;
+
+  /** Liga ou desliga um questionário para uma paciente. */
+  definirQuestionarioDoPaciente(
+    questionarioId: string,
+    pacienteId: string,
+    ativo: boolean,
+  ): Promise<boolean>;
+
+  /** O que a paciente tem em aberto e o que já respondeu. */
+  meusQuestionarios(): Promise<MeuQuestionario[]>;
+
+  /**
+   * A paciente responde.
+   *
+   * O PERÍODO NÃO VAI DAQUI — quem decide a que semana a resposta pertence
+   * é o banco, a partir da data de hoje. Mandar o período daqui deixaria
+   * reescrever semana passada.
+   */
+  responderQuestionario(questionarioId: string, respostas: RespostaEnviada[]): Promise<void>;
+
+  /**
+   * Marca um check-in como lido. Devolve o estado GRAVADO.
+   *
+   * A marca é dela: a paciente não vê e não é avisada. Um "visto" visível
+   * criaria expectativa de resposta que o aplicativo não promete.
+   */
+  marcarRevisado(envioId: string, revisado: boolean): Promise<boolean>;
+
+  /** As respostas de uma paciente, para a nutricionista ler. */
+  questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]>;
 
   /**
    * Grava o plano inteiro de uma vez.

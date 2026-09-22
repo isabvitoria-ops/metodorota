@@ -42,8 +42,23 @@ echo "Rodando a bateria de segurança…"
 # com o filtro e simplesmente nao rodava -- sem erro, sem aviso, so ausente.
 # Uma bateria de seguranca que nao roda e pior do que nenhuma, porque o
 # numero no fim da tela continua dizendo que esta tudo bem.
+# O filtro abaixo so deixa passar as linhas que interessam -- mas uma bateria
+# sem a linha de resumo roda, nao imprime nada e some da saida, exatamente
+# como a `10_consultas.sql` sumiu pelo `0[1-9]`. O mesmo defeito, por outra
+# porta. Entao a ausencia de resumo e tratada como falha, e nao como silencio.
 for bateria in "$RAIZ"/supabase/testes/[0-9][0-9]_*.sql; do
   case "$(basename "$bateria")" in 00_*) continue;; esac
-  psql_ -d "$BANCO" -f "$bateria" 2>&1 \
-    | grep -E "FALHA|passaram|ERROR|falharam" || true
+  saida=$(psql_ -d "$BANCO" -f "$bateria" 2>&1 | grep -E "FALHA|passaram|ERROR|falharam" || true)
+  if [ -z "$saida" ]; then
+    echo "  $(basename "$bateria")  NAO IMPRIMIU RESUMO — a bateria rodou e nao disse nada"
+    falhou=1
+  else
+    echo "$saida"
+    case "$saida" in *ERROR*|*FALHA*|*falharam*) falhou=1;; esac
+  fi
 done
+
+if [ -n "${falhou:-}" ]; then
+  echo "Alguma bateria falhou ou nao se reportou."
+  exit 1
+fi

@@ -18,6 +18,7 @@ import { Busca } from "./pages/Busca";
 import { FaixaDemonstracao } from "./components/FaixaDemonstracao";
 import { FaixaAdmin } from "./components/FaixaAdmin";
 import { rotas } from "./rotas";
+import { Questionarios } from "@/central/pages/Questionarios";
 
 /**
  * A Central do paciente — a casca.
@@ -45,6 +46,7 @@ export function CentralApp() {
           <Route path="avaliacao" element={<Avaliacao />} />
           <Route path="evolucao" element={<Treino />} />
           <Route path="metas" element={<Metas />} />
+          <Route path="questionarios" element={<Questionarios />} />
           <Route path="documentos" element={<Documentos />} />
           <Route path="trocas" element={<TrocaInteligente />} />
           {/* A tabela de substituições saiu da Central: a Troca Inteligente faz

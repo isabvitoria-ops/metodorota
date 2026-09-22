@@ -17,6 +17,7 @@ import {
   seriePeso,
 } from "@/central/utils/linhaDoTempo";
 import { CartaDeEncaminhamento } from "./CartaDeEncaminhamento";
+import { CheckinDoPaciente } from "@/central/components/CheckinDoPaciente";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { AcessosDaPaciente } from "./AcessosDaPaciente";
 
@@ -185,6 +186,10 @@ export function Prontuario() {
       )}
 
       <AcessosDaPaciente pacienteId={pacienteId} />
+
+      {/* O check-in vem antes do encaminhamento: o que ela relatou nas
+          ultimas semanas e o que alimenta a carta, quando houver. */}
+      <CheckinDoPaciente pacienteId={pacienteId} />
 
       <CartaDeEncaminhamento
         paciente={paciente.nome}

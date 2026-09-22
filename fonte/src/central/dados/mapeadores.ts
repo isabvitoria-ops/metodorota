@@ -11,6 +11,14 @@ import type {
   RegraEquivalencia,
   Unidade,
 } from "@/central/types";
+import type {
+  Questionario,
+  MeuQuestionario,
+  QuestionarioDoPaciente,
+  RespostaEnviada,
+  TipoDePergunta,
+  PeriodicidadeQuestionario,
+} from "@/central/types/questionario";
 
 /**
  * Tradução entre a linha do banco (snake_case, como o Postgres gosta) e o
@@ -201,3 +209,110 @@ export function paraConfiguracoes(linhas: Linha[]): Configuracoes {
 }
 
 export { PADROES as CONFIGURACOES_PADRAO };
+
+// ---------------------------------------------------------------------------
+// Questionários e check-in semanal
+// ---------------------------------------------------------------------------
+
+const TIPOS_DE_PERGUNTA = ["escala", "sim_nao", "numero", "texto", "escolha"] as const;
+
+/**
+ * O tipo vindo do banco, conferido contra a lista.
+ *
+ * Um tipo desconhecido vira "texto", e não estoura: se um dia o banco
+ * ganhar um tipo novo e a tela publicada ainda não souber desenhar, a
+ * pergunta aparece como campo livre em vez de a tela inteira quebrar.
+ */
+function tipoDePergunta(v: unknown): TipoDePergunta {
+  const t = texto(v);
+  return (TIPOS_DE_PERGUNTA as readonly string[]).includes(t) ? (t as TipoDePergunta) : "texto";
+}
+
+function periodicidade(v: unknown): PeriodicidadeQuestionario {
+  return texto(v) === "semanal" ? "semanal" : "unica";
+}
+
+function listaDeTextos(v: unknown): string[] {
+  return Array.isArray(v) ? v.map((x) => texto(x)).filter((x) => x !== "") : [];
+}
+
+function paraResposta(l: Linha): RespostaEnviada {
+  return {
+    perguntaId: texto(l.perguntaId),
+    numero: numeroOuNulo(l.numero),
+    texto: textoOuNulo(l.texto),
+  };
+}
+
+export function paraQuestionario(l: Linha): Questionario {
+  return {
+    id: texto(l.id),
+    titulo: texto(l.titulo),
+    descricao: textoOuNulo(l.descricao),
+    periodicidade: periodicidade(l.periodicidade),
+    ativo: l.ativo !== false,
+    criadoEm: texto(l.criadoEm),
+    pacientes: numero(l.pacientes),
+    respostas: numero(l.respostas),
+    perguntas: (Array.isArray(l.perguntas) ? (l.perguntas as Linha[]) : []).map((p) => ({
+      id: textoOuNulo(p.id),
+      texto: texto(p.texto),
+      tipo: tipoDePergunta(p.tipo),
+      obrigatoria: p.obrigatoria !== false,
+      opcoes: listaDeTextos(p.opcoes),
+      // Peso ausente vale 1, que é o peso normal — e não 0, que tiraria a
+      // pergunta da pontuação sem ninguém ter pedido.
+      peso: p.peso === null ? 1 : numero(p.peso ?? 1),
+      invertida: p.invertida === true,
+      respondida: p.respondida === true,
+    })),
+  };
+}
+
+export function paraMeuQuestionario(l: Linha): MeuQuestionario {
+  return {
+    id: texto(l.id),
+    titulo: texto(l.titulo),
+    descricao: textoOuNulo(l.descricao),
+    periodicidade: periodicidade(l.periodicidade),
+    periodo: texto(l.periodo),
+    pendente: l.pendente === true,
+    perguntas: (Array.isArray(l.perguntas) ? (l.perguntas as Linha[]) : []).map((p) => ({
+      id: texto(p.id),
+      texto: texto(p.texto),
+      tipo: tipoDePergunta(p.tipo),
+      obrigatoria: p.obrigatoria !== false,
+      opcoes: listaDeTextos(p.opcoes),
+    })),
+    enviados: (Array.isArray(l.enviados) ? (l.enviados as Linha[]) : []).map((e) => ({
+      periodo: texto(e.periodo),
+      respondidoEm: texto(e.respondidoEm),
+      respostas: (Array.isArray(e.respostas) ? (e.respostas as Linha[]) : []).map(paraResposta),
+    })),
+  };
+}
+
+export function paraQuestionarioDoPaciente(l: Linha): QuestionarioDoPaciente {
+  return {
+    id: texto(l.id),
+    titulo: texto(l.titulo),
+    periodicidade: periodicidade(l.periodicidade),
+    ativo: l.ativo !== false,
+    atribuido: l.atribuido === true,
+    perguntas: (Array.isArray(l.perguntas) ? (l.perguntas as Linha[]) : []).map((p) => ({
+      id: texto(p.id),
+      texto: texto(p.texto),
+      tipo: tipoDePergunta(p.tipo),
+      peso: p.peso === null ? 1 : numero(p.peso ?? 1),
+      invertida: p.invertida === true,
+      opcoes: listaDeTextos(p.opcoes),
+    })),
+    envios: (Array.isArray(l.envios) ? (l.envios as Linha[]) : []).map((e) => ({
+      id: texto(e.id),
+      periodo: texto(e.periodo),
+      respondidoEm: texto(e.respondidoEm),
+      revisado: e.revisado === true,
+      respostas: (Array.isArray(e.respostas) ? (e.respostas as Linha[]) : []).map(paraResposta),
+    })),
+  };
+}
