@@ -3871,3 +3871,160 @@ body:has(.central) {
 .c-linha-medidas .c-campo {
   margin-bottom: 0;
 }
+
+
+/* =============================================================================
+   A LISTA DE ACOMPANHAMENTO
+   ============================================================================= */
+
+.c-lista-pacientes {
+  margin-top: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* A linha inteira e um botao: toda ela abre a paciente. Um link pequeno no
+   fim da linha seria um alvo de toque minusculo no celular. */
+.c-paciente-linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: none;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.c-paciente-linha + .c-paciente-linha {
+  border-top: 1px solid var(--border);
+}
+
+.c-paciente-linha:hover {
+  background: var(--surface-2);
+}
+
+.c-paciente-avatar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* `flex-basis: 0` e nao `auto`, com `min-width: 0` junto.
+   DEFEITO QUE ISTO FECHA: com base `auto`, a largura natural do nome mais a
+   etiqueta ("Mariana Silva" + "retorno amanha") nao cabia ao lado do avatar,
+   e o `flex-wrap` do celular jogava o AVATAR sozinho numa linha em cima.
+   Com base zero, o meio encolhe e a linha fica inteira. */
+.c-paciente-meio {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.c-paciente-topo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.c-paciente-nome {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.c-paciente-apoio {
+  display: block;
+  margin-top: 3px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  /* Uma linha so: a lista e para varrer com o olho, e duas linhas de apoio
+     numa paciente e uma em outra fazem as linhas perderem o alinhamento. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.c-paciente-adesao {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.2;
+}
+
+.c-paciente-adesao strong {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.c-paciente-adesao span {
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
+.c-selo-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* As cores dizem O QUE É, nao se a paciente e boa ou ruim. "Sem registro"
+   nao e vermelho de reprovacao: e o ambar de "olhe para isto", o mesmo que
+   a rastreabilidade usa para "observar". */
+.c-selo-hoje {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.c-selo-proximo {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.c-selo-parada {
+  background: #fdf3e2;
+  color: #8a5a10;
+}
+
+.c-selo-sem-acesso {
+  background: var(--surface-2);
+  color: var(--text-subtle);
+}
+
+.c-selo-em-dia {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+@media (max-width: 420px) {
+  /* No celular a adesao desce para baixo do nome: ela e o numero mais
+     importante da linha e nao pode ser o primeiro a ser cortado. */
+  .c-paciente-linha {
+    flex-wrap: wrap;
+  }
+
+  .c-paciente-adesao {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 5px;
+    width: 100%;
+    padding-left: 50px;
+  }
+}

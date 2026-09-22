@@ -45,7 +45,9 @@ import type {
   SessaoDeTreino,
   Treino,
 } from "@/central/types/treino";
+import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
+import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
 import { repositorioSupabase } from "./repositorioSupabase";
@@ -317,6 +319,18 @@ export interface Repositorio {
     exercicios: ExercicioParaSalvar[],
   ): Promise<void>;
   excluirTreino(id: string): Promise<void>;
+
+  // --------------------------------------------- panorama e consultas
+  //
+  // A base da lista de pacientes e do prontuário. O banco devolve datas e
+  // números; quem traduz em "retorno hoje" e "sem registro recente" é
+  // `utils/panoramaPacientes.ts`, onde a régua tem teste.
+
+  panoramaDosPacientes(): Promise<PanoramaDoPaciente[]>;
+
+  consultasDe(pacienteId: string): Promise<Consulta[]>;
+  salvarConsulta(id: string | null, pacienteId: string | null, dados: ConsultaParaSalvar): Promise<void>;
+  excluirConsulta(id: string): Promise<void>;
 
   // ------------------------------------------------- metas do acompanhamento
   //

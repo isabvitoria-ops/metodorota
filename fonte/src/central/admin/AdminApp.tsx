@@ -14,6 +14,7 @@ import { ConfiguracoesAdmin } from "./Configuracoes";
 import { Desafios } from "./Desafios";
 import { RastreabilidadeAdmin } from "./Rastreabilidade";
 import { Protocolos } from "./Protocolos";
+import { Acompanhamento } from "./Acompanhamento";
 import { Metas } from "./Metas";
 import { Treinos } from "./Treinos";
 
@@ -26,6 +27,7 @@ import { Treinos } from "./Treinos";
  */
 const ABAS = [
   { rota: rotas.admin, rotulo: "Painel", fim: true },
+  { rota: rotas.adminAcompanhamento, rotulo: "Acompanhamento" },
   { rota: rotas.adminPacientes, rotulo: "Pacientes" },
   { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
   { rota: rotas.adminTreinos, rotulo: "Treino" },
@@ -110,6 +112,7 @@ export function AdminApp() {
               <Route path="protocolos" element={<Protocolos />} />
               <Route path="treinos" element={<Treinos />} />
               <Route path="metas" element={<Metas />} />
+              <Route path="acompanhamento" element={<Acompanhamento />} />
               <Route path="rastreabilidade" element={<RastreabilidadeAdmin />} />
               <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
               <Route path="*" element={<Navigate to={rotas.admin} replace />} />

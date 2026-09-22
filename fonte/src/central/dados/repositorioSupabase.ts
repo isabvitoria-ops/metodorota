@@ -21,7 +21,9 @@ import type {
   ResumoIndicacao,
   StatusReintroducao,
 } from "@/central/types";
+import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
+import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type {
   CardioSessao,
   MetaSemanal,
@@ -1034,6 +1036,45 @@ export const repositorioSupabase: Repositorio = {
     erro("apagar o treino", error);
   },
 
+  // --------------------------------------------- panorama e consultas
+
+  async panoramaDosPacientes(): Promise<PanoramaDoPaciente[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("panorama_dos_pacientes", { p_dias: 28 });
+    erro("carregar o panorama", error);
+    return ((data ?? []) as Linha[]).map(lerPanorama);
+  },
+
+  async consultasDe(pacienteId: string): Promise<Consulta[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("consultas_de", { p_paciente: pacienteId });
+    erro("carregar as consultas", error);
+    return ((data ?? []) as Linha[]).map(lerConsulta);
+  },
+
+  async salvarConsulta(id: string | null, pacienteId: string | null, dados: ConsultaParaSalvar) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("salvar_consulta", {
+      p_id: id,
+      p_paciente: pacienteId,
+      p_data: dados.data || null,
+      // Hora em branco fica NULA, nunca "00:00": nulo quer dizer "ela só
+      // marcou o dia", e meia-noite quer dizer meia-noite.
+      p_hora: dados.hora || null,
+      p_tipo: dados.tipo,
+      p_status: dados.status,
+      p_resumo: dados.resumo,
+      p_observacoes: dados.observacoes,
+    });
+    erro("salvar a consulta", error);
+  },
+
+  async excluirConsulta(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("excluir_consulta", { p_id: id });
+    erro("apagar a consulta", error);
+  },
+
   // ------------------------------------------------- metas do acompanhamento
 
   async metasDe(pacienteId?: string | null): Promise<Meta[]> {
@@ -1231,6 +1272,47 @@ function numeroOuNuloDeTexto(v: string): number | null {
   if (limpo === "") return null;
   const n = Number(limpo);
   return Number.isFinite(n) ? n : null;
+}
+
+function lerConsulta(linha: Linha): Consulta {
+  return {
+    id: texto(linha.id),
+    data: texto(linha.data),
+    hora: textoOuNulo(linha.hora),
+    tipo: linha.tipo === "primeira" ? "primeira" : "retorno",
+    status: ["agendada", "concluida", "faltou", "cancelada"].includes(texto(linha.status))
+      ? (texto(linha.status) as Consulta["status"])
+      : "agendada",
+    resumo: textoOuNulo(linha.resumo),
+    observacoes: textoOuNulo(linha.observacoes),
+  };
+}
+
+function lerPanorama(linha: Linha): PanoramaDoPaciente {
+  const consulta = (v: unknown) => {
+    const c = (v ?? null) as Linha | null;
+    return c && c.data ? { data: texto(c.data), hora: textoOuNulo(c.hora), tipo: texto(c.tipo) } : null;
+  };
+  const ultima = (linha.ultimaConsulta ?? null) as Linha | null;
+
+  return {
+    id: texto(linha.id),
+    nome: texto(linha.nome),
+    email: texto(linha.email),
+    situacao: texto(linha.situacao) as PanoramaDoPaciente["situacao"],
+    dataInicio: textoOuNulo(linha.dataInicio),
+    dataFim: textoOuNulo(linha.dataFim),
+    diasRestantes: numeroOuNulo(linha.diasRestantes),
+    proximaConsulta: consulta(linha.proximaConsulta),
+    ultimaConsulta:
+      ultima && ultima.data
+        ? { data: texto(ultima.data), tipo: texto(ultima.tipo), resumo: textoOuNulo(ultima.resumo) }
+        : null,
+    ultimoRegistro: textoOuNulo(linha.ultimoRegistro),
+    pesoInicial: numeroOuNulo(linha.pesoInicial),
+    pesoAtual: numeroOuNulo(linha.pesoAtual),
+    metas: ((linha.metas ?? []) as Linha[]).map(lerMeta),
+  };
 }
 
 function lerMeta(linha: Linha): Meta {

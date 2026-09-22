@@ -42,7 +42,9 @@ import { PLANOS } from "./sementes/planos";
 import { CONFIGURACOES } from "./sementes/configuracoes";
 import { paraConfiguracoes } from "./mapeadores";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
+import type { Consulta } from "@/central/types/consulta";
 import type { Meta } from "@/central/types/meta";
+import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { CardioSessao, MetaSemanal, SessaoDeTreino, Treino } from "@/central/types/treino";
 import type {
   ConteudoProtocolo,
@@ -854,6 +856,30 @@ export const repositorioLocal: Repositorio = {
     throw new Error("Apagar treino precisa do banco. Configure o Supabase.");
   },
 
+  // --------------------------------------------- panorama e consultas
+
+  /**
+   * Quatro pacientes de demonstração, escolhidas para mostrar os quatro
+   * status que a lista sabe dar: retorno hoje, retorno próximo, sem registro
+   * recente e em dia. Com quatro parecidas, quem abre a demonstração não vê
+   * que a lista faz alguma coisa.
+   */
+  async panoramaDosPacientes() {
+    return PANORAMA_DEMO;
+  },
+
+  async consultasDe() {
+    return CONSULTAS_DEMO;
+  },
+
+  async salvarConsulta() {
+    throw new Error("Salvar consulta precisa do banco. Configure o Supabase.");
+  },
+
+  async excluirConsulta() {
+    throw new Error("Apagar consulta precisa do banco. Configure o Supabase.");
+  },
+
   // ------------------------------------------------- metas do acompanhamento
 
   /**
@@ -959,6 +985,131 @@ function diasAtras(n: number): string {
   d.setDate(d.getDate() - n);
   return d.toISOString().slice(0, 10);
 }
+
+function metaDemo(id: string, diasCumpridos: number[]): Meta {
+  return {
+    id,
+    titulo: "Beber 2 litros de água",
+    descricao: null,
+    categoria: "Hidratação",
+    frequencia: "diaria",
+    alvo: 2,
+    unidade: "litros",
+    inicio: diasAtras(40),
+    prazo: null,
+    status: "ativa",
+    registros: diasCumpridos.map((d) => ({
+      id: `${id}-${d}`,
+      data: diasAtras(d),
+      quantidade: 2,
+      observacao: null,
+    })),
+  };
+}
+
+/** Uma sequência de dias cumpridos, para a demonstração ter adesão de verdade. */
+function seguidos(ate: number, passo = 1): number[] {
+  const saida: number[] = [];
+  for (let d = 1; d <= ate; d += passo) saida.push(d);
+  return saida;
+}
+
+const PANORAMA_DEMO: PanoramaDoPaciente[] = [
+  {
+    id: "pac-mariana",
+    nome: "Mariana Silva",
+    email: "mariana@exemplo.test",
+    situacao: "ativo",
+    dataInicio: diasAtras(60),
+    dataFim: diasAtras(-30),
+    diasRestantes: 30,
+    proximaConsulta: { data: diasAtras(-1), hora: "15:00", tipo: "retorno" },
+    ultimaConsulta: {
+      data: diasAtras(14),
+      tipo: "retorno",
+      resumo: "Ajuste no jantar · manteve plano base",
+    },
+    ultimoRegistro: diasAtras(1),
+    pesoInicial: 77,
+    pesoAtual: 72.8,
+    metas: [metaDemo("md1", seguidos(27))],
+  },
+  {
+    id: "pac-juliana",
+    nome: "Juliana Ferreira",
+    email: "juliana@exemplo.test",
+    situacao: "ativo",
+    dataInicio: diasAtras(90),
+    dataFim: diasAtras(-60),
+    diasRestantes: 60,
+    proximaConsulta: null,
+    ultimaConsulta: { data: diasAtras(7), tipo: "retorno", resumo: "Introduziu lanche da tarde" },
+    ultimoRegistro: diasAtras(0),
+    pesoInicial: 68,
+    pesoAtual: 66.4,
+    metas: [metaDemo("md2", seguidos(26))],
+  },
+  {
+    id: "pac-renata",
+    nome: "Renata Costa",
+    email: "renata@exemplo.test",
+    situacao: "ativo",
+    dataInicio: diasAtras(45),
+    dataFim: diasAtras(-15),
+    diasRestantes: 15,
+    proximaConsulta: { data: diasAtras(-5), hora: null, tipo: "retorno" },
+    ultimaConsulta: { data: diasAtras(30), tipo: "primeira", resumo: "Montou o plano base" },
+    ultimoRegistro: diasAtras(12),
+    pesoInicial: 81,
+    pesoAtual: 80.2,
+    metas: [metaDemo("md3", seguidos(27, 2))],
+  },
+  {
+    id: "pac-ana",
+    nome: "Ana Luiza",
+    email: "ana@exemplo.test",
+    situacao: "ativo",
+    dataInicio: diasAtras(5),
+    dataFim: diasAtras(-25),
+    diasRestantes: 25,
+    proximaConsulta: null,
+    ultimaConsulta: { data: diasAtras(5), tipo: "primeira", resumo: "Primeira consulta" },
+    ultimoRegistro: diasAtras(0),
+    pesoInicial: null,
+    pesoAtual: null,
+    metas: [],
+  },
+];
+
+const CONSULTAS_DEMO: Consulta[] = [
+  {
+    id: "c1",
+    data: diasAtras(-1),
+    hora: "15:00",
+    tipo: "retorno",
+    status: "agendada",
+    resumo: null,
+    observacoes: null,
+  },
+  {
+    id: "c2",
+    data: diasAtras(14),
+    hora: "15:00",
+    tipo: "retorno",
+    status: "concluida",
+    resumo: "Ajuste no jantar · manteve plano base · reforçar estratégia fim de semana",
+    observacoes: "Relatou semana corrida no trabalho.",
+  },
+  {
+    id: "c3",
+    data: diasAtras(28),
+    hora: null,
+    tipo: "retorno",
+    status: "concluida",
+    resumo: "Perda de 1,2 kg · introduziu lanche da tarde · humor melhorou",
+    observacoes: null,
+  },
+];
 
 const METAS_ACOMPANHAMENTO_DEMO: Meta[] = [
   {
