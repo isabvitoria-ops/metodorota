@@ -38,7 +38,12 @@ psql_ -q -d "$BANCO" -c "do \$\$ declare f record; begin
 end \$\$;" > /dev/null
 
 echo "Rodando a bateria de segurança…"
-for bateria in "$RAIZ"/supabase/testes/0[1-9]_*.sql; do
+# `0[1-9]` parava na nona bateria: a `10_consultas.sql` existia, nao casava
+# com o filtro e simplesmente nao rodava -- sem erro, sem aviso, so ausente.
+# Uma bateria de seguranca que nao roda e pior do que nenhuma, porque o
+# numero no fim da tela continua dizendo que esta tudo bem.
+for bateria in "$RAIZ"/supabase/testes/[0-9][0-9]_*.sql; do
+  case "$(basename "$bateria")" in 00_*) continue;; esac
   psql_ -d "$BANCO" -f "$bateria" 2>&1 \
     | grep -E "FALHA|passaram|ERROR|falharam" || true
 done
