@@ -2916,6 +2916,12 @@ body:has(.central) {
     break-before: page;
   }
 
+  /* A assinatura fecha a carta na mesma folha quando cabe, e vai inteira
+     para a seguinte quando não cabe -- nunca partida entre as duas. */
+  .doc-assinatura {
+    break-inside: avoid;
+  }
+
   .doc-titulo {
     margin: 0 0 3mm;
     font-family: var(--font-display);

@@ -16,6 +16,8 @@ import {
   semanasDeAcompanhamento,
   seriePeso,
 } from "@/central/utils/linhaDoTempo";
+import { CartaDeEncaminhamento } from "./CartaDeEncaminhamento";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
 
 /**
  * O prontuário: tudo de uma paciente, em ordem cronológica.
@@ -41,6 +43,7 @@ const CONSULTA_VAZIA: ConsultaParaSalvar = {
 
 export function Prontuario() {
   const { pacienteId = "" } = useParams();
+  const { configuracoes } = useSessao();
   const hoje = hojeSaoPaulo();
 
   const [paciente, definirPaciente] = useState<PanoramaDoPaciente | null>(null);
@@ -160,6 +163,17 @@ export function Prontuario() {
           ))}
         </section>
       )}
+
+      <CartaDeEncaminhamento
+        paciente={paciente.nome}
+        nutricionista={configuracoes.nomeNutricionista}
+        resumo={{
+          semanas,
+          consultas: realizadas,
+          pesoAtual: paciente.pesoAtual,
+          pesoInicial: paciente.pesoInicial,
+        }}
+      />
 
       <section className="c-secao">
         <h2 className="c-secao-titulo">Linha do tempo</h2>
