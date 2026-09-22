@@ -30,6 +30,8 @@ import type {
   QuestionarioDoPaciente,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
+import type { Exame, EspacoDosExames } from "@/central/types/exame";
+import { caminhoDoExame, porQueNaoServe, tipoPelaExtensao } from "@/central/utils/exames";
 import type {
   PainelFinanceiro,
   ValorDoPaciente,
@@ -1389,6 +1391,105 @@ export const repositorioSupabase: Repositorio = {
   },
 
   // ---------------------------------------------------------------------
+  // Exames
+  // ---------------------------------------------------------------------
+
+  async enviarExame(
+    pacienteId: string | null,
+    arquivo: File,
+    data: string | null,
+    descricao: string | null,
+  ): Promise<void> {
+    const sb = exigirSupabase();
+
+    const recusa = porQueNaoServe(arquivo);
+    if (recusa) throw new Error(recusa);
+
+    // De quem é a pasta. Para a paciente é sempre a dela — e o banco
+    // confere de novo, porque esta conta é do lado do navegador.
+    let dona = pacienteId;
+    if (!dona) {
+      const { data, error } = await sb.rpc("minha_pasta_de_exames");
+      erro("descobrir sua pasta", error);
+      dona = textoOuNulo(data);
+    }
+    if (!dona) throw new Error("Não encontrei o cadastro da paciente.");
+
+    const caminho = caminhoDoExame(dona, arquivo.name);
+    const tipo = arquivo.type || tipoPelaExtensao(arquivo.name);
+
+    const { error: erroEnvio } = await sb.storage.from("exames").upload(caminho, arquivo, {
+      contentType: tipo,
+      // `false`: nunca sobrescrever. Sobrescrever exame seria perder exame.
+      upsert: false,
+    });
+    erro("enviar o arquivo", erroEnvio);
+
+    const { error: erroRegistro } = await sb.rpc("registrar_exame", {
+      p_paciente: pacienteId,
+      p_caminho: caminho,
+      p_nome: arquivo.name,
+      p_tipo: tipo,
+      p_tamanho: arquivo.size,
+      p_data: data,
+      p_descricao: descricao,
+    });
+
+    if (erroRegistro) {
+      // O arquivo subiu e a linha não gravou. Sem esta limpeza, o balde
+      // acumularia arquivos que nenhuma tela mostra e ninguém consegue
+      // apagar — lixo invisível ocupando um plano de 1 GB.
+      await sb.storage.from("exames").remove([caminho]);
+      erro("registrar o exame", erroRegistro);
+    }
+  },
+
+  async examesDoPaciente(pacienteId: string): Promise<Exame[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("exames_do_paciente", { p_paciente: pacienteId });
+    erro("carregar os exames", error);
+    return ((data ?? []) as Linha[]).map(paraExame);
+  },
+
+  async meusExames(): Promise<Exame[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("meus_exames");
+    erro("carregar seus exames", error);
+    return ((data ?? []) as Linha[]).map(paraExame);
+  },
+
+  async enderecoDoExame(caminho: string): Promise<string> {
+    const sb = exigirSupabase();
+    // Cinco minutos: tempo de abrir e ler, e curto o bastante para um
+    // endereço que vazou não valer nada amanhã.
+    const { data, error } = await sb.storage.from("exames").createSignedUrl(caminho, 300);
+    erro("abrir o arquivo", error);
+    if (!data?.signedUrl) throw new Error("Não consegui abrir este arquivo.");
+    return data.signedUrl;
+  },
+
+  async apagarExame(id: string): Promise<void> {
+    const sb = exigirSupabase();
+    // A função devolve o caminho JUSTAMENTE para o arquivo poder ir junto.
+    const { data, error } = await sb.rpc("apagar_exame", { p_id: id });
+    erro("apagar o exame", error);
+    const caminho = texto(data);
+    if (caminho) await sb.storage.from("exames").remove([caminho]);
+  },
+
+  async espacoDosExames(): Promise<EspacoDosExames> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("espaco_dos_exames");
+    erro("carregar o espaço", error);
+    const l = (data ?? {}) as Linha;
+    return {
+      arquivos: numero(l.arquivos),
+      bytes: numero(l.bytes),
+      pacientesComExame: numero(l.pacientesComExame),
+    };
+  },
+
+  // ---------------------------------------------------------------------
   // Fases do método
   // ---------------------------------------------------------------------
 
@@ -1768,5 +1869,20 @@ function paraCobranca(l: Linha): Cobranca {
     pagoEm: textoOuNulo(l.pagoEm),
     forma: textoOuNulo(l.forma),
     observacao: textoOuNulo(l.observacao),
+  };
+}
+
+
+function paraExame(l: Linha): Exame {
+  return {
+    id: texto(l.id),
+    caminho: texto(l.caminho),
+    nome: texto(l.nome),
+    tipo: texto(l.tipo),
+    tamanho: numero(l.tamanho),
+    data: textoOuNulo(l.data),
+    descricao: textoOuNulo(l.descricao),
+    origem: texto(l.origem) === "paciente" ? "paciente" : "nutricionista",
+    criadoEm: texto(l.criadoEm),
   };
 }

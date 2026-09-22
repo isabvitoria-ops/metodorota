@@ -4532,3 +4532,45 @@ body:has(.central) {
   text-transform: uppercase;
   vertical-align: middle;
 }
+
+/* -----------------------------------------------------------------------
+   Exames
+   ----------------------------------------------------------------------- */
+
+/* Rótulo em cima do campo, como o resto da Central. O `display: block` é o
+   mesmo defeito que já corrigi nos outros campos: sem ele, rótulo e campo
+   disputam a mesma linha. */
+.c-campo-rotulo {
+  display: block;
+  margin-top: 14px;
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca, #6b6b6b);
+  font-weight: 600;
+}
+
+.c-campo-rotulo > .c-campo {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--tinta-forte);
+}
+
+.c-campo-rotulo > .c-dica {
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  display: block;
+}
+
+/* O seletor de arquivo do navegador é largo por natureza; sem isto ele
+   empurra a tela de lado no celular. */
+.c-campo-rotulo > input[type="file"] {
+  max-width: 100%;
+  padding: 10px;
+}

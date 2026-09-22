@@ -54,6 +54,7 @@ import type {
   QuestionarioDoPaciente,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
+import type { Exame, EspacoDosExames } from "@/central/types/exame";
 import type {
   PainelFinanceiro,
   ValorDoPaciente,
@@ -376,6 +377,42 @@ export interface Repositorio {
    * criaria expectativa de resposta que o aplicativo não promete.
    */
   marcarRevisado(envioId: string, revisado: boolean): Promise<boolean>;
+
+  // ---------------------------------------------------------------------
+  // Exames
+  // ---------------------------------------------------------------------
+
+  /**
+   * Envia o arquivo ao balde privado e registra o exame.
+   *
+   * `pacienteId` nulo quer dizer "eu", e é o que a paciente manda. O banco
+   * ignora o id que vem da tela quando é ela quem envia.
+   */
+  enviarExame(
+    pacienteId: string | null,
+    arquivo: File,
+    data: string | null,
+    descricao: string | null,
+  ): Promise<void>;
+
+  /** Os exames de uma paciente, para a nutricionista. */
+  examesDoPaciente(pacienteId: string): Promise<Exame[]>;
+
+  /** Os meus exames, para a paciente. */
+  meusExames(): Promise<Exame[]>;
+
+  /**
+   * Um endereço temporário para abrir o arquivo.
+   *
+   * O balde é privado: não existe endereço permanente, e é assim de
+   * propósito — endereço de arquivo vaza em print e em encaminhamento.
+   */
+  enderecoDoExame(caminho: string): Promise<string>;
+
+  /** Apaga a linha E o arquivo. Linha sem arquivo deixaria lixo ocupando espaço. */
+  apagarExame(id: string): Promise<void>;
+
+  espacoDosExames(): Promise<EspacoDosExames>;
 
   // ---------------------------------------------------------------------
   // Fases do método

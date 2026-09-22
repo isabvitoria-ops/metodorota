@@ -120,3 +120,42 @@ grant execute on function estado_de(text) to anon, authenticated;
 
 grant all on resultados_teste to anon, authenticated;
 grant usage, select on sequence resultados_teste_id_seq to anon, authenticated;
+
+-- -----------------------------------------------------------------------------
+-- O `storage` de mentira
+-- -----------------------------------------------------------------------------
+--
+-- O Supabase guarda arquivo numa tabela `storage.objects` protegida por RLS,
+-- igual a qualquer outra. Sem esta imitacao, as politicas dos exames ficariam
+-- sem bateria -- e e exatamente ali que mora o pior defeito possivel deste
+-- modulo: uma paciente alcancar o exame da outra.
+--
+-- So as colunas que as politicas usam. Nao e o storage de verdade; e o
+-- suficiente para as politicas serem exercitadas com papel e sessao.
+
+create schema if not exists storage;
+
+create table if not exists storage.buckets (
+  id text primary key,
+  name text not null,
+  public boolean not null default false,
+  file_size_limit bigint,
+  allowed_mime_types text[]
+);
+
+create table if not exists storage.objects (
+  id uuid primary key default gen_random_uuid(),
+  bucket_id text not null references storage.buckets(id),
+  -- O caminho dentro do balde: "<id-da-paciente>/<arquivo>". A primeira
+  -- pasta e quem separa uma paciente da outra.
+  name text not null,
+  owner uuid,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+alter table storage.objects enable row level security;
+
+grant usage on schema storage to anon, authenticated;
+grant select, insert, update, delete on storage.objects to authenticated;
+grant select on storage.buckets to authenticated;

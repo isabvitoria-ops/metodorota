@@ -19,6 +19,7 @@ import {
 import { CartaDeEncaminhamento } from "./CartaDeEncaminhamento";
 import { CheckinDoPaciente } from "@/central/components/CheckinDoPaciente";
 import { FaseDoPaciente } from "@/central/components/FaseDoPaciente";
+import { Exames } from "@/central/components/Exames";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { AcessosDaPaciente } from "./AcessosDaPaciente";
 
@@ -195,6 +196,8 @@ export function Prontuario() {
       {/* O check-in vem antes do encaminhamento: o que ela relatou nas
           ultimas semanas e o que alimenta a carta, quando houver. */}
       <CheckinDoPaciente pacienteId={pacienteId} />
+
+      <Exames pacienteId={pacienteId} />
 
       <CartaDeEncaminhamento
         paciente={paciente.nome}

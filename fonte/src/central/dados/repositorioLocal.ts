@@ -26,6 +26,8 @@ import type {
   StatusReintroducao,
 } from "@/central/types";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
+import type { Exame, EspacoDosExames } from "@/central/types/exame";
+import { caminhoDoExame, porQueNaoServe, tipoPelaExtensao } from "@/central/utils/exames";
 import type {
   PainelFinanceiro,
   ValorDoPaciente,
@@ -121,6 +123,18 @@ interface MudancaDemo {
 }
 const guardaFases = armazenamentoLocal<Fase>("central:demo:fases:v1");
 const guardaMudancasDeFase = armazenamentoLocal<MudancaDemo>("central:demo:paciente-fases:v1");
+
+interface ExameDemo extends Exame {
+  pacienteId: string;
+}
+const guardaExames = armazenamentoLocal<ExameDemo>("central:demo:exames:v1");
+
+/** Pela data DO EXAME; sem data, pelo envio. Mesma regra do banco. */
+function ordenarExames<T extends { data: string | null; criadoEm: string }>(lista: T[]): T[] {
+  return [...lista].sort((a, b) =>
+    (b.data ?? b.criadoEm.slice(0, 10)).localeCompare(a.data ?? a.criadoEm.slice(0, 10)),
+  );
+}
 
 /** A fase mais recente de uma paciente, ou nula. Mesma regra do banco. */
 function faseAtualDe(pacienteId: string): string | null {
@@ -1271,6 +1285,68 @@ export const repositorioLocal: Repositorio = {
         respostas,
       },
     ]);
+  },
+
+  // ---------------------------------------------------------------------
+  // Exames
+  // ---------------------------------------------------------------------
+  //
+  // A DEMONSTRAÇÃO NÃO GUARDA O ARQUIVO, só o registro. Guardar de verdade
+  // exigiria pôr megabytes no `localStorage`, que estoura a cota do
+  // navegador na segunda foto. A tela diz isso quando alguém tenta abrir —
+  // um botão que baixasse arquivo vazio seria pior do que um aviso.
+
+  async enviarExame(
+    pacienteId: string | null,
+    arquivo: File,
+    data: string | null,
+    descricao: string | null,
+  ): Promise<void> {
+    const recusa = porQueNaoServe(arquivo);
+    if (recusa) throw new Error(recusa);
+    const dona = pacienteId ?? pacienteDemoId();
+    guardaExames.escrever([
+      ...guardaExames.ler(),
+      {
+        id: `ex-${Date.now()}`,
+        pacienteId: dona,
+        caminho: caminhoDoExame(dona, arquivo.name),
+        nome: arquivo.name,
+        tipo: arquivo.type || tipoPelaExtensao(arquivo.name),
+        tamanho: arquivo.size,
+        data,
+        descricao,
+        origem: pacienteId === null ? ("paciente" as const) : ("nutricionista" as const),
+        criadoEm: new Date().toISOString(),
+      },
+    ]);
+  },
+
+  async examesDoPaciente(pacienteId: string): Promise<Exame[]> {
+    return ordenarExames(guardaExames.ler().filter((e) => e.pacienteId === pacienteId));
+  },
+
+  async meusExames(): Promise<Exame[]> {
+    return ordenarExames(guardaExames.ler().filter((e) => e.pacienteId === pacienteDemoId()));
+  },
+
+  async enderecoDoExame(): Promise<string> {
+    throw new Error(
+      "Na demonstração o arquivo não é guardado de verdade — só o registro. No aplicativo publicado, o arquivo abre normalmente.",
+    );
+  },
+
+  async apagarExame(id: string): Promise<void> {
+    guardaExames.escrever(guardaExames.ler().filter((e) => e.id !== id));
+  },
+
+  async espacoDosExames(): Promise<EspacoDosExames> {
+    const todos = guardaExames.ler();
+    return {
+      arquivos: todos.length,
+      bytes: todos.reduce((t, e) => t + e.tamanho, 0),
+      pacientesComExame: new Set(todos.map((e) => e.pacienteId)).size,
+    };
   },
 
   // ---------------------------------------------------------------------

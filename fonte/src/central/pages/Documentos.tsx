@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { ConteudoProtocolo, MinhaAvaliacao, Protocolo } from "@/central/types/protocolo";
 import type { ItemDeReintroducao, RegistroDeReintroducao } from "@/central/types";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
+import { Exames } from "@/central/components/Exames";
 import { DocumentoAvaliacao } from "@/central/components/DocumentoAvaliacao";
 import { DocumentoProtocolo } from "@/central/components/DocumentoProtocolo";
 import { DocumentoRastreio } from "@/central/components/DocumentoRastreio";
@@ -136,7 +137,7 @@ export function Documentos() {
             <p className="c-item-protocolo-nome">Ainda não há documentos</p>
             <p className="c-dica" style={{ marginTop: 6 }}>
               Assim que sua nutricionista publicar o protocolo ou lançar uma avaliação, eles
-              aparecem aqui para você guardar.
+              aparecem aqui para você guardar. Seus exames você já pode guardar abaixo.
             </p>
           </div>
         )}
@@ -184,6 +185,10 @@ export function Documentos() {
             </p>
           </>
         )}
+
+        {/* Os exames vêm depois dos PDFs que o aplicativo gera: aqueles são
+            o que ela RECEBE, este é o que ela GUARDA. */}
+        <Exames pacienteId={null} />
       </div>
 
       {/* Só o escolhido é montado. Ver o comentário do componente. */}
