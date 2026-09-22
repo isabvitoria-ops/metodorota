@@ -145,7 +145,12 @@ export function Acompanhamento() {
       ) : (
         <div className="c-lista-pacientes">
           {visiveis.map((p) => (
-            <Linha key={p.id} paciente={p} hoje={hoje} aoAbrir={() => navegar(rotas.adminMetas)} />
+            <Linha
+              key={p.id}
+              paciente={p}
+              hoje={hoje}
+              aoAbrir={() => navegar(rotas.adminProntuario(p.id))}
+            />
           ))}
         </div>
       )}

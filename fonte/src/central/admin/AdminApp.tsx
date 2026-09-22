@@ -15,6 +15,7 @@ import { Desafios } from "./Desafios";
 import { RastreabilidadeAdmin } from "./Rastreabilidade";
 import { Protocolos } from "./Protocolos";
 import { Acompanhamento } from "./Acompanhamento";
+import { Prontuario } from "./Prontuario";
 import { Metas } from "./Metas";
 import { Treinos } from "./Treinos";
 
@@ -113,6 +114,10 @@ export function AdminApp() {
               <Route path="treinos" element={<Treinos />} />
               <Route path="metas" element={<Metas />} />
               <Route path="acompanhamento" element={<Acompanhamento />} />
+              {/* Sem aba propria: a ficha se abre pela lista, clicando na
+                  paciente. Uma aba "Prontuario" no menu abriria em branco,
+                  perguntando de quem. */}
+              <Route path="paciente/:pacienteId" element={<Prontuario />} />
               <Route path="rastreabilidade" element={<RastreabilidadeAdmin />} />
               <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
               <Route path="*" element={<Navigate to={rotas.admin} replace />} />

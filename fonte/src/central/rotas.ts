@@ -56,6 +56,7 @@ export const rotas = {
   adminTreinos: "/admin/treinos",
   adminMetas: "/admin/metas",
   adminAcompanhamento: "/admin/acompanhamento",
+  adminProntuario: (pacienteId: string) => `/admin/paciente/${pacienteId}`,
   adminTreino: (pacienteId: string) => `/admin/treinos/${pacienteId}`,
 };
 

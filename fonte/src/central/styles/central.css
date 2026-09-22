@@ -4028,3 +4028,132 @@ body:has(.central) {
     padding-left: 50px;
   }
 }
+
+
+/* =============================================================================
+   O PRONTUARIO: os tres numeros e a cronologia
+   `c-cronologia`, e nao `c-linha-tempo`: aquele nome ja e do GRAFICO de
+   linha dos PDFs, e duas coisas diferentes com o mesmo nome no mesmo arquivo
+   e um defeito esperando a proxima pessoa que editar qualquer um dos dois.
+   ============================================================================= */
+
+.c-painel-numeros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+/* Cada numero e o rotulo dele num item so do grid. E a licao do painel da
+   calculadora: soltos, o ultimo rotulo ficava numa linha e o valor dele na
+   seguinte, longe do que nomeia. */
+.c-painel-numeros > div {
+  min-width: 0;
+  text-align: center;
+}
+
+.c-painel-numeros strong {
+  display: block;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
+.c-painel-numeros span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.c-cronologia {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+.c-evento {
+  display: flex;
+  gap: 14px;
+  padding: 14px 0;
+}
+
+.c-evento + .c-evento {
+  border-top: 1px solid var(--border);
+}
+
+/* A data em coluna fixa: os titulos alinham entre si e a cronologia se le
+   de cima a baixo sem o olho procurar onde cada um comeca. */
+.c-evento-data {
+  flex: 0 0 42px;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.c-evento-data strong {
+  display: block;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}
+
+.c-evento-data span {
+  display: block;
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
+/* O que ainda vai acontecer fica com a data na cor da marca: e o unico
+   evento da lista sobre o qual ela ainda pode fazer alguma coisa. */
+.c-evento-consulta_agendada .c-evento-data strong,
+.c-evento-consulta_agendada .c-evento-data span {
+  color: var(--primary);
+}
+
+.c-evento-corpo {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.c-evento-topo {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.c-evento-titulo {
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.c-evento-marca {
+  font-size: 11.5px;
+  color: var(--text-subtle);
+}
+
+.c-evento-consulta_agendada .c-evento-marca {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.c-evento-detalhe {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* A anotacao clinica com barra a esquerda: e texto dela para ela, e precisa
+   se distinguir do que foi combinado com a paciente logo acima. */
+.c-evento-anotacao {
+  display: block;
+  margin-top: 7px;
+  padding-left: 10px;
+  border-left: 2px solid var(--border);
+  font-size: 12.5px;
+  font-style: italic;
+  color: var(--text-subtle);
+}
