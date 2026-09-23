@@ -178,6 +178,24 @@
         border: 1px solid var(--borda); border-radius: 4px; padding: 0 4px;
         vertical-align: 1px; white-space: nowrap;
       }
+      /* Substitutos: o selo no alimento e as sub-linhas logo abaixo dele. */
+      .selo-subst {
+        background: var(--verde-claro); color: var(--verde); border: 1px solid var(--verde);
+        border-radius: 999px; font: inherit; font-size: 11.5px; font-weight: 600;
+        padding: 2px 8px; cursor: pointer; vertical-align: 1px; white-space: nowrap;
+      }
+      button.mini.selo-subst-vazio { font-size: 11.5px; margin-left: 0; white-space: nowrap; }
+      tr.subst td { background: #fafaf7; color: var(--apagado); font-size: 13px; }
+      tr.subst td:first-child { padding-left: 22px; color: inherit; }
+      .subst-ou {
+        font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em;
+        color: var(--apagado); margin-right: 2px;
+      }
+      tr.subst select { font-size: 12.5px; padding: 4px 6px; }
+      .subst-controles { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; text-align: left; }
+      .subst-busca { flex: 1 1 220px; }
+      .subst-controles label { margin: 0; white-space: nowrap; }
+      .subst-controles select { width: auto; margin-left: 4px; }
       @media print {
         header, nav, button, .sugestoes, .fichas .ficha-abrir, .fichas .ficha-botoes { display: none !important; }
         section.aba { border: 0; padding: 0; }

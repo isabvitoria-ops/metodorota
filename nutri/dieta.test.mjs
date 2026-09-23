@@ -7,6 +7,8 @@ import {
   itensDoDia,
   normalizarItem,
   normalizarRefeicao,
+  porcaoEquivalente,
+  arredondarPorcao,
   opcaoAtiva,
   refeicaoNova,
   removerOpcao,
@@ -142,4 +144,74 @@ test("removendo a opção aberta, a seleção não fica apontando para o vazio",
 test("opcaoAtiva devolve algo utilizável mesmo com a refeição estragada", () => {
   assert.deepEqual(opcaoAtiva(null).itens, []);
   assert.deepEqual(opcaoAtiva({}).itens, []);
+});
+
+// --- substitutos ----------------------------------------------------------
+
+test("substituto não entra no total do dia", () => {
+  // Frango OU peixe é um prato só. Somado, o dia teria duas proteínas.
+  const almoco = normalizarRefeicao({
+    nome: "Almoço",
+    opcoes: [{
+      rotulo: "Principal",
+      itens: [{
+        codigo: "frango", nome: "Frango", quantidade: 120, medida: { nome: "g", gramas: 1 },
+        substitutos: [{ codigo: "peixe", nome: "Peixe" }],
+      }],
+    }],
+  });
+  assert.deepEqual(itensDoDia([almoco]).map((i) => i.codigo), ["frango"]);
+});
+
+test("a porção equivalente iguala o critério, arredondada de 5 em 5 g", () => {
+  // 195 kcal de frango; patinho com 219 kcal/100 g → 89 g → 90 g.
+  assert.deepEqual(porcaoEquivalente(195, 219), { quantidade: 90, gramas: 90 });
+});
+
+test("em medida caseira, arredonda de meia em meia unidade", () => {
+  // 32 g de proteína; ovo com 13 g/100 g e unidade de 50 g → 4,9 → 5 unidades.
+  assert.deepEqual(porcaoEquivalente(32, 13, { nome: "unidade", gramas: 50 }), {
+    quantidade: 5,
+    gramas: 250,
+  });
+});
+
+test("porção pequena arredonda de grama em grama", () => {
+  assert.equal(arredondarPorcao(7.4, { nome: "g", gramas: 1 }), 7);
+  assert.equal(arredondarPorcao(0.2, { nome: "g", gramas: 1 }), 1, "nunca zero");
+  assert.equal(arredondarPorcao(0.1, { nome: "unidade", gramas: 50 }), 0.5);
+});
+
+test("sem o valor na tabela, não inventa porção", () => {
+  assert.equal(porcaoEquivalente(30, null), null);
+  assert.equal(porcaoEquivalente(30, 0), null, "igualar proteína com azeite não existe");
+  assert.equal(porcaoEquivalente(null, 20), null);
+  assert.equal(porcaoEquivalente(0, 20), null);
+});
+
+test("os substitutos atravessam o salvar e abrir", () => {
+  const i = normalizarItem({
+    codigo: "f", nome: "Frango", quantidade: 120, medida: { nome: "g", gramas: 1 },
+    substitutos: [{ codigo: "p", nome: "Patinho" }, null, { nome: "sem código" }],
+    igualarPor: "proteina",
+  });
+  assert.deepEqual(i.substitutos, [{ codigo: "p", nome: "Patinho", medida: { nome: "g", gramas: 1 } }]);
+  assert.equal(i.igualarPor, "proteina");
+  assert.equal(i.verSubstitutos, true);
+});
+
+test("critério desconhecido volta para kcal; item sem substituto não ganha campo", () => {
+  const i = normalizarItem({ codigo: "f", substitutos: [{ codigo: "p" }], igualarPor: "sódio" });
+  assert.equal(i.igualarPor, "energia_kcal");
+  assert.equal("substitutos" in normalizarItem({ codigo: "f", gramas: 10 }), false);
+});
+
+test("duplicar a refeição copia os substitutos sem compartilhar", () => {
+  const original = normalizarRefeicao({
+    nome: "Almoço",
+    itens: [{ codigo: "f", nome: "Frango", gramas: 120, substitutos: [{ codigo: "p" }] }],
+  });
+  const copia = duplicarRefeicao(original);
+  copia.opcoes[0].itens[0].substitutos.push({ codigo: "x", nome: "", medida: { nome: "g", gramas: 1 } });
+  assert.equal(original.opcoes[0].itens[0].substitutos.length, 1);
 });

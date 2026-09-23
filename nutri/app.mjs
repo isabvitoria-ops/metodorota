@@ -24,6 +24,8 @@ import {
 } from "./calculos.mjs";
 import { PROTOCOLOS } from "./protocolos.mjs";
 import {
+  CRITERIOS,
+  CRITERIO_PADRAO,
   MEDIDA_GRAMA,
   acrescentarOpcao,
   duplicarRefeicao,
@@ -32,6 +34,7 @@ import {
   normalizarItem,
   normalizarRefeicao,
   opcaoAtiva,
+  porcaoEquivalente,
   refeicaoNova,
   removerOpcao,
 } from "./dieta.mjs";
@@ -322,6 +325,30 @@ function alimentoPorId(id) {
   return ALIMENTOS.find((a) => a.id === `taco:${bruto}`) ?? null;
 }
 
+/**
+ * Quanto do substituto equivale ao item, pelo critério do item. A regra e
+ * o arredondamento moram em `dieta.mjs` (`porcaoEquivalente`), que é
+ * testado; aqui só se buscam os valores nas tabelas.
+ */
+function porcaoDoSubstituto(item, sub) {
+  const principal = alimentoPorId(item.codigo);
+  const troca = alimentoPorId(sub.codigo);
+  if (!principal || !troca) return null;
+  const criterio = item.igualarPor ?? CRITERIO_PADRAO;
+  return porcaoEquivalente(
+    porGramas(valorDe(principal, criterio), gramasDoItem(item)),
+    valorDe(troca, criterio),
+    sub.medida,
+  );
+}
+
+/** "90 g" ou "2 unidades (100 g)", como vai escrito na dieta. */
+function porcaoEmTexto(quantidade, medida, gramas) {
+  return medida.nome === "g"
+    ? `${mostrar(gramas, 0)} g`
+    : `${mostrar(quantidade, quantidade % 1 ? 1 : 0)} ${medida.nome} (${mostrar(gramas, 0)} g)`;
+}
+
 // ---------------------------------------------------------------------------
 // Dieta
 // ---------------------------------------------------------------------------
@@ -509,6 +536,8 @@ function desenharDieta() {
       const celulas = [];
       const gramasTd = [];
       const rodapeCelulas = [];
+      /** Por item: as células de cada substituto, reescritas junto. */
+      const celulasSubst = [];
 
       const recalcular = () => {
         opcao.itens.forEach((item, iI) => {
@@ -522,6 +551,29 @@ function desenharDieta() {
               td.textContent = mostrar(v, casas);
               td.title = v === null ? "A tabela não traz este valor para este alimento." : "";
             }
+          });
+          // Os substitutos seguem o principal: mudou o frango, muda o peixe.
+          (item.substitutos ?? []).forEach((sub, iS) => {
+            const c = celulasSubst[iI]?.[iS];
+            if (!c) return;
+            const troca = alimentoPorId(sub.codigo);
+            const porcao = porcaoDoSubstituto(item, sub);
+            if (!porcao) {
+              c.qtd.textContent = "—";
+              c.qtd.title =
+                `Não dá para igualar por ${CRITERIOS[item.igualarPor ?? CRITERIO_PADRAO]}: ` +
+                "a tabela não traz esse valor, ou este alimento não tem nada dele. Troque o critério ali embaixo.";
+              c.g.textContent = "—";
+              c.macros.forEach((td) => (td.textContent = "—"));
+              return;
+            }
+            c.qtd.title = "";
+            c.qtd.textContent = mostrar(porcao.quantidade, porcao.quantidade % 1 ? 1 : 0);
+            c.g.textContent = mostrar(porcao.gramas, 0);
+            MACROS.forEach(([chave, , casas], iM) => {
+              const v = troca ? porGramas(valorDe(troca, chave), porcao.gramas) : null;
+              c.macros[iM].textContent = mostrar(v, casas);
+            });
           });
         });
         MACROS.forEach(([chave, , casas], iM) => {
@@ -551,6 +603,25 @@ function desenharDieta() {
           marca.textContent = etiquetaDaFonte(alimento.fonte);
           nomeTd.append(" ", marca);
         }
+
+        // O selo dos substitutos: mostra quantos há, e abre e fecha a lista.
+        const nSubst = item.substitutos?.length ?? 0;
+        const selo = document.createElement("button");
+        selo.type = "button";
+        selo.className = nSubst ? "selo-subst" : "mini selo-subst-vazio";
+        selo.textContent = nSubst ? `⇄ ${nSubst}` : "+ substituto";
+        selo.title = nSubst
+          ? `${nSubst} ${nSubst === 1 ? "substituto" : "substitutos"}, com a gramatura já calculada. Tocar abre e fecha.`
+          : "Alimentos que podem trocar este, com a gramatura calculada sozinha";
+        selo.setAttribute("aria-expanded", String(Boolean(item.verSubstitutos)));
+        selo.onclick = () => {
+          item.substitutos ??= [];
+          item.igualarPor ??= CRITERIO_PADRAO;
+          item.verSubstitutos = !item.verSubstitutos;
+          guardarDieta();
+          desenharDieta();
+        };
+        nomeTd.append(" ", selo);
 
         const qtdTd = document.createElement("td");
         const qtdInput = document.createElement("input");
@@ -652,7 +723,122 @@ function desenharDieta() {
         acaoTd.append(x);
         tr.append(acaoTd);
         corpo.append(tr);
+
+        if (item.verSubstitutos) linhasDeSubstitutos(item, iI);
       });
+
+      /**
+       * As sub-linhas do item: um substituto por linha, com a gramatura que
+       * sai da conta, e no fim o critério e a busca para acrescentar outro.
+       * Nenhuma delas entra no subtotal — ver `dieta.mjs`.
+       */
+      function linhasDeSubstitutos(item, iI) {
+        item.substitutos ??= [];
+        celulasSubst[iI] = [];
+        item.substitutos.forEach((sub, iS) => {
+          const troca = alimentoPorId(sub.codigo);
+          const tr = document.createElement("tr");
+          tr.className = "subst";
+
+          const nomeTd = document.createElement("td");
+          const ou = document.createElement("span");
+          ou.className = "subst-ou";
+          ou.textContent = "ou";
+          nomeTd.append(ou, " ", troca ? troca.nome : sub.nome);
+          if (troca) {
+            const marca = document.createElement("span");
+            marca.className = "fonte";
+            marca.textContent = etiquetaDaFonte(troca.fonte);
+            nomeTd.append(" ", marca);
+          }
+
+          const qtdTd = document.createElement("td");
+          const medidaTd = document.createElement("td");
+          const medidas = medidasDoAlimento(sub.codigo);
+          const sel = document.createElement("select");
+          sel.setAttribute("aria-label", `Medida de ${troca ? troca.nome : sub.nome}`);
+          medidas.forEach((m, mI) => {
+            const op = document.createElement("option");
+            op.value = String(mI);
+            op.textContent = m.nome === "g" ? "g" : `${m.nome} (${mostrar(m.gramas, 0)} g)`;
+            sel.append(op);
+          });
+          // Pelo nome, como no item principal: medida editada continua casando.
+          const achada = medidas.findIndex(
+            (m) => m.nome.toLowerCase() === String(sub.medida?.nome ?? "").toLowerCase(),
+          );
+          sel.value = String(achada >= 0 ? achada : 0);
+          sub.medida = { ...(medidas[achada >= 0 ? achada : 0] ?? MEDIDA_GRAMA) };
+          sel.onchange = () => {
+            sub.medida = { ...(medidas[Number(sel.value)] ?? MEDIDA_GRAMA) };
+            guardarDieta();
+            recalcular();
+          };
+          medidaTd.append(sel);
+
+          const gTd = document.createElement("td");
+          tr.append(nomeTd, qtdTd, medidaTd, gTd);
+          const macros = MACROS.map(() => {
+            const td = document.createElement("td");
+            tr.append(td);
+            return td;
+          });
+
+          const acaoTd = document.createElement("td");
+          const x = document.createElement("button");
+          x.className = "mini";
+          x.textContent = "×";
+          x.title = "Tirar este substituto";
+          x.onclick = () => {
+            item.substitutos.splice(iS, 1);
+            guardarDieta();
+            desenharDieta();
+          };
+          acaoTd.append(x);
+          tr.append(acaoTd);
+          corpo.append(tr);
+          celulasSubst[iI][iS] = { qtd: qtdTd, g: gTd, macros };
+        });
+
+        const trNovo = document.createElement("tr");
+        trNovo.className = "subst subst-novo";
+        const td = document.createElement("td");
+        td.colSpan = 5 + MACROS.length;
+        const linha = document.createElement("div");
+        linha.className = "subst-controles";
+
+        const rotulo = document.createElement("label");
+        rotulo.className = "nota";
+        rotulo.textContent = "Igualar por ";
+        const criterio = document.createElement("select");
+        for (const [chave, nome] of Object.entries(CRITERIOS)) {
+          const op = document.createElement("option");
+          op.value = chave;
+          op.textContent = nome;
+          criterio.append(op);
+        }
+        criterio.value = item.igualarPor ?? CRITERIO_PADRAO;
+        criterio.onchange = () => {
+          item.igualarPor = criterio.value;
+          guardarDieta();
+          recalcular();
+        };
+        rotulo.append(criterio);
+
+        const principal = alimentoPorId(item.codigo);
+        const busca = campoDeBusca(
+          (a) => {
+            item.substitutos.push({ codigo: a.id, nome: a.nome, medida: { ...MEDIDA_GRAMA } });
+          },
+          `Substituto de ${principal ? principal.nome.split(",")[0] : "este alimento"}…`,
+        );
+        busca.style.marginTop = "0";
+        busca.classList.add("subst-busca");
+        linha.append(busca, rotulo);
+        td.append(linha);
+        trNovo.append(td);
+        corpo.append(trNovo);
+      }
 
       const rodape = document.createElement("tfoot");
       const trF = document.createElement("tr");
@@ -669,7 +855,16 @@ function desenharDieta() {
       recalcular();
     }
 
-    bloco.append(campoDeBusca(opcao));
+    bloco.append(
+      campoDeBusca((alimento) => {
+        opcao.itens.push({
+          codigo: alimento.id,
+          nome: alimento.nome,
+          quantidade: 100,
+          medida: { ...MEDIDA_GRAMA },
+        });
+      }),
+    );
 
     // ---- grupos favoritos -----------------------------------------------
     const grupos = listarGrupos();
@@ -752,14 +947,18 @@ function criarMedida(codigo, nome) {
   }
 }
 
-/** Campo de busca com sugestões, teclado incluso. Escreve na opção aberta. */
-function campoDeBusca(opcao) {
+/**
+ * Campo de busca com sugestões, teclado incluso. Quem decide onde o
+ * alimento entra é `aoEscolher`: na opção aberta, ou nos substitutos de um
+ * item.
+ */
+function campoDeBusca(aoEscolher, dica = "Buscar alimento e apertar Enter") {
   const caixa = document.createElement("div");
   caixa.className = "busca";
   caixa.style.marginTop = "10px";
 
   const campo = document.createElement("input");
-  campo.placeholder = "Buscar alimento e apertar Enter";
+  campo.placeholder = dica;
   const lista = document.createElement("div");
   lista.className = "sugestoes";
   lista.hidden = true;
@@ -773,12 +972,7 @@ function campoDeBusca(opcao) {
   }
 
   function escolher(alimento) {
-    opcao.itens.push({
-      codigo: alimento.id,
-      nome: alimento.nome,
-      quantidade: 100,
-      medida: { ...MEDIDA_GRAMA },
-    });
+    aoEscolher(alimento);
     guardarDieta();
     fechar();
     campo.value = "";
@@ -923,13 +1117,20 @@ function textoDaDieta() {
         const a = alimentoPorId(item.codigo);
         const g = gramasDoItem(item);
         const kcal = a ? porGramas(valorDe(a, "energia_kcal"), g) : null;
-        const medida =
-          item.medida.nome === "g"
-            ? `${mostrar(g, 0)} g`
-            : `${mostrar(item.quantidade, item.quantidade % 1 ? 1 : 0)} ${item.medida.nome} (${mostrar(g, 0)} g)`;
+        const medida = porcaoEmTexto(item.quantidade, item.medida, g);
         linhas.push(
           `    ${a ? a.nome : item.nome} — ${medida}${kcal !== null ? ` · ${mostrar(kcal, 0)} kcal` : ""}`,
         );
+        // Substituto sem conta possível não vai: "ou patinho —" sem gramas
+        // deixaria a paciente sem saber quanto comer.
+        for (const sub of item.substitutos ?? []) {
+          const porcao = porcaoDoSubstituto(item, sub);
+          if (!porcao) continue;
+          const troca = alimentoPorId(sub.codigo);
+          linhas.push(
+            `      ou ${troca ? troca.nome : sub.nome} — ${porcaoEmTexto(porcao.quantidade, sub.medida, porcao.gramas)}`,
+          );
+        }
       }
       if (i < r.opcoes.length - 1 && r.opcoes[i + 1].itens.length) linhas.push("    — ou —");
     });

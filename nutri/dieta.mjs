@@ -9,7 +9,8 @@
  *
  *   refeicao = {
  *     nome, horario, recolhida,
- *     opcoes: [{ rotulo, itens: [{ codigo, nome, quantidade, medida }] }],
+ *     opcoes: [{ rotulo, itens: [{ codigo, nome, quantidade, medida,
+ *                                  substitutos?, igualarPor?, verSubstitutos? }] }],
  *     opcaoAtiva: 0
  *   }
  *
@@ -75,20 +76,104 @@ export function normalizarRefeicao(bruta) {
  */
 export function normalizarItem(bruto) {
   if (!bruto || typeof bruto !== "object") return null;
-  if (bruto.medida && typeof bruto.medida === "object") {
-    return {
-      codigo: bruto.codigo,
-      nome: bruto.nome ?? "",
-      quantidade: Number(bruto.quantidade) || 0,
-      medida: { nome: bruto.medida.nome ?? "g", gramas: Number(bruto.medida.gramas) || 1 },
-    };
+  const base =
+    bruto.medida && typeof bruto.medida === "object"
+      ? {
+          codigo: bruto.codigo,
+          nome: bruto.nome ?? "",
+          quantidade: Number(bruto.quantidade) || 0,
+          medida: { nome: bruto.medida.nome ?? "g", gramas: Number(bruto.medida.gramas) || 1 },
+        }
+      : {
+          codigo: bruto.codigo,
+          nome: bruto.nome ?? "",
+          quantidade: Number(bruto.gramas ?? bruto.quantidade) || 0,
+          medida: { ...MEDIDA_GRAMA },
+        };
+  // Substitutos só aparecem quando existem: o item de sempre continua do
+  // tamanho que era, e a ficha salva não ganha campo vazio à toa.
+  const substitutos = Array.isArray(bruto.substitutos)
+    ? bruto.substitutos.map(normalizarSubstituto).filter(Boolean)
+    : [];
+  if (substitutos.length) {
+    base.substitutos = substitutos;
+    base.igualarPor = CRITERIOS[bruto.igualarPor] ? bruto.igualarPor : CRITERIO_PADRAO;
+    base.verSubstitutos = bruto.verSubstitutos !== false;
   }
+  return base;
+}
+
+// ---------------------------------------------------------------------------
+// Substitutos
+// ---------------------------------------------------------------------------
+
+/**
+ * SUBSTITUTO NÃO É ITEM A MAIS, pelo mesmo motivo da opção: "frango 120 g,
+ * ou peixe, ou patinho" é UM prato de proteína, e a paciente come um. O
+ * substituto mora dentro do item (`item.substitutos`), e por isso
+ * `itensDoDia` nunca o vê — o total do dia continua contando só o frango.
+ *
+ * A QUANTIDADE NÃO É CAMPO, É CONTA. Ela escolhe "patinho" e a gramatura sai
+ * sozinha, igualando o item principal pelo critério escolhido (kcal, por
+ * padrão). Mudou o frango de 120 g para 150 g? Os substitutos acompanham.
+ * Guardar as gramas deixaria a lista desatualizada no primeiro ajuste — e
+ * ninguém confere substituto depois de mexer no principal.
+ */
+
+/** Pelo que se iguala. As chaves são as da tabela (`valorDe`). */
+export const CRITERIOS = {
+  energia_kcal: "kcal",
+  proteina: "proteína",
+  carboidrato: "carboidrato",
+  lipideos: "gordura",
+};
+export const CRITERIO_PADRAO = "energia_kcal";
+
+export function normalizarSubstituto(bruto) {
+  if (!bruto || typeof bruto !== "object" || bruto.codigo === undefined) return null;
+  const m = bruto.medida && typeof bruto.medida === "object" ? bruto.medida : MEDIDA_GRAMA;
   return {
     codigo: bruto.codigo,
     nome: bruto.nome ?? "",
-    quantidade: Number(bruto.gramas ?? bruto.quantidade) || 0,
-    medida: { ...MEDIDA_GRAMA },
+    medida: { nome: m.nome ?? "g", gramas: Number(m.gramas) || 1 },
   };
+}
+
+/**
+ * Arredonda como se escreve numa dieta: em gramas, de 5 em 5 (de 1 em 1
+ * abaixo de 20 g, onde 5 g de azeite a mais já é muita coisa); em medida
+ * caseira, de meia em meia unidade. Nunca zero: "0 unidade de ovo" não é
+ * substituto de nada.
+ */
+export function arredondarPorcao(quantidade, medida) {
+  if (!Number.isFinite(quantidade) || quantidade <= 0) return null;
+  if ((Number(medida?.gramas) || 1) === 1) {
+    const passo = quantidade < 20 ? 1 : 5;
+    return Math.max(passo, Math.round(quantidade / passo) * passo);
+  }
+  return Math.max(0.5, Math.round(quantidade * 2) / 2);
+}
+
+/**
+ * Quanto do substituto equivale ao item.
+ *
+ *   alvo      — quanto o item principal tem do critério (ex.: 195 kcal)
+ *   por100    — quanto o substituto tem do critério em 100 g
+ *   medida    — a medida em que o substituto vai escrito
+ *
+ * Devolve `{ quantidade, gramas }`, ou `null` quando a conta não existe:
+ * a tabela não traz o valor, ou o substituto não tem nada daquilo (igualar
+ * proteína com azeite). Sem conta, a tela diz que não deu — inventar um
+ * número seria prescrever errado com cara de certo.
+ */
+export function porcaoEquivalente(alvo, por100, medida = MEDIDA_GRAMA) {
+  if (alvo === null || alvo === undefined || !Number.isFinite(alvo) || alvo <= 0) return null;
+  if (por100 === null || por100 === undefined || !Number.isFinite(por100) || por100 <= 0) return null;
+  const gramasDaMedida = Number(medida?.gramas) || 1;
+  const gramasExatas = (alvo / por100) * 100;
+  const quantidade = arredondarPorcao(gramasExatas / gramasDaMedida, medida);
+  if (quantidade === null) return null;
+  return { quantidade, gramas: quantidade * gramasDaMedida };
 }
 
 /** Quantos gramas aquele item tem, de verdade. */
