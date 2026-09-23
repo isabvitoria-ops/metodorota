@@ -5,7 +5,6 @@ import { Marca } from "@/central/components/Marca";
 import { FaixaDemonstracao } from "@/central/components/FaixaDemonstracao";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { rotas } from "@/central/rotas";
-import { Painel } from "./Painel";
 import { Pacientes } from "./Pacientes";
 import { Alimentos } from "./Alimentos";
 import { Questionarios } from "./Questionarios";
@@ -16,7 +15,6 @@ import { ConfiguracoesAdmin } from "./Configuracoes";
 import { Desafios } from "./Desafios";
 import { RastreabilidadeAdmin } from "./Rastreabilidade";
 import { Protocolos } from "./Protocolos";
-import { Acompanhamento } from "./Acompanhamento";
 import { Prontuario } from "./Prontuario";
 import { Metas } from "./Metas";
 import { Treinos } from "./Treinos";
@@ -41,8 +39,6 @@ import { Treinos } from "./Treinos";
  * tirar nada de dentro.
  */
 const ABAS = [
-  { rota: rotas.admin, rotulo: "Painel", fim: true },
-  { rota: rotas.adminAcompanhamento, rotulo: "Acompanhamento" },
   { rota: rotas.adminPacientes, rotulo: "Pacientes" },
   { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
   { rota: rotas.adminTreinos, rotulo: "Treino" },
@@ -103,8 +99,17 @@ export function AdminApp() {
               <NavLink
                 key={aba.rota}
                 to={aba.rota}
-                end={aba.fim}
-                className={({ isActive }) => `c-admin-aba ${isActive ? "ativo" : ""}`}
+                className={({ isActive }) =>
+                  // O prontuário mora em /admin/paciente/:id -- sem o "s" --
+                  // e é aberto de dentro de Pacientes. Sem isto, nenhuma aba
+                  // ficava acesa enquanto ela estava na ficha clínica.
+                  `c-admin-aba ${
+                    isActive ||
+                    (aba.rota === rotas.adminPacientes && pathname.startsWith("/admin/paciente/"))
+                      ? "ativo"
+                      : ""
+                  }`
+                }
               >
                 {aba.rotulo}
               </NavLink>
@@ -117,7 +122,10 @@ export function AdminApp() {
             <Navigate to={rotas.home} replace />
           ) : (
             <Routes>
-              <Route index element={<Painel />} />
+              {/* Painel e Acompanhamento viraram a tela de Pacientes. Os
+                  endereços antigos continuam valendo (favorito, link salvo)
+                  e caem nela. */}
+              <Route index element={<Navigate to={rotas.adminPacientes} replace />} />
               <Route path="pacientes" element={<Pacientes />} />
               <Route path="pacientes/:pacienteId" element={<Pacientes />} />
               <Route path="alimentos" element={<Alimentos />} />
@@ -129,7 +137,7 @@ export function AdminApp() {
               <Route path="metas" element={<Metas />} />
               <Route path="questionarios" element={<Questionarios />} />
               <Route path="financeiro" element={<Financeiro />} />
-              <Route path="acompanhamento" element={<Acompanhamento />} />
+              <Route path="acompanhamento" element={<Navigate to={rotas.adminPacientes} replace />} />
               {/* Sem aba propria: a ficha se abre pela lista, clicando na
                   paciente. Uma aba "Prontuario" no menu abriria em branco,
                   perguntando de quem. */}

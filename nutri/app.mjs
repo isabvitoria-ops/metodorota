@@ -362,6 +362,11 @@ function desenharDieta() {
 
     const recolher = document.createElement("button");
     recolher.className = "mini recolher";
+    recolher.setAttribute(
+      "aria-label",
+      refeicao.recolhida ? "Abrir esta refeicao" : "Minimizar esta refeicao",
+    );
+    recolher.setAttribute("aria-expanded", String(!refeicao.recolhida));
     recolher.title = refeicao.recolhida ? "Abrir" : "Recolher";
     recolher.textContent = refeicao.recolhida ? "▸" : "▾";
     recolher.onclick = () => {
@@ -373,6 +378,10 @@ function desenharDieta() {
     const hora = document.createElement("input");
     hora.type = "time";
     hora.className = "hora";
+    // Sem rotulo associado, o leitor de tela anuncia so "campo de hora" e
+    // nao diz de QUAL refeicao -- e numa tela com seis refeicoes isso nao
+    // ajuda ninguem.
+    hora.setAttribute("aria-label", `Horario de ${refeicao.nome || "refeicao"}`);
     hora.value = refeicao.horario ?? "";
     hora.oninput = () => {
       refeicao.horario = hora.value;
@@ -381,6 +390,7 @@ function desenharDieta() {
 
     const nome = document.createElement("input");
     nome.value = refeicao.nome;
+    nome.setAttribute("aria-label", "Nome da refeicao");
     nome.oninput = () => {
       refeicao.nome = nome.value;
       guardarDieta();

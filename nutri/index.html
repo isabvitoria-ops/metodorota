@@ -102,8 +102,31 @@
         background: var(--verde); color: #fff; border: 0; border-radius: 8px;
         padding: 8px 14px; cursor: pointer; font: inherit;
       }
-      button.leve { background: none; color: var(--verde); border: 1px solid var(--borda); }
-      button.mini { background: none; border: 0; color: var(--vinho); cursor: pointer; font: inherit; font-size: 12.5px; padding: 0; }
+      /* `.leve` so trocava cor e borda -- herdava o padding padrao do
+         navegador e ficava com 19px de altura, que o dedo erra. Passa a ter
+         o mesmo tamanho de alvo do `.acao`, que e o botao irmao dele. */
+      button.leve {
+        background: none; color: var(--verde); border: 1px solid var(--borda);
+        border-radius: 8px; padding: 8px 14px; cursor: pointer; font: inherit;
+        min-height: 40px;
+      }
+      /* `padding: 0` deixava estes botoes com 19px de altura -- o dedo erra,
+         e no computador o ponteiro tambem escorrega. O padding cresce o alvo
+         por dentro; a margem negativa devolve o espaco visual, para as linhas
+         nao incharem. */
+      button.mini {
+        background: none; border: 0; color: var(--vinho); cursor: pointer;
+        font: inherit; font-size: 12.5px;
+        padding: 8px 6px; margin: -8px -6px;
+        min-height: 32px;
+      }
+      button.mini:focus-visible { outline: 2px solid var(--vinho); outline-offset: 1px; border-radius: 6px; }
+      /* O triangulo de recolher tinha 17x23. Quadrado e maior, porque e o
+         controle que abre e fecha a refeicao inteira. */
+      button.mini.recolher {
+        min-width: 32px; min-height: 32px;
+        display: inline-flex; align-items: center; justify-content: center;
+      }
       .refeicao { border: 1px solid var(--borda); border-radius: 9px; padding: 12px; margin-bottom: 12px; }
       .refeicao-topo { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
       .refeicao-topo input { font-weight: 600; }
@@ -135,7 +158,10 @@
       .opcoes { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
       .opcao {
         background: none; border: 1px solid var(--borda); border-radius: 999px;
-        padding: 3px 11px; cursor: pointer; font: inherit; font-size: 12.5px; color: inherit;
+        /* 3px de padding deixava a pilula com 27px. Estas trocam a opcao da
+           refeicao inteira -- errar o toque aqui troca o que ela esta vendo. */
+        padding: 8px 14px; cursor: pointer; font: inherit; font-size: 12.5px; color: inherit;
+        min-height: 36px;
       }
       .opcao[aria-pressed="true"] { background: var(--verde); color: #fff; border-color: var(--verde); }
       .resumo-refeicao { margin: 0; }
@@ -182,7 +208,7 @@
         <button type="button" class="leve" id="f-apagar">Apagar esta ficha</button>
         <button type="button" class="leve" id="f-backup">Baixar backup</button>
         <button type="button" class="leve" id="f-restaurar">Restaurar backup</button>
-        <input id="f-arquivo" type="file" accept="application/json,.json" hidden />
+        <input id="f-arquivo" type="file" accept="application/json,.json" aria-label="Arquivo de backup para restaurar" hidden />
       </div>
       <p class="nota" id="f-estado"></p>
     </div>
@@ -250,7 +276,7 @@
         <div class="linha">
           <button type="button" class="leve" id="carregar-tabela">Carregar arquivo da tabela</button>
           <button type="button" class="leve" id="apagar-tabela">Apagar a tabela carregada</button>
-          <input id="arquivo-tabela" type="file" accept="application/json,.json" hidden />
+          <input id="arquivo-tabela" type="file" accept="application/json,.json" aria-label="Arquivo da tabela de alimentos" hidden />
         </div>
         <p class="nota" id="estado-tabela"></p>
         </p>

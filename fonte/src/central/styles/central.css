@@ -1676,6 +1676,9 @@ body:has(.central) {
 
 .c-nav-item span {
   line-height: 1;
+  /* 10,5px era pequeno demais para quem le sem oculos de perto -- e esta
+     barra e o caminho para tudo no aplicativo. */
+  font-size: 11.5px;
 }
 
 /* ---------------------------------------------------------------- resultados da busca */
@@ -1977,6 +1980,11 @@ body:has(.central) {
   color: var(--primary-dark);
   background: none;
   border: none;
+  /* Tinha 21px de altura: o dedo erra. O minimo que a mao acerta sem mirar
+     e 44px, e como a faixa e estreita, o alvo cresce por dentro com padding
+     em vez de empurrar a faixa para baixo. */
+  min-height: 44px;
+  padding: 0 8px;
   padding: 2px 0;
   cursor: pointer;
   text-decoration: underline;
@@ -3545,7 +3553,10 @@ body:has(.central) {
 
 .c-coluna-ordinal {
   display: block;
-  font-size: 10px;
+  /* "1ª", "2ª", "3ª" no cabecalho da avaliacao. Sobe de 10px porque e o
+     rotulo que diz de QUAL consulta e a coluna -- ler errado aqui e
+     comparar a medida de hoje com a de tres meses atras. */
+  font-size: 11.5px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-subtle);
@@ -3915,6 +3926,59 @@ body:has(.central) {
   background: var(--surface-2);
 }
 
+/* A linha da tela única de Pacientes: o botão grande abre o prontuário, e
+   o "Cadastro" fica ao lado, fora dele -- botão dentro de botão não existe
+   em HTML, e o toque cairia no prontuário. */
+.c-paciente-item {
+  display: flex;
+  align-items: stretch;
+}
+
+.c-paciente-item + .c-paciente-item {
+  border-top: 1px solid var(--border);
+}
+
+.c-paciente-item .c-paciente-linha {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.c-paciente-cadastro {
+  flex: 0 0 auto;
+  padding: 0 16px;
+  min-height: 44px;
+  border-left: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.c-paciente-apoio-fraco {
+  color: var(--text-subtle);
+  margin-top: 1px;
+}
+
+.c-metrica-botao {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+.c-metrica-botao span {
+  display: block;
+}
+
+.c-metrica-botao[aria-pressed="true"] {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary) inset;
+}
+
+.c-metrica-botao:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 .c-paciente-avatar {
   flex: 0 0 auto;
   display: flex;
@@ -4056,8 +4120,13 @@ body:has(.central) {
 
 /* Cada numero e o rotulo dele num item so do grid. E a licao do painel da
    calculadora: soltos, o ultimo rotulo ficava numa linha e o valor dele na
-   seguinte, longe do que nomeia. */
-.c-painel-numeros > div {
+   seguinte, longe do que nomeia.
+
+   `> span` entrou junto porque telas mais novas montam o item com `span`, e
+   sem esta linha elas perdiam a centralizacao e o `min-width: 0` -- ou seja,
+   voltavam a ter exatamente o defeito que este bloco existe para evitar. */
+.c-painel-numeros > div,
+.c-painel-numeros > span {
   min-width: 0;
   text-align: center;
 }
@@ -4068,10 +4137,16 @@ body:has(.central) {
   font-variant-numeric: tabular-nums;
 }
 
-.c-painel-numeros span {
+/* O rotulo embaixo do numero. O `small` esta aqui junto porque o navegador
+   encolhe `small` para 0,83 do tamanho herdado -- 11,5px viravam 9,58px, que
+   e pequeno demais para ler, e ninguem percebe olhando o codigo. O tamanho
+   passa a ser o mesmo, venha `span` ou `small`. */
+.c-painel-numeros > span > span,
+.c-painel-numeros > div > span,
+.c-painel-numeros small {
   display: block;
   margin-top: 2px;
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text-muted);
 }
 
@@ -4503,4 +4578,42 @@ body:has(.central) {
 .c-campo-rotulo > input[type="file"] {
   max-width: 100%;
   padding: 10px;
+}
+
+/* Atalhos no topo do prontuário. `scroll-margin-top` porque o topo da área
+   da nutricionista é fixo: sem ele, a seção parava escondida debaixo das abas. */
+.c-atalhos-prontuario {
+  margin: 10px 0 4px;
+}
+
+.c-ancora {
+  scroll-margin-top: 120px;
+}
+
+/* Os quatro números de Pacientes. No celular, um por linha empurrava a lista
+   para fora da primeira tela -- e a lista é o que ela veio ver. Dois por
+   linha, mais baixos. */
+.c-cartoes-compactos {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.c-cartoes-compactos .c-metrica {
+  padding: 12px 14px;
+}
+
+.c-cartoes-compactos .c-metrica-valor {
+  font-size: 26px;
+  margin-top: 4px;
+}
+
+.c-cartoes-compactos .c-metrica-rotulo {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 620px) {
+  .c-cartoes-compactos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }

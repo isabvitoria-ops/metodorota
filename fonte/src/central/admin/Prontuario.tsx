@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { rotas } from "@/central/rotas";
 import type { AvaliacaoFisica } from "@/central/types/protocolo";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta } from "@/central/types/meta";
@@ -46,6 +47,7 @@ const CONSULTA_VAZIA: ConsultaParaSalvar = {
 
 export function Prontuario() {
   const { pacienteId = "" } = useParams();
+  const navegar = useNavigate();
   const { configuracoes } = useSessao();
   const hoje = hojeSaoPaulo();
 
@@ -141,6 +143,32 @@ export function Prontuario() {
         </p>
       </div>
 
+      {/* Atalhos. O prontuário é comprido, e "Exames" morava lá embaixo,
+          depois do check-in: ela procurou uma ABA de exames e não achou,
+          porque é uma seção daqui. Os atalhos deixam tudo à vista no topo. */}
+      <div className="c-chips c-atalhos-prontuario">
+        <button type="button" className="c-chip" onClick={() => navegar(rotas.adminPaciente(paciente.id))}>
+          Cadastro e plano
+        </button>
+        {(
+          [
+            ["prontuario-checkin", "Check-in"],
+            ["prontuario-exames", "Exames"],
+            ["prontuario-carta", "Carta de encaminhamento"],
+            ["prontuario-linha", "Linha do tempo"],
+          ] as const
+        ).map(([id, rotulo]) => (
+          <button
+            key={id}
+            type="button"
+            className="c-chip"
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          >
+            {rotulo}
+          </button>
+        ))}
+      </div>
+
       {/* Os três números que ela olha antes de abrir a porta da sala. */}
       <div className="c-painel-numeros">
         <div>
@@ -190,10 +218,15 @@ export function Prontuario() {
 
       {/* O check-in vem antes do encaminhamento: o que ela relatou nas
           ultimas semanas e o que alimenta a carta, quando houver. */}
-      <CheckinDoPaciente pacienteId={pacienteId} />
+      <div id="prontuario-checkin" className="c-ancora">
+        <CheckinDoPaciente pacienteId={pacienteId} />
+      </div>
 
-      <Exames pacienteId={pacienteId} />
+      <div id="prontuario-exames" className="c-ancora">
+        <Exames pacienteId={pacienteId} />
+      </div>
 
+      <div id="prontuario-carta" className="c-ancora" />
       <CartaDeEncaminhamento
         paciente={paciente.nome}
         nutricionista={configuracoes.nomeNutricionista}
@@ -205,7 +238,7 @@ export function Prontuario() {
         }}
       />
 
-      <section className="c-secao">
+      <section className="c-secao c-ancora" id="prontuario-linha">
         <h2 className="c-secao-titulo">Linha do tempo</h2>
 
         {editando ? (
