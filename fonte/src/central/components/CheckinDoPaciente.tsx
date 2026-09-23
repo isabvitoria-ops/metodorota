@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { QuestionarioDoPaciente } from "@/central/types/questionario";
+import { Link } from "react-router-dom";
 import { repositorio } from "@/central/dados/repositorio";
+import { rotas } from "@/central/rotas";
 import { valorNaEscala, pontuacaoDoEnvio } from "@/central/utils/pontuacaoQuestionario";
 import { carinhaDe, setaDaVariacao } from "@/central/utils/carinhaDaResposta";
 
@@ -53,16 +55,101 @@ export function CheckinDoPaciente({ pacienteId }: { pacienteId: string }) {
   const comResposta = lista.filter((q) => q.envios.length > 0);
   if (carregando) return <p className="c-contagem">Carregando os questionários…</p>;
 
-  // Sem resposta nenhuma a seção some inteira: uma seção vazia dizendo
-  // "nenhum check-in" ocuparia o prontuário para informar o óbvio.
-  if (comResposta.length === 0) return null;
-
   return (
     <>
+      <ModelosDaPaciente
+        pacienteId={pacienteId}
+        lista={lista}
+        aoMudar={(id, atribuido) =>
+          definirLista((atual) => atual.map((q) => (q.id === id ? { ...q, atribuido } : q)))
+        }
+      />
+      {/* Sem resposta nenhuma as tabelas somem: uma tabela vazia dizendo
+          "nenhum check-in" ocuparia o prontuário para informar o óbvio. */}
       {comResposta.map((q) => (
         <TabelaDoQuestionario key={q.id} questionario={q} />
       ))}
     </>
+  );
+}
+
+/**
+ * Qual modelo de check-in esta paciente responde — escolhido daqui mesmo.
+ *
+ * É o caminho de "entrou paciente nova e ela se encaixa naquele modelo":
+ * ela já está no prontuário, marca o modelo e pronto, sem ir a outra tela
+ * procurar o nome numa lista. Mostra os modelos ligados e, dos desligados,
+ * só o que esta paciente ainda tem marcado (para poder desmarcar).
+ */
+function ModelosDaPaciente({
+  pacienteId,
+  lista,
+  aoMudar,
+}: {
+  pacienteId: string;
+  lista: QuestionarioDoPaciente[];
+  aoMudar: (id: string, atribuido: boolean) => void;
+}) {
+  const [aviso, definirAviso] = useState<string | null>(null);
+  const [erro, definirErro] = useState<string | null>(null);
+  const [ocupado, definirOcupado] = useState<string | null>(null);
+  const visiveis = lista.filter((q) => q.ativo || q.atribuido);
+
+  async function alternar(q: QuestionarioDoPaciente) {
+    definirOcupado(q.id);
+    definirErro(null);
+    try {
+      // O estado GRAVADO, não o que o clique pediu.
+      const estado = await repositorio.definirQuestionarioDoPaciente(q.id, pacienteId, !q.atribuido);
+      aoMudar(q.id, estado);
+      definirAviso(estado ? `“${q.titulo}” liberado para ela.` : `“${q.titulo}” desligado para ela.`);
+    } catch (e) {
+      definirErro(e instanceof Error ? e.message : "Não consegui mudar.");
+    } finally {
+      definirOcupado(null);
+    }
+  }
+
+  return (
+    <section className="c-secao">
+      <h2 className="c-secao-titulo">Check-in</h2>
+      {visiveis.length === 0 ? (
+        <p className="c-dica" style={{ marginTop: 0 }}>
+          Nenhum modelo de check-in criado ainda.{" "}
+          <Link to={rotas.adminQuestionarios}>Criar um modelo</Link>
+        </p>
+      ) : (
+        <>
+          <p className="c-dica" style={{ marginTop: 0 }}>
+            Marque o modelo que ela responde. Vale na hora. Para criar ou mudar um modelo,{" "}
+            <Link to={rotas.adminQuestionarios}>vá em Check-in</Link>.
+          </p>
+          {visiveis.map((q) => (
+            <label key={q.id} className="c-acesso-linha">
+              <input
+                type="checkbox"
+                checked={q.atribuido}
+                disabled={ocupado === q.id}
+                onChange={() => void alternar(q)}
+              />
+              <span>
+                {q.titulo}
+                <span className="c-dica" style={{ display: "block", margin: 0 }}>
+                  {q.periodicidade === "semanal" ? "Toda semana" : "Uma vez só"} ·{" "}
+                  {q.perguntas.length} {q.perguntas.length === 1 ? "pergunta" : "perguntas"}
+                  {!q.ativo && " · modelo desligado"}
+                </span>
+              </span>
+            </label>
+          ))}
+        </>
+      )}
+      {(aviso || erro) && (
+        <div className={`c-aviso ${erro ? "c-aviso-erro" : "c-aviso-ok"}`} role="status">
+          <span>{erro ?? aviso}</span>
+        </div>
+      )}
+    </section>
   );
 }
 

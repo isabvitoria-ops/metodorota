@@ -43,7 +43,7 @@ const ABAS = [
   { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
   { rota: rotas.adminTreinos, rotulo: "Treino" },
   { rota: rotas.adminMetas, rotulo: "Metas" },
-  { rota: rotas.adminQuestionarios, rotulo: "Questionários" },
+  { rota: rotas.adminQuestionarios, rotulo: "Check-in" },
   { rota: rotas.adminFinanceiro, rotulo: "Cobrança" },
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
   { rota: rotas.adminDesafios, rotulo: "Desafio" },

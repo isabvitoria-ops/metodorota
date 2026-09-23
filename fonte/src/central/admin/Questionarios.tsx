@@ -20,6 +20,12 @@ import { alternar, todas, moverRecolhidas, removerRecolhida } from "@/central/ut
  * lista fixa é sempre a lista que faltou no dia em que ela precisou de
  * outra coisa. Ela escreve as perguntas.
  *
+ * CADA CHECK-IN É UM MODELO. Ela monta uma vez, salva e libera para quantas
+ * pacientes quiser; paciente nova que "se encaixa" naquele modelo recebe o
+ * mesmo com um clique (aqui, em "Liberar para", ou no prontuário dela).
+ * Quer um parecido mas diferente? "Duplicar" copia as perguntas para um
+ * modelo novo, sem mexer no original nem em quem já responde o original.
+ *
  * O PESO E A INVERSÃO só aparecem aqui, e nunca para a paciente. São a
  * régua com que a pontuação é contada, e saber que uma pergunta "vale mais"
  * muda a resposta de quem responde.
@@ -32,6 +38,10 @@ const TIPOS: { valor: TipoDePergunta; rotulo: string }[] = [
   { valor: "texto", rotulo: "Texto livre" },
   { valor: "escolha", rotulo: "Escolha entre opções" },
 ];
+
+function semAcento(t: string): string {
+  return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
 
 function perguntaVazia(): PerguntaQuestionario {
   return {
@@ -74,7 +84,10 @@ export function Questionarios() {
     void carregar();
   }, [carregar]);
 
+  const [avisoDoEditor, definirAvisoDoEditor] = useState<string | null>(null);
+
   function novo(periodicidade: PeriodicidadeQuestionario) {
+    definirAvisoDoEditor(null);
     definirEditando({
       id: "",
       titulo: periodicidade === "semanal" ? "Check-in da semana" : "",
@@ -88,12 +101,52 @@ export function Questionarios() {
     });
   }
 
+  /**
+   * Cópia com as mesmas perguntas, pesos e inversões — mas SEM id, sem
+   * respostas e sem ninguém liberado: é um modelo novo, e quem responde o
+   * original continua respondendo o original.
+   */
+  function duplicar(base: Questionario) {
+    definirAvisoDoEditor(
+      "Esta é uma cópia, ainda não salva. Mude o que quiser, salve e depois escolha para quem liberar.",
+    );
+    definirEditando({
+      ...base,
+      id: "",
+      titulo: `${base.titulo} (cópia)`,
+      criadoEm: "",
+      pacientes: 0,
+      respostas: 0,
+      ativo: true,
+      perguntas: base.perguntas.map((p) => ({ ...p, id: null, respondida: false })),
+    });
+  }
+
   if (editando) {
     return (
       <EditorDeQuestionario
+        key={editando.id || "novo"}
         questionario={editando}
         pacientes={pacientes}
+        avisoInicial={avisoDoEditor}
+        aoDuplicar={duplicar}
+        aoSalvarNovo={async (id) => {
+          // Modelo novo continua aberto, agora com "Liberar para" à vista:
+          // o passo seguinte a criar é escolher quem responde, e voltar à
+          // lista para abrir de novo seria um caminho a mais.
+          try {
+            const qs = await repositorio.listarQuestionarios();
+            definirLista(qs);
+            const salvo = qs.find((q) => q.id === id);
+            definirAvisoDoEditor("Modelo salvo. Agora marque para quem liberar, logo abaixo.");
+            definirEditando(salvo ?? null);
+          } catch {
+            definirEditando(null);
+            void carregar();
+          }
+        }}
         aoFechar={() => {
+          definirAvisoDoEditor(null);
           definirEditando(null);
           void carregar();
         }}
@@ -103,10 +156,12 @@ export function Questionarios() {
 
   return (
     <>
-      <h1 className="c-titulo">Questionários</h1>
+      <h1 className="c-titulo">Check-in e questionários</h1>
       <p className="c-dica">
-        Um check-in semanal volta toda segunda-feira; um questionário de vez única é
-        respondido uma vez só. As perguntas são suas — não existe lista pronta aqui.
+        Cada check-in é um <strong>modelo</strong>: você monta uma vez, salva e libera para
+        quantas pacientes quiser. Paciente nova que se encaixa num modelo? Abra o modelo e
+        marque o nome dela — ou marque no prontuário dela. Para um parecido mas diferente,
+        abra e toque em <strong>Duplicar</strong>.
       </p>
 
       {erro && (
@@ -116,7 +171,7 @@ export function Questionarios() {
       )}
       <div className="c-barra-recolher" style={{ justifyContent: "flex-start", gap: 12 }}>
         <button type="button" className="c-botao" onClick={() => novo("semanal")}>
-          + Check-in semanal
+          + Novo modelo de check-in
         </button>
         <button type="button" className="c-botao c-botao-secundario" onClick={() => novo("unica")}>
           + Questionário de vez única
@@ -127,7 +182,7 @@ export function Questionarios() {
 
       {!carregando && lista.length === 0 && (
         <p className="c-dica">
-          Nenhum questionário ainda. Comece pelo check-in semanal: três ou quatro perguntas
+          Nenhum modelo ainda. Comece por um check-in semanal: três ou quatro perguntas
           curtas já dão uma série que mostra a evolução de semana a semana.
         </p>
       )}
@@ -169,10 +224,16 @@ export function Questionarios() {
 function EditorDeQuestionario({
   questionario,
   pacientes,
+  avisoInicial,
+  aoDuplicar,
+  aoSalvarNovo,
   aoFechar,
 }: {
   questionario: Questionario;
   pacientes: Paciente[];
+  avisoInicial: string | null;
+  aoDuplicar: (base: Questionario) => void;
+  aoSalvarNovo: (id: string) => Promise<void>;
   aoFechar: () => void;
 }) {
   const novoQuestionario = questionario.id === "";
@@ -185,8 +246,10 @@ function EditorDeQuestionario({
   const [recolhidas, definirRecolhidas] = useState<ReadonlySet<number>>(new Set<number>());
   const [atribuidas, definirAtribuidas] = useState<Set<string>>(new Set());
   const [salvando, definirSalvando] = useState(false);
-  const [aviso, definirAviso] = useState<string | null>(null);
+  const [aviso, definirAviso] = useState<string | null>(avisoInicial);
   const [erro, definirErro] = useState<string | null>(null);
+  const [busca, definirBusca] = useState("");
+  const [carregouAtribuidas, definirCarregouAtribuidas] = useState(novoQuestionario);
 
   useEffect(() => {
     if (novoQuestionario) return;
@@ -203,7 +266,10 @@ function EditorDeQuestionario({
           /* uma paciente que não carregou não pode derrubar a tela inteira */
         }
       }
-      if (vivo) definirAtribuidas(marcadas);
+      if (vivo) {
+        definirAtribuidas(marcadas);
+        definirCarregouAtribuidas(true);
+      }
     })();
     return () => {
       vivo = false;
@@ -227,7 +293,7 @@ function EditorDeQuestionario({
     definirSalvando(true);
     definirErro(null);
     try {
-      await repositorio.salvarQuestionario(
+      const id = await repositorio.salvarQuestionario(
         novoQuestionario ? null : questionario.id,
         titulo.trim(),
         descricao.trim() || null,
@@ -235,7 +301,8 @@ function EditorDeQuestionario({
         ativo,
         limpas,
       );
-      aoFechar();
+      if (novoQuestionario) await aoSalvarNovo(id);
+      else aoFechar();
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui salvar.");
       definirSalvando(false);
@@ -255,7 +322,9 @@ function EditorDeQuestionario({
       if (estado) proximo.add(pacienteId);
       else proximo.delete(pacienteId);
       definirAtribuidas(proximo);
-      definirAviso(estado ? "Questionário ligado para esta paciente." : "Desligado para esta paciente.");
+      const nome = pacientes.find((p) => p.id === pacienteId)?.nome ?? "esta paciente";
+      definirErro(null);
+      definirAviso(estado ? `Liberado para ${nome}.` : `Desligado para ${nome}.`);
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui mudar a atribuição.");
     }
@@ -263,13 +332,38 @@ function EditorDeQuestionario({
 
   return (
     <>
-      <button type="button" className="c-link" onClick={aoFechar}>
-        ← Voltar aos questionários
-      </button>
+      <div className="c-barra-recolher" style={{ justifyContent: "space-between" }}>
+        <button type="button" className="c-link" onClick={aoFechar}>
+          ← Voltar aos modelos
+        </button>
+        {!novoQuestionario && (
+          <button
+            type="button"
+            className="c-chip"
+            onClick={() =>
+              aoDuplicar({ ...questionario, titulo: titulo.trim() || questionario.titulo, descricao: descricao.trim() || null, perguntas })
+            }
+          >
+            Duplicar modelo
+          </button>
+        )}
+      </div>
 
       <h1 className="c-titulo" style={{ marginTop: 8 }}>
-        {questionario.periodicidade === "semanal" ? "Check-in semanal" : "Questionário"}
+        {novoQuestionario
+          ? questionario.periodicidade === "semanal"
+            ? "Novo modelo de check-in"
+            : "Novo questionário"
+          : questionario.periodicidade === "semanal"
+            ? "Modelo de check-in"
+            : "Questionário"}
       </h1>
+
+      {novoQuestionario && aviso && (
+        <div className="c-aviso c-aviso-ok" role="status">
+          <span>{aviso}</span>
+        </div>
+      )}
 
       <Campo rotulo="Título">
         <Texto valor={titulo} aoMudar={definirTitulo} placeholder="Check-in da semana" />
@@ -360,7 +454,7 @@ function EditorDeQuestionario({
         + Acrescentar pergunta
       </button>
 
-      {(aviso || erro) && (
+      {(erro || (aviso && !novoQuestionario)) && (
         <div className={`c-aviso ${erro ? "c-aviso-erro" : "c-aviso-ok"}`} role="status">
           <span>{erro ?? aviso}</span>
         </div>
@@ -373,29 +467,49 @@ function EditorDeQuestionario({
         onClick={() => void salvar()}
         disabled={salvando}
       >
-        {salvando ? "Salvando…" : "Salvar questionário"}
+        {salvando ? "Salvando…" : novoQuestionario ? "Salvar modelo" : "Salvar alterações"}
       </button>
+      {novoQuestionario && (
+        <p className="c-dica">Depois de salvar, aparece a lista para você escolher quem responde.</p>
+      )}
 
       {!novoQuestionario && (
         <>
-          <h2 className="c-secao-titulo" style={{ marginTop: 26 }}>
-            Quem responde
+          <h2 id="liberar-para" className="c-secao-titulo" style={{ marginTop: 26 }}>
+            Liberar para
+            {carregouAtribuidas && (
+              <span className="c-contagem" style={{ marginLeft: 8, fontWeight: 400 }}>
+                {atribuidas.size === 0
+                  ? "ninguém ainda"
+                  : `${atribuidas.size} ${atribuidas.size === 1 ? "paciente" : "pacientes"}`}
+              </span>
+            )}
           </h2>
           <p className="c-dica" style={{ marginTop: 0 }}>
-            Desligar para uma paciente é “pare de perguntar”, e não “esqueça o que ela
-            disse”: as respostas dela continuam no prontuário.
+            Marque quem responde este modelo. Vale na hora, sem precisar salvar. Desmarcar é
+            “pare de perguntar”, e não “esqueça o que ela disse”: as respostas continuam no
+            prontuário.
           </p>
           {pacientes.length === 0 && <p className="c-dica">Nenhuma paciente cadastrada ainda.</p>}
-          {pacientes.map((p) => (
-            <label key={p.id} className="c-acesso-linha">
-              <input
-                type="checkbox"
-                checked={atribuidas.has(p.id)}
-                onChange={() => void alternarPaciente(p.id)}
-              />
-              <span>{p.nome}</span>
-            </label>
-          ))}
+          {pacientes.length > 8 && (
+            <Campo rotulo="Procurar paciente">
+              <Texto valor={busca} aoMudar={definirBusca} placeholder="Nome" />
+            </Campo>
+          )}
+          {!carregouAtribuidas && <p className="c-contagem">Carregando quem já responde…</p>}
+          {carregouAtribuidas &&
+            pacientes
+              .filter((p) => semAcento(p.nome).includes(semAcento(busca.trim())))
+              .map((p) => (
+                <label key={p.id} className="c-acesso-linha">
+                  <input
+                    type="checkbox"
+                    checked={atribuidas.has(p.id)}
+                    onChange={() => void alternarPaciente(p.id)}
+                  />
+                  <span>{p.nome}</span>
+                </label>
+              ))}
         </>
       )}
     </>
