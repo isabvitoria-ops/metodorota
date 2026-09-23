@@ -58,30 +58,78 @@ export function diasDeAtraso(cobranca: Cobranca, hoje: string): number | null {
 }
 
 /**
- * A mensagem pronta de cobrança, para o WhatsApp.
+ * A mensagem pronta de cobrança — com cara de AVISO DO SISTEMA.
  *
- * O TOM É O PONTO. Ela cobra pessoas que atende clinicamente, algumas com
- * transtorno alimentar, e a mensagem sai com o nome dela embaixo. Então:
- * nenhuma ameaça, nenhum "regularize", nenhum "sob pena de". É um lembrete
- * entre duas pessoas que se conhecem.
+ * Pedido dela: "não gosto de cobrar as pessoas… pareça que foi o sistema,
+ * como se fosse um bot". Então a mensagem não vem assinada por ela, vem da
+ * Central, e diz que é automática. Isso separa a cobrança da relação
+ * clínica, que é o que ela quer proteger.
  *
- * E o texto NÃO É ENVIADO SOZINHO: ele abre o WhatsApp com a mensagem
- * escrita, e ela lê, edita se quiser, e aperta enviar. Disparo automático
- * de cobrança clínica é exatamente o tipo de coisa que um dia sai errado
- * com a pessoa errada no dia errado.
+ * O TOM continua sendo o ponto: ela cobra pessoas que atende, algumas com
+ * transtorno alimentar. Nenhuma ameaça, nenhum "regularize", e sempre a
+ * saída de "se já pagou, desconsidere".
+ *
+ * O WhatsApp entende *negrito* e _itálico_; o e-mail do `mailto:` é texto
+ * puro e mostraria os asteriscos. Por isso há os dois formatos.
  */
-export function mensagemDeCobranca(cobranca: Cobranca, nutricionista: string): string {
-  const primeiroNome = cobranca.paciente.split(" ")[0] ?? cobranca.paciente;
+export interface OpcoesDaMensagem {
+  /** O nome que aparece como remetente — o da Central, não o dela. */
+  nomeCentral: string;
+  /** Vazia = a mensagem não fala de PIX. */
+  chavePix?: string;
+  formato?: "whatsapp" | "email";
+}
+
+export function mensagemDeCobranca(cobranca: Cobranca, opcoes: OpcoesDaMensagem): string {
+  const whats = (opcoes.formato ?? "whatsapp") === "whatsapp";
+  const negrito = (t: string) => (whats ? `*${t}*` : t);
+  const central = opcoes.nomeCentral.trim() || "Central do Paciente";
+  const primeiroNome = cobranca.paciente.trim().split(/\s+/)[0] || cobranca.paciente;
+  const pix = (opcoes.chavePix ?? "").trim();
+
   const linhas = [
-    `Oi, ${primeiroNome}! Tudo bem?`,
+    whats ? `🔔 ${negrito(`Aviso automático — ${central}`)}` : `Aviso automático — ${central}`,
     "",
-    `Passando para lembrar do acompanhamento de ${mesPorExtenso(cobranca.competencia)}, ` +
-      `no valor de ${reais(cobranca.valor)}, com vencimento em ${dia(cobranca.vencimento)}.`,
+    `Olá, ${primeiroNome}!`,
     "",
-    "Se já tiver pago, pode ignorar esta mensagem. Qualquer coisa, é só me falar.",
+    `Este é um lembrete automático do acompanhamento de ${mesPorExtenso(cobranca.competencia)}:`,
+    "",
+    `• Valor: ${negrito(reais(cobranca.valor))}`,
+    `• Vencimento: ${negrito(dia(cobranca.vencimento))}`,
   ];
-  if (nutricionista.trim()) linhas.push("", nutricionista.trim());
+  if (pix) linhas.push(`• Chave PIX: ${pix}`);
+  linhas.push(
+    "",
+    "Se o pagamento já foi feito, é só desconsiderar esta mensagem.",
+    "",
+    whats
+      ? "_Mensagem gerada automaticamente pelo sistema._"
+      : "Mensagem gerada automaticamente pelo sistema.",
+  );
   return linhas.join("\n");
+}
+
+/** O assunto do e-mail — também com cara de sistema. */
+export function assuntoDaCobranca(cobranca: Cobranca, nomeCentral: string): string {
+  const central = nomeCentral.trim() || "Central do Paciente";
+  return `[${central}] Lembrete automático — acompanhamento de ${mesPorExtenso(cobranca.competencia)}`;
+}
+
+/**
+ * O endereço que abre o e-mail com assunto e texto escritos.
+ *
+ * `mailto:` abre o aplicativo de e-mail DELA, com a mensagem pronta; quem
+ * aperta enviar é ela. E-mail que sai sozinho precisaria de um serviço de
+ * envio (Resend, por exemplo) com conta e chave dela — ver o cabeçalho do
+ * Financeiro.
+ */
+export function linkDoEmail(email: string | null, assunto: string, mensagem: string): string | null {
+  const destino = (email ?? "").trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destino)) return null;
+  return (
+    `mailto:${encodeURIComponent(destino).replace(/%40/g, "@")}` +
+    `?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(mensagem)}`
+  );
 }
 
 /**

@@ -427,9 +427,13 @@ export const repositorioLocal: Repositorio = {
       ["nome_central", configuracoes.nomeCentral],
       ["frase_home", configuracoes.fraseHome],
       ["lema", configuracoes.lema],
+      // Faltava: a frase de Comer fora salvava na tela e voltava ao padrão
+      // ao recarregar a demonstração.
+      ["comer_fora_introducao", configuracoes.comerForaIntroducao],
       ["whatsapp", configuracoes.whatsapp],
       ["nome_nutricionista", configuracoes.nomeNutricionista],
       ["alerta_vencimento_dias", configuracoes.alertaVencimentoDias],
+      ["chave_pix", configuracoes.chavePix],
     ]);
   },
 
@@ -1589,8 +1593,16 @@ export const repositorioLocal: Repositorio = {
   async painelFinanceiro(): Promise<PainelFinanceiro> {
     const hoje = hojeLocal();
     const mes = `${hoje.slice(0, 7)}-01`;
+    // Telefone e e-mail vêm da ficha, como no banco: quem corrige o número
+    // na ficha não precisa gerar a cobrança de novo.
+    const fichas = new Map(mesclar(pacientesDaSemente(), guardaPacientes.ler()).map((p) => [p.id, p]));
     const cobrancas = guardaCobrancas.ler().map((c) => ({
       ...c,
+      telefone: fichas.get(c.pacienteId)?.telefone ?? c.telefone ?? null,
+      email: fichas.get(c.pacienteId)?.email ?? c.email ?? null,
+      // Cobranças gravadas antes do lembrete existir não têm os campos.
+      lembradaEm: c.lembradaEm ?? null,
+      lembretes: c.lembretes ?? 0,
       // "atrasada" é CONTA, não coluna — igual ao banco. Ver a 0043.
       situacao:
         c.status === "paga"
@@ -1652,6 +1664,9 @@ export const repositorioLocal: Repositorio = {
         pacienteId: v.id,
         paciente: v.nome,
         telefone: v.telefone,
+        email: null,
+        lembradaEm: null,
+        lembretes: 0,
         competencia: mes,
         valor: v.valorMensal,
         vencimento: `${mes.slice(0, 7)}-${d}`,
@@ -1724,6 +1739,21 @@ export const repositorioLocal: Repositorio = {
       guardaRecebimentos.escrever(guardaRecebimentos.ler().filter((r) => r.cobrancaId !== id));
     }
     return mudou;
+  },
+
+  async registrarLembreteCobranca(id: string) {
+    const agora = new Date().toISOString();
+    let resultado: { lembradaEm: string; lembretes: number } | null = null;
+    guardaCobrancas.escrever(
+      guardaCobrancas.ler().map((c) => {
+        // Só em aberto, igual ao banco.
+        if (c.id !== id || c.status !== "aberta") return c;
+        resultado = { lembradaEm: agora, lembretes: (c.lembretes ?? 0) + 1 };
+        return { ...c, ...resultado };
+      }),
+    );
+    if (!resultado) throw new Error("Essa cobrança não está em aberto.");
+    return resultado;
   },
 
   async definirValorDoPaciente(pacienteId: string, valor: number | null, dia: number | null) {

@@ -23,6 +23,7 @@ export function ConfiguracoesAdmin() {
   const [whatsapp, definirWhatsapp] = useState(configuracoes.whatsapp);
   const [nomeNutricionista, definirNome] = useState(configuracoes.nomeNutricionista);
   const [alerta, definirAlerta] = useState(String(configuracoes.alertaVencimentoDias));
+  const [chavePix, definirChavePix] = useState(configuracoes.chavePix);
   const [aviso, definirAviso] = useState<string | null>(null);
 
   const numeroLimpo = whatsapp.replace(/\D/g, "");
@@ -43,6 +44,7 @@ export function ConfiguracoesAdmin() {
         whatsapp: numeroLimpo,
         nomeNutricionista: nomeNutricionista.trim(),
         alertaVencimentoDias: Math.max(1, Number(alerta) || 15),
+        chavePix: chavePix.trim(),
       });
     });
     if (deuCerto) {
@@ -88,6 +90,12 @@ export function ConfiguracoesAdmin() {
           dica="Quantos dias antes do fim o paciente entra na lista de 'precisam de atenção'."
         >
           <Texto valor={alerta} aoMudar={definirAlerta} />
+        </Campo>
+        <Campo
+          rotulo="Chave PIX"
+          dica="Vai no lembrete automático de cobrança. Deixe em branco para o lembrete não falar de PIX."
+        >
+          <Texto valor={chavePix} aoMudar={definirChavePix} placeholder="e-mail, CPF, CNPJ ou telefone" />
         </Campo>
 
         {(aviso || erro) && (

@@ -53,4 +53,11 @@ export const CONFIGURACOES: Configuracao[] = [
     valor: 15,
     descricao: "A partir de quantos dias antes do fim o paciente entra em 'próximo do vencimento'.",
   },
+  {
+    chave: "chave_pix",
+    // Vazia de propósito: a chave é dela, e uma inventada iria parar na
+    // mensagem de cobrança.
+    valor: "",
+    descricao: "Chave PIX que vai no lembrete automático de cobrança. Em branco = o lembrete não fala de PIX.",
+  },
 ];

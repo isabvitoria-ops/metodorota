@@ -372,6 +372,7 @@ export const repositorioSupabase: Repositorio = {
       { chave: "whatsapp", valor: configuracoes.whatsapp },
       { chave: "nome_nutricionista", valor: configuracoes.nomeNutricionista },
       { chave: "alerta_vencimento_dias", valor: configuracoes.alertaVencimentoDias },
+      { chave: "chave_pix", valor: configuracoes.chavePix },
     ];
     const { error } = await sb.from("configuracoes").upsert(linhas);
     erro("salvar configurações", error);
@@ -1652,6 +1653,14 @@ export const repositorioSupabase: Repositorio = {
     return data === true;
   },
 
+  async registrarLembreteCobranca(id: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("registrar_lembrete_cobranca", { p_id: id });
+    erro("registrar o lembrete", error);
+    const l = (data ?? {}) as Linha;
+    return { lembradaEm: texto(l.lembradaEm), lembretes: numero(l.lembretes) };
+  },
+
   async definirValorDoPaciente(pacienteId: string, valor: number | null, dia: number | null) {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("definir_valor_do_paciente", {
@@ -1923,6 +1932,9 @@ function paraCobranca(l: Linha): Cobranca {
     pacienteId: texto(l.pacienteId),
     paciente: texto(l.paciente),
     telefone: textoOuNulo(l.telefone),
+    email: textoOuNulo(l.email),
+    lembradaEm: textoOuNulo(l.lembradaEm),
+    lembretes: numero(l.lembretes),
     competencia: texto(l.competencia),
     valor: numero(l.valor),
     vencimento: texto(l.vencimento),

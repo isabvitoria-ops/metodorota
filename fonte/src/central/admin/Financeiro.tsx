@@ -22,7 +22,9 @@ import {
   alturasDasBarras,
   diasDeAtraso,
   mensagemDeCobranca,
+  assuntoDaCobranca,
   linkDoWhatsapp,
+  linkDoEmail,
   FORMAS_DE_PAGAMENTO,
 } from "@/central/utils/cobranca";
 
@@ -33,12 +35,16 @@ import {
  * Isto é o controle: quem deve, quanto, desde quando, e quem já pagou.
  * Ver o cabeçalho da migração 0043 para por que não é gateway.
  *
- * O LEMBRETE É wa.me, E A MENSAGEM NÃO SAI SOZINHA. O botão abre o
- * WhatsApp com o texto escrito; ela lê, edita se quiser, e aperta enviar.
- * Disparo automático de cobrança para quem ela atende clinicamente é
- * exatamente o tipo de coisa que um dia sai errado com a pessoa errada no
- * dia errado. Custa R$ 0 e a arquitetura deixa a API oficial entrar depois
- * sem refazer nada.
+ * O BOTÃO "COBRAR" abre, de uma vez, o WhatsApp (wa.me) e o e-mail
+ * (mailto:) da paciente com a mensagem escrita — uma mensagem com cara de
+ * aviso do sistema, a pedido dela. O último passo, apertar enviar, continua
+ * sendo dela, e isso é o limite do gratuito, não uma escolha de tela:
+ *   - WhatsApp que sai sozinho só pela API oficial (Meta/Twilio), que é
+ *     paga por mensagem e exige número comercial verificado;
+ *   - e-mail que sai sozinho precisa de um serviço de envio (Resend, por
+ *     exemplo) com conta e chave dela, numa Edge Function.
+ * Se um dia entrar um dos dois, troca-se o que o botão faz; a tela, o
+ * texto e o registro do lembrete (migração 0047) ficam como estão.
  *
  * A PACIENTE NÃO VÊ NADA DISTO — não há função que devolva cobrança para o
  * lado dela. Aviso de dívida dentro do aplicativo de acompanhamento
@@ -46,10 +52,10 @@ import {
  * sintoma.
  */
 export function Financeiro() {
-  // O nome dela assina o lembrete do WhatsApp. Vem da sessão, que é por
-  // onde o resto da Central já lê as configurações.
+  // O nome da Central (e não o dela) assina o lembrete, e a chave PIX vai
+  // junto. Vêm da sessão, que é por onde o resto da Central lê as
+  // configurações.
   const { configuracoes } = useSessao();
-  const nutricionista = configuracoes.nomeNutricionista;
   const [painel, definirPainel] = useState<PainelFinanceiro | null>(null);
   const [valores, definirValores] = useState<ValorDoPaciente[]>([]);
   const [balanco, definirBalanco] = useState<Balanco | null>(null);
@@ -108,8 +114,9 @@ export function Financeiro() {
       <h1 className="c-titulo">Cobrança</h1>
       <p className="c-dica">
         Seu caixa e seu controle de quem pagou. O dinheiro continua entrando por fora — PIX,
-        maquininha, o que você já usa. Suas pacientes não veem nada desta tela, e nenhuma
-        cobrança sai daqui sozinha: o lembrete só vai quando você toca em enviar.
+        maquininha, o que você já usa. Suas pacientes não veem nada desta tela. O botão
+        Cobrar abre o WhatsApp e o e-mail dela com um aviso automático do sistema, sem o seu
+        nome — você só toca em enviar.
       </p>
 
       {erro && (
@@ -216,7 +223,8 @@ export function Financeiro() {
             <LinhaDaCobranca
               key={c.id}
               cobranca={c}
-              nutricionista={nutricionista}
+              nomeCentral={configuracoes.nomeCentral}
+              chavePix={configuracoes.chavePix}
               aoMudar={carregar}
               aoErrar={definirErro}
             />
@@ -252,18 +260,32 @@ export function Financeiro() {
 
 function LinhaDaCobranca({
   cobranca,
-  nutricionista,
+  nomeCentral,
+  chavePix,
   aoMudar,
   aoErrar,
 }: {
   cobranca: Cobranca;
-  nutricionista: string;
+  nomeCentral: string;
+  chavePix: string;
   aoMudar: () => void | Promise<void>;
   aoErrar: (m: string) => void;
 }) {
   const [ocupado, definirOcupado] = useState(false);
+  const [lembrete, definirLembrete] = useState({
+    em: cobranca.lembradaEm,
+    vezes: cobranca.lembretes,
+  });
   const atraso = diasDeAtraso(cobranca, hojeSaoPaulo());
-  const link = linkDoWhatsapp(cobranca.telefone, mensagemDeCobranca(cobranca, nutricionista));
+  const whatsapp = linkDoWhatsapp(
+    cobranca.telefone,
+    mensagemDeCobranca(cobranca, { nomeCentral, chavePix, formato: "whatsapp" }),
+  );
+  const email = linkDoEmail(
+    cobranca.email,
+    assuntoDaCobranca(cobranca, nomeCentral),
+    mensagemDeCobranca(cobranca, { nomeCentral, chavePix, formato: "email" }),
+  );
 
   async function agir(acao: () => Promise<unknown>) {
     definirOcupado(true);
@@ -277,6 +299,48 @@ function LinhaDaCobranca({
     }
   }
 
+  /**
+   * Anota o lembrete SEM recarregar a lista: recarregar no meio da ida ao
+   * WhatsApp faria a linha piscar, e ela voltaria sem saber se deu certo.
+   * Se a anotação falhar, a mensagem já abriu — o erro só avisa que o
+   * "lembrada em" não foi gravado.
+   */
+  function anotar() {
+    repositorio
+      .registrarLembreteCobranca(cobranca.id)
+      .then((r) => definirLembrete({ em: r.lembradaEm, vezes: r.lembretes }))
+      .catch((e: unknown) =>
+        aoErrar(
+          e instanceof Error
+            ? `A mensagem abriu, mas não anotei o lembrete: ${e.message}`
+            : "A mensagem abriu, mas não anotei o lembrete.",
+        ),
+      );
+  }
+
+  /**
+   * Os dois de uma vez. O WhatsApp abre em outra aba; o e-mail, nesta —
+   * `mailto:` não sai da página, só chama o aplicativo de e-mail. Abrir os
+   * dois como abas novas faria o bloqueador de janelas barrar o segundo.
+   * No celular, o e-mail pode só abrir quando ela voltar do WhatsApp; por
+   * isso os botões separados continuam logo ao lado.
+   */
+  function cobrar() {
+    if (whatsapp) window.open(whatsapp, "_blank", "noopener");
+    if (email) {
+      const abrir = () => {
+        window.location.href = email;
+      };
+      if (whatsapp) window.setTimeout(abrir, 700);
+      else abrir();
+    }
+    anotar();
+  }
+
+  // O dia do lembrete em São Paulo: o banco grava em UTC, e depois das 21h
+  // o "hoje" em UTC já é amanhã.
+  const lembradaHoje = lembrete.em !== null && diaEmSaoPaulo(lembrete.em) === hojeSaoPaulo();
+
   return (
     <div className="c-bloco">
       <div className="c-bloco-topo">
@@ -289,6 +353,14 @@ function LinhaDaCobranca({
             {cobranca.pagoEm && ` · pago em ${dia(cobranca.pagoEm)}`}
             {cobranca.forma && ` (${cobranca.forma})`}
           </span>
+          {cobranca.status === "aberta" && lembrete.em && (
+            <span className="c-lista-item-apoio c-cobranca-lembrete">
+              {/* "Cobrou", e não "enviado": o que se sabe é que ela apertou
+                  o botão, não que apertou enviar no WhatsApp. */}
+              Você cobrou {lembradaHoje ? `hoje, ${horaCurta(lembrete.em)}` : `em ${dataCurta(lembrete.em)}`}
+              {lembrete.vezes > 1 && ` · ${lembrete.vezes} vezes no total`}
+            </span>
+          )}
         </span>
         <span className={`c-selo ${cobranca.situacao === "paga" ? "melhor" : "ocasional"}`}>
           {textoDaSituacao(cobranca.situacao)}
@@ -299,6 +371,36 @@ function LinhaDaCobranca({
         <div className="c-chips" style={{ marginTop: 8 }}>
           {cobranca.status === "aberta" ? (
             <>
+              {/* Sem telefone nem e-mail o botão NÃO aparece — botão que
+                  não faz nada quando clicado é pior do que botão ausente. */}
+              {whatsapp || email ? (
+                <button
+                  type="button"
+                  className="c-chip c-chip-cobrar"
+                  onClick={cobrar}
+                  title={
+                    whatsapp && email
+                      ? "Abre o WhatsApp e o e-mail com a mensagem pronta"
+                      : whatsapp
+                        ? "Abre o WhatsApp com a mensagem pronta (sem e-mail cadastrado)"
+                        : "Abre o e-mail com a mensagem pronta (sem telefone cadastrado)"
+                  }
+                >
+                  {lembradaHoje ? "Cobrar de novo" : "Cobrar"}
+                </button>
+              ) : (
+                <span className="c-dica">Sem telefone nem e-mail no cadastro para cobrar.</span>
+              )}
+              {whatsapp && email && (
+                <>
+                  <a className="c-chip" href={whatsapp} target="_blank" rel="noreferrer" onClick={anotar}>
+                    Só WhatsApp
+                  </a>
+                  <a className="c-chip" href={email} onClick={anotar}>
+                    Só e-mail
+                  </a>
+                </>
+              )}
               <button
                 type="button"
                 className="c-chip"
@@ -317,15 +419,6 @@ function LinhaDaCobranca({
               >
                 Recebi por cartão
               </button>
-              {/* Sem telefone o botão NÃO aparece — botão que não faz nada
-                  quando clicado é pior do que botão ausente. */}
-              {link ? (
-                <a className="c-chip" href={link} target="_blank" rel="noreferrer">
-                  Lembrar no WhatsApp
-                </a>
-              ) : (
-                <span className="c-dica">Sem telefone cadastrado para lembrar.</span>
-              )}
               <button
                 type="button"
                 className="c-chip"
@@ -349,6 +442,33 @@ function LinhaDaCobranca({
       )}
     </div>
   );
+}
+
+function diaEmSaoPaulo(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? iso.slice(0, 10)
+    : d.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+}
+
+function horaCurta(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime())
+    ? ""
+    : `às ${d.toLocaleTimeString("pt-BR", { timeZone: "America/Sao_Paulo", hour: "2-digit", minute: "2-digit" })}`;
+}
+
+/** "23/09 às 14:05", no fuso de São Paulo. */
+function dataCurta(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).replace(", ", " às ");
 }
 
 function ValorDaPaciente({

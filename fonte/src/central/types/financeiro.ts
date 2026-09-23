@@ -16,6 +16,10 @@ export interface Cobranca {
   pacienteId: string;
   paciente: string;
   telefone: string | null;
+  email: string | null;
+  /** Quando o botão "Cobrar" foi apertado pela última vez — não quando chegou. */
+  lembradaEm: string | null;
+  lembretes: number;
   /** O primeiro dia do mês a que a cobrança se refere. */
   competencia: string;
   valor: number;

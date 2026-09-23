@@ -4617,3 +4617,22 @@ body:has(.central) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* ---------------------------------------------------------------- botão Cobrar */
+.central .c-chip-cobrar {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+.central .c-chip-cobrar:hover {
+  filter: brightness(1.06);
+}
+.central a.c-chip {
+  text-decoration: none;
+}
+.central .c-cobranca-lembrete {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+}

@@ -188,6 +188,7 @@ const PADROES: Configuracoes = {
   whatsapp: "",
   nomeNutricionista: "",
   alertaVencimentoDias: 15,
+  chavePix: "",
 };
 
 /** As configurações chegam como linhas chave/valor e viram um objeto só. */
@@ -205,6 +206,7 @@ export function paraConfiguracoes(linhas: Linha[]): Configuracoes {
     whatsapp: str("whatsapp", PADROES.whatsapp),
     nomeNutricionista: str("nome_nutricionista", PADROES.nomeNutricionista),
     alertaVencimentoDias: Number(mapa.get("alerta_vencimento_dias") ?? PADROES.alertaVencimentoDias),
+    chavePix: str("chave_pix", PADROES.chavePix),
   };
 }
 

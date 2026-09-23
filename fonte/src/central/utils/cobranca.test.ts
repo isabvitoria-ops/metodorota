@@ -9,6 +9,8 @@ import {
   diasDeAtraso,
   mensagemDeCobranca,
   linkDoWhatsapp,
+  linkDoEmail,
+  assuntoDaCobranca,
 } from "./cobranca";
 import type { Cobranca } from "@/central/types/financeiro";
 
@@ -18,6 +20,9 @@ function cobranca(p: Partial<Cobranca> = {}): Cobranca {
     pacienteId: "p1",
     paciente: "Mariana Silva",
     telefone: "11999998888",
+    email: "mariana@exemplo.com",
+    lembradaEm: null,
+    lembretes: 0,
     competencia: "2026-10-01",
     valor: 300,
     vencimento: "2026-10-10",
@@ -69,38 +74,74 @@ test("cobrança PAGA não tem atraso, mesmo vencida", () => {
   );
 });
 
+const CENTRAL = { nomeCentral: "Central do Paciente" };
+
 test("a mensagem traz nome, mês, valor e vencimento", () => {
-  const m = mensagemDeCobranca(cobranca(), "Isabela Marçal");
+  const m = mensagemDeCobranca(cobranca(), CENTRAL);
   assert.ok(m.includes("Mariana"), "faltou o nome");
   assert.ok(m.includes("outubro de 2026"), "faltou o mês");
   assert.ok(m.includes("300,00"), "faltou o valor");
   assert.ok(m.includes("10/10/2026"), "faltou o vencimento");
-  assert.ok(m.includes("Isabela Marçal"), "faltou a assinatura");
+});
+
+test("A MENSAGEM PARECE DO SISTEMA, e não dela", () => {
+  const m = mensagemDeCobranca(cobranca(), CENTRAL);
+  assert.ok(m.includes("Aviso automático — Central do Paciente"), "faltou o remetente");
+  assert.ok(m.includes("gerada automaticamente pelo sistema"), "faltou dizer que é automática");
+  assert.ok(!/\bme (fala|avisa|chama)\b/i.test(m), "a mensagem fala na primeira pessoa");
 });
 
 test("a mensagem usa o PRIMEIRO nome, e não o nome inteiro", () => {
-  const m = mensagemDeCobranca(cobranca({ paciente: "Mariana Silva" }), "Isabela");
-  assert.ok(m.includes("Oi, Mariana!"));
-  assert.ok(!m.includes("Oi, Mariana Silva!"));
+  const m = mensagemDeCobranca(cobranca({ paciente: "Mariana Silva" }), CENTRAL);
+  assert.ok(m.includes("Olá, Mariana!"));
+  assert.ok(!m.includes("Mariana Silva"));
 });
 
 test("A MENSAGEM NÃO AMEAÇA — ela cobra quem atende clinicamente", () => {
-  const m = mensagemDeCobranca(cobranca(), "Isabela").toLowerCase();
-  for (const palavra of [
-    "regularize", "pendência", "inadimpl", "suspens", "bloque",
-    "sob pena", "urgente", "imediatamente", "cobrança em atraso", "negativ",
-  ]) {
-    assert.ok(!m.includes(palavra), `a mensagem contém "${palavra}"`);
+  for (const formato of ["whatsapp", "email"] as const) {
+    const m = mensagemDeCobranca(cobranca(), { ...CENTRAL, chavePix: "x@y.com", formato }).toLowerCase();
+    for (const palavra of [
+      "regularize", "pendência", "inadimpl", "suspens", "bloque",
+      "sob pena", "urgente", "imediatamente", "cobrança em atraso", "negativ",
+    ]) {
+      assert.ok(!m.includes(palavra), `a mensagem (${formato}) contém "${palavra}"`);
+    }
   }
 });
 
 test("a mensagem dá saída para quem já pagou", () => {
-  assert.ok(mensagemDeCobranca(cobranca(), "Isabela").includes("já tiver pago"));
+  assert.ok(mensagemDeCobranca(cobranca(), CENTRAL).includes("já foi feito"));
 });
 
-test("sem nome de nutricionista, não sobra assinatura vazia", () => {
-  const m = mensagemDeCobranca(cobranca(), "   ");
-  assert.ok(!m.endsWith("\n"), "sobrou linha em branco no fim");
+test("a chave PIX só aparece quando está configurada", () => {
+  assert.ok(!mensagemDeCobranca(cobranca(), CENTRAL).includes("PIX"));
+  assert.ok(!mensagemDeCobranca(cobranca(), { ...CENTRAL, chavePix: "   " }).includes("PIX"));
+  assert.ok(mensagemDeCobranca(cobranca(), { ...CENTRAL, chavePix: "12.345.678/0001-90" }).includes("Chave PIX: 12.345.678/0001-90"));
+});
+
+test("o e-mail sai sem os asteriscos do WhatsApp", () => {
+  const m = mensagemDeCobranca(cobranca(), { ...CENTRAL, formato: "email" });
+  assert.ok(!m.includes("*"), "sobrou asterisco");
+  assert.ok(!m.includes("_Mensagem"), "sobrou sublinhado");
+  assert.ok(mensagemDeCobranca(cobranca(), CENTRAL).includes("*R$"), "o WhatsApp perdeu o negrito");
+});
+
+test("sem nome da Central, o remetente não fica vazio", () => {
+  assert.ok(mensagemDeCobranca(cobranca(), { nomeCentral: "  " }).includes("Aviso automático — Central do Paciente"));
+});
+
+test("o link do e-mail leva assunto e texto", () => {
+  const assunto = assuntoDaCobranca(cobranca(), "Central do Paciente");
+  const link = linkDoEmail("mariana@exemplo.com", assunto, "linha 1\nlinha 2 & mais");
+  assert.ok(link?.startsWith("mailto:mariana@exemplo.com?subject="), link ?? "sem link");
+  assert.ok(link?.includes("linha%201%0Alinha%202%20%26%20mais"), "o corpo não foi codificado");
+  assert.ok(assunto.includes("outubro de 2026"));
+});
+
+test("sem e-mail válido não há link de e-mail", () => {
+  assert.equal(linkDoEmail(null, "a", "b"), null);
+  assert.equal(linkDoEmail("", "a", "b"), null);
+  assert.equal(linkDoEmail("mariana", "a", "b"), null);
 });
 
 test("o link do WhatsApp põe o 55 na frente", () => {

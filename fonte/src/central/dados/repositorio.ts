@@ -489,6 +489,12 @@ export interface Repositorio {
   /** Cancelar não apaga: a linha continua, com status cancelada. */
   cancelarCobranca(id: string): Promise<boolean>;
 
+  /**
+   * Anota que o botão "Cobrar" foi apertado. Só em cobrança em aberto.
+   * É o registro do CLIQUE: quem aperta enviar no WhatsApp é ela.
+   */
+  registrarLembreteCobranca(id: string): Promise<{ lembradaEm: string; lembretes: number }>;
+
   definirValorDoPaciente(
     pacienteId: string,
     valor: number | null,

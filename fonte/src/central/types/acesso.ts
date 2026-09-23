@@ -119,6 +119,8 @@ export interface Configuracoes {
   whatsapp: string;
   nomeNutricionista: string;
   alertaVencimentoDias: number;
+  /** Vai no lembrete de cobrança. Vazia = o lembrete não fala de PIX. */
+  chavePix: string;
 }
 
 export interface NovoPaciente {
