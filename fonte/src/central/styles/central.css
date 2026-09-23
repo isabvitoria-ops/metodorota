@@ -4452,6 +4452,10 @@ body:has(.central) {
 /* A rolagem fica NA TABELA. No celular, seis colunas não cabem em 390px, e
    deixar a página rolar de lado quebraria todo o resto da tela junto. */
 .c-rolagem-tabela {
+  /* `relative` prende aqui dentro os rótulos só-para-leitor (que são
+     `absolute`): sem isso eles escapavam da rolagem e alargavam a PÁGINA
+     inteira no celular. */
+  position: relative;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   margin: 10px -4px 0;
@@ -4696,3 +4700,233 @@ body:has(.central) {
   width: 100%;
   align-items: center;
 }
+
+/* -----------------------------------------------------------------------
+   Questionário: abas Pendentes/Histórico e uma pergunta por tela
+   ----------------------------------------------------------------------- */
+
+.c-segmentos {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  margin-top: 4px;
+  background: var(--border);
+  border-radius: var(--radius-pill);
+}
+
+.c-segmento {
+  flex: 1 1 0;
+  min-height: 40px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.c-segmento[aria-selected="true"] {
+  background: var(--surface);
+  color: var(--primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.c-segmento-conta {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  color: #fff;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.c-questionario-cartao {
+  margin-top: 16px;
+}
+
+.c-passo {
+  margin-top: 8px;
+}
+
+.c-passo-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.c-passo-conta {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.c-passo .c-progresso {
+  margin-top: 10px;
+}
+
+/* A pergunta ganha espaço: é a única coisa na tela, e a altura mínima
+   impede os botões de pularem de lugar entre uma pergunta curta e uma de
+   texto — o dedo que ia em "Próxima" não pode cair em outra coisa. */
+.c-passo-pergunta {
+  margin-top: 26px;
+  min-height: 220px;
+}
+
+.c-passo-pergunta .c-pergunta-texto {
+  font-size: 1.15rem;
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+.c-escala-pontas {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.c-passo-opcoes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.c-passo-opcao {
+  min-height: 50px;
+  padding: 10px 16px;
+  border: 1px solid var(--border-campo);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.c-passo-opcao[aria-pressed="true"] {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+.c-passo-acoes {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 10px;
+}
+
+.c-envio {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  margin-top: 10px;
+  background: var(--surface);
+}
+
+.c-envio summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.c-envio-nota {
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.c-envio .c-chip {
+  margin-top: 10px;
+}
+
+.c-respostas {
+  margin: 10px 0 0;
+}
+
+.c-resposta-linha {
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.c-resposta-linha dt {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.c-resposta-linha dd {
+  margin: 2px 0 0;
+  white-space: pre-wrap;
+}
+
+/* ---- gráfico de uma pergunta, com carinhas no eixo ---- */
+
+.c-grafico-pergunta {
+  margin-top: 22px;
+}
+
+.c-chip-pergunta {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  line-height: 20px;
+}
+
+.c-grafico-carinhas {
+  display: block;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  margin-top: 12px;
+}
+
+.c-grafico-carinhas .c-grade {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+.c-grafico-carinhas .c-eixo-carinha {
+  font-size: 15px;
+  text-anchor: middle;
+}
+
+.c-grafico-carinhas .c-eixo-data {
+  font-size: 10px;
+  fill: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.c-grafico-carinhas .c-linha-pergunta {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.c-grafico-carinhas .c-sem-ponto {
+  stroke: var(--text-muted);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.c-ponto-pergunta {
+  stroke: var(--surface);
+  stroke-width: 2;
+}
+.c-ponto-pergunta.nivel-muito-baixo { fill: #c0605a; }
+.c-ponto-pergunta.nivel-baixo       { fill: #d08a4e; }
+.c-ponto-pergunta.nivel-medio       { fill: #c3a53f; }
+.c-ponto-pergunta.nivel-alto        { fill: #6f9e6a; }
+.c-ponto-pergunta.nivel-muito-alto  { fill: #3f8a55; }

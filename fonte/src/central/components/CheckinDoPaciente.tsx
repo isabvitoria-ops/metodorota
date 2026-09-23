@@ -5,6 +5,7 @@ import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { valorNaEscala, pontuacaoDoEnvio } from "@/central/utils/pontuacaoQuestionario";
 import { carinhaDe, setaDaVariacao } from "@/central/utils/carinhaDaResposta";
+import { GraficoDaPergunta } from "./GraficoDaPergunta";
 
 /**
  * O histórico longitudinal de check-in, no prontuário.
@@ -297,6 +298,8 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
           </tbody>
         </table>
       </div>
+
+      <GraficoDaPergunta questionario={questionario} />
 
       {/* O que ela escreveu, inteiro e sem resumo. Geralmente é a informação
           mais útil da semana, e é a que nenhuma nota captura. */}
