@@ -60,4 +60,14 @@ export const CONFIGURACOES: Configuracao[] = [
     valor: "",
     descricao: "Chave PIX que vai no lembrete automático de cobrança. Em branco = o lembrete não fala de PIX.",
   },
+  {
+    chave: "cupons",
+    valor: [
+      { marca: "Puravida", codigo: "ISAMARCALPH" },
+      { marca: "Caffeine Army", codigo: "NUTRIBELAMARCAL" },
+      { marca: "Jui", codigo: "NUTRIBELAMARCALL" },
+      { marca: "Dux", codigo: "pacisamarcal" },
+    ],
+    descricao: "Cupons da nutricionista, mostrados na tela do desafio. Lista de {marca, codigo}.",
+  },
 ];

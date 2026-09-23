@@ -121,6 +121,13 @@ export interface Configuracoes {
   alertaVencimentoDias: number;
   /** Vai no lembrete de cobrança. Vazia = o lembrete não fala de PIX. */
   chavePix: string;
+  /** Cupons dela, mostrados pequenos na tela do desafio. Vazia = não aparece. */
+  cupons: Cupom[];
+}
+
+export interface Cupom {
+  marca: string;
+  codigo: string;
 }
 
 export interface NovoPaciente {

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import type { AcaoDoDesafio, IndicacaoDaPaciente } from "@/central/types";
+import type { AcaoDoDesafio, Cupom, IndicacaoDaPaciente } from "@/central/types";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { Icone } from "@/central/components/Icone";
@@ -23,6 +24,7 @@ import { rotas } from "@/central/rotas";
  */
 export function Desafio() {
   const { dados, carregando, erro, ocupado, festejando, comRecarga } = useDesafio();
+  const { configuracoes } = useSessao();
 
   if (carregando) {
     return (
@@ -134,6 +136,7 @@ export function Desafio() {
               <CartaoAcao key={acao.id} acao={acao} ocupado={ocupado} aoMudar={comRecarga} />
             ))}
           </div>
+          <CuponsDaNutri cupons={configuracoes.cupons} />
         </section>
 
         {extras.length > 0 && (
@@ -188,6 +191,48 @@ export function Desafio() {
         )}
       </div>
     </>
+  );
+}
+
+// ------------------------------------------------------ cupons da nutri
+
+/**
+ * Pequeno de propósito: é um lembrete ao lado da ação "Usei o cupom da
+ * Nutri", não uma vitrine. Tocar copia o código — digitar
+ * NUTRIBELAMARCALL no celular é onde o cupom se perde.
+ */
+function CuponsDaNutri({ cupons }: { cupons: Cupom[] }) {
+  const [copiado, definirCopiado] = useState<string | null>(null);
+  if (cupons.length === 0) return null;
+
+  async function copiar(codigo: string) {
+    try {
+      await navigator.clipboard.writeText(codigo);
+      definirCopiado(codigo);
+      window.setTimeout(() => definirCopiado((atual) => (atual === codigo ? null : atual)), 1800);
+    } catch {
+      // Sem permissão de copiar: o código está escrito na tela, ela copia na mão.
+    }
+  }
+
+  return (
+    <div className="c-cupons" aria-label="Cupons da Nutri">
+      <p className="c-cupons-titulo">Cupons da Nutri · toque para copiar</p>
+      <div className="c-cupons-lista">
+        {cupons.map((c) => (
+          <button
+            key={`${c.marca}-${c.codigo}`}
+            type="button"
+            className="c-cupom"
+            onClick={() => void copiar(c.codigo)}
+            aria-label={`Copiar cupom ${c.codigo} da ${c.marca}`}
+          >
+            <span className="c-cupom-marca">{c.marca}</span>
+            <span className="c-cupom-codigo">{copiado === c.codigo ? "Copiado ✓" : c.codigo}</span>
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 

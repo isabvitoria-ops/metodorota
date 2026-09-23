@@ -5,6 +5,7 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { Campo, Texto } from "./componentes/Campos";
 import { BaixarBackup } from "@/central/components/BaixarBackup";
 import { versaoLegivel } from "@/central/utils/versaoDoSite";
+import type { Cupom } from "@/central/types";
 
 /**
  * Configurações do app (§46, §47 do briefing).
@@ -24,7 +25,12 @@ export function ConfiguracoesAdmin() {
   const [nomeNutricionista, definirNome] = useState(configuracoes.nomeNutricionista);
   const [alerta, definirAlerta] = useState(String(configuracoes.alertaVencimentoDias));
   const [chavePix, definirChavePix] = useState(configuracoes.chavePix);
+  const [cupons, definirCupons] = useState<Cupom[]>(configuracoes.cupons);
   const [aviso, definirAviso] = useState<string | null>(null);
+
+  function mudarCupom(i: number, campo: keyof Cupom, valor: string) {
+    definirCupons((atuais) => atuais.map((c, j) => (j === i ? { ...c, [campo]: valor } : c)));
+  }
 
   const numeroLimpo = whatsapp.replace(/\D/g, "");
   const numeroValido = numeroLimpo === "" || numeroLimpo.length >= 12;
@@ -45,6 +51,11 @@ export function ConfiguracoesAdmin() {
         nomeNutricionista: nomeNutricionista.trim(),
         alertaVencimentoDias: Math.max(1, Number(alerta) || 15),
         chavePix: chavePix.trim(),
+        // Linha pela metade (só marca ou só código) não serve para comprar:
+        // some ao salvar, em vez de aparecer quebrada para a paciente.
+        cupons: cupons
+          .map((c) => ({ marca: c.marca.trim(), codigo: c.codigo.trim() }))
+          .filter((c) => c.marca && c.codigo),
       });
     });
     if (deuCerto) {
@@ -96,6 +107,47 @@ export function ConfiguracoesAdmin() {
           dica="Vai no lembrete automático de cobrança. Deixe em branco para o lembrete não falar de PIX."
         >
           <Texto valor={chavePix} aoMudar={definirChavePix} placeholder="e-mail, CPF, CNPJ ou telefone" />
+        </Campo>
+
+        <Campo
+          rotulo="Seus cupons"
+          dica="Aparecem pequenos na tela do desafio, logo abaixo das ações da semana. A paciente toca e o código é copiado."
+        >
+          <div className="c-cupons-edicao">
+            {cupons.map((c, i) => (
+              <div key={i} className="c-cupom-edicao-linha">
+                <input
+                  className="c-input"
+                  value={c.marca}
+                  placeholder="Marca"
+                  aria-label={`Marca do cupom ${i + 1}`}
+                  onChange={(e) => mudarCupom(i, "marca", e.target.value)}
+                />
+                <input
+                  className="c-input"
+                  value={c.codigo}
+                  placeholder="Código"
+                  aria-label={`Código do cupom ${i + 1}`}
+                  onChange={(e) => mudarCupom(i, "codigo", e.target.value)}
+                />
+                <button
+                  type="button"
+                  className="c-chip"
+                  aria-label={`Tirar o cupom ${c.marca || i + 1}`}
+                  onClick={() => definirCupons((atuais) => atuais.filter((_, j) => j !== i))}
+                >
+                  Tirar
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="c-chip"
+              onClick={() => definirCupons((atuais) => [...atuais, { marca: "", codigo: "" }])}
+            >
+              + Adicionar cupom
+            </button>
+          </div>
         </Campo>
 
         {(aviso || erro) && (

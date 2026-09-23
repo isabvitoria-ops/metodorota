@@ -2,6 +2,7 @@ import type {
   Alimento,
   CategoriaComerFora,
   Configuracoes,
+  Cupom,
   Equivalencia,
   EventoHistorico,
   GrupoAlimentar,
@@ -189,6 +190,7 @@ const PADROES: Configuracoes = {
   nomeNutricionista: "",
   alertaVencimentoDias: 15,
   chavePix: "",
+  cupons: [],
 };
 
 /** As configurações chegam como linhas chave/valor e viram um objeto só. */
@@ -207,7 +209,20 @@ export function paraConfiguracoes(linhas: Linha[]): Configuracoes {
     nomeNutricionista: str("nome_nutricionista", PADROES.nomeNutricionista),
     alertaVencimentoDias: Number(mapa.get("alerta_vencimento_dias") ?? PADROES.alertaVencimentoDias),
     chavePix: str("chave_pix", PADROES.chavePix),
+    cupons: paraCupons(mapa.get("cupons")),
   };
+}
+
+/** Só entra cupom com marca E código: um sem o outro não serve para comprar. */
+function paraCupons(valor: unknown): Cupom[] {
+  if (!Array.isArray(valor)) return [];
+  return valor.flatMap((c) => {
+    if (!c || typeof c !== "object") return [];
+    const { marca, codigo } = c as Record<string, unknown>;
+    if (typeof marca !== "string" || typeof codigo !== "string") return [];
+    if (!marca.trim() || !codigo.trim()) return [];
+    return [{ marca: marca.trim(), codigo: codigo.trim() }];
+  });
 }
 
 export { PADROES as CONFIGURACOES_PADRAO };

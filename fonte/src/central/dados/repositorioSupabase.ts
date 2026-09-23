@@ -373,6 +373,7 @@ export const repositorioSupabase: Repositorio = {
       { chave: "nome_nutricionista", valor: configuracoes.nomeNutricionista },
       { chave: "alerta_vencimento_dias", valor: configuracoes.alertaVencimentoDias },
       { chave: "chave_pix", valor: configuracoes.chavePix },
+      { chave: "cupons", valor: configuracoes.cupons },
     ];
     const { error } = await sb.from("configuracoes").upsert(linhas);
     erro("salvar configurações", error);

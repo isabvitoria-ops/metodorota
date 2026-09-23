@@ -434,6 +434,7 @@ export const repositorioLocal: Repositorio = {
       ["nome_nutricionista", configuracoes.nomeNutricionista],
       ["alerta_vencimento_dias", configuracoes.alertaVencimentoDias],
       ["chave_pix", configuracoes.chavePix],
+      ["cupons", configuracoes.cupons],
     ]);
   },
 
@@ -2456,7 +2457,7 @@ function desafioDemoAdmin(): DesafioAdmin {
   return { ...desafioDemo(), status: "ativo" };
 }
 
-/** As mesmas cinco ações e pontuações do banco (0011 e 0013). */
+/** As mesmas ações e pontuações do banco (0011, 0013 e 0048). */
 const ACOES_DEMO = [
   { id: "a-questionario", chave: "questionario", nome: "Respondi meu questionário semanal",
     descricao: "Uma vez por semana.", pontos: 5, periodicidade: "semanal" as const,
@@ -2473,6 +2474,9 @@ const ACOES_DEMO = [
   { id: "a-indicacao", chave: "indicacao", nome: "Indiquei uma amiga",
     descricao: "Os pontos entram quando ela começa o acompanhamento.", pontos: 100,
     periodicidade: "evento" as const, maxPorSemana: 1 },
+  { id: "a-cupom", chave: "cupom", nome: "Usei o cupom da Nutri",
+    descricao: "Comprou com um dos cupons abaixo? Mande o print no WhatsApp da Nutri e marque aqui. Uma vez por semana.",
+    pontos: 50, periodicidade: "semanal" as const, maxPorSemana: 1 },
 ];
 
 /**
