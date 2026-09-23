@@ -125,6 +125,13 @@ function etiquetaDaFonte(fonte) {
 /** As tabelas, guardadas cruas para remontar a busca quando ela cadastra. */
 let BASE_TABELAS = [];
 
+/**
+ * Medidas caseiras com peso oficial, por id de alimento. Ver
+ * `scripts/gerar-medidas.py`: o peso vem da tabela de porções do USDA
+ * (SR28), e TACO/IBGE só recebem quando o alimento é o mesmo.
+ */
+let MEDIDAS_PADRAO = {};
+
 /** Onde cada nutriente mora no vetor da USDA. Ver `extrair-usda.py`. */
 let POS_USDA = {};
 
@@ -136,13 +143,16 @@ const semAcento = (t) =>
     .toLowerCase();
 
 async function carregarTaco() {
-  const [taco, ibge, usda] = await Promise.all([
+  const [taco, ibge, usda, medidas] = await Promise.all([
     fetch("./dados/taco.json").then((r) => r.json()),
     // O IBGE e a USDA são extras: se faltarem, a ferramenta continua com a
     // TACO em vez de não abrir.
     fetch("./dados/ibge.json").then((r) => r.json()).catch(() => null),
     fetch("./dados/usda.json").then((r) => r.json()).catch(() => null),
+    // Sem as medidas, sobra a grama — que é o que havia antes delas.
+    fetch("./dados/medidas.json").then((r) => r.json()).catch(() => null),
   ]);
+  MEDIDAS_PADRAO = medidas?.alimentos ?? {};
 
   TACO = taco;
   TACO.nutrientes.forEach((chave, i) => (POS[chave] = i));
@@ -646,7 +656,8 @@ function desenharDieta() {
           // vertical quebraria a leitura de volta, e o par inteiro deixaria
           // de casar assim que as gramas mudassem.
           op.value = String(mI);
-          op.textContent = m.nome === "g" ? "g" : `${m.nome} (${mostrar(m.gramas, 0)} g)`;
+          op.textContent = rotuloDaMedida(m);
+          if (m.ref) op.title = m.ref;
           medidaSel.append(op);
         });
 
@@ -760,7 +771,8 @@ function desenharDieta() {
           medidas.forEach((m, mI) => {
             const op = document.createElement("option");
             op.value = String(mI);
-            op.textContent = m.nome === "g" ? "g" : `${m.nome} (${mostrar(m.gramas, 0)} g)`;
+            op.textContent = rotuloDaMedida(m);
+            if (m.ref) op.title = m.ref;
             sel.append(op);
           });
           // Pelo nome, como no item principal: medida editada continua casando.
@@ -912,15 +924,30 @@ function medidasDoAlimento(codigo) {
     alimento?.fonte === "meu" || alimento?.fonte === "importada"
       ? (alimento.bruto.medidas ?? [])
       : [];
+  // As de tabela vêm POR ÚLTIMO: se ela criar a própria "unidade" do kiwi,
+  // é a dela que vale, e a oficial sai da lista.
+  const padrao = (MEDIDAS_PADRAO[alimento?.id ?? codigo] ?? []).map((m) =>
+    Array.isArray(m) ? { nome: m[0], gramas: m[1], ref: "USDA SR28 · porção oficial do próprio alimento" } : { nome: m.n, gramas: m.g, ref: m.ref },
+  );
   const saida = [];
-  for (const m of [MEDIDA_GRAMA, ...proprias, ...medidasDe(codigo)]) {
+  for (const m of [MEDIDA_GRAMA, ...proprias, ...medidasDe(codigo), ...padrao]) {
     const nome = String(m?.nome ?? "").trim();
     const gramas = Number(m?.gramas);
     if (!nome || !Number.isFinite(gramas) || gramas <= 0) continue;
     if (saida.some((x) => x.nome.toLowerCase() === nome.toLowerCase())) continue;
-    saida.push({ nome, gramas });
+    saida.push(m.ref ? { nome, gramas, ref: m.ref } : { nome, gramas });
   }
   return saida;
+}
+
+/**
+ * "unidade (69 g)". Medida miúda leva uma casa: "unidade (1 g)" para a
+ * amêndoa esconderia que são 1,2 g — e dez amêndoas dariam 10 g, não 12.
+ */
+function rotuloDaMedida(m) {
+  if (m.nome === "g") return "g";
+  const casas = m.gramas < 10 && m.gramas % 1 ? 1 : 0;
+  return `${m.nome} (${mostrar(m.gramas, casas)} g)`;
 }
 
 /**

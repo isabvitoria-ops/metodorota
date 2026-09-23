@@ -99,3 +99,35 @@ O casamento do apelido é por **palavra inteira**. Por pedaço, "buttermilk"
 escolher o alimento errado, que é pior do que não achar.
 
 Gerado por `scripts/extrair-usda.py`.
+
+## Medidas caseiras — `medidas.json`
+
+"1 unidade de kiwi = 69 g." O peso vem da tabela oficial de porções do
+USDA, a SR28 (`WEIGHT.txt`, USDA/ARS, domínio público) — a mesma família de
+dados dos alimentos USDA acima. Nenhum peso foi escrito de cabeça.
+
+* **Alimento USDA:** recebe as porções do próprio código, com o texto em
+  inglês como veio (`fruit (2" dia)`). Fica de fora só a "NLEA serving",
+  que é porção de rótulo e não medida de prato.
+* **TACO e IBGE:** só recebem peso quando o alimento é o mesmo, e para
+  fruta, a mesma variedade — pêra Williams é a Bartlett; limão tahiti é a
+  Persian lime; banana nanica é Cavendish. Banana-prata, laranja-pera,
+  goiaba, maracujá amarelo, abacate e tangerina poncã **não** têm: a
+  variedade americana pesa outra coisa.
+* **A exceção:** banana-prata, 70 g, valor informado pela nutricionista, e
+  marcado assim na própria tela.
+
+Cada medida leva `ref` com o código SR28 e a porção original — na tela,
+aparece ao parar o mouse sobre a opção. Para conferir: FoodData Central,
+tipo SR Legacy, buscar pelo código.
+
+A medida que ela cria vence a da tabela quando têm o mesmo nome.
+
+```
+python3 scripts/gerar-medidas.py WEIGHT.txt FOOD_DES.txt > dados/medidas.json
+```
+
+Os dois arquivos SR28 foram lidos da cópia em
+`github.com/alyssaq/usda-sqlite` (pasta `data/`), porque o site do USDA
+não abre deste ambiente. Por isso ainda não foram comparados com o site
+oficial: a `ref` de cada medida tem o código para essa conferência.
