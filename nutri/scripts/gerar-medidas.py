@@ -22,8 +22,9 @@ DUAS REGRAS, e nenhum número de cabeça:
    americano: uma banana-prata não pesa o que pesa uma Cavendish, e um
    número errado com cara de oficial é pior que número nenhum.
 
-   A única exceção é a banana-prata: 70 g por unidade, valor informado pela
-   própria nutricionista, e marcado assim na tela.
+3. Por cima de tudo, a planilha dela (`dados/medidas_caseiras_lote*.xlsx`):
+   medidas brasileiras com a fonte de cada uma (Tucunduva, TACO, TBCA).
+   Onde ela tem medida, substitui a do USDA para aquele alimento.
 
 Cada medida leva `ref`, o código SR28 e a porção original, para conferir
 em https://fdc.nal.usda.gov (Data Type: SR Legacy, buscar pelo código).
@@ -77,7 +78,6 @@ KIWI = usda("09148", ("unidade", 'fruit (2" dia)'))
 BANANA_NANICA = TAMANHOS(
     "09040", 'small (6" to 6-7/8" long)', 'medium (7" to 7-7/8" long)', 'large (8" to 8-7/8" long)'
 )
-BANANA_PRATA = [{"n": "unidade", "g": 70, "ref": "Valor informado pela nutricionista (banana-prata, média)"}]
 OVO_CRU = TAMANHOS("01123", "small", "medium", "large")
 OVO_COZIDO = usda("01129", ("unidade grande", "large"))
 OVO_FRITO = usda("01128", ("unidade grande", "large"))
@@ -119,7 +119,6 @@ PAO_AVEIA = usda("18039", ("fatia", "slice"))
 TACO = {
     "Kiwi, cru": KIWI,
     "Banana, nanica, crua": BANANA_NANICA,
-    "Banana, prata, crua": BANANA_PRATA,
     "Ovo, de galinha, inteiro, cru": OVO_CRU,
     "Ovo, de galinha, inteiro, cozido/10minutos": OVO_COZIDO,
     "Ovo, de galinha, inteiro, frito": OVO_FRITO,
@@ -157,7 +156,6 @@ TACO = {
 CRU = {"1", "99"}
 IBGE = [
     ("Kiwi", CRU, KIWI),
-    ("Banana (ouro, prata, d´água, da terra, etc.)", CRU, BANANA_PRATA),
     ("Ovo de galinha", CRU, OVO_CRU),
     ("Ovo de galinha", {"2"}, OVO_COZIDO),
     ("Ovo de galinha", {"5"}, OVO_FRITO),
@@ -179,6 +177,93 @@ IBGE = [
     ("Pão de forma industrializado de qualquer marca", CRU, PAO_FORMA),
 ]
 
+# ---------------------------------------------------------------------------
+# A planilha dela: `dados/medidas_caseiras_lote*.xlsx`
+# ---------------------------------------------------------------------------
+#
+# Medidas brasileiras (Tucunduva, TACO, TBCA, USDA — a coluna "Fonte" diz
+# qual), conferidas por ela. ONDE A PLANILHA TEM MEDIDA, ELA SUBSTITUI a do
+# USDA para aquele alimento: é fonte brasileira, escolhida por quem
+# prescreve, e duas "unidades" de pesos diferentes no mesmo seletor seriam
+# um convite ao erro.
+#
+# Cada nome da planilha aponta para os alimentos das tabelas que ele cobre.
+# Nome sem destino aqui PARA o gerador — um lote novo não entra calado.
+PLANILHA = {
+    "Banana": {"taco": ["Banana, prata, crua"], "ibge": [("Banana (ouro, prata, d´água, da terra, etc.)", CRU)]},
+    "Pão francês": {"taco": ["Pão, trigo, francês"], "ibge": [("Pão de sal", CRU)]},
+    "Pão de forma, tradicional": {"ibge": [("Pão de forma industrializado de qualquer marca", CRU)]},
+    "Maçã fuji": {"taco": ["Maçã, Fuji, com casca, crua"]},
+    "Mamão papaia": {"taco": ["Mamão, Papaia, cru"]},
+    "Ovo de galinha": {
+        "taco": [
+            "Ovo, de galinha, inteiro, cru",
+            "Ovo, de galinha, inteiro, cozido/10minutos",
+            "Ovo, de galinha, inteiro, frito",
+        ],
+        "ibge": [("Ovo de galinha", {"1", "2", "5", "99"})],
+    },
+    "Queijo minas frescal": {
+        "taco": ["Queijo, minas, frescal"],
+        "ibge": [("Queijo de minas frescal orgânico", CRU)],
+    },
+    # A TBCA mora no navegador dela (licença não permite publicar); o id é
+    # o código da TBCA, o mesmo que a importação usa.
+    "Tapioca": {"importada": ["BRC0906B"]},
+    "Iogurte natural": {
+        "taco": ["Iogurte, natural", "Iogurte, natural, desnatado"],
+        "ibge": [("Iogurte natural", CRU)],
+    },
+    "Castanha do Pará sem sal": {
+        "taco": ["Castanha-do-Brasil, crua"],
+        "ibge": [("Castanha-do-pará", CRU)],
+    },
+    "Azeite de oliva": {"taco": ["Azeite, de oliva, extra virgem"], "ibge": [("Azeite de oliva", CRU)]},
+    "Peito de frango, sem pele, grelhado": {
+        "taco": ["Frango, peito, sem pele, grelhado"],
+        "ibge": [("Peito de galinha ou frango", {"3"})],
+    },
+    "Requeijão": {"taco": ["Queijo, requeijão, cremoso"], "ibge": [("Requeijão", CRU)]},
+}
+
+# Como a medida vai escrita na dieta. O texto original fica na `ref`.
+RENOMEAR = {
+    "pedaço/unidade/fatia (M)": "unidade média",
+    "colher de arroz/servir": "colher de servir",
+    "colher de servir/arroz": "colher de servir",
+    "unidade (pote)": "pote",
+}
+
+
+def ler_planilhas():
+    """{nome da planilha: [medidas]}, de todos os lotes, na ordem."""
+    import glob
+    import openpyxl
+
+    saida = {}
+    for arquivo in sorted(glob.glob("dados/medidas_caseiras_lote*.xlsx")):
+        lote = arquivo.split("/")[-1]
+        linhas = openpyxl.load_workbook(arquivo, read_only=True).active.iter_rows(values_only=True)
+        cabecalho = next(linhas)
+        if list(cabecalho[:4]) != ["Alimento", "Fonte (tabela)", "Medida caseira", "Gramas (g)"]:
+            raise SystemExit(f"{lote}: colunas mudaram: {cabecalho}")
+        for alimento, fonte, medida, gramas, *resto in linhas:
+            if not alimento:
+                continue
+            obs = resto[0] if resto else None
+            original = str(medida).strip()
+            nome = original[2:] if original.startswith("1 ") else original
+            nome = RENOMEAR.get(nome, nome)
+            g = float(gramas)
+            if not g > 0:
+                raise SystemExit(f"{lote}: {alimento} / {medida} sem gramas")
+            ref = f"{fonte} · 1 {original[2:] if original.startswith('1 ') else original} = {g:g} g · {lote}"
+            if obs:
+                ref += f" · {obs}"
+            saida.setdefault(alimento.strip(), []).append({"n": nome, "g": g, "ref": ref})
+    return saida
+
+
 taco = json.load(open("dados/taco.json"))["alimentos"]
 ibge = json.load(open("dados/ibge.json"))["alimentos"]
 usda_base = json.load(open("dados/usda.json"))["alimentos"]
@@ -197,6 +282,29 @@ for nome, preparos, medidas in IBGE:
         raise SystemExit(f"IBGE: '{nome}' {sorted(preparos)} não existe")
     for a in achados:
         alimentos[f"ibge:{a['codigo']}:{a['preparo_codigo']}"] = medidas
+
+# A planilha dela por cima: substitui, não soma.
+planilha = ler_planilhas()
+sem_destino = sorted(set(planilha) - set(PLANILHA))
+if sem_destino:
+    raise SystemExit(f"planilha: sem destino em PLANILHA: {sem_destino}")
+for nome_planilha, destinos in PLANILHA.items():
+    medidas = planilha.get(nome_planilha)
+    if not medidas:
+        raise SystemExit(f"planilha: '{nome_planilha}' não está em nenhum lote")
+    for nome in destinos.get("taco", []):
+        achados = [a for a in taco if a["n"] == nome]
+        if len(achados) != 1:
+            raise SystemExit(f"TACO: '{nome}' casou {len(achados)} vezes")
+        alimentos[f"taco:{achados[0]['c']}"] = medidas
+    for nome, preparos in destinos.get("ibge", []):
+        achados = [a for a in ibge if a["nome"] == nome and a["preparo_codigo"] in preparos]
+        if not achados:
+            raise SystemExit(f"IBGE: '{nome}' {sorted(preparos)} não existe")
+        for a in achados:
+            alimentos[f"ibge:{a['codigo']}:{a['preparo_codigo']}"] = medidas
+    for codigo in destinos.get("importada", []):
+        alimentos[f"imp:{codigo}"] = medidas
 
 # USDA: as porções do próprio código. "NLEA serving" fica de fora — é a
 # porção de rótulo americana, não uma medida que se sirva no prato.
@@ -221,9 +329,9 @@ json.dump(
     {
         "fonte": "USDA National Nutrient Database for Standard Reference, Release 28 (SR28) — WEIGHT",
         "instituicao": "USDA/ARS — domínio público",
-        "nota": "Pesos de porção oficiais. TACO e IBGE só recebem peso quando o alimento "
-        "é o mesmo (e a variedade é a mesma). Exceção marcada: banana-prata, 70 g, "
-        "informado pela nutricionista.",
+        "nota": "Pesos de porção oficiais do USDA. TACO e IBGE só recebem peso do USDA "
+        "quando o alimento e a variedade são os mesmos. Por cima, a planilha da "
+        "nutricionista (dados/medidas_caseiras_lote*.xlsx), que substitui o USDA onde tem medida.",
         "usda_sem_porcao": sem_porcao,
         "alimentos": alimentos,
     },

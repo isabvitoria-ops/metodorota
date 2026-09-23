@@ -114,8 +114,13 @@ dados dos alimentos USDA acima. Nenhum peso foi escrito de cabeça.
   Persian lime; banana nanica é Cavendish. Banana-prata, laranja-pera,
   goiaba, maracujá amarelo, abacate e tangerina poncã **não** têm: a
   variedade americana pesa outra coisa.
-* **A exceção:** banana-prata, 70 g, valor informado pela nutricionista, e
-  marcado assim na própria tela.
+* **A planilha dela** (`medidas_caseiras_lote*.xlsx`): medidas brasileiras
+  — Tucunduva, TACO, TBCA — com a fonte de cada linha. Onde ela tem medida
+  para um alimento, **substitui** a do USDA (não soma: duas "unidade" com
+  pesos diferentes no mesmo seletor seriam um convite ao erro). Lote novo:
+  salvar o arquivo como `medidas_caseiras_lote2.xlsx` aqui e dizer, em
+  `PLANILHA` no gerador, a que alimentos cada nome se refere — nome sem
+  destino faz o gerador parar, para nada entrar calado.
 
 Cada medida leva `ref` com o código SR28 e a porção original — na tela,
 aparece ao parar o mouse sobre a opção. Para conferir: FoodData Central,
