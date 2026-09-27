@@ -17,6 +17,7 @@ import { repositorio } from "@/central/dados/repositorio";
 import { dataBonita } from "@/central/utils/situacao";
 import { AreaDeLinhas, AreaTexto, Campo, NumeroDecimal, Selecao, Texto } from "./componentes/Campos";
 import { numeroDeTexto, textoDeNumero } from "@/central/utils/numero";
+import { conferirAvaliacao } from "@/central/utils/conferenciaAvaliacao";
 import {
   alternar,
   todas,
@@ -1133,6 +1134,7 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
 
   // Os campos vêm da lista guardada e voltam para ela. Guardar o dicionário
   // em estado próprio duplicaria a verdade: a lista já é a verdade.
+  const divergencias = conferirAvaliacao(dados);
   const valoresDobras = valoresDeMedidas(dados.dobras);
   const valoresCircunferencias = valoresDeMedidas(dados.circunferencias);
 
@@ -1297,6 +1299,30 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
               aoMudar={(v) => definirDados({ ...dados, observacao: v.trim() || null })}
             />
           </Campo>
+
+          {/* Os números vêm à mão da calculadora; nada conferia se fecham
+              entre si. Não impede salvar — aponta, e deixa ela decidir. */}
+          {divergencias.length > 0 && (
+            <div className="c-aviso" role="status" style={{ marginTop: 12 }}>
+              <span>
+                <strong>Confira antes de publicar:</strong>
+                {divergencias.map((d) => (
+                  <span key={d.campo} style={{ display: "block", marginTop: 4 }}>
+                    {d.mensagem}{" "}
+                    {d.campo === "imc" && d.sugestao !== null && (
+                      <button
+                        type="button"
+                        className="c-link"
+                        onClick={() => definirDados({ ...dados, imc: d.sugestao })}
+                      >
+                        Usar {d.sugestao.toLocaleString("pt-BR")}
+                      </button>
+                    )}
+                  </span>
+                ))}
+              </span>
+            </div>
+          )}
 
           {/* Dois botões que salvam, e nenhum que só "marca".
               Antes havia um par marcar/salvar: clicar em "marcar para

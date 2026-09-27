@@ -100,22 +100,22 @@ test("Faulkner: soma 33,2 mm dá 10,86% — o caso real do PDF dela", () => {
   perto(r.percentual, 10.86);
 });
 
-test("Petroski: densidade 1,072924 e 11,15% por (498/D) − 453", () => {
-  const r = calcular("petroski");
+test("Petroski (homem): densidade 1,072924 e 11,15% por (498/D) − 453", () => {
+  const r = calcular("petroski", { sexo: "masculino" });
   perto(r.soma, 34.0, 1);
   perto(r.densidade, 1.0729, 4);
   perto(r.percentual, 11.15);
 });
 
-test("Guedes: densidade 1,077382 e 9,45% por Siri", () => {
-  const r = calcular("guedes");
+test("Guedes (homem): densidade 1,077382 e 9,45% por Siri", () => {
+  const r = calcular("guedes", { sexo: "masculino" });
   perto(r.soma, 25.2, 1);
   perto(r.densidade, 1.0774, 4);
   perto(r.percentual, 9.45);
 });
 
-test("Katch & McArdle: cada dobra com o seu coeficiente, 9,79% por Brozek", () => {
-  const r = calcular("katch");
+test("Katch & McArdle (homem): cada dobra com o seu coeficiente, 9,79% por Brozek", () => {
+  const r = calcular("katch", { sexo: "masculino" });
   perto(r.densidade, 1.0779, 4);
   perto(r.percentual, 9.79);
 });
@@ -129,34 +129,34 @@ test("Katch não é a mesma conta que somar as dobras antes", () => {
   assert.notEqual(Number(somando.toFixed(4)), Number(certo.toFixed(4)));
 });
 
-test("Lean: densidade 1,071943 e 11,58% por (498/D) − 453", () => {
-  const r = calcular("lean");
+test("Lean (homem): densidade 1,071943 e 11,58% por (498/D) − 453", () => {
+  const r = calcular("lean", { sexo: "masculino" });
   perto(r.densidade, 1.0719, 4);
   perto(r.percentual, 11.58);
 });
 
-test("Durnin & Rahaman: densidade 1,067646 e 13,64% por Siri", () => {
-  const r = calcular("durninRahaman");
+test("Durnin & Rahaman (homem): densidade 1,067646 e 13,64% por Siri", () => {
+  const r = calcular("durninRahaman", { sexo: "masculino" });
   perto(r.densidade, 1.0676, 4);
   perto(r.percentual, 13.64);
 });
 
-test("Thorland 3 dobras: densidade 1,079483 e 8,55% por Siri", () => {
-  const r = calcular("thorland3");
+test("Thorland 3 dobras (homem): densidade 1,079483 e 8,55% por Siri", () => {
+  const r = calcular("thorland3", { sexo: "masculino" });
   perto(r.soma, 24.1, 1);
   perto(r.densidade, 1.0795, 4);
   perto(r.percentual, 8.55);
 });
 
-test("Thorland 7 dobras: densidade 1,080161 e 8,26% por Siri", () => {
-  const r = calcular("thorland7");
+test("Thorland 7 dobras (homem): densidade 1,080161 e 8,26% por Siri", () => {
+  const r = calcular("thorland7", { sexo: "masculino" });
   perto(r.soma, 57.7, 1);
   perto(r.densidade, 1.0802, 4);
   perto(r.percentual, 8.26);
 });
 
-test("Slaughter: soma 17,6 mm dá 13,32%, sem densidade", () => {
-  const r = calcular("slaughter");
+test("Slaughter (menino): soma 17,6 mm dá 13,32%, sem densidade", () => {
+  const r = calcular("slaughter", { sexo: "masculino" });
   perto(r.soma, 17.6, 1);
   assert.equal(r.densidade, null);
   perto(r.percentual, 13.32);
@@ -180,4 +180,68 @@ test("a diferença entre Siri e (498/D) − 453 cresce conforme a densidade sobe
   assert.ok(gap(1.05) < gap(1.1));
   perto(gap(1.02), 0.0588, 3);
   perto(gap(1.1), 0.2727, 3);
+});
+
+// --- a versão feminina não pode ser a masculina com outro nome ----------------
+
+test("Durnin & Rahaman (mulher) usa 1,1581 − 0,0720·log Σ", () => {
+  const r = calcular("durninRahaman", { sexo: "feminino" });
+  perto(r.soma, 30, 1);
+  perto(r.densidade, 1.1581 - 0.072 * Math.log10(30), 6);
+  // A conta masculina daria outro número para a mesma soma.
+  assert.notEqual(r.densidade.toFixed(4), (1.161 - 0.0632 * Math.log10(30)).toFixed(4));
+});
+
+test("Durnin & Rahaman: o caso da vistoria — mulher, soma 50 → 27,9% (e não 19,8%)", () => {
+  const d = PROTOCOLOS.durninRahaman.densidade({ soma: 50, sexo: "feminino" });
+  perto(CONVERSOES.siri.calcular(d), 27.9, 1);
+});
+
+test("Guedes (mulher) soma coxa, supra-ilíaca e subescapular, com 1,1665 − 0,07063·log Σ", () => {
+  assert.deepEqual(PROTOCOLOS.guedes.dobras.feminino, ["coxa", "suprailiaca", "subescapular"]);
+  const r = calcular("guedes", { sexo: "feminino" });
+  perto(r.soma, 27.4, 1);
+  perto(r.densidade, 1.1665 - 0.07063 * Math.log10(27.4), 6);
+});
+
+test("Slaughter (menina) usa 1,33Σ − 0,013Σ² − 2,5", () => {
+  const r = calcular("slaughter", { sexo: "feminino" });
+  perto(r.percentual, 1.33 * 17.6 - 0.013 * 17.6 * 17.6 - 2.5);
+});
+
+test("Slaughter acima de 35 mm troca para a equação linear, nos dois sexos", () => {
+  perto(PROTOCOLOS.slaughter.percentual({ soma: 60, sexo: "masculino" }), 0.783 * 60 + 1.6);
+  perto(PROTOCOLOS.slaughter.percentual({ soma: 60, sexo: "feminino" }), 0.546 * 60 + 9.7);
+  // 35 ainda é a quadrática
+  perto(PROTOCOLOS.slaughter.percentual({ soma: 35, sexo: "feminino" }), 1.33 * 35 - 0.013 * 1225 - 2.5);
+});
+
+test("equações sem a versão feminina conferida não são oferecidas para mulher", () => {
+  for (const chave of ["petroski", "katch", "thorland3", "thorland7", "lean"]) {
+    assert.deepEqual(PROTOCOLOS[chave].dobras.feminino, [], chave);
+    assert.equal(PROTOCOLOS[chave].soMasculinaConferida, true, chave);
+    assert.ok(PROTOCOLOS[chave].dobras.masculino.length > 0, chave);
+  }
+});
+
+test("toda equação que recebe dobras de mulher recebe também o sexo na conta", () => {
+  // Uma equação com versão por sexo que ignorasse o sexo voltaria ao defeito.
+  const soma = 40;
+  for (const chave of ["durninRahaman", "guedes", "slaughter"]) {
+    const d = PROTOCOLOS[chave];
+    const f = d.percentual ?? d.densidade;
+    assert.notEqual(
+      f({ soma, idade: 20, sexo: "feminino", valores: {} }),
+      f({ soma, idade: 20, sexo: "masculino", valores: {} }),
+      chave,
+    );
+  }
+});
+
+test("toda equação com faixa de idade declara mínimo e máximo coerentes", () => {
+  for (const [chave, d] of Object.entries(PROTOCOLOS)) {
+    if (!d.idade) continue;
+    assert.equal(d.idade.length, 2, chave);
+    assert.ok(d.idade[0] < d.idade[1], chave);
+  }
 });

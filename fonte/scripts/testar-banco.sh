@@ -37,6 +37,17 @@ psql_ -q -d "$BANCO" -c "do \$\$ declare f record; begin
   loop execute format('grant execute on function %s to anon, authenticated', f.a); end loop;
 end \$\$;" > /dev/null
 
+# Fotografia das funções que as MIGRAÇÕES criaram, antes de as baterias
+# criarem as auxiliares delas. É com esta lista que a bateria das permissões
+# confere o que ficaria aberto em produção — sem confundir com as funções
+# de teste, que só existem aqui.
+psql_ -q -d "$BANCO" -c "create table funcoes_das_migracoes as
+  select p.oid::regprocedure::text as assinatura, p.proname as nome, p.prosecdef as definer
+  from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+  left join pg_depend d on d.objid = p.oid and d.deptype = 'e'
+  where n.nspname = 'public' and d.objid is null;
+  grant select on funcoes_das_migracoes to anon, authenticated;" > /dev/null
+
 echo "Rodando a bateria de segurança…"
 # `0[1-9]` parava na nona bateria: a `10_consultas.sql` existia, nao casava
 # com o filtro e simplesmente nao rodava -- sem erro, sem aviso, so ausente.

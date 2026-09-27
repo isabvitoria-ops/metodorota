@@ -27,6 +27,7 @@ import {
   linkDoEmail,
   FORMAS_DE_PAGAMENTO,
 } from "@/central/utils/cobranca";
+import { numeroDeTexto } from "@/central/utils/numero";
 
 /**
  * Cobrança — área da nutricionista.
@@ -490,9 +491,10 @@ function ValorDaPaciente({
   const [salvo, definirSalvo] = useState(false);
 
   async function salvar() {
-    const n = quanto.trim() === "" ? null : Number(quanto.replace(/\./g, "").replace(",", "."));
-    if (n !== null && (!Number.isFinite(n) || n < 0)) {
-      aoErrar("Valor inválido.");
+    // "99.90" é R$ 99,90 — antes o ponto era sempre milhar e gravava R$ 9.990.
+    const n = quanto.trim() === "" ? null : numeroDeTexto(quanto);
+    if (quanto.trim() !== "" && (n === null || n < 0)) {
+      aoErrar(`Não entendi o valor "${quanto}". Escreva como 150,00.`);
       return;
     }
     const d = diaVenc.trim() === "" ? null : Number(diaVenc);
@@ -766,9 +768,9 @@ function FormularioDeRecebimento({
   const [salvando, definirSalvando] = useState(false);
 
   async function salvar() {
-    const n = Number(valor.replace(/\./g, "").replace(",", "."));
-    if (!Number.isFinite(n) || n <= 0) {
-      aoErrar("O valor precisa ser maior que zero.");
+    const n = numeroDeTexto(valor);
+    if (n === null || n <= 0) {
+      aoErrar(`O valor precisa ser maior que zero${valor.trim() ? ` — não entendi "${valor}"` : ""}.`);
       return;
     }
     definirSalvando(true);

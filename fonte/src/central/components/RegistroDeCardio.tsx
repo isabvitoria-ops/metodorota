@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { CardioSessao } from "@/central/types/treino";
 import { repositorio } from "@/central/dados/repositorio";
 import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
+import { naoEntendido } from "@/central/utils/numero";
 
 /**
  * O cardio: ela anda, ela anota.
@@ -103,6 +104,15 @@ function Formulario({
     // ela viraria uma linha que não conta para nada.
     if (duracao.trim() === "") {
       definirAviso("Escreva quantos minutos você fez.");
+      return;
+    }
+    // Antes "3,5 km" com letra errada ia vazio, sem aviso.
+    if (naoEntendido(duracao)) {
+      definirAviso(`Não entendi a duração "${duracao}". Escreva só os minutos, como 40.`);
+      return;
+    }
+    if (naoEntendido(distancia)) {
+      definirAviso(`Não entendi a distância "${distancia}". Escreva só o número, como 3,5.`);
       return;
     }
     definirSalvando(true);

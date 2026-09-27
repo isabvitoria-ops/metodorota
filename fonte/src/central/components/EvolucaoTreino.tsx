@@ -11,7 +11,8 @@ import { MeuTreino } from "@/central/components/MeuTreino";
 import { PainelDaSemana } from "@/central/components/PainelDaSemana";
 import { RegistroDeCardio } from "@/central/components/RegistroDeCardio";
 import { repositorio } from "@/central/dados/repositorio";
-import { dataBonita } from "@/central/utils/situacao";
+import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
+import { naoEntendido, numeroDeTexto } from "@/central/utils/numero";
 import type { SessaoDoExercicio } from "@/central/utils/progressaoTreino";
 import {
   MENSAGEM_TOPO_DA_FAIXA,
@@ -352,7 +353,9 @@ function RegistrarSessao({
   aoFechar: () => void;
   aoSalvar: () => Promise<void>;
 }) {
-  const hoje = new Date().toISOString().slice(0, 10);
+  // Horário de Brasília, não o UTC: das 21h à meia-noite o UTC já é amanhã,
+  // e o banco recusava o treino como "data futura".
+  const hoje = hojeSaoPaulo();
   const [data, definirData] = useState(hoje);
   const [observacao, definirObservacao] = useState("");
   const [series, definirSeries] = useState<SerieParaSalvar[]>(() => seriesIniciais(treino));
@@ -372,6 +375,20 @@ function RegistrarSessao({
     if (feitas.length === 0) {
       definirAviso("Preencha as repetições de pelo menos uma série.");
       return;
+    }
+    // Conferido aqui, com o nome do exercício, em vez de deixar o banco
+    // recusar o treino inteiro com uma mensagem técnica.
+    for (const s of feitas) {
+      const qual = `${s.exercicioNome}, série ${s.numero || ""}`.replace(/, série $/, "");
+      if (naoEntendido(s.carga)) {
+        definirAviso(`Não entendi a carga "${s.carga}" em ${qual}. Escreva só o número, como 22,5.`);
+        return;
+      }
+      const reps = numeroDeTexto(s.repeticoes);
+      if (reps === null || !Number.isInteger(reps) || reps <= 0) {
+        definirAviso(`As repetições em ${qual} precisam ser um número inteiro, como 12.`);
+        return;
+      }
     }
     definirSalvando(true);
     definirAviso(null);

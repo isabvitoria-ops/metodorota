@@ -540,11 +540,13 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1
 
 -- Montar a lista de alguém já liga: sem isto, ela cadastraria dez alimentos e
 -- a paciente continuaria sem ver nada.
+-- Pela função que a tela dela usa (`rastreios_ativos`), e não pela auxiliar
+-- `rastreio_ativo`, que desde a 0051 nenhuma conta chama direto.
 select teste('montar a lista da paciente liga o rastreio sozinho',
-  rastreio_ativo(current_setting('teste.ana')::uuid));
+  rastreios_ativos() @> to_jsonb(array[current_setting('teste.ana')::uuid]));
 
 select teste('e quem nunca foi tocada continua desligada',
-  rastreio_ativo(current_setting('teste.bia')::uuid) = false);
+  not rastreios_ativos() @> to_jsonb(array[current_setting('teste.bia')::uuid]));
 
 select teste('o quadro dela mostra quem está ligada',
   jsonb_array_length(rastreios_ativos()) = 1);
@@ -578,7 +580,7 @@ begin
 end;
 $$;
 select teste('a nutricionista desliga o rastreio de uma paciente',
-  rastreio_ativo(current_setting('teste.ana')::uuid) = false);
+  not rastreios_ativos() @> to_jsonb(array[current_setting('teste.ana')::uuid]));
 select teste('e o histórico dela continua guardado',
   (select count(*) from reintroducao_registros
     where paciente_id = current_setting('teste.ana')::uuid) > 0);

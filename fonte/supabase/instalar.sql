@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql
 -- =============================================================================
 
 
@@ -13976,3 +13976,60 @@ grant execute on function salvar_treino(uuid, uuid, text, text, boolean, jsonb) 
 alter table perfis
   add constraint perfis_admin_so_a_dona
   check (papel <> 'admin' or email = 'isabvitoria@gmail.com' or email like '%@central.test');
+
+
+-- ###########################################################################
+-- 0051_fechar_funcoes_abertas.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0051: fechando o que a vistoria de 27/09 achou aberto
+--
+-- O Supabase dá EXECUTE explícito a `anon` e `authenticated` em toda função
+-- nova de `public`. As migrações 0041, 0044 e 0045 concederam a
+-- `authenticated` sem tirar de `anon`, e sete funções ficaram executáveis
+-- por quem nem entrou. Testadas uma a uma como visitante: nenhuma devolvia
+-- dado nem gravava — cada uma recusa lá dentro. Mas uma proteção que só
+-- existe no corpo da função some no dia em que alguém mexer no corpo.
+--
+-- E duas auxiliares recebem o id de QUALQUER paciente sem conferir o dono:
+--
+--   * `reintroducao_json` — só não vazava porque, lá dentro, chama outra
+--     função que confere. Proteção por acaso.
+--   * `rastreio_ativo` — dizia "sim/não" sobre o rastreio de outra paciente.
+--
+-- As duas só são chamadas de dentro de funções `security definer`, que
+-- rodam com a permissão do dono e não dependem desta. Tirar de
+-- `authenticated` não muda nenhuma tela.
+--
+-- A bateria 21_permissoes_padrao.sql confere isto, com o banco de teste
+-- agora imitando as permissões que o Supabase dá sozinho.
+-- =============================================================================
+
+revoke all on function meus_exames() from anon, public;
+revoke all on function minha_pasta_de_exames() from anon, public;
+revoke all on function apagar_exame(uuid) from anon, public;
+revoke all on function registrar_exame(uuid, text, text, text, bigint, date, text) from anon, public;
+revoke all on function meus_questionarios() from anon, public;
+revoke all on function responder_questionario(uuid, jsonb) from anon, public;
+revoke all on function minha_fase() from anon, public;
+
+grant execute on function meus_exames() to authenticated;
+grant execute on function minha_pasta_de_exames() to authenticated;
+grant execute on function apagar_exame(uuid) to authenticated;
+grant execute on function registrar_exame(uuid, text, text, text, bigint, date, text) to authenticated;
+grant execute on function meus_questionarios() to authenticated;
+grant execute on function responder_questionario(uuid, jsonb) to authenticated;
+grant execute on function minha_fase() to authenticated;
+
+revoke all on function reintroducao_json(uuid, boolean) from anon, authenticated, public;
+revoke all on function rastreio_ativo(uuid) from anon, authenticated, public;
+
+-- Conferência: deve voltar tudo "false" (nenhuma aberta).
+select p.oid::regprocedure as funcao,
+       has_function_privilege('anon', p.oid, 'execute') as visitante_executa
+from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+where n.nspname = 'public'
+  and p.proname in ('meus_exames', 'minha_pasta_de_exames', 'apagar_exame', 'registrar_exame',
+                    'meus_questionarios', 'responder_questionario', 'minha_fase',
+                    'reintroducao_json', 'rastreio_ativo');

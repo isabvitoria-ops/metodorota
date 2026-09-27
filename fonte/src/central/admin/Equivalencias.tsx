@@ -8,6 +8,7 @@ import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { normalizar, numero } from "@/central/utils/texto";
 import { Modal } from "./componentes/Modal";
 import { AreaTexto, Campo, Selecao, Texto } from "./componentes/Campos";
+import { numeroDeTexto } from "@/central/utils/numero";
 
 /**
  * Equivalências (§42 do briefing).
@@ -129,8 +130,8 @@ function ModalEquivalencia({
   const naoProporcional = equivalencia && equivalencia.regra.tipo !== "proporcional";
 
   async function salvar() {
-    const de = Number(quantidadeOrigem.replace(",", "."));
-    const para = Number(quantidadeDestino.replace(",", "."));
+    const de = numeroDeTexto(quantidadeOrigem) ?? Number.NaN;
+    const para = numeroDeTexto(quantidadeDestino) ?? Number.NaN;
     if (origemId === destinoId) return definirAviso("Escolha dois alimentos diferentes.");
     if (!Number.isFinite(de) || de <= 0) return definirAviso("A quantidade do primeiro alimento precisa ser maior que zero.");
     if (!Number.isFinite(para) || para <= 0) return definirAviso("A quantidade do segundo alimento precisa ser maior que zero.");

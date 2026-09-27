@@ -93,9 +93,15 @@ cp site-pages/*.html /home/user/metodorota/
 cd /home/user/metodorota && git add -A && git commit && git push origin main
 ```
 
-O repositório do site é `isabvitoria-ops/metodorota` (o código é
-`isabvitoria-ops/diet-app`, branch `claude/nutrition-patient-webapp-5myhmt`).
-Se não estiver anexado à sessão, use `add_repo`.
+**O código que está no ar mora em `isabvitoria-ops/metodorota`, pasta
+`fonte/`** (e a Calculadora em `nutri/`, na raiz do mesmo repositório). É ali
+que se edita, testa e publica. Se não estiver anexado à sessão, use `add_repo`.
+
+`isabvitoria-ops/diet-app` (branch `claude/nutrition-patient-webapp-5myhmt`) é
+a oficina antiga: na vistoria de 27/09 a cópia dele tinha 21 migrações contra
+51 em produção. **Não publique a partir dele** — gerar o site dali apagaria
+meses de funcionalidade sem dar erro nenhum. Antes de começar, confira:
+`ls fonte/supabase/migracoes | wc -l` tem que bater com a última migração.
 
 Os dois arquivos têm que subir com os nomes **exatos** `index.html` e
 `404.html`. Um upload pelo navegador já virou `index (1).html` uma vez, e o
@@ -109,8 +115,8 @@ está no ar.
 Quase nunca. No fluxo normal ela **não toca no GitHub** — você commita, faz
 push e o Pages publica. Os casos em que ela precisa entrar:
 
-- **Sessão nova sem os repositórios anexados.** Peça que ela mande
-  `isabvitoria-ops/metodorota` e `isabvitoria-ops/diet-app`, e use `add_repo`.
+- **Sessão nova sem o repositório anexado.** Peça que ela mande
+  `isabvitoria-ops/metodorota` e use `add_repo`.
   É pedido de informação, não tarefa no site.
 - **Configuração do GitHub Pages** (Settings → Pages): ligar, desligar, mudar
   a branch ou apontar domínio próprio. Só ela tem esse botão.
@@ -123,9 +129,11 @@ Se nenhum desses for o caso, a resposta é "não precisa mexer no GitHub".
 
 ## O que você não consegue fazer daqui
 
-Este ambiente bloqueia `*.supabase.co` e `isabvitoria-ops.github.io`. Então
-login, convite e leitura de paciente **não dá para testar daqui** — só do lado
-dela. Quando algo não bater, peça um print de
+O navegador deste ambiente não alcança `*.supabase.co` nem
+`isabvitoria-ops.github.io`. Então login, convite e leitura de paciente **não
+dá para testar pela tela daqui** — só do lado dela. Há uma conexão com o
+Supabase (ferramentas `mcp__Supabase__*`) que ela autorizou para aplicar
+migrações; consultar dado de paciente por ela, só com pedido dela. Quando algo não bater, peça um print de
 `https://isabvitoria-ops.github.io/metodorota/diagnostico`: essa tela é pública
 de propósito e mostra papel, situação, acesso e se o banco respondeu.
 
@@ -133,5 +141,15 @@ Não diga que testou o que não testou.
 
 ## Antes de publicar
 
-`npm test` (48), `npm run typecheck`, `npm run lint` (0 erros). O resto da
-arquitetura está em `CENTRAL.md`; o manual não técnico dela é `PUBLICAR.md`.
+`npm test` (todos passando — eram 427 em 27/09), `npm run typecheck`,
+`npm run lint` (0 erros). Mexeu em `nutri/`: `node --test nutri/*.test.mjs`.
+Mexeu em `supabase/`: `npm run test:banco` (23 baterias; o banco de teste
+imita as permissões que o Supabase dá sozinho — ver `00_ambiente.sql`).
+
+Número digitado passa sempre por `numeroDeTexto` (`src/central/utils/numero.ts`):
+vírgula, ponto de milhar e unidade escrita junto. Ler número com `Number()`
+direto já gravou R$ 9.990 no lugar de R$ 99,90 e derrubou treino por causa
+de uma vírgula. Data de "hoje" é `hojeSaoPaulo()`, nunca `toISOString()`.
+
+O resto da arquitetura está em `CENTRAL.md`; o manual não técnico dela é
+`PUBLICAR.md`.

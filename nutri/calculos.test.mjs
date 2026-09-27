@@ -327,3 +327,34 @@ test("distribuicao: com os três, a conta sai normal", () => {
   assert.ok(d);
   assert.equal(Math.round(d.kcal), 390);
 });
+
+// --- faixas de idade -----------------------------------------------------------
+
+test("FAO/OMS 1985: crianças e adolescentes têm a própria linha", async () => {
+  const { faoOms } = await import("./calculos.mjs");
+  perto(faoOms(50, 15, "feminino"), 12.2 * 50 + 746, 0.001); // 1356, e não 1231
+  perto(faoOms(50, 15, "masculino"), 17.5 * 50 + 651, 0.001);
+  perto(faoOms(25, 8, "feminino"), 22.5 * 25 + 499, 0.001);
+  perto(faoOms(25, 8, "masculino"), 22.7 * 25 + 495, 0.001);
+  perto(faoOms(12, 2, "masculino"), 60.9 * 12 - 54, 0.001);
+  // 18 já é adulto (18–30); 17,9 ainda é 10–18
+  perto(faoOms(60, 18, "feminino"), 14.7 * 60 + 496, 0.001);
+  perto(faoOms(60, 17.9, "feminino"), 12.2 * 60 + 746, 0.001);
+  // 30 continua na 18–30, como antes
+  perto(faoOms(60, 30, "feminino"), 14.7 * 60 + 496, 0.001);
+  assert.equal(faoOms(-60, 30, "feminino"), null);
+});
+
+test("Durnin & Womersley não inventa coeficiente abaixo de 17 anos", async () => {
+  const { densidadeDurnin } = await import("./calculos.mjs");
+  assert.equal(densidadeDurnin(50, 16, "masculino"), null);
+  assert.notEqual(densidadeDurnin(50, 17, "masculino"), null);
+});
+
+test("VENTA: prazo ou peso negativo não inverte a conta", async () => {
+  const { venta } = await import("./calculos.mjs");
+  assert.equal(venta(70, 65, -60), null);
+  assert.equal(venta(-70, 65, 60), null);
+  assert.equal(venta(70, 70, 60), 0);
+  perto(venta(70, 65, 60), (5 * 7700) / 60, 0.001);
+});

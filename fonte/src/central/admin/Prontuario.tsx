@@ -131,9 +131,20 @@ export function Prontuario() {
 
   if (erro || !paciente) {
     return (
-      <div className="c-aviso c-aviso-erro" role="alert">
-        <span>{erro ?? "Não encontrei essa paciente."}</span>
-      </div>
+      <>
+        <div className="c-aviso c-aviso-erro" role="alert">
+          <span>{erro ?? "Não encontrei essa paciente."}</span>
+        </div>
+        {/* Sem isto a tela ficava sem saída além do menu lá em cima. */}
+        <button
+          type="button"
+          className="c-botao c-botao-secundario"
+          style={{ marginTop: 12 }}
+          onClick={() => navegar(rotas.adminPacientes)}
+        >
+          Voltar para a lista de pacientes
+        </button>
+      </>
     );
   }
 

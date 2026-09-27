@@ -130,6 +130,13 @@
       .refeicao { border: 1px solid var(--borda); border-radius: 9px; padding: 12px; margin-bottom: 12px; }
       .refeicao-topo { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
       .refeicao-topo input { font-weight: 600; }
+      /* No celular o nome da refeição ficava espremido ("Ca") entre o horário e
+         os botões, e a tabela empurrava a página para o lado. */
+      .refeicao-topo { flex-wrap: wrap; }
+      .refeicao-topo input:not(.hora) { flex: 1 1 140px; min-width: 120px; }
+      .tabela-rolagem { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .tabela-rolagem table { min-width: 560px; }
+      .tr-marca { font-size: 11px; color: var(--apagado); }
       .busca { position: relative; }
       .sugestoes {
         position: absolute; z-index: 5; left: 0; right: 0; top: 100%;
@@ -229,6 +236,7 @@
         <input id="f-arquivo" type="file" accept="application/json,.json" aria-label="Arquivo de backup para restaurar" hidden />
       </div>
       <p class="nota" id="f-estado"></p>
+      <div id="f-lembrete" class="aviso" hidden></div>
     </div>
 
     <nav>
@@ -329,6 +337,8 @@
           </div>
         </div>
 
+        <div id="aviso-dados-corpo"></div>
+
         <h2>Dobras cutâneas (mm)</h2>
         <div class="linha" id="dobras"></div>
 
@@ -377,6 +387,7 @@
 
         <h2>Gasto energético</h2>
         <div class="painel" id="resultado-energia"></div>
+        <div id="aviso-energia"></div>
         <p class="nota">
           Mifflin-St Jeor (1990), Harris-Benedict revisada por Roza &amp; Shizgal (1984),
           Cunningham (1980) a partir da massa magra medida, e FAO/OMS (1985) com o fator

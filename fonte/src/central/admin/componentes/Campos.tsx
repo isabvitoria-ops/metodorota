@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { numeroDeTexto, textoDeNumero } from "@/central/utils/numero";
+import { naoEntendido, numeroDeTexto, textoDeNumero } from "@/central/utils/numero";
 
 /**
  * Campos de formulário da área administrativa.
@@ -173,17 +173,29 @@ export function NumeroDecimal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [valor]);
 
+  // O campo mostra o que ela digitou; o que vai para o banco é o número lido.
+  // Quando os dois não batem, a tela diz — antes "72,5 kg" aparecia no campo
+  // e o banco recebia vazio.
+  const ilegivel = naoEntendido(texto);
   return (
-    <input
-      className="c-input"
-      type="text"
-      inputMode="decimal"
-      value={texto}
-      placeholder={placeholder}
-      onChange={(e) => {
-        definirTexto(e.target.value);
-        aoMudar(numeroDeTexto(e.target.value));
-      }}
-    />
+    <>
+      <input
+        className="c-input"
+        type="text"
+        inputMode="decimal"
+        value={texto}
+        placeholder={placeholder}
+        aria-invalid={ilegivel || undefined}
+        onChange={(e) => {
+          definirTexto(e.target.value);
+          aoMudar(numeroDeTexto(e.target.value));
+        }}
+      />
+      {ilegivel && (
+        <span className="c-dica c-dica-erro" role="alert">
+          Não entendi este número — ele não vai ser salvo. Escreva só o valor, como 72,5.
+        </span>
+      )}
+    </>
   );
 }

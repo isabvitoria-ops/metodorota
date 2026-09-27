@@ -35,6 +35,17 @@ $$;
 
 grant usage on schema public, auth to anon, authenticated;
 
+-- O que o Supabase faz sozinho em todo projeto: tudo o que for criado em
+-- `public` já nasce com permissão EXPLÍCITA para `anon` e `authenticated`.
+--
+-- Sem estas linhas o banco de teste era mais fechado que o de verdade: um
+-- `revoke ... from anon, public` bastava aqui, mas no Supabase deixava
+-- `authenticated` com a permissão que ele mesmo tinha dado. Uma função
+-- esquecida aberta passava na bateria e ficava aberta em produção.
+alter default privileges in schema public grant all on tables to anon, authenticated;
+alter default privileges in schema public grant all on sequences to anon, authenticated;
+alter default privileges in schema public grant execute on functions to anon, authenticated;
+
 -- Coletor de resultados: um teste que falha não derruba a bateria, para que
 -- a saída mostre tudo o que está errado de uma vez.
 create table if not exists resultados_teste (

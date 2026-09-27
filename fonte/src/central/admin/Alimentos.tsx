@@ -9,6 +9,7 @@ import { normalizar } from "@/central/utils/texto";
 import { textoMedida } from "@/central/utils/medidas";
 import { Modal } from "./componentes/Modal";
 import { AreaTexto, Campo, Selecao, Texto, linhasDeLista, listaDeLinhas } from "./componentes/Campos";
+import { numeroDeTexto } from "@/central/utils/numero";
 
 /**
  * Cadastro de alimentos (§41 do briefing).
@@ -115,8 +116,8 @@ function ModalAlimento({ alimento, aoFechar }: { alimento: Alimento | null; aoFe
     if (!identificador) {
       return definirAviso("O nome precisa ter pelo menos uma letra ou número.");
     }
-    const quantidade = porcao.trim() ? Number(porcao.replace(",", ".")) : null;
-    if (porcao.trim() && (!Number.isFinite(quantidade) || quantidade! <= 0)) {
+    const quantidade = porcao.trim() ? numeroDeTexto(porcao) : null;
+    if (porcao.trim() && (quantidade === null || quantidade <= 0)) {
       return definirAviso("A porção precisa ser um número maior que zero.");
     }
     // Os dois juntos diriam coisas contrárias: "a porção é 100 g" e "não tem

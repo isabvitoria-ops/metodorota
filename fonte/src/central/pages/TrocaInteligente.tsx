@@ -12,6 +12,7 @@ import { Icone } from "@/central/components/Icone";
 import { BotaoFavorito } from "@/central/components/BotaoFavorito";
 import { useHistorico } from "@/central/hooks/useHistorico";
 import { rotas } from "@/central/rotas";
+import { numeroDeTexto } from "@/central/utils/numero";
 
 /**
  * Troca Inteligente (§4 a §7) — a tela central do produto.
@@ -65,7 +66,7 @@ export function TrocaInteligente() {
     [candidatos, semGluten, semLactose],
   );
 
-  const valor = Number(quantidade.replace(",", "."));
+  const valor = numeroDeTexto(quantidade) ?? Number.NaN;
   const resultado = useMemo(() => {
     if (!origem || !destino) return null;
     return calcularTroca({
@@ -246,8 +247,18 @@ export function TrocaInteligente() {
             </p>
             {resultado.porcoes !== null && (
               <p className="c-resultado-nota">
-                Equivale a {numero(resultado.porcoes)}{" "}
-                {resultado.porcoes === 1 ? "porção" : "porções"}.
+                {/* 1,5 g de arroz dizia "Equivale a 0 porções" — arredondado
+                    para zero, como se não fosse nada. */}
+                {resultado.porcoes < 0.05
+                  ? "Equivale a menos de um décimo de porção."
+                  : `Equivale a ${numero(resultado.porcoes)} ${
+                      Math.round(resultado.porcoes * 10) / 10 === 1 ? "porção" : "porções"
+                    }.`}
+              </p>
+            )}
+            {resultado.porcoes !== null && resultado.porcoes > 10 && (
+              <p className="c-resultado-nota">
+                É mais de 10 porções de uma vez — confira se a quantidade foi digitada certa.
               </p>
             )}
             {resultado.observacoes.map((nota) => (

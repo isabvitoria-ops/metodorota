@@ -8,6 +8,7 @@ import type {
 import { repositorio } from "@/central/dados/repositorio";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { rotas } from "@/central/rotas";
+import { naoEntendido, numeroDeTexto } from "@/central/utils/numero";
 
 /**
  * Onde a paciente responde o check-in da semana e os questionários.
@@ -346,6 +347,16 @@ function FormularioPassoAPasso({
       definirErro("Esta pergunta precisa de resposta.");
       return;
     }
+    // Pergunta de número com texto que não é número: antes ia ao banco vazia,
+    // sem aviso ("72,5 kg" sumia). Agora a tela para nela e pede de novo.
+    const ilegivel = perguntas.findIndex(
+      (p) => p.tipo === "numero" && naoEntendido(valores[p.id] ?? ""),
+    );
+    if (ilegivel >= 0) {
+      definirIndice(ilegivel);
+      definirErro("Não entendi este número. Escreva só o valor, como 72,5.");
+      return;
+    }
     definirEnviando(true);
     definirErro(null);
     try {
@@ -354,7 +365,7 @@ function FormularioPassoAPasso({
         const numerico = p.tipo === "escala" || p.tipo === "sim_nao" || p.tipo === "numero";
         return {
           perguntaId: p.id,
-          numero: numerico && bruto !== "" ? Number(bruto.replace(",", ".")) : null,
+          numero: numerico && bruto !== "" ? numeroDeTexto(bruto) : null,
           texto: numerico ? null : bruto || null,
         };
       });

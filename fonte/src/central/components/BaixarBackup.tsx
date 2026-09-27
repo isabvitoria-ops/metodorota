@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { repositorio } from "@/central/dados/repositorio";
+import { hojeSaoPaulo } from "@/central/utils/situacao";
 
 /**
  * Baixar um backup de tudo, num arquivo.
@@ -29,7 +30,7 @@ export function BaixarBackup() {
       // O nome do arquivo leva a DATA: baixando duas vezes no mesmo mês, o
       // navegador guardaria "backup (1).json" e ela não saberia qual é o
       // mais novo. Foi o que aconteceu com o `index (1).html` do site.
-      const hoje = new Date().toISOString().slice(0, 10);
+      const hoje = hojeSaoPaulo();
       const texto = JSON.stringify(dados, null, 2);
       const endereco = URL.createObjectURL(
         new Blob([texto], { type: "application/json" }),

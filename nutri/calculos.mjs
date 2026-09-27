@@ -84,6 +84,9 @@ const DURNIN = {
 
 export function densidadeDurnin(soma, idade, sexo) {
   if (!soma || !idade) return null;
+  // A tabela começa aos 17. Abaixo disso não há coeficiente publicado, e
+  // usar a linha de 17–19 seria aplicar a conta de outra faixa sem avisar.
+  if (idade < 17) return null;
   const faixas = DURNIN[sexo] ?? DURNIN.feminino;
   const faixa = faixas.find(([ate]) => idade <= ate) ?? faixas[faixas.length - 1];
   const [, c, m] = faixa;
@@ -148,9 +151,16 @@ export function faulkner(soma) {
 // Aplicar Siri em cima de todas seria trocar a conta do autor pela minha.
 // ---------------------------------------------------------------------------
 
-/** Guedes (1985) — universitários, 17 a 27 anos. Tríceps, supra-ilíaca e abdominal. */
-export function densidadeGuedes(soma) {
+/**
+ * Guedes (1985) — universitários, 17 a 27 anos.
+ *
+ * Homens: tríceps, supra-ilíaca e abdominal.
+ * Mulheres: coxa, supra-ilíaca e subescapular — outras dobras e outros
+ * coeficientes. Antes a tela usava a masculina nas duas.
+ */
+export function densidadeGuedes(soma, sexo = "masculino") {
   if (!soma) return null;
+  if (sexo === "feminino") return 1.1665 - 0.07063 * Math.log10(soma);
   return 1.17136 - 0.06706 * Math.log10(soma);
 }
 
@@ -163,9 +173,13 @@ export function densidadePetroski(soma, idade) {
   return 1.10726863 - 0.00081201 * soma + 0.00000212 * soma * soma - 0.00041761 * idade;
 }
 
-/** Durnin & Rahaman (1967) — 18 a 33. Bíceps, tríceps, subescapular e supra-ilíaca. */
-export function densidadeDurninRahaman(soma) {
+/**
+ * Durnin & Rahaman (1967) — 18 a 33. Bíceps, tríceps, subescapular e
+ * supra-ilíaca, nos dois sexos, com coeficientes diferentes para cada um.
+ */
+export function densidadeDurninRahaman(soma, sexo = "masculino") {
   if (!soma) return null;
+  if (sexo === "feminino") return 1.1581 - 0.072 * Math.log10(soma);
   return 1.161 - 0.0632 * Math.log10(soma);
 }
 
@@ -199,13 +213,20 @@ export function densidadeKatch(triceps, subescapular, abdominal) {
 }
 
 /**
- * Slaughter (1988) — estudantes de 16 a 18. Tríceps e subescapular.
+ * Slaughter (1988) — tríceps e subescapular. Devolve o percentual direto.
  *
- * Devolve o percentual direto; a densidade é derivada dele, não o contrário.
+ * A equação quadrática só vale até 35 mm. Acima disso o próprio artigo
+ * troca de fórmula (linear), e sem essa troca justamente quem tem mais
+ * gordura saía com 4 a 10 pontos a menos.
+ *
+ * Meninos: 1,21Σ − 0,008Σ² − 5,5 (pós-púberes) · acima de 35 mm: 0,783Σ + 1,6
+ * Meninas: 1,33Σ − 0,013Σ² − 2,5              · acima de 35 mm: 0,546Σ + 9,7
  */
-export function slaughter(soma) {
+export function slaughter(soma, sexo = "masculino") {
   if (!soma) return null;
-  return 1.21 * soma - 0.008 * soma * soma - 5.5;
+  const menina = sexo === "feminino";
+  if (soma > 35) return menina ? 0.546 * soma + 9.7 : 0.783 * soma + 1.6;
+  return menina ? 1.33 * soma - 0.013 * soma * soma - 2.5 : 1.21 * soma - 0.008 * soma * soma - 5.5;
 }
 
 /**
@@ -279,22 +300,35 @@ export function cunningham(massaMagraKg) {
  * peso; a faixa de idade escolhe os coeficientes.
  */
 const FAO = {
+  // [idade limite, coeficiente, constante, limite incluído?]
   masculino: [
-    [30, 15.3, 679],
-    [60, 11.6, 879],
-    [200, 13.5, 487],
+    [3, 60.9, -54, false],
+    [10, 22.7, 495, false],
+    [18, 17.5, 651, false],
+    [30, 15.3, 679, true],
+    [60, 11.6, 879, true],
+    [200, 13.5, 487, true],
   ],
   feminino: [
-    [30, 14.7, 496],
-    [60, 8.7, 829],
-    [200, 10.5, 596],
+    [3, 61.0, -51, false],
+    [10, 22.5, 499, false],
+    [18, 12.2, 746, false],
+    [30, 14.7, 496, true],
+    [60, 8.7, 829, true],
+    [200, 10.5, 596, true],
   ],
 };
 
+/**
+ * As faixas de 0 a 18 anos são da mesma tabela FAO/OMS de 1985. Antes só
+ * havia as de adulto, e uma adolescente de 15 anos recebia a conta de
+ * 18–30 — cerca de 9% a menos, sem aviso.
+ */
 export function faoOms(pesoKg, idade, sexo) {
-  if (!pesoKg || !idade) return null;
+  if (!pesoKg || !idade || pesoKg < 0 || idade < 0) return null;
   const faixas = FAO[sexo] ?? FAO.feminino;
-  const faixa = faixas.find(([ate]) => idade <= ate) ?? faixas[faixas.length - 1];
+  const faixa =
+    faixas.find(([ate, , , inclui]) => (inclui ? idade <= ate : idade < ate)) ?? faixas[faixas.length - 1];
   const [, coeficiente, constante] = faixa;
   return coeficiente * pesoKg + constante;
 }
@@ -481,5 +515,7 @@ export function macrosPorPercentual(kcalTotal, percentuais, pesoKg) {
  */
 export function venta(pesoAtual, pesoDesejado, dias) {
   if (!pesoAtual || !pesoDesejado || !dias) return null;
+  // Prazo ou peso negativo invertia o sinal: perder peso virava "superávit".
+  if (pesoAtual < 0 || pesoDesejado < 0 || dias < 0) return null;
   return ((pesoAtual - pesoDesejado) * 7700) / dias;
 }

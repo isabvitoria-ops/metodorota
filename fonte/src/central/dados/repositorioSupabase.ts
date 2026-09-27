@@ -69,6 +69,7 @@ import type {
 import { CONTEUDO_VAZIO } from "@/central/types/protocolo";
 import { semanaDoDesafio, situacaoDoDesafio, totalDeSemanas } from "@/central/utils/desafio";
 import { exigirSupabase } from "@/central/supabase/cliente";
+import { numeroDeTexto } from "@/central/utils/numero";
 import { urlDaRota } from "@/central/utils/enderecos";
 import {
   paraAlimento,
@@ -1003,7 +1004,13 @@ export const repositorioSupabase: Repositorio = {
       p_treino: treinoId,
       p_data: data,
       p_observacao: observacao,
-      p_series: series,
+      // Número de verdade, não o texto digitado: o banco não lê "22,5" e
+      // derrubava o treino inteiro por causa de uma vírgula.
+      p_series: series.map((s) => ({
+        ...s,
+        carga: numeroDeTexto(String(s.carga ?? "")),
+        repeticoes: numeroDeTexto(String(s.repeticoes ?? "")),
+      })),
     });
     erro("registrar o treino", error);
   },
@@ -1765,10 +1772,7 @@ export const repositorioSupabase: Repositorio = {
  * guarda a diferença.
  */
 function aNumero(v: string): number | null {
-  const t = v.trim().replace(",", ".");
-  if (t === "") return null;
-  const n = Number(t);
-  return Number.isFinite(n) ? n : null;
+  return numeroDeTexto(v);
 }
 
 /**
@@ -1792,10 +1796,7 @@ function numeroOuNulo(v: unknown): number | null {
  * `Number("1,5")` é `NaN`.
  */
 function numeroOuNuloDeTexto(v: string): number | null {
-  const limpo = (v ?? "").trim().replace(",", ".");
-  if (limpo === "") return null;
-  const n = Number(limpo);
-  return Number.isFinite(n) ? n : null;
+  return numeroDeTexto(v ?? "");
 }
 
 function lerConsulta(linha: Linha): Consulta {

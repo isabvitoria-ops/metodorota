@@ -30,6 +30,15 @@ import {
  * `dobras: []` para um sexo significa "não há equação publicada para este
  * sexo". A tela avisa, em vez de reaproveitar a fórmula do outro — que
  * daria número errado sem parecer errado.
+ *
+ * `soMasculinaConferida`: o autor publicou uma versão feminina, mas ela não
+ * está aqui porque os coeficientes ainda não foram conferidos contra a
+ * fonte. ANTES a tela oferecia essas equações para mulher calculando com o
+ * coeficiente MASCULINO — 19,8% de gordura onde a conta feminina dá 27,9%.
+ * Até alguém conferir a versão feminina, a tela recusa em vez de chutar.
+ *
+ * `idade: [min, max]` é a faixa em que a equação foi validada. Fora dela a
+ * tela calcula, mas avisa.
  */
 export const PROTOCOLOS = {
   pollock3: {
@@ -38,6 +47,7 @@ export const PROTOCOLOS = {
     dobras: { masculino: ["peitoral", "abdominal", "coxa"], feminino: ["triceps", "suprailiaca", "coxa"] },
     conversao: "siri",
     usaIdade: true,
+    idade: [18, 61],
     densidade: ({ soma, idade, sexo }) => densidadePollock3(soma, idade, sexo),
   },
   pollock7: {
@@ -49,6 +59,7 @@ export const PROTOCOLOS = {
     },
     conversao: "siri",
     usaIdade: true,
+    idade: [18, 61],
     densidade: ({ soma, idade, sexo }) => densidadePollock7(soma, idade, sexo),
   },
   pollock4: {
@@ -57,6 +68,7 @@ export const PROTOCOLOS = {
     dobras: { masculino: [], feminino: ["triceps", "abdominal", "suprailiaca", "coxa"] },
     conversao: "siri",
     usaIdade: true,
+    idade: [18, 55],
     densidade: ({ soma, idade }) => densidadePollock4(soma, idade),
   },
   durnin: {
@@ -68,6 +80,7 @@ export const PROTOCOLOS = {
     },
     conversao: "siri",
     usaIdade: true,
+    idade: [17, 72],
     densidade: ({ soma, idade, sexo }) => densidadeDurnin(soma, idade, sexo),
   },
   durninRahaman: {
@@ -78,17 +91,20 @@ export const PROTOCOLOS = {
       feminino: ["biceps", "triceps", "subescapular", "suprailiaca"],
     },
     conversao: "siri",
-    densidade: ({ soma }) => densidadeDurninRahaman(soma),
+    idade: [18, 33],
+    densidade: ({ soma, sexo }) => densidadeDurninRahaman(soma, sexo),
   },
   lean: {
     rotulo: "Lean et al. — 4 dobras",
     nota: "17 a 65 anos.",
     dobras: {
       masculino: ["biceps", "triceps", "subescapular", "suprailiaca"],
-      feminino: ["biceps", "triceps", "subescapular", "suprailiaca"],
+      feminino: [],
     },
+    soMasculinaConferida: true,
     conversao: "lohman",
     usaIdade: true,
+    idade: [17, 65],
     densidade: ({ soma, idade }) => densidadeLean(soma, idade),
   },
   petroski: {
@@ -96,29 +112,33 @@ export const PROTOCOLOS = {
     nota: "Brasileiros, 18 a 66 anos.",
     dobras: {
       masculino: ["subescapular", "triceps", "suprailiaca", "panturrilha"],
-      feminino: ["subescapular", "triceps", "suprailiaca", "panturrilha"],
+      feminino: [],
     },
+    soMasculinaConferida: true,
     conversao: "lohman",
     usaIdade: true,
+    idade: [18, 66],
     densidade: ({ soma, idade }) => densidadePetroski(soma, idade),
   },
   guedes: {
     rotulo: "Guedes — 3 dobras",
-    nota: "Universitários brasileiros, 17 a 27 anos.",
+    nota: "Universitários brasileiros, 17 a 27 anos. Mulheres: coxa, supra-ilíaca e subescapular.",
     dobras: {
       masculino: ["triceps", "suprailiaca", "abdominal"],
-      feminino: ["triceps", "suprailiaca", "abdominal"],
+      feminino: ["coxa", "suprailiaca", "subescapular"],
     },
     conversao: "siri",
-    densidade: ({ soma }) => densidadeGuedes(soma),
+    idade: [17, 27],
+    densidade: ({ soma, sexo }) => densidadeGuedes(soma, sexo),
   },
   katch: {
     rotulo: "Katch & McArdle — 3 dobras",
     nota: "Universitários. Cada dobra entra com o seu próprio coeficiente — esta não soma.",
     dobras: {
       masculino: ["triceps", "subescapular", "abdominal"],
-      feminino: ["triceps", "subescapular", "abdominal"],
+      feminino: [],
     },
+    soMasculinaConferida: true,
     conversao: "brozek",
     // A única da tabela que não usa somatório. Somar as três antes daria
     // outro número, e é por isso que ela recebe as dobras separadas.
@@ -129,9 +149,11 @@ export const PROTOCOLOS = {
     nota: "Atletas de 14 a 19 anos.",
     dobras: {
       masculino: ["triceps", "subescapular", "axilar"],
-      feminino: ["triceps", "subescapular", "axilar"],
+      feminino: [],
     },
+    soMasculinaConferida: true,
     conversao: "siri",
+    idade: [14, 19],
     densidade: ({ soma }) => densidadeThorland3(soma),
   },
   thorland7: {
@@ -139,17 +161,20 @@ export const PROTOCOLOS = {
     nota: "Atletas de 14 a 19 anos.",
     dobras: {
       masculino: ["peitoral", "axilar", "triceps", "subescapular", "abdominal", "suprailiaca", "coxa"],
-      feminino: ["peitoral", "axilar", "triceps", "subescapular", "abdominal", "suprailiaca", "coxa"],
+      feminino: [],
     },
+    soMasculinaConferida: true,
     conversao: "siri",
+    idade: [14, 19],
     densidade: ({ soma }) => densidadeThorland7(soma),
   },
   slaughter: {
     rotulo: "Slaughter — 2 dobras",
-    nota: "Estudantes de 16 a 18 anos. Devolve o percentual direto, sem densidade.",
+    nota: "Crianças e adolescentes (a versão masculina aqui é a de pós-púberes). Devolve o percentual direto, sem densidade.",
     dobras: { masculino: ["triceps", "subescapular"], feminino: ["triceps", "subescapular"] },
+    idade: [8, 18],
     // Sem conversão: o percentual é a saída da própria equação.
-    percentual: ({ soma }) => slaughter(soma),
+    percentual: ({ soma, sexo }) => slaughter(soma, sexo),
   },
   faulkner: {
     rotulo: "Faulkner — 4 dobras",

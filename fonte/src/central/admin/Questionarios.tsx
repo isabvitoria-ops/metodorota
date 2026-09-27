@@ -9,6 +9,7 @@ import type {
 import { repositorio } from "@/central/dados/repositorio";
 import { Campo, Selecao, Texto, AreaTexto } from "@/central/admin/componentes/Campos";
 import { alternar, todas, moverRecolhidas, removerRecolhida } from "@/central/utils/recolherRefeicoes";
+import { numeroDeTexto } from "@/central/utils/numero";
 
 /**
  * Questionários e check-in semanal — área da nutricionista.
@@ -623,8 +624,8 @@ function BlocoDaPergunta({
               <Texto
                 valor={String(pergunta.peso)}
                 aoMudar={(v) => {
-                  const n = Number(v.replace(",", "."));
-                  aoTrocar({ ...pergunta, peso: Number.isFinite(n) && n >= 0 ? n : pergunta.peso });
+                  const n = numeroDeTexto(v);
+                  aoTrocar({ ...pergunta, peso: n !== null && n >= 0 ? n : pergunta.peso });
                 }}
               />
             </Campo>

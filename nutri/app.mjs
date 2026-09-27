@@ -73,6 +73,9 @@ const num = (v) => {
   const n = parseFloat(String(v ?? "").replace(",", "."));
   return Number.isFinite(n) ? n : 0;
 };
+/** Texto que vai para dentro de `innerHTML` sem virar código. */
+const escaparHtml = (t) =>
+  String(t ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const mostrar = (v, casas = 1, sufixo = "") =>
   v === null || v === undefined || !Number.isFinite(v)
     ? "—"
@@ -269,6 +272,44 @@ const DO_IBGE = {
   carboidrato: "carboidrato_g",
   fibra_alimentar: "fibra_g",
 };
+
+/**
+ * "Tr" da TACO: presente, em quantidade abaixo do que o laboratório mede.
+ *
+ * Não é zero e não é "sem dado". Antes aparecia como "—" com a dica "a tabela
+ * não traz este valor", e ainda contava como dado faltando no total — o
+ * significado do traço se perdia. Agora a tela mostra "Tr", e o total não o
+ * soma (não há número para somar) mas também não o conta como buraco.
+ */
+function ehTraco(alimento, chave) {
+  if (!alimento || alimento.fonte !== "taco") return false;
+  const pos = POS[chave];
+  return pos !== undefined && (alimento.bruto.t ?? []).includes(pos);
+}
+
+/** Soma um nutriente numa lista de itens: total, faltando (sem dado) e traços. */
+function somaDoNutriente(itens, chave) {
+  let tracos = 0;
+  const valores = [];
+  for (const item of itens) {
+    const a = alimentoPorId(item.codigo);
+    const v = a ? porGramas(valorDe(a, chave), gramasDoItem(item)) : null;
+    if (v === null && ehTraco(a, chave)) tracos += 1;
+    else valores.push(v);
+  }
+  const { total, faltando } = somar(valores);
+  return { total, faltando, tracos };
+}
+
+/** O que a célula mostra: o número, "Tr" ou "—". */
+function textoDaCelula(alimento, chave, gramas, casas) {
+  const v = alimento ? porGramas(valorDe(alimento, chave), gramas) : null;
+  if (v !== null) return { texto: mostrar(v, casas), dica: "" };
+  if (ehTraco(alimento, chave)) {
+    return { texto: "Tr", dica: "Traço: presente em quantidade abaixo do que o laboratório mede. Não entra na soma." };
+  }
+  return { texto: "—", dica: "A tabela não traz este valor para este alimento." };
+}
 
 function valorDe(alimento, chave) {
   if (!alimento) return null;
@@ -513,6 +554,10 @@ function desenharDieta() {
       tirarOpcao.className = "mini";
       tirarOpcao.textContent = "− opção";
       tirarOpcao.onclick = () => {
+        const aberta = opcaoAtiva(refeicao);
+        const n = aberta.itens?.length ?? 0;
+        // Um clique apagava a opção aberta com todos os alimentos dela.
+        if (n && !window.confirm(`Tirar "${aberta.rotulo}" e os ${n} ${n === 1 ? "alimento" : "alimentos"} dela?`)) return;
         dieta.refeicoes[iR] = removerOpcao(refeicao, refeicao.opcaoAtiva);
         guardarDieta();
         desenharDieta();
@@ -555,11 +600,11 @@ function desenharDieta() {
           const g = gramasDoItem(item);
           if (gramasTd[iI]) gramasTd[iI].textContent = mostrar(g, 0);
           MACROS.forEach(([chave, , casas], iM) => {
-            const v = a ? porGramas(valorDe(a, chave), g) : null;
             const td = celulas[iI]?.[iM];
             if (td) {
-              td.textContent = mostrar(v, casas);
-              td.title = v === null ? "A tabela não traz este valor para este alimento." : "";
+              const { texto, dica } = textoDaCelula(a, chave, g, casas);
+              td.textContent = texto;
+              td.title = dica;
             }
           });
           // Os substitutos seguem o principal: mudou o frango, muda o peixe.
@@ -587,15 +632,10 @@ function desenharDieta() {
           });
         });
         MACROS.forEach(([chave, , casas], iM) => {
-          const { total, faltando } = somar(
-            opcao.itens.map((item) => {
-              const a = alimentoPorId(item.codigo);
-              return a ? porGramas(valorDe(a, chave), gramasDoItem(item)) : null;
-            }),
-          );
+          const { total, faltando, tracos } = somaDoNutriente(opcao.itens, chave);
           if (rodapeCelulas[iM]) {
             rodapeCelulas[iM].textContent =
-              (total === null ? "—" : mostrar(total, casas)) + (faltando ? " *" : "");
+              (total === null ? (tracos ? "Tr" : "—") : mostrar(total, casas)) + (faltando ? " *" : "");
           }
         });
         totais();
@@ -863,7 +903,10 @@ function desenharDieta() {
       trF.append(document.createElement("td"));
       rodape.append(trF);
       tabela.append(corpo, rodape);
-      bloco.append(tabela);
+      const rolagem = document.createElement("div");
+      rolagem.className = "tabela-rolagem";
+      rolagem.append(tabela);
+      bloco.append(rolagem);
       recalcular();
     }
 
@@ -1030,8 +1073,16 @@ function campoDeBusca(aoEscolher, dica = "Buscar alimento e apertar Enter") {
 
     achados.forEach((a, i) => {
       const linha = document.createElement("div");
-      linha.innerHTML =
-        `${a.nome}<br><small>${etiquetaDaFonte(a.fonte)}${a.grupo ? ` · ${a.grupo}` : ""}</small>`;
+      // textContent, não innerHTML: nome de alimento cadastrado ou importado
+      // não pode virar código na página.
+      const semKcal = valorDe(a, "energia_kcal") === null;
+      const apoio = document.createElement("small");
+      apoio.textContent =
+        `${etiquetaDaFonte(a.fonte)}${a.grupo ? ` · ${a.grupo}` : ""}` +
+        // O leite integral da TACO não tem energia nem macros na própria
+        // planilha ("*"). Escolhê-lo somava zero caloria sem ela perceber.
+        (semKcal ? " · sem calorias nesta tabela" : "");
+      linha.append(a.nome, document.createElement("br"), apoio);
       if (i === 0) linha.className = "marcado";
       linha.onmousedown = (e) => {
         e.preventDefault();
@@ -1067,18 +1118,20 @@ function totais() {
   // opções de café da manhã somadas dariam dois cafés da manhã no dia.
   const todos = itensDoDia(dieta.refeicoes);
   const soma = {};
+  const incompleto = {};
   let faltouAlgo = 0;
+  let tracosNoDia = 0;
 
   for (const [chave] of MACROS) {
-    const { total, faltando } = somar(
-      todos.map((item) => {
-        const a = alimentoPorId(item.codigo);
-        return a ? porGramas(valorDe(a, chave), gramasDoItem(item)) : null;
-      }),
-    );
+    const { total, faltando, tracos } = somaDoNutriente(todos, chave);
     soma[chave] = total;
+    incompleto[chave] = faltando > 0;
     faltouAlgo += faltando;
+    tracosNoDia += tracos;
   }
+  // O asterisco vai em CADA nutriente incompleto, não só no aviso de baixo:
+  // "Fibra 10,9 g" sem marca parecia completo quando faltava o frango.
+  const marca = (chave) => (incompleto[chave] ? " *" : "");
 
   const peso = num($("d-peso").value);
   const meta = num($("d-meta").value);
@@ -1086,7 +1139,7 @@ function totais() {
 
   // "— g" seria estranho, e "0,0 g" seria mentira: o que não foi medido sai
   // como travessão sozinho.
-  const gramas = (v) => (v === null ? "—" : `${mostrar(v, 1)} g`);
+  const gramas = (v, chave) => (v === null ? "—" : `${mostrar(v, 1)} g${marca(chave)}`);
   const apoio = (chave, valor) =>
     dist
       ? `${mostrar(dist[chave], 0)}%` + (peso ? ` · ${mostrar(porQuilo(valor, peso), 1)} g/kg` : "")
@@ -1096,17 +1149,17 @@ function totais() {
     // "meta 1600 · 150" não dizia se as 150 estavam acima ou abaixo. Agora diz.
     [
       "Calorias",
-      mostrar(soma.energia_kcal, 0),
+      mostrar(soma.energia_kcal, 0) + marca("energia_kcal"),
       meta && soma.energia_kcal !== null
         ? `meta ${mostrar(meta, 0)} · ${mostrar(Math.abs(soma.energia_kcal - meta), 0)} ${
             soma.energia_kcal >= meta ? "acima" : "abaixo"
           }`
         : "",
     ],
-    ["Carboidrato", gramas(soma.carboidrato), apoio("carboidrato", soma.carboidrato)],
-    ["Proteína", gramas(soma.proteina), apoio("proteina", soma.proteina)],
-    ["Gordura", gramas(soma.lipideos), apoio("lipideo", soma.lipideos)],
-    ["Fibra", gramas(soma.fibra_alimentar), ""],
+    ["Carboidrato", gramas(soma.carboidrato, "carboidrato"), apoio("carboidrato", soma.carboidrato)],
+    ["Proteína", gramas(soma.proteina, "proteina"), apoio("proteina", soma.proteina)],
+    ["Gordura", gramas(soma.lipideos, "lipideos"), apoio("lipideo", soma.lipideos)],
+    ["Fibra", gramas(soma.fibra_alimentar, "fibra_alimentar"), ""],
   ];
 
   $("total-dia").innerHTML =
@@ -1116,9 +1169,13 @@ function totais() {
       .join("") +
     "</dl>";
 
-  $("aviso-dados").innerHTML = faltouAlgo
-    ? `<div class="aviso">${faltouAlgo} ${faltouAlgo === 1 ? "valor não existe" : "valores não existem"} na tabela para os alimentos escolhidos (marcados com <strong>*</strong>). Eles não entraram como zero — o total está incompleto nesses nutrientes, e é bom saber disso antes de fechar a prescrição.</div>`
-    : "";
+  $("aviso-dados").innerHTML =
+    (faltouAlgo
+      ? `<div class="aviso">${faltouAlgo} ${faltouAlgo === 1 ? "valor não existe" : "valores não existem"} na tabela para os alimentos escolhidos (marcados com <strong>*</strong>). Eles não entraram como zero — o total está incompleto nesses nutrientes, e é bom saber disso antes de fechar a prescrição.</div>`
+      : "") +
+    (tracosNoDia
+      ? `<p class="nota">${tracosNoDia} ${tracosNoDia === 1 ? "valor é" : "valores são"} <strong>Tr</strong> (traço, na TACO): presente em quantidade mínima, sem número para somar. Não entram no total e não o deixam incompleto.</p>`
+      : "");
 }
 
 /**
@@ -1251,11 +1308,64 @@ function camposCorpo() {
   atividade.value = "1.375";
 }
 
+/**
+ * Faixas do que um corpo humano adulto (ou adolescente) pode medir.
+ *
+ * NÃO SÃO LIMITES CLÍNICOS — são limites de DIGITAÇÃO. Antes daqui, altura
+ * "1,65" num campo em centímetros dava IMC 236.914 "Obesidade grau III", peso
+ * negativo dava massa gorda negativa, e uma dobra de −20 mm entrava na soma.
+ * Valor fora da faixa não entra na conta: a tela diz qual foi e por quê.
+ */
+const FAIXAS_DIGITACAO = {
+  idade: { min: 2, max: 110, nome: "Idade", unidade: "anos" },
+  peso: { min: 10, max: 350, nome: "Peso", unidade: "kg" },
+  altura: { min: 80, max: 230, nome: "Altura", unidade: "cm" },
+  dobra: { min: 1, max: 80, nome: "Dobra", unidade: "mm" },
+  circunferencia: { min: 10, max: 250, nome: "Circunferência", unidade: "cm" },
+};
+
+/**
+ * Lê um campo numérico e confere a faixa. Devolve o número, ou 0 (vazio)
+ * quando o valor é impossível — e, nesse caso, deixa a explicação em `avisos`.
+ */
+function lerMedida(id, faixa, avisos, rotulo = faixa.nome) {
+  const bruto = String($(id)?.value ?? "").trim();
+  if (!bruto) return 0;
+  const n = Number(bruto.replace(/\s/g, "").replace(",", "."));
+  if (!Number.isFinite(n)) {
+    avisos.push(`${rotulo}: não entendi "${bruto}" como número — não entrou na conta.`);
+    return 0;
+  }
+  if (n === 0) return 0;
+  if (n < 0) {
+    avisos.push(`${rotulo}: valor negativo (${bruto}) não existe — não entrou na conta.`);
+    return 0;
+  }
+  if (faixa === FAIXAS_DIGITACAO.altura && n > 0.5 && n < 2.6) {
+    avisos.push(
+      `Altura: ${bruto} parece estar em metros. O campo é em centímetros — escreva ${mostrar(n * 100, 0)}.`,
+    );
+    return 0;
+  }
+  if (n < faixa.min || n > faixa.max) {
+    avisos.push(
+      `${rotulo}: ${bruto} ${faixa.unidade} está fora do que dá para medir ` +
+        `(${faixa.min} a ${faixa.max} ${faixa.unidade}) — confira a digitação. Não entrou na conta.`,
+    );
+    return 0;
+  }
+  return n;
+}
+
+const caixaDeAviso = (linhas) =>
+  linhas.length ? `<div class="aviso">${linhas.map(escaparHtml).join("<br>")}</div>` : "";
+
 function calcularCorpo() {
   const sexo = $("c-sexo").value;
-  const idade = num($("c-idade").value);
-  const peso = num($("c-peso").value);
-  const alturaCm = num($("c-altura").value);
+  const avisosDados = [];
+  const idade = lerMedida("c-idade", FAIXAS_DIGITACAO.idade, avisosDados);
+  const peso = lerMedida("c-peso", FAIXAS_DIGITACAO.peso, avisosDados);
+  const alturaCm = lerMedida("c-altura", FAIXAS_DIGITACAO.altura, avisosDados);
   const protocolo = $("c-protocolo").value;
   const dados = PROTOCOLOS[protocolo];
   const usadas = dados.dobras[sexo];
@@ -1263,9 +1373,23 @@ function calcularCorpo() {
 
   $("quais-dobras").textContent = usadas.length
     ? `${dados.rotulo}: ${dados.percentual || protocolo === "katch" ? "usa" : "soma"} ${nomes}. ${dados.nota}`
-    : `${dados.rotulo} não tem equação publicada para este sexo. Escolha outro protocolo.`;
+    : dados.soMasculinaConferida
+      ? `${dados.rotulo}: aqui está só a versão masculina. A feminina tem outros coeficientes e ` +
+        "ainda não foi conferida contra a fonte — escolha outra equação para mulher."
+      : `${dados.rotulo} não tem equação publicada para este sexo. Escolha outro protocolo.`;
 
-  const valores = Object.fromEntries(usadas.map((c) => [c, num($(`dob-${c}`).value)]));
+  // Todas as dobras são conferidas, não só as do protocolo: a soma de todas
+  // também aparece na tela.
+  const dobraLida = {};
+  for (const [c, rotulo] of DOBRAS) {
+    dobraLida[c] = lerMedida(`dob-${c}`, FAIXAS_DIGITACAO.dobra, avisosDados, `Dobra ${rotulo.toLowerCase()}`);
+  }
+  for (const [c, rotulo] of CIRCUNFERENCIAS) {
+    lerMedida(`cir-${c}`, FAIXAS_DIGITACAO.circunferencia, avisosDados, rotulo);
+  }
+  $("aviso-dados-corpo").innerHTML = caixaDeAviso(avisosDados);
+
+  const valores = Object.fromEntries(usadas.map((c) => [c, dobraLida[c]]));
   const lista = usadas.map((c) => valores[c]);
   const faltando = lista.filter((v) => !v).length;
   const soma = lista.reduce((t, v) => t + v, 0);
@@ -1303,7 +1427,7 @@ function calcularCorpo() {
       [
         "Soma de todas as medidas",
         mostrar(
-          DOBRAS.map(([c]) => num($(`dob-${c}`).value)).reduce((t, v) => t + v, 0),
+          DOBRAS.map(([c]) => dobraLida[c]).reduce((t, v) => t + v, 0),
           1,
           " mm",
         ),
@@ -1323,16 +1447,30 @@ function calcularCorpo() {
       .join("") +
     "</dl>";
 
-  $("aviso-corpo").innerHTML =
-    faltando && soma > 0
-      ? `<div class="aviso">Falta preencher ${faltando} ${faltando === 1 ? "dobra" : "dobras"} deste protocolo. Não calculo o percentual com dobra faltando — o resultado sairia errado sem avisar.</div>`
-      : !idade && soma > 0 && dados.usaIdade
-        ? `<div class="aviso">Esta equação usa a idade. Preencha para o percentual aparecer.</div>`
-        : "";
+  const avisosCorpo = [];
+  const semFaixaDurnin = protocolo === "durnin" && idade && idade < 17;
+  if (faltando && soma > 0) {
+    avisosCorpo.push(
+      `Falta preencher ${faltando} ${faltando === 1 ? "dobra" : "dobras"} deste protocolo. ` +
+        "Não calculo o percentual com dobra faltando — o resultado sairia errado sem avisar.",
+    );
+  } else if (!idade && soma > 0 && dados.usaIdade) {
+    avisosCorpo.push("Esta equação usa a idade. Preencha para o percentual aparecer.");
+  }
+  if (semFaixaDurnin && soma > 0) {
+    avisosCorpo.push("Durnin & Womersley não tem coeficientes abaixo de 17 anos — escolha outra equação.");
+  }
+  if (!semFaixaDurnin && idade && dados.idade && usadas.length && (idade < dados.idade[0] || idade > dados.idade[1])) {
+    avisosCorpo.push(
+      `${dados.rotulo} foi validada de ${dados.idade[0]} a ${dados.idade[1]} anos, e a idade informada é ` +
+        `${mostrar(idade, 0)}. A conta sai, mas o resultado pode não valer para esta pessoa.`,
+    );
+  }
+  $("aviso-corpo").innerHTML = caixaDeAviso(avisosCorpo);
 
   // Índices e faixas de referência
-  const cintura = num($("cir-cintura").value);
-  const quadril = num($("cir-quadril").value);
+  const cintura = lerMedida("cir-cintura", FAIXAS_DIGITACAO.circunferencia, []);
+  const quadril = lerMedida("cir-quadril", FAIXAS_DIGITACAO.circunferencia, []);
   const rcq = relacaoCinturaQuadril(cintura, quadril);
   const faixaPeso = pesoIdeal(alturaCm / 100);
 
@@ -1371,12 +1509,22 @@ function calcularCorpo() {
       [
         "FAO/OMS 1985",
         mostrar(tmbFao, 0),
-        tmbFao && fatorOcupacional ? `× ${fatorOcupacional} = ${mostrar(tmbFao * fatorOcupacional, 0)}` : "",
+        tmbFao && fatorOcupacional
+          ? `× ${mostrar(fatorOcupacional, 2)} = ${mostrar(tmbFao * fatorOcupacional, 0)}`
+          : "",
       ],
     ]
       .map(([t, v, apoio]) => `<div><dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd></div>`)
       .join("") +
     "</dl>";
+
+  $("aviso-energia").innerHTML =
+    idade && idade < 18
+      ? caixaDeAviso([
+          "Mifflin-St Jeor, Harris-Benedict e Cunningham foram feitas para adultos. " +
+            "Para menores de 18 anos a FAO/OMS acima já usa a faixa da idade; o fator ocupacional é o de adulto.",
+        ])
+      : "";
 
   guardarCorpo();
 }
@@ -1551,16 +1699,30 @@ function calcularMacros() {
     })
     .join("");
 
-  const ajuste = venta(num($("m-atual").value), num($("m-desejado").value), num($("m-dias").value));
+  const atual = num($("m-atual").value);
+  const desejado = num($("m-desejado").value);
+  const dias = num($("m-dias").value);
+  const ajuste = venta(atual, desejado, dias);
+  const kgSemana = dias > 0 ? (Math.abs(atual - desejado) / dias) * 7 : 0;
   $("resultado-venta").innerHTML =
-    ajuste === null
-      ? '<p class="nota">Preencha peso atual, peso desejado e prazo.</p>'
+    atual < 0 || desejado < 0 || dias < 0
+      ? '<div class="aviso">Peso e prazo precisam ser positivos. Prazo negativo invertia a conta: perder peso aparecia como superávit.</div>'
+      : ajuste === null
+      ? '<p class="nota">Preencha peso atual, peso desejado e prazo (em dias).</p>'
+      : ajuste === 0
+      ? '<p class="nota">Peso atual e desejado são iguais: não há ajuste a fazer.</p>'
       : "<dl>" +
         [
           [
             ajuste > 0 ? "Déficit por dia" : "Superávit por dia",
             mostrar(Math.abs(ajuste), 0, " kcal"),
-            `${mostrar(Math.abs(num($("m-atual").value) - num($("m-desejado").value)), 1)} kg em ${num($("m-dias").value)} dias`,
+            `${mostrar(Math.abs(atual - desejado), 1)} kg em ${mostrar(dias, 0)} dias · ` +
+              `${mostrar(kgSemana, 2)} kg por semana`,
+          ],
+          [
+            "Consumo do dia",
+            "GET − VENTA",
+            `o gasto (aba Composição corporal) ${ajuste > 0 ? "menos" : "mais"} ${mostrar(Math.abs(ajuste), 0)} kcal`,
           ],
         ]
           .map(([t, v, apoio]) => `<div><dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd></div>`)
@@ -1586,7 +1748,15 @@ calcularMacros();
 // Fichas: quem está na tela, e como ela sai daqui sem se perder
 // ---------------------------------------------------------------------------
 
-const hoje = () => new Date().toISOString().slice(0, 10);
+/**
+ * A data de hoje no relógio do computador dela — não em UTC. Com UTC, uma
+ * avaliação feita às 21h saía com a data do dia seguinte.
+ */
+const hoje = () => {
+  const d = new Date();
+  const dois = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${dois(d.getMonth() + 1)}-${dois(d.getDate())}`;
+};
 
 /** A ficha aberta. Começa nova a cada abertura — nunca a paciente de ontem. */
 let fichaAtual = { id: novoId(), nome: "" };
@@ -1652,6 +1822,7 @@ function guardarFicha() {
 let listaDesenhada = "";
 
 function desenharListaDeFichas() {
+  lembrarBackup();
   const lista = $("f-lista");
   const fichas = listarFichas();
   const assinatura = fichas.map((f) => `${f.id}:${f.nome}`).join("|") + `#${fichaAtual.id}`;
@@ -1762,6 +1933,46 @@ $("f-apagar").onclick = () => {
   escreverEstado("Ficha apagada.");
 };
 
+/**
+ * As fichas moram SÓ neste navegador. Limpar os dados do navegador, trocar
+ * de computador ou o navegador liberar espaço sozinho apaga tudo — e até
+ * aqui nada lembrava disso além de uma frase pequena.
+ *
+ * Duas defesas, enquanto as fichas não vão para o banco:
+ *   1. pedir ao navegador que não apague esta memória por conta própria;
+ *   2. avisar quando há fichas e o último backup tem mais de 7 dias.
+ */
+const CHAVE_ULTIMO_BACKUP = "nutri:ultimo-backup";
+
+function lembrarBackup() {
+  const alvo = $("f-lembrete");
+  if (!alvo) return;
+  const n = listarFichas().length;
+  let ultimo = null;
+  try {
+    ultimo = localStorage.getItem(CHAVE_ULTIMO_BACKUP);
+  } catch {
+    /* sem memória, sem lembrete */
+  }
+  const dias = ultimo ? Math.floor((Date.now() - Date.parse(ultimo)) / 86_400_000) : null;
+  if (!n || (dias !== null && dias < 7)) {
+    alvo.hidden = true;
+    return;
+  }
+  alvo.hidden = false;
+  alvo.textContent =
+    `${n} ${n === 1 ? "ficha está guardada" : "fichas estão guardadas"} só neste navegador` +
+    (dias === null ? ", e ainda não há backup" : `, e o último backup foi há ${dias} dias`) +
+    `. Se os dados do navegador forem limpos, ${n === 1 ? "ela some" : "elas somem"}. ` +
+    "Clique em “Baixar backup” e guarde o arquivo fora do computador.";
+}
+
+try {
+  navigator.storage?.persist?.();
+} catch {
+  /* navegador sem esse recurso: segue igual */
+}
+
 $("f-backup").onclick = () => {
   // As fichas mais o que ela cadastrou: alimento e grupo que sumissem num
   // backup restaurado seriam uma perda silenciosa.
@@ -1774,6 +1985,12 @@ $("f-backup").onclick = () => {
   link.download = `fichas-${hoje()}.json`;
   link.click();
   URL.revokeObjectURL(url);
+  try {
+    localStorage.setItem(CHAVE_ULTIMO_BACKUP, new Date().toISOString());
+  } catch {
+    /* segue: o arquivo já foi baixado */
+  }
+  lembrarBackup();
   escreverEstado(`Backup de ${listarFichas().length} ficha(s) baixado. Guarde fora do computador.`);
 };
 
@@ -2002,8 +2219,8 @@ function desenharEstadoDaTabela() {
   alvo.innerHTML =
     `<strong>${tabela.alimentos.length}</strong> alimentos carregados` +
     (comMedida ? `, ${comMedida} com medida caseira` : "") +
-    `. <br><small>${tabela.fonte.citacao || tabela.fonte.nome}</small>` +
-    (tabela.fonte.licenca ? `<br><small>${tabela.fonte.licenca}</small>` : "");
+    `. <br><small>${escaparHtml(tabela.fonte.citacao || tabela.fonte.nome)}</small>` +
+    (tabela.fonte.licenca ? `<br><small>${escaparHtml(tabela.fonte.licenca)}</small>` : "");
 }
 
 $("carregar-tabela").onclick = () => $("arquivo-tabela").click();

@@ -14,6 +14,7 @@ import { CampoLogo } from "./componentes/CampoLogo";
 import { EditorEstabelecimentos } from "./componentes/EditorEstabelecimentos";
 import { Modal } from "./componentes/Modal";
 import { AreaTexto, Campo, Selecao, Texto, linhasDeLista, listaDeLinhas } from "./componentes/Campos";
+import { numeroDeTexto } from "@/central/utils/numero";
 
 /**
  * Conteúdos: comer fora (§44 do briefing).
@@ -279,7 +280,7 @@ function ModalCategoria({
                     aoMudar={(v) =>
                       alterarOpcao(iDecisao, iOpcao, {
                         energia: {
-                          kcal: v.trim() ? Number(v.replace(",", ".")) : null,
+                          kcal: numeroDeTexto(v),
                           mostrarKcal: opcao.energia?.mostrarKcal ?? false,
                           observacao: opcao.energia?.observacao ?? null,
                         },

@@ -239,7 +239,11 @@ function Composicao({ avaliacao }: { avaliacao: MinhaAvaliacao }) {
   // corpo de alguém.
   if (d.massaGorda === null || d.massaMagra === null || !d.peso) return null;
 
-  const porcentoGorda = (d.massaGorda / d.peso) * 100;
+  // O percentual lançado por ela manda: é o mesmo número do cartão
+  // "Gordura corporal" logo acima. Recalcular pela massa gorda fazia a barra
+  // e o cartão discordarem sempre que um dos dois tivesse arredondamento.
+  const bruto = d.percentualGordura ?? (d.massaGorda / d.peso) * 100;
+  const porcentoGorda = Math.max(0, Math.min(100, bruto));
 
   return (
     <section className="c-secao">

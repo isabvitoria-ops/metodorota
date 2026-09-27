@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { numeroDeTexto, textoDeNumero } from "./numero";
+import { naoEntendido, numeroDeTexto, textoDeNumero } from "./numero";
 
 test("a vírgula brasileira vira número", () => {
   assert.equal(numeroDeTexto("10,9"), 10.9);
@@ -26,7 +26,37 @@ test("campo vazio é nulo, não zero — zero seria uma medida que ela não fez"
 
 test("texto que não é número vira nulo", () => {
   assert.equal(numeroDeTexto("abc"), null);
-  assert.equal(numeroDeTexto("10,9 kg"), null);
+  assert.equal(numeroDeTexto("dez"), null);
+  assert.equal(numeroDeTexto("10,9,5"), null);
+  assert.equal(numeroDeTexto("1-2"), null);
+});
+
+test("a unidade escrita junto não apaga o número", () => {
+  // Antes "72,5 kg" virava vazio e a tela continuava mostrando "72,5 kg".
+  assert.equal(numeroDeTexto("72,5 kg"), 72.5);
+  assert.equal(numeroDeTexto("64,5kg"), 64.5);
+  assert.equal(numeroDeTexto("3,5 km"), 3.5);
+  assert.equal(numeroDeTexto("165 cm"), 165);
+  assert.equal(numeroDeTexto("24,3%"), 24.3);
+  assert.equal(numeroDeTexto("R$ 150,00"), 150);
+});
+
+test("ponto de milhar e ponto decimal", () => {
+  assert.equal(numeroDeTexto("1.500,00"), 1500);
+  assert.equal(numeroDeTexto("1.234,5"), 1234.5);
+  assert.equal(numeroDeTexto("1.500"), 1500);
+  assert.equal(numeroDeTexto("12.000"), 12000);
+  // Só ponto com dois dígitos depois é decimal: "99.90" não é R$ 9.990.
+  assert.equal(numeroDeTexto("99.90"), 99.9);
+  assert.equal(numeroDeTexto("1500.5"), 1500.5);
+  assert.equal(numeroDeTexto("22.5"), 22.5);
+  assert.equal(numeroDeTexto("1,234.5"), 1234.5);
+});
+
+test("avisa quando há texto e não há número", () => {
+  assert.equal(naoEntendido("abc"), true);
+  assert.equal(naoEntendido(""), false);
+  assert.equal(naoEntendido("72,5 kg"), false);
 });
 
 test("estados no meio da digitação não viram zero", () => {

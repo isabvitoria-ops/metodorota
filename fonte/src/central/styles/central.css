@@ -5114,3 +5114,13 @@ body:has(.central) {
     font-size: 13.5px;
   }
 }
+
+/* Número que a tela não conseguiu ler: fica à vista, embaixo do campo. */
+.c-dica-erro {
+  display: block;
+  color: var(--danger);
+}
+
+.c-input[aria-invalid="true"] {
+  border-color: var(--danger);
+}
