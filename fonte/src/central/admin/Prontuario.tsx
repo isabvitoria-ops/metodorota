@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { rotas } from "@/central/rotas";
 import type { AvaliacaoFisica } from "@/central/types/protocolo";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta } from "@/central/types/meta";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import { repositorio } from "@/central/dados/repositorio";
-import { Campo, Selecao, Texto } from "@/central/admin/componentes/Campos";
 import { CartaoDeMeta } from "@/central/components/CartaoDeMeta";
 import { GraficoLinha } from "@/central/components/GraficoLinha";
 import { hojeSaoPaulo } from "@/central/utils/situacao";
@@ -22,6 +21,9 @@ import { CheckinDoPaciente } from "@/central/components/CheckinDoPaciente";
 import { Exames } from "@/central/components/Exames";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { AcessosDaPaciente } from "./AcessosDaPaciente";
+import { AbaConsulta } from "./AbaConsulta";
+import { MenuMais } from "@/central/components/MenuMais";
+import { AreaTexto, Campo, Selecao, Texto } from "@/central/admin/componentes/Campos";
 
 /**
  * O prontuário: tudo de uma paciente, em ordem cronológica.
@@ -36,6 +38,18 @@ import { AcessosDaPaciente } from "./AcessosDaPaciente";
  * sala: peso de agora, adesão e quantas consultas já houve. Cada um vira
  * travessão quando não há de onde sair — um zero ali seria afirmação.
  */
+type Aba = "consulta" | "resumo" | "checkin" | "exames" | "historico" | "carta" | "acessos";
+
+/** As abas à vista. Carta e acessos entram pelo ⋯, porque são de vez em quando. */
+const ABAS_DA_FICHA: [Aba, string][] = [
+  ["consulta", "Consulta"],
+  ["resumo", "Resumo"],
+  ["checkin", "Check-in"],
+  ["exames", "Exames"],
+  ["historico", "Histórico"],
+];
+const ABAS_VALIDAS: Aba[] = [...ABAS_DA_FICHA.map(([v]) => v), "carta", "acessos"];
+
 const CONSULTA_VAZIA: ConsultaParaSalvar = {
   data: "",
   hora: "",
@@ -58,6 +72,9 @@ export function Prontuario() {
   const [carregando, definirCarregando] = useState(true);
   const [erro, definirErro] = useState<string | null>(null);
   const [editando, definirEditando] = useState<Consulta | "nova" | null>(null);
+  const [parametros, definirParametros] = useSearchParams();
+  const pedida = parametros.get("aba");
+  const aba: Aba = ABAS_VALIDAS.includes(pedida as Aba) ? (pedida as Aba) : "consulta";
   const [filtro, definirFiltro] = useState<"tudo" | "consultas" | "metas" | "avaliacoes">("tudo");
 
   const carregar = useCallback(async () => {
@@ -126,47 +143,46 @@ export function Prontuario() {
   const realizadas = consultas.filter((c) => c.status === "concluida").length;
   const ativas = metas.filter((m) => m.status === "ativa");
 
+  const irPara = (valor: Aba) =>
+    definirParametros(
+      (antes) => {
+        const p = new URLSearchParams(antes);
+        p.set("aba", valor);
+        return p;
+      },
+      { replace: true },
+    );
+
   return (
     <>
-      <div style={{ marginBottom: 4 }}>
-        <h1 className="c-titulo" style={{ fontSize: 28 }}>
-          {paciente.nome}
-        </h1>
-        <p className="c-subtitulo">
-          {semanas === null
-            ? paciente.email
-            : semanas === 0
-              ? "Primeira semana de acompanhamento"
-              : `Em acompanhamento há ${semanas} ${semanas === 1 ? "semana" : "semanas"}`}
-          {paciente.proximaConsulta &&
-            ` · próximo retorno ${quando(paciente.proximaConsulta.data, hoje)}`}
-        </p>
-      </div>
-
-      {/* Atalhos. O prontuário é comprido, e "Exames" morava lá embaixo,
-          depois do check-in: ela procurou uma ABA de exames e não achou,
-          porque é uma seção daqui. Os atalhos deixam tudo à vista no topo. */}
-      <div className="c-chips c-atalhos-prontuario">
-        <button type="button" className="c-chip" onClick={() => navegar(rotas.adminPaciente(paciente.id))}>
-          Cadastro e plano
-        </button>
-        {(
-          [
-            ["prontuario-checkin", "Check-in"],
-            ["prontuario-exames", "Exames"],
-            ["prontuario-carta", "Carta de encaminhamento"],
-            ["prontuario-linha", "Linha do tempo"],
-          ] as const
-        ).map(([id, rotulo]) => (
-          <button
-            key={id}
-            type="button"
-            className="c-chip"
-            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          >
-            {rotulo}
-          </button>
-        ))}
+      <div className="c-prontuario-topo">
+        <div>
+          <h1 className="c-titulo" style={{ fontSize: 28 }}>
+            {paciente.nome}
+          </h1>
+          <p className="c-subtitulo">
+            {semanas === null
+              ? paciente.email
+              : semanas === 0
+                ? "Primeira semana de acompanhamento"
+                : `Em acompanhamento há ${semanas} ${semanas === 1 ? "semana" : "semanas"}`}
+            {paciente.proximaConsulta &&
+              ` · próximo retorno ${quando(paciente.proximaConsulta.data, hoje)}`}
+          </p>
+        </div>
+        {/* O que é desta paciente mas mora em outra seção. Antes eram chips
+            soltos no topo; aqui ficam juntos e fora do caminho. */}
+        <MenuMais
+          rotulo="Mais sobre esta paciente"
+          itens={[
+            { rotulo: "Cadastro e plano", aoEscolher: () => navegar(rotas.adminPaciente(paciente.id)) },
+            { rotulo: "Protocolo", aoEscolher: () => navegar(rotas.adminProtocolo(paciente.id)) },
+            { rotulo: "Treino", aoEscolher: () => navegar(rotas.adminTreino(paciente.id)) },
+            { rotulo: "Metas", aoEscolher: () => navegar(rotas.adminMetasDe(paciente.id)) },
+            { rotulo: "Carta de encaminhamento", separar: true, aoEscolher: () => irPara("carta") },
+            { rotulo: "O que ela vê no app", aoEscolher: () => irPara("acessos") },
+          ]}
+        />
       </div>
 
       {/* Os três números que ela olha antes de abrir a porta da sala. */}
@@ -189,58 +205,86 @@ export function Prontuario() {
         </div>
       </div>
 
-      {peso !== null && peso !== 0 && (
-        <p className="c-dica">
-          {/* O sinal é explícito e a tela não diz se é bom ou ruim: perder
-              peso é objetivo de umas e não de outras. */}
-          {peso < 0 ? "−" : "+"}
-          {Math.abs(peso).toLocaleString("pt-BR")} kg desde a primeira avaliação.
-        </p>
-      )}
+      <nav className="c-admin-abas c-abas-prontuario" aria-label="Seções da ficha">
+        {ABAS_DA_FICHA.map(([valor, rotulo]) => (
+          <button
+            key={valor}
+            type="button"
+            className={`c-admin-aba ${aba === valor ? "ativo" : ""}`}
+            aria-pressed={aba === valor}
+            onClick={() => irPara(valor)}
+          >
+            {rotulo}
+          </button>
+        ))}
+      </nav>
 
-      {serie.length >= 2 && (
-        <section className="c-secao">
-          <h2 className="c-secao-titulo">Peso no tempo</h2>
-          <GraficoLinha serie={serie} unidade="kg" />
-        </section>
-      )}
+      {/* Todas ficam montadas e só uma aparece: trocar de aba no meio de uma
+          anotação não pode jogar fora o que ela já escreveu. */}
+      <div hidden={aba !== "consulta"}>
+        <AbaConsulta pacienteId={pacienteId} consultas={consultas} aoMudar={carregar} />
+      </div>
 
-      {ativas.length > 0 && (
-        <section className="c-secao">
-          <h2 className="c-secao-titulo">Metas em andamento</h2>
-          {ativas.map((m) => (
-            <CartaoDeMeta key={m.id} meta={m} aoMudar={carregar} somenteLeitura />
-          ))}
-        </section>
-      )}
+      <div hidden={aba !== "resumo"}>
+        {peso !== null && peso !== 0 && (
+          <p className="c-dica">
+            {/* O sinal é explícito e a tela não diz se é bom ou ruim: perder
+                peso é objetivo de umas e não de outras. */}
+            {peso < 0 ? "−" : "+"}
+            {Math.abs(peso).toLocaleString("pt-BR")} kg desde a primeira avaliação.
+          </p>
+        )}
 
-      <AcessosDaPaciente pacienteId={pacienteId} />
+        {serie.length >= 2 && (
+          <section className="c-secao">
+            <h2 className="c-secao-titulo">Peso no tempo</h2>
+            <GraficoLinha serie={serie} unidade="kg" />
+          </section>
+        )}
 
-      {/* O check-in vem antes do encaminhamento: o que ela relatou nas
-          ultimas semanas e o que alimenta a carta, quando houver. */}
-      <div id="prontuario-checkin" className="c-ancora">
+        {ativas.length > 0 ? (
+          <section className="c-secao">
+            <h2 className="c-secao-titulo">Metas em andamento</h2>
+            {ativas.map((m) => (
+              <CartaoDeMeta key={m.id} meta={m} aoMudar={carregar} somenteLeitura />
+            ))}
+          </section>
+        ) : (
+          serie.length < 2 && (
+            <p className="c-dica" style={{ marginTop: 16 }}>
+              Ainda sem avaliação de peso nem meta ativa. Quando houver, o resumo aparece aqui.
+            </p>
+          )
+        )}
+      </div>
+
+      <div hidden={aba !== "checkin"}>
         <CheckinDoPaciente pacienteId={pacienteId} />
       </div>
 
-      <div id="prontuario-exames" className="c-ancora">
+      <div hidden={aba !== "exames"}>
         <Exames pacienteId={pacienteId} />
       </div>
 
-      <div id="prontuario-carta" className="c-ancora" />
-      <CartaDeEncaminhamento
-        paciente={paciente.nome}
-        nutricionista={configuracoes.nomeNutricionista}
-        resumo={{
-          semanas,
-          consultas: realizadas,
-          pesoAtual: paciente.pesoAtual,
-          pesoInicial: paciente.pesoInicial,
-        }}
-      />
+      <div hidden={aba !== "carta"}>
+        <CartaDeEncaminhamento
+          paciente={paciente.nome}
+          nutricionista={configuracoes.nomeNutricionista}
+          resumo={{
+            semanas,
+            consultas: realizadas,
+            pesoAtual: paciente.pesoAtual,
+            pesoInicial: paciente.pesoInicial,
+          }}
+        />
+      </div>
 
-      <section className="c-secao c-ancora" id="prontuario-linha">
+      <div hidden={aba !== "acessos"}>
+        <AcessosDaPaciente pacienteId={pacienteId} />
+      </div>
+
+      <section className="c-secao" hidden={aba !== "historico"}>
         <h2 className="c-secao-titulo">Linha do tempo</h2>
-
         {editando ? (
           <EditorDeConsulta
             pacienteId={pacienteId}
@@ -442,7 +486,7 @@ function EditorDeConsulta({
         rotulo="Sua anotação"
         dica="Só você vê. A paciente não alcança este campo por caminho nenhum."
       >
-        <Texto valor={dados.observacoes} aoMudar={(v) => mudar("observacoes", v)} />
+        <AreaTexto valor={dados.observacoes} aoMudar={(v) => mudar("observacoes", v)} />
       </Campo>
 
       {aviso && (

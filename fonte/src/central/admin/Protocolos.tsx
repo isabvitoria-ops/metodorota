@@ -12,6 +12,7 @@ import type {
   ResumoProtocolo,
 } from "@/central/types/protocolo";
 import { AVALIACAO_VAZIA, CONTEUDO_VAZIO } from "@/central/types/protocolo";
+import { useParams } from "react-router-dom";
 import { repositorio } from "@/central/dados/repositorio";
 import { dataBonita } from "@/central/utils/situacao";
 import { AreaDeLinhas, AreaTexto, Campo, NumeroDecimal, Selecao, Texto } from "./componentes/Campos";
@@ -66,7 +67,8 @@ export function Protocolos() {
   const [grupos, definirGrupos] = useState<GrupoDoProtocolo[]>([]);
   const [pacientes, definirPacientes] = useState<Paciente[]>([]);
   const [resumos, definirResumos] = useState<ResumoProtocolo[]>([]);
-  const [escolhida, definirEscolhida] = useState("");
+  const { pacienteId = "" } = useParams();
+  const [escolhida, definirEscolhida] = useState(pacienteId);
   const [busca, definirBusca] = useState("");
   const [erro, definirErro] = useState<string | null>(null);
 

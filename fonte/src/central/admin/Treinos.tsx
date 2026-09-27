@@ -8,6 +8,7 @@ import type {
   TipoDeMeta,
   Treino,
 } from "@/central/types/treino";
+import { useParams } from "react-router-dom";
 import { repositorio } from "@/central/dados/repositorio";
 import { Campo, Selecao, Texto } from "@/central/admin/componentes/Campos";
 import { EvolucaoTreino } from "@/central/components/EvolucaoTreino";
@@ -32,7 +33,8 @@ import { domingoDaSemana, segundaDaSemana } from "@/central/utils/metasSemanais"
  */
 export function Treinos() {
   const [pacientes, definirPacientes] = useState<Paciente[]>([]);
-  const [escolhida, definirEscolhida] = useState("");
+  const { pacienteId = "" } = useParams();
+  const [escolhida, definirEscolhida] = useState(pacienteId);
   const [busca, definirBusca] = useState("");
 
   useEffect(() => {

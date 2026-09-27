@@ -4930,3 +4930,187 @@ body:has(.central) {
 .c-ponto-pergunta.nivel-medio       { fill: #c3a53f; }
 .c-ponto-pergunta.nivel-alto        { fill: #6f9e6a; }
 .c-ponto-pergunta.nivel-muito-alto  { fill: #3f8a55; }
+
+/* -------------------------------------------------------------------------
+   Menu dos três pontinhos, régua de abas com "Mais", e a aba Consulta
+   ------------------------------------------------------------------------- */
+
+.c-menu-mais {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.c-menu-mais-botao {
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.c-tres-pontos {
+  font-size: 22px;
+  line-height: 1;
+  letter-spacing: 1px;
+  transform: translateY(-3px);
+}
+
+.c-menu-mais-lista {
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: 40;
+  min-width: 210px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-forte);
+  display: flex;
+  flex-direction: column;
+}
+
+.c-menu-mais-direita {
+  right: 0;
+}
+
+.c-menu-mais-esquerda {
+  left: 0;
+}
+
+.c-menu-mais-item {
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 11px 12px;
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.c-menu-mais-item:hover,
+.c-menu-mais-item:focus-visible {
+  background: var(--surface-2);
+}
+
+.c-menu-mais-item.ativo {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.c-menu-mais-item.separar {
+  margin-top: 6px;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 10px 10px;
+}
+
+.c-admin-abas-linha {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.c-admin-abas-linha .c-admin-abas {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.c-admin-aba-mais {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.c-prontuario-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.c-abas-prontuario {
+  margin: 18px 0 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.c-lista-consultas {
+  display: flex;
+  flex-direction: column;
+}
+
+.c-cartao-consulta-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.c-cartao-consulta-resumo {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.c-cartao-consulta-texto {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.c-cartao-consulta .c-textarea {
+  width: 100%;
+}
+
+.c-icone-botao {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--icone);
+  font-size: 17px;
+  cursor: pointer;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.c-icone-botao:hover,
+.c-icone-botao:focus-visible {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* O botão herdava 16px de uma regra geral de botões e ficava maior que as
+   abas ao lado. */
+.c-admin-abas-linha .c-admin-aba-mais {
+  font-size: 14px;
+}
+
+/* No celular as abas encostam: com o espaçamento do computador, a última
+   ficava cortada pela metade atrás do "Mais". */
+@media (max-width: 480px) {
+  .c-admin-abas {
+    gap: 0;
+  }
+
+  .c-admin-aba,
+  .c-admin-abas-linha .c-admin-aba-mais {
+    padding: 10px 8px 12px;
+    font-size: 13.5px;
+  }
+}

@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { Icone } from "@/central/components/Icone";
 import { Marca } from "@/central/components/Marca";
 import { FaixaDemonstracao } from "@/central/components/FaixaDemonstracao";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
@@ -18,6 +17,7 @@ import { Protocolos } from "./Protocolos";
 import { Prontuario } from "./Prontuario";
 import { Metas } from "./Metas";
 import { Treinos } from "./Treinos";
+import { MenuMais } from "@/central/components/MenuMais";
 
 /**
  * Área da nutricionista.
@@ -40,11 +40,18 @@ import { Treinos } from "./Treinos";
  */
 const ABAS = [
   { rota: rotas.adminPacientes, rotulo: "Pacientes" },
-  { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
-  { rota: rotas.adminTreinos, rotulo: "Treino" },
-  { rota: rotas.adminMetas, rotulo: "Metas" },
   { rota: rotas.adminQuestionarios, rotulo: "Check-in" },
+  { rota: rotas.adminTreinos, rotulo: "Treino" },
   { rota: rotas.adminFinanceiro, rotulo: "Cobrança" },
+];
+
+/**
+ * O que ela abre de vez em quando fica no "Mais". Eram dez abas numa régua
+ * que rolava de lado, e no celular metade ficava fora da tela.
+ */
+const MAIS = [
+  { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
+  { rota: rotas.adminMetas, rotulo: "Metas" },
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
   { rota: rotas.adminDesafios, rotulo: "Desafio" },
   { rota: rotas.adminRastreabilidade, rotulo: "Rastreabilidade" },
@@ -56,6 +63,7 @@ export function AdminApp() {
   const navegar = useNavigate();
   const { acesso, sair } = useSessao();
   const barraDeAbas = useRef<HTMLElement>(null);
+  const secaoDoMais = MAIS.find((m) => pathname.startsWith(m.rota));
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -81,40 +89,55 @@ export function AdminApp() {
               <Marca altura={28} />
               <strong style={{ fontSize: 15 }}>Área da nutricionista</strong>
             </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <button
-                type="button"
-                className="c-botao c-botao-secundario c-botao-pequeno"
-                onClick={() => navegar(rotas.home)}
-              >
-                Ver a Central
-              </button>
-              <button type="button" className="c-favoritar" aria-label="Sair" onClick={() => void sair()}>
-                <Icone nome="voltar" tamanho={17} />
-              </button>
-            </div>
+            <button
+              type="button"
+              className="c-botao c-botao-secundario c-botao-pequeno"
+              onClick={() => navegar(rotas.home)}
+            >
+              Ver a Central
+            </button>
           </div>
-          <nav className="c-admin-abas" aria-label="Seções administrativas" ref={barraDeAbas}>
-            {ABAS.map((aba) => (
-              <NavLink
-                key={aba.rota}
-                to={aba.rota}
-                className={({ isActive }) =>
-                  // O prontuário mora em /admin/paciente/:id -- sem o "s" --
-                  // e é aberto de dentro de Pacientes. Sem isto, nenhuma aba
-                  // ficava acesa enquanto ela estava na ficha clínica.
-                  `c-admin-aba ${
-                    isActive ||
-                    (aba.rota === rotas.adminPacientes && pathname.startsWith("/admin/paciente/"))
-                      ? "ativo"
-                      : ""
-                  }`
-                }
-              >
-                {aba.rotulo}
-              </NavLink>
-            ))}
-          </nav>
+          <div className="c-admin-abas-linha">
+            <nav className="c-admin-abas" aria-label="Seções administrativas" ref={barraDeAbas}>
+              {ABAS.map((aba) => (
+                <NavLink
+                  key={aba.rota}
+                  to={aba.rota}
+                  className={({ isActive }) =>
+                    // O prontuário mora em /admin/paciente/:id -- sem o "s" --
+                    // e é aberto de dentro de Pacientes. Sem isto, nenhuma aba
+                    // ficava acesa enquanto ela estava na ficha clínica.
+                    `c-admin-aba ${
+                      isActive ||
+                      (aba.rota === rotas.adminPacientes && pathname.startsWith("/admin/paciente/"))
+                        ? "ativo"
+                        : ""
+                    }`
+                  }
+                >
+                  {aba.rotulo}
+                </NavLink>
+              ))}
+            </nav>
+            {/* Fora da régua de propósito: dentro dela, que rola de lado, a
+                lista aberta ficaria cortada. */}
+            <MenuMais
+              classe={`c-admin-aba c-admin-aba-mais ${secaoDoMais ? "ativo" : ""}`}
+              gatilho={
+                <>
+                  {secaoDoMais?.rotulo ?? "Mais"} <span aria-hidden="true">▾</span>
+                </>
+              }
+              itens={[
+                ...MAIS.map((m) => ({
+                  rotulo: m.rotulo,
+                  ativo: m === secaoDoMais,
+                  aoEscolher: () => navegar(m.rota),
+                })),
+                { rotulo: "Sair da conta", separar: true, aoEscolher: () => void sair() },
+              ]}
+            />
+          </div>
         </header>
 
         <main className="c-admin-conteudo">
@@ -133,8 +156,11 @@ export function AdminApp() {
               <Route path="conteudos" element={<Conteudos />} />
               <Route path="desafios" element={<Desafios />} />
               <Route path="protocolos" element={<Protocolos />} />
+              <Route path="protocolos/:pacienteId" element={<Protocolos />} />
               <Route path="treinos" element={<Treinos />} />
+              <Route path="treinos/:pacienteId" element={<Treinos />} />
               <Route path="metas" element={<Metas />} />
+              <Route path="metas/:pacienteId" element={<Metas />} />
               <Route path="questionarios" element={<Questionarios />} />
               <Route path="financeiro" element={<Financeiro />} />
               <Route path="acompanhamento" element={<Navigate to={rotas.adminPacientes} replace />} />

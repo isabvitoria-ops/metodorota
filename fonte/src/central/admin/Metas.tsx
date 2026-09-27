@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Paciente } from "@/central/types";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
+import { useParams } from "react-router-dom";
 import { repositorio } from "@/central/dados/repositorio";
 import { Campo, Selecao, Texto } from "@/central/admin/componentes/Campos";
 import { CartaoDeMeta } from "@/central/components/CartaoDeMeta";
@@ -37,7 +38,8 @@ const VAZIA: MetaParaSalvar = {
 
 export function Metas() {
   const [pacientes, definirPacientes] = useState<Paciente[]>([]);
-  const [escolhida, definirEscolhida] = useState("");
+  const { pacienteId = "" } = useParams();
+  const [escolhida, definirEscolhida] = useState(pacienteId);
   const [busca, definirBusca] = useState("");
 
   useEffect(() => {
