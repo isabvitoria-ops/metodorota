@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import type {
   AlimentoDoMaterial,
   ItemDeReintroducao,
@@ -54,8 +55,9 @@ const ABAS = ["Linha do tempo", "Lista da paciente", "Acompanhamento"] as const;
 type Aba = (typeof ABAS)[number];
 
 export function RastreabilidadeAdmin() {
+  const { pacienteId = "" } = useParams();
   const [pacientes, definirPacientes] = useState<Paciente[]>([]);
-  const [escolhida, definirEscolhida] = useState<string>("");
+  const [escolhida, definirEscolhida] = useState<string>(pacienteId);
   const [busca, definirBusca] = useState("");
   const [aba, definirAba] = useState<Aba>("Linha do tempo");
   const [ligados, definirLigados] = useState<string[]>([]);

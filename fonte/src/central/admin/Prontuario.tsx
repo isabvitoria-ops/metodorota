@@ -190,6 +190,10 @@ export function Prontuario() {
             { rotulo: "Protocolo", aoEscolher: () => navegar(rotas.adminProtocolo(paciente.id)) },
             { rotulo: "Treino", aoEscolher: () => navegar(rotas.adminTreino(paciente.id)) },
             { rotulo: "Metas", aoEscolher: () => navegar(rotas.adminMetasDe(paciente.id)) },
+            {
+              rotulo: "Rastreabilidade",
+              aoEscolher: () => navegar(rotas.adminRastreabilidadeDe(paciente.id)),
+            },
             { rotulo: "Carta de encaminhamento", separar: true, aoEscolher: () => irPara("carta") },
             { rotulo: "O que ela vê no app", aoEscolher: () => irPara("acessos") },
           ]}

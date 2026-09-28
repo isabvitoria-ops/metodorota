@@ -19,6 +19,11 @@ import { AreaDeLinhas, AreaTexto, Campo, NumeroDecimal, Selecao, Texto } from ".
 import { numeroDeTexto, textoDeNumero } from "@/central/utils/numero";
 import { conferirAvaliacao } from "@/central/utils/conferenciaAvaliacao";
 import {
+  OUTRO_METODO,
+  PROTOCOLOS_DE_AVALIACAO,
+  protocoloDoMetodo,
+} from "@/central/utils/protocolosDeAvaliacao";
+import {
   alternar,
   todas,
   moverRecolhidas,
@@ -1096,6 +1101,10 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
   const [abertaId, definirAberta] = useState<string | null>(null);
   const [data, definirData] = useState(hojeSaoPaulo());
   const [dados, definirDados] = useState<DadosAvaliacao>(AVALIACAO_VAZIA);
+  // Separado de `dados.metodo` de propósito: enquanto ela digita um método
+  // que não está na lista, o texto livre não pode "voltar" sozinho para um
+  // protocolo da lista só porque não bateu com nenhum rótulo ainda.
+  const [protocoloId, definirProtocoloId] = useState<string>(OUTRO_METODO);
   const [publicada, definirPublicada] = useState(false);
   const [aviso, definirAviso] = useState<string | null>(null);
   const [erro, definirErro] = useState<string | null>(null);
@@ -1112,9 +1121,27 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
   function abrir(a: AvaliacaoFisica | null) {
     definirAberta(a?.id ?? "nova");
     definirData(a?.data ?? hojeSaoPaulo());
-    definirDados(a ? { ...AVALIACAO_VAZIA, ...a.dados } : AVALIACAO_VAZIA);
+    const dadosAbertos = a ? { ...AVALIACAO_VAZIA, ...a.dados } : AVALIACAO_VAZIA;
+    definirDados(dadosAbertos);
+    definirProtocoloId(protocoloDoMetodo(dadosAbertos.metodo)?.id ?? OUTRO_METODO);
     definirPublicada(a?.publicada ?? false);
     definirErro(null);
+  }
+
+  const protocoloEscolhido = PROTOCOLOS_DE_AVALIACAO.find((p) => p.id === protocoloId) ?? null;
+
+  function escolherProtocolo(id: string) {
+    definirProtocoloId(id);
+    const protocolo = PROTOCOLOS_DE_AVALIACAO.find((p) => p.id === id);
+    if (protocolo) {
+      // Nasce com o nome oficial do protocolo — ela ainda pode reescrever,
+      // mas o ponto de partida é o nome certo, não um campo em branco.
+      definirDados({ ...dados, metodo: protocolo.rotulo });
+    } else if (protocoloDoMetodo(dados.metodo)) {
+      // Estava um protocolo da lista e ela trocou para "outro": o rótulo
+      // antigo não pode ficar esquecido no campo, parecendo que ainda vale.
+      definirDados({ ...dados, metodo: "" });
+    }
   }
 
   async function executar(acao: () => Promise<void>, mensagem: string) {
@@ -1226,13 +1253,26 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
             <Campo rotulo="Data da avaliação">
               <Texto valor={data} tipo="date" aoMudar={definirData} />
             </Campo>
-            <Campo rotulo="Método usado" dica="Ex.: 4 Pregas: Protocolo de Faulkner">
+            <Campo rotulo="Protocolo de dobras" dica="Escolher aqui mostra só as dobras dele, embaixo.">
+              <Selecao
+                valor={protocoloId}
+                aoMudar={escolherProtocolo}
+                opcoes={[
+                  { valor: OUTRO_METODO, rotulo: "Outro (escrever)" },
+                  ...PROTOCOLOS_DE_AVALIACAO.map((p) => ({ valor: p.id, rotulo: p.rotulo })),
+                ]}
+              />
+            </Campo>
+          </div>
+
+          {protocoloId === OUTRO_METODO && (
+            <Campo rotulo="Método usado" dica="Ex.: Bioimpedância, ou um protocolo que não está na lista.">
               <Texto
                 valor={dados.metodo}
                 aoMudar={(v) => definirDados({ ...dados, metodo: v })}
               />
             </Campo>
-          </div>
+          )}
 
           <div className="c-duas-colunas">
             {campoNumero("Peso (kg)", "peso")}
@@ -1263,16 +1303,39 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
           <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
             Dobras cutâneas (mm)
           </h3>
+          {/* Sem protocolo escolhido, mostra as nove — é o que já existia,
+              e continua valendo para "Outro (escrever)". Com um protocolo
+              da lista, só as dele ficam à vista; o resto vai para "Outras
+              dobras", que ela abre se precisar — nada foi escondido de
+              verdade, só tirado da frente. */}
           <div className="c-linha-medidas">
-            {DOBRAS.map((campo) => (
-              <Campo rotulo={campo.nome} key={campo.nome}>
-                <NumeroDecimal
-                  valor={numeroDeTexto(valoresDobras[campo.nome] ?? "")}
-                  aoMudar={(v) => mudarDobra(campo.nome, v)}
-                />
-              </Campo>
-            ))}
+            {(protocoloEscolhido ? DOBRAS.filter((c) => protocoloEscolhido.dobras.includes(c.nome)) : DOBRAS).map(
+              (campo) => (
+                <Campo rotulo={campo.nome} key={campo.nome}>
+                  <NumeroDecimal
+                    valor={numeroDeTexto(valoresDobras[campo.nome] ?? "")}
+                    aoMudar={(v) => mudarDobra(campo.nome, v)}
+                  />
+                </Campo>
+              ),
+            )}
           </div>
+
+          {protocoloEscolhido && (
+            <details className="c-sanfona" style={{ marginTop: 8 }}>
+              <summary>Outras dobras (fora deste protocolo)</summary>
+              <div className="c-linha-medidas" style={{ marginTop: 10 }}>
+                {DOBRAS.filter((c) => !protocoloEscolhido.dobras.includes(c.nome)).map((campo) => (
+                  <Campo rotulo={campo.nome} key={campo.nome}>
+                    <NumeroDecimal
+                      valor={numeroDeTexto(valoresDobras[campo.nome] ?? "")}
+                      aoMudar={(v) => mudarDobra(campo.nome, v)}
+                    />
+                  </Campo>
+                ))}
+              </div>
+            </details>
+          )}
 
           <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
             Circunferências (cm)

@@ -169,6 +169,7 @@ export function AdminApp() {
                   perguntando de quem. */}
               <Route path="paciente/:pacienteId" element={<Prontuario />} />
               <Route path="rastreabilidade" element={<RastreabilidadeAdmin />} />
+              <Route path="rastreabilidade/:pacienteId" element={<RastreabilidadeAdmin />} />
               <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
               <Route path="*" element={<Navigate to={rotas.admin} replace />} />
             </Routes>
