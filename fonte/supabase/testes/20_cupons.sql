@@ -90,11 +90,11 @@ select
              where desafio_id = '00000000-0000-0000-0000-00000000c0d2' and chave = 'cupom') = 50,
            false) as molde_cupom,
   (select count(*) from desafio_acoes
-    where desafio_id = '00000000-0000-0000-0000-00000000c0d2') = 6 as molde_seis
+    where desafio_id = '00000000-0000-0000-0000-00000000c0d2') = 5 as molde_cinco
 \gset
 rollback;
 select teste('o molde tambem traz a acao do cupom, valendo 50', :'molde_cupom'::boolean);
-select teste('e o molde continua com as outras cinco', :'molde_seis'::boolean);
+select teste('e o molde continua com as outras quatro', :'molde_cinco'::boolean);
 
 delete from desafios where id = '00000000-0000-0000-0000-00000000c0d1';
 delete from desafio_acoes where chave = 'cupom' and descricao = 'x';
