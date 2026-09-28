@@ -114,16 +114,15 @@ test("duplicar copia a refeição inteira, sem dividir a original", () => {
   assert.match(copia.nome, /cópia/);
 });
 
-test("acrescentar opção copia a que está aberta, e passa a ela", () => {
-  // "Opção 2" costuma ser o mesmo café com uma troca, não um café do zero.
+test("acrescentar opção cria uma opção VAZIA, e passa a ela", () => {
+  // Copiar dava a impressão de "duplicou a 1 sozinho" -- ela pediu vazia.
   const r = normalizarRefeicao({ nome: "Café", itens: [{ codigo: "a", nome: "Pão", gramas: 50 }] });
   const com2 = acrescentarOpcao(r);
   assert.equal(com2.opcoes.length, 2);
   assert.equal(com2.opcoes[1].rotulo, "Opção 2");
-  assert.equal(com2.opcoes[1].itens[0].nome, "Pão");
+  assert.deepEqual(com2.opcoes[1].itens, [], "nasce sem alimento nenhum");
   assert.equal(com2.opcaoAtiva, 1, "a nova é a que fica aberta");
-  com2.opcoes[1].itens[0].quantidade = 1;
-  assert.equal(com2.opcoes[0].itens[0].quantidade, 50, "as duas não compartilham o item");
+  assert.equal(com2.opcoes[0].itens[0].nome, "Pão", "a Opção 1 fica intacta");
 });
 
 test("remover opção nunca deixa a refeição sem nenhuma", () => {

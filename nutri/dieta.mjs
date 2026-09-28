@@ -207,20 +207,20 @@ export function duplicarRefeicao(refeicao) {
 }
 
 /**
- * Acrescenta uma opção àquela refeição, copiando a que está aberta.
+ * Acrescenta uma opção VAZIA àquela refeição.
  *
- * Copiar em vez de começar vazia: "Opção 2" do café da manhã costuma ser o
- * mesmo café com uma troca, não um café do zero.
+ * Antes copiava a opção aberta ("café com uma troca" era o caso comum),
+ * mas na prática ela ficava mexendo em item que já não queria e a Opção 2
+ * saía parecida com a 1 sem intenção — a copiada dava a IMPRESSÃO de ser
+ * a 1 duplicada, e não a 2 construída. Vazia é o que ela pediu; se um dia
+ * quiser copiar, `duplicarRefeicao` existe e faz isso para a refeição
+ * inteira.
  */
 export function acrescentarOpcao(refeicao) {
   const r = normalizarRefeicao(refeicao);
-  const base = opcaoAtiva(r);
   r.opcoes = [
     ...r.opcoes,
-    {
-      rotulo: `Opção ${r.opcoes.length + 1}`,
-      itens: JSON.parse(JSON.stringify(base.itens ?? [])),
-    },
+    { rotulo: `Opção ${r.opcoes.length + 1}`, itens: [] },
   ];
   r.opcaoAtiva = r.opcoes.length - 1;
   return r;
