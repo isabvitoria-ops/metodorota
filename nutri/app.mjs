@@ -517,17 +517,25 @@ function desenharDieta() {
     // ---- abas de opção --------------------------------------------------
     const abas = document.createElement("div");
     abas.className = "opcoes";
+    // Mais de uma opção? Cada aba ganha um "×" para apagar AQUELA opção. O
+    // "− opção" de antes apagava só a opção aberta e era um textinho fácil
+    // de não achar -- e estando na Principal, apagava a Principal sem
+    // querer. O × em cada aba diz exatamente qual sai.
+    const podeApagar = refeicao.opcoes.length > 1;
     refeicao.opcoes.forEach((opcao, iO) => {
-      const aba = document.createElement("button");
-      aba.className = "opcao";
-      aba.setAttribute("aria-pressed", String(iO === refeicao.opcaoAtiva));
-      aba.textContent = opcao.rotulo;
-      aba.onclick = () => {
+      const aba = document.createElement("span");
+      aba.className = "opcao-wrap";
+
+      const botao = document.createElement("button");
+      botao.className = "opcao";
+      botao.setAttribute("aria-pressed", String(iO === refeicao.opcaoAtiva));
+      botao.textContent = opcao.rotulo;
+      botao.onclick = () => {
         refeicao.opcaoAtiva = iO;
         guardarDieta();
         desenharDieta();
       };
-      aba.ondblclick = () => {
+      botao.ondblclick = () => {
         const novo = window.prompt("Nome desta opção:", opcao.rotulo);
         if (novo && novo.trim()) {
           opcao.rotulo = novo.trim();
@@ -535,6 +543,27 @@ function desenharDieta() {
           desenharDieta();
         }
       };
+      aba.append(botao);
+
+      if (podeApagar) {
+        const apagar = document.createElement("button");
+        apagar.className = "opcao-x";
+        apagar.textContent = "×";
+        apagar.title = `Apagar "${opcao.rotulo}"`;
+        apagar.setAttribute("aria-label", `Apagar a opção ${opcao.rotulo}`);
+        apagar.onclick = (e) => {
+          e.stopPropagation();
+          const n = opcao.itens?.length ?? 0;
+          if (n && !window.confirm(
+            `Apagar "${opcao.rotulo}" e os ${n} ${n === 1 ? "alimento" : "alimentos"} dela?`,
+          )) return;
+          dieta.refeicoes[iR] = removerOpcao(refeicao, iO);
+          guardarDieta();
+          desenharDieta();
+        };
+        aba.append(apagar);
+      }
+
       abas.append(aba);
     });
 
@@ -548,22 +577,6 @@ function desenharDieta() {
       desenharDieta();
     };
     abas.append(maisOpcao);
-
-    if (refeicao.opcoes.length > 1) {
-      const tirarOpcao = document.createElement("button");
-      tirarOpcao.className = "mini";
-      tirarOpcao.textContent = "− opção";
-      tirarOpcao.onclick = () => {
-        const aberta = opcaoAtiva(refeicao);
-        const n = aberta.itens?.length ?? 0;
-        // Um clique apagava a opção aberta com todos os alimentos dela.
-        if (n && !window.confirm(`Tirar "${aberta.rotulo}" e os ${n} ${n === 1 ? "alimento" : "alimentos"} dela?`)) return;
-        dieta.refeicoes[iR] = removerOpcao(refeicao, refeicao.opcaoAtiva);
-        guardarDieta();
-        desenharDieta();
-      };
-      abas.append(tirarOpcao);
-    }
     bloco.append(abas);
 
     if (refeicao.opcoes.length > 1) {

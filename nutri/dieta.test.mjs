@@ -140,6 +140,38 @@ test("removendo a opção aberta, a seleção não fica apontando para o vazio",
   assert.equal(r.opcaoAtiva, 1);
 });
 
+test("apagar uma opção antes da aberta mantém a visão na mesma opção", () => {
+  // opcoes = [Principal, Opção 2, Opção 3], vendo a Opção 3 (índice 2).
+  let r = normalizarRefeicao({
+    nome: "Café",
+    opcoes: [
+      { rotulo: "Principal", itens: [{ codigo: "p", nome: "Principal" }] },
+      { rotulo: "Opção 2", itens: [{ codigo: "b", nome: "B" }] },
+      { rotulo: "Opção 3", itens: [{ codigo: "c", nome: "C" }] },
+    ],
+    opcaoAtiva: 2,
+  });
+  r = removerOpcao(r, 0); // apaga a Principal
+  assert.equal(r.opcoes.length, 2);
+  // A Opção 3 encostou para o índice 1; a visão tem que segui-la.
+  assert.equal(r.opcaoAtiva, 1);
+  assert.equal(opcaoAtiva(r).rotulo, "Opção 3");
+});
+
+test("apagar qualquer opção quando há mais de uma sempre funciona", () => {
+  let r = normalizarRefeicao({
+    nome: "Almoço",
+    opcoes: [
+      { rotulo: "Principal", itens: [] },
+      { rotulo: "Opção 2", itens: [] },
+    ],
+    opcaoAtiva: 0,
+  });
+  r = removerOpcao(r, 0); // apaga a Principal, sobra a Opção 2
+  assert.equal(r.opcoes.length, 1);
+  assert.equal(opcaoAtiva(r).rotulo, "Opção 2");
+});
+
 test("opcaoAtiva devolve algo utilizável mesmo com a refeição estragada", () => {
   assert.deepEqual(opcaoAtiva(null).itens, []);
   assert.deepEqual(opcaoAtiva({}).itens, []);

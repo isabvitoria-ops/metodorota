@@ -178,6 +178,15 @@
         min-height: 36px;
       }
       .opcao[aria-pressed="true"] { background: var(--verde); color: #fff; border-color: var(--verde); }
+      /* A aba e o seu "×" andam juntos. O × apaga aquela opção. */
+      .opcao-wrap { display: inline-flex; align-items: center; gap: 2px; }
+      .opcao-x {
+        background: none; border: 1px solid var(--borda); border-radius: 999px;
+        width: 30px; min-height: 30px; padding: 0; cursor: pointer;
+        color: var(--vinho); font: inherit; font-size: 17px; line-height: 1;
+      }
+      .opcao-x:hover { background: var(--vinho); color: #fff; border-color: var(--vinho); }
+      .opcao-x:focus-visible { outline: 2px solid var(--vinho); outline-offset: 1px; }
       .resumo-refeicao { margin: 0; }
       .grupos-atalho { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
       .cartao-meu {

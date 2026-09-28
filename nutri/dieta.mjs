@@ -234,6 +234,11 @@ export function removerOpcao(refeicao, indice) {
   const r = normalizarRefeicao(refeicao);
   if (r.opcoes.length <= 1) return r;
   r.opcoes = r.opcoes.filter((_, i) => i !== indice);
-  r.opcaoAtiva = Math.min(r.opcaoAtiva, r.opcoes.length - 1);
+  // A seleção tem que continuar na MESMA opção que ela estava vendo. Apagar
+  // uma opção de trás encosta as seguintes uma casa para a esquerda; sem
+  // ajustar o índice, a visão pulava para a opção errada.
+  let ativa = r.opcaoAtiva ?? 0;
+  if (indice < ativa) ativa -= 1;
+  r.opcaoAtiva = Math.max(0, Math.min(ativa, r.opcoes.length - 1));
   return r;
 }
