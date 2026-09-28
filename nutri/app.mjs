@@ -575,9 +575,14 @@ function desenharDieta() {
     }
 
     const opcao = opcaoAtiva(refeicao);
+    // Está numa opção que não é a Principal? Então mostra a Referência.
+    const ehSecundaria = (refeicao.opcaoAtiva ?? 0) !== 0 && (refeicao.opcoes?.length ?? 0) > 1;
 
     // ---- a tabela da opção aberta ---------------------------------------
-    if (opcao.itens.length) {
+    // Numa opção secundária a tabela aparece mesmo vazia: o rodapé traz a
+    // Referência da Principal, que é o alvo que ela está perseguindo. Sem
+    // isto, a "Opção 2" recém-criada não teria onde mostrar o alvo.
+    if (opcao.itens.length || ehSecundaria) {
       const tabela = document.createElement("table");
       tabela.innerHTML =
         "<thead><tr><th>Alimento</th><th>Qtd.</th><th>Medida</th><th>g</th>" +
@@ -636,6 +641,29 @@ function desenharDieta() {
           if (rodapeCelulas[iM]) {
             rodapeCelulas[iM].textContent =
               (total === null ? (tracos ? "Tr" : "—") : mostrar(total, casas)) + (faltando ? " *" : "");
+          }
+          // Referência e diferença: só existem na opção secundária.
+          if (opcaoDeReferencia) {
+            const ref = somaDoNutriente(opcaoDeReferencia.itens ?? [], chave).total;
+            if (rodapeReferencia[iM]) {
+              rodapeReferencia[iM].textContent = ref === null ? "—" : mostrar(ref, casas);
+            }
+            const dTd = rodapeDiferenca[iM];
+            if (dTd) {
+              const d = (total ?? 0) - (ref ?? 0);
+              const alvo = ref ?? 0;
+              // Perto do alvo (até 5%, ou uma unidade cheia) é "bateu":
+              // verde. Longe, vinho. Assim o olho acha rápido o que ainda
+              // falta ajustar para igualar a Principal.
+              const tolerancia = Math.max(alvo * 0.05, casas === 0 ? 10 : 1);
+              dTd.className = Math.abs(d) <= tolerancia ? "dif-ok" : "dif-longe";
+              // `Math.abs` no `mostrar` evita o sinal duplo e o separador de
+              // milhar do pt-BR; o sinal é posto à mão.
+              const quaseZero = Math.abs(d) < (casas === 0 ? 0.5 : 0.05);
+              dTd.textContent = quaseZero
+                ? "0"
+                : (d > 0 ? "+" : "−") + mostrar(Math.abs(d), casas);
+            }
           }
         });
         totais();
@@ -902,6 +930,36 @@ function desenharDieta() {
       }
       trF.append(document.createElement("td"));
       rodape.append(trF);
+
+      // Quando ela NÃO está na Principal, o rodapé ganha duas linhas: a
+      // Referência (os macros da opção Principal) e a Diferença. É o que
+      // deixa montar "Opção 2" perseguindo os macros da Principal, em vez
+      // de às cegas — pedido dela, igual ao que outros apps mostram.
+      const opcaoDeReferencia = ehSecundaria ? refeicao.opcoes[0] : null;
+      const rodapeReferencia = [];
+      const rodapeDiferenca = [];
+      if (ehSecundaria) {
+        const trRef = document.createElement("tr");
+        trRef.className = "referencia";
+        trRef.innerHTML = "<td>Referência (Principal)</td><td></td><td></td><td></td>";
+        for (const [, ,] of MACROS) {
+          const td = document.createElement("td");
+          rodapeReferencia.push(td);
+          trRef.append(td);
+        }
+        trRef.append(document.createElement("td"));
+
+        const trDif = document.createElement("tr");
+        trDif.className = "diferenca";
+        trDif.innerHTML = "<td>Diferença</td><td></td><td></td><td></td>";
+        for (const [, ,] of MACROS) {
+          const td = document.createElement("td");
+          rodapeDiferenca.push(td);
+          trDif.append(td);
+        }
+        trDif.append(document.createElement("td"));
+        rodape.append(trRef, trDif);
+      }
       tabela.append(corpo, rodape);
       const rolagem = document.createElement("div");
       rolagem.className = "tabela-rolagem";
