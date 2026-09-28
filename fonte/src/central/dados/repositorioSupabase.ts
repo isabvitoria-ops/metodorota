@@ -33,6 +33,12 @@ import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type { Exame, EspacoDosExames } from "@/central/types/exame";
 import { caminhoDoExame, porQueNaoServe, tipoPelaExtensao } from "@/central/utils/exames";
 import type {
+  FonteDoCerebro,
+  SugestaoDoCerebro,
+  TrechoCitado,
+} from "@/central/types/cerebro";
+import { caminhoDoPdf, porQueNaoServe as porQueNaoServeCerebro } from "@/central/utils/cerebroDoNutri";
+import type {
   PainelFinanceiro,
   ValorDoPaciente,
   Balanco,
@@ -1762,6 +1768,127 @@ export const repositorioSupabase: Repositorio = {
     return ((data ?? []) as Linha[]).map(paraQuestionarioDoPaciente);
   },
 
+  // -----------------------------------------------------------------------
+  // Cérebro do Nutri
+  // -----------------------------------------------------------------------
+
+  async fontesDoCerebro(): Promise<FonteDoCerebro[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("fontes_do_cerebro");
+    erro("carregar o Cérebro", error);
+    return ((data ?? []) as Linha[]).map(paraFonte);
+  },
+
+  async registrarFonte(dados) {
+    const sb = exigirSupabase();
+    let caminho: string | null = null;
+    let tamanho = 0;
+
+    if (dados.tipo === "pdf") {
+      if (!dados.arquivo) throw new Error("Faltou o PDF.");
+      const recusa = porQueNaoServeCerebro(dados.arquivo);
+      if (recusa) throw new Error(recusa);
+      caminho = caminhoDoPdf(dados.arquivo.name);
+      tamanho = dados.arquivo.size;
+      const { error: erroEnvio } = await sb.storage
+        .from("cerebro-do-nutri")
+        .upload(caminho, dados.arquivo, {
+          contentType: "application/pdf",
+          upsert: false,
+        });
+      erro("enviar o PDF", erroEnvio);
+    }
+
+    const { data, error } = await sb.rpc("registrar_fonte", {
+      p_titulo: dados.titulo,
+      p_fonte: dados.fonte,
+      p_tipo: dados.tipo,
+      p_caminho: caminho,
+      p_conteudo: dados.conteudo,
+      p_tamanho: tamanho,
+    });
+
+    if (error) {
+      if (caminho) await sb.storage.from("cerebro-do-nutri").remove([caminho]);
+      erro("registrar a fonte", error);
+    }
+    return texto(data);
+  },
+
+  async salvarTrechos(fonteId, trechos) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("salvar_trechos", {
+      p_fonte_id: fonteId,
+      p_trechos: trechos.map((t) => ({
+        ordem: t.ordem,
+        trecho: t.trecho,
+        ...(t.embedding ? { embedding: t.embedding } : {}),
+      })),
+    });
+    erro("salvar os trechos", error);
+    return numero(data);
+  },
+
+  async apagarFonte(fonteId) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("apagar_fonte", { p_id: fonteId });
+    erro("apagar a fonte", error);
+    const caminho = textoOuNulo(data);
+    if (caminho) await sb.storage.from("cerebro-do-nutri").remove([caminho]);
+  },
+
+  async buscarNoCerebro(pergunta, embedding) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("buscar_no_cerebro", {
+      p_pergunta: pergunta,
+      p_embedding: embedding ?? null,
+      p_limite: 8,
+    });
+    erro("buscar no Cérebro", error);
+    return ((data ?? []) as Linha[]).map(paraTrechoCitado);
+  },
+
+  async pendenciasDoCerebro() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("trechos_pendentes_de_embedding");
+    erro("ver o que falta indexar", error);
+    const l = (data ?? {}) as Linha;
+    return {
+      total: numero(l.total),
+      pendentes: numero(l.pendentes),
+      fontes: numero(l.fontes),
+    };
+  },
+
+  async registrarSugestao(pacienteId, pergunta, resposta, citacoes) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("registrar_sugestao", {
+      p_paciente: pacienteId,
+      p_pergunta: pergunta,
+      p_resposta: resposta,
+      p_citacoes: citacoes,
+    });
+    erro("registrar a sugestão", error);
+    return texto(data);
+  },
+
+  async darFeedbackSugestao(sugestaoId, feedback, condutaFinal, motivo) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("dar_feedback_sugestao", {
+      p_id: sugestaoId,
+      p_feedback: feedback,
+      p_conduta: condutaFinal,
+      p_motivo: motivo,
+    });
+    erro("gravar o feedback", error);
+  },
+
+  async sugestoesDoPaciente(pacienteId) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("sugestoes_do_paciente", { p_paciente: pacienteId });
+    erro("carregar as sugestões", error);
+    return ((data ?? []) as Linha[]).map(paraSugestao);
+  },
 };
 
 /**
@@ -1976,5 +2103,49 @@ function paraRecebimento(l: Linha): Recebimento {
     data: texto(l.data),
     forma: texto(l.forma) as FormaDePagamento,
     observacao: textoOuNulo(l.observacao),
+  };
+}
+
+function paraFonte(l: Linha): FonteDoCerebro {
+  const t = texto(l.tipo);
+  return {
+    id: texto(l.id),
+    titulo: texto(l.titulo),
+    fonte: textoOuNulo(l.fonte),
+    tipo: t === "pdf" ? "pdf" : "texto",
+    caminho: textoOuNulo(l.caminho),
+    tamanho: numero(l.tamanho),
+    trechos: numero(l.trechos),
+    comEmbedding: numero(l.comEmbedding),
+    criadoEm: texto(l.criadoEm),
+  };
+}
+
+function paraTrechoCitado(l: Linha): TrechoCitado {
+  const t: TrechoCitado = {
+    id: texto(l.id),
+    fonteId: texto(l.fonteId),
+    titulo: texto(l.titulo),
+    fonte: textoOuNulo(l.fonte),
+    ordem: numero(l.ordem),
+    trecho: texto(l.trecho),
+  };
+  if (typeof l.distancia === "number") t.distancia = l.distancia;
+  if (typeof l.peso === "number") t.peso = l.peso;
+  return t;
+}
+
+function paraSugestao(l: Linha): SugestaoDoCerebro {
+  const fb = texto(l.feedback);
+  return {
+    id: texto(l.id),
+    pergunta: texto(l.pergunta),
+    resposta: textoOuNulo(l.resposta),
+    citacoes: Array.isArray(l.citacoes) ? (l.citacoes as Linha[]).map(paraTrechoCitado) : [],
+    feedback: fb === "aceita" || fb === "editada" || fb === "rejeitada" ? fb : null,
+    condutaFinal: textoOuNulo(l.condutaFinal),
+    motivo: textoOuNulo(l.motivo),
+    criadoEm: texto(l.criadoEm),
+    respondidoEm: textoOuNulo(l.respondidoEm),
   };
 }

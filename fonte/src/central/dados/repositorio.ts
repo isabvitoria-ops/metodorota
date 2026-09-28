@@ -56,6 +56,12 @@ import type {
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type { Exame, EspacoDosExames } from "@/central/types/exame";
 import type {
+  FonteDoCerebro,
+  PendenciasDoCerebro,
+  SugestaoDoCerebro,
+  TrechoCitado,
+} from "@/central/types/cerebro";
+import type {
   PainelFinanceiro,
   ValorDoPaciente,
   Balanco,
@@ -625,6 +631,66 @@ export interface Repositorio {
     unidade: string,
   ): Promise<void>;
   excluirMetaSemanal(id: string): Promise<void>;
+
+  // ---------------------------------------------------------------------
+  // Cérebro do Nutri (base de conhecimento privada)
+  // ---------------------------------------------------------------------
+  //
+  // A caixa fechada da nutricionista. TUDO admin. A paciente nunca alcança
+  // nada, e essa é a única regra que precisa valer.
+
+  /** Todas as fontes que ela guardou. */
+  fontesDoCerebro(): Promise<FonteDoCerebro[]>;
+
+  /**
+   * Envia um PDF (opcional) e registra a fonte com o texto já extraído no
+   * cliente. Trechos vão em uma segunda chamada, para que reprocessar não
+   * dependa de reenviar o arquivo.
+   */
+  registrarFonte(dados: {
+    titulo: string;
+    fonte: string | null;
+    tipo: "pdf" | "texto";
+    arquivo: File | null;
+    conteudo: string;
+  }): Promise<string>;
+
+  /** Substitui os trechos daquela fonte. Repetir a chamada não duplica. */
+  salvarTrechos(
+    fonteId: string,
+    trechos: { ordem: number; trecho: string; embedding?: number[] }[],
+  ): Promise<number>;
+
+  /** Apaga a fonte, os trechos (cascata) e o PDF do balde, se houver. */
+  apagarFonte(fonteId: string): Promise<void>;
+
+  /**
+   * Busca no Cérebro. Sem embedding, cai em busca textual — o Cérebro
+   * funciona antes de contratar a chave de embeddings.
+   */
+  buscarNoCerebro(pergunta: string, embedding?: number[] | null): Promise<TrechoCitado[]>;
+
+  /** Quanto ainda falta indexar. */
+  pendenciasDoCerebro(): Promise<PendenciasDoCerebro>;
+
+  /** Registra uma pergunta feita sobre uma paciente. */
+  registrarSugestao(
+    pacienteId: string,
+    pergunta: string,
+    resposta: string | null,
+    citacoes: TrechoCitado[],
+  ): Promise<string>;
+
+  /** Fecha o laço: aceita, edita ou rejeita. */
+  darFeedbackSugestao(
+    sugestaoId: string,
+    feedback: "aceita" | "editada" | "rejeitada",
+    condutaFinal: string | null,
+    motivo: string | null,
+  ): Promise<void>;
+
+  /** Histórico de sugestões de uma paciente, para a ficha. */
+  sugestoesDoPaciente(pacienteId: string): Promise<SugestaoDoCerebro[]>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

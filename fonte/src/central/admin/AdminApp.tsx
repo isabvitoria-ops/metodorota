@@ -17,6 +17,7 @@ import { Protocolos } from "./Protocolos";
 import { Prontuario } from "./Prontuario";
 import { Metas } from "./Metas";
 import { Treinos } from "./Treinos";
+import { CerebroDoNutri } from "./Cerebro";
 import { MenuMais } from "@/central/components/MenuMais";
 
 /**
@@ -55,6 +56,7 @@ const MAIS = [
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
   { rota: rotas.adminDesafios, rotulo: "Desafio" },
   { rota: rotas.adminRastreabilidade, rotulo: "Rastreabilidade" },
+  { rota: rotas.adminCerebro, rotulo: "Cérebro" },
   { rota: rotas.adminConfiguracoes, rotulo: "Configurações" },
 ];
 
@@ -170,6 +172,7 @@ export function AdminApp() {
               <Route path="paciente/:pacienteId" element={<Prontuario />} />
               <Route path="rastreabilidade" element={<RastreabilidadeAdmin />} />
               <Route path="rastreabilidade/:pacienteId" element={<RastreabilidadeAdmin />} />
+              <Route path="cerebro" element={<CerebroDoNutri />} />
               <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
               <Route path="*" element={<Navigate to={rotas.admin} replace />} />
             </Routes>

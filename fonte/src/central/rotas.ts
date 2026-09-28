@@ -63,6 +63,7 @@ export const rotas = {
   adminProntuario: (pacienteId: string) => `/admin/paciente/${pacienteId}`,
   adminTreino: (pacienteId: string) => `/admin/treinos/${pacienteId}`,
   adminRastreabilidadeDe: (pacienteId: string) => `/admin/rastreabilidade/${pacienteId}`,
+  adminCerebro: "/admin/cerebro",
 };
 
 /** Prefixo antigo, mantido para não quebrar link já enviado a paciente. */

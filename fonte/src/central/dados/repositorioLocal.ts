@@ -1806,6 +1806,36 @@ export const repositorioLocal: Repositorio = {
     }));
   },
 
+  // Cérebro do Nutri: sem base na demonstração — depende do Supabase, e a
+  // paciente da demo não é admin. As telas ficam de pé; o Cérebro em si é
+  // ferramenta interna da nutricionista.
+  async fontesDoCerebro() {
+    return [];
+  },
+  async registrarFonte() {
+    throw new Error("O Cérebro do Nutri só funciona no aplicativo publicado.");
+  },
+  async salvarTrechos() {
+    return 0;
+  },
+  async apagarFonte() {
+    /* noop */
+  },
+  async buscarNoCerebro() {
+    return [];
+  },
+  async pendenciasDoCerebro() {
+    return { total: 0, pendentes: 0, fontes: 0 };
+  },
+  async registrarSugestao() {
+    throw new Error("O Cérebro do Nutri só funciona no aplicativo publicado.");
+  },
+  async darFeedbackSugestao() {
+    /* noop */
+  },
+  async sugestoesDoPaciente() {
+    return [];
+  },
 };
 
 /**
