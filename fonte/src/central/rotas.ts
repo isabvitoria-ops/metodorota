@@ -64,6 +64,7 @@ export const rotas = {
   adminTreino: (pacienteId: string) => `/admin/treinos/${pacienteId}`,
   adminRastreabilidadeDe: (pacienteId: string) => `/admin/rastreabilidade/${pacienteId}`,
   adminCerebro: "/admin/cerebro",
+  adminCondutas: "/admin/condutas",
 };
 
 /** Prefixo antigo, mantido para não quebrar link já enviado a paciente. */

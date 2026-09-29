@@ -18,6 +18,7 @@ import {
 } from "@/central/utils/linhaDoTempo";
 import { CartaDeEncaminhamento } from "./CartaDeEncaminhamento";
 import { CerebroDaFicha } from "./CerebroDaFicha";
+import { CondutasDaFicha } from "./CondutasDaFicha";
 import { CheckinDoPaciente } from "@/central/components/CheckinDoPaciente";
 import { Exames } from "@/central/components/Exames";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
@@ -39,12 +40,13 @@ import { AreaTexto, Campo, Selecao, Texto } from "@/central/admin/componentes/Ca
  * sala: peso de agora, adesão e quantas consultas já houve. Cada um vira
  * travessão quando não há de onde sair — um zero ali seria afirmação.
  */
-type Aba = "consulta" | "resumo" | "checkin" | "exames" | "cerebro" | "historico" | "carta" | "acessos";
+type Aba = "consulta" | "resumo" | "condutas" | "checkin" | "exames" | "cerebro" | "historico" | "carta" | "acessos";
 
 /** As abas à vista. Carta e acessos entram pelo ⋯, porque são de vez em quando. */
 const ABAS_DA_FICHA: [Aba, string][] = [
   ["consulta", "Consulta"],
   ["resumo", "Resumo"],
+  ["condutas", "Condutas"],
   ["checkin", "Check-in"],
   ["exames", "Exames"],
   ["cerebro", "Cérebro"],
@@ -273,6 +275,10 @@ export function Prontuario() {
             </p>
           )
         )}
+      </div>
+
+      <div hidden={aba !== "condutas"}>
+        <CondutasDaFicha pacienteId={pacienteId} />
       </div>
 
       <div hidden={aba !== "checkin"}>

@@ -1876,6 +1876,19 @@ body:has(.central) {
   border-color: var(--danger);
 }
 
+/* `.central button { color: inherit }` (lá no começo) pesa mais que uma
+   classe sozinha, e o texto dos botões saía escuro sobre o verde. Aqui a
+   cor de cada botão volta a valer, sem mexer nos outros botões do app. */
+.central .c-botao {
+  color: #fff;
+}
+.central .c-botao-secundario {
+  color: var(--primary);
+}
+.central .c-botao-perigo {
+  color: var(--danger);
+}
+
 .c-botao-pequeno {
   width: auto;
   min-height: 42px;
@@ -5146,4 +5159,175 @@ body:has(.central) {
 
 .c-input[aria-invalid="true"] {
   border-color: var(--danger);
+}
+
+/* ---------------------------------------------------------------- condutas (Kanban) */
+
+.c-kanban {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+@media (min-width: 860px) {
+  .c-kanban {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+.c-kanban-coluna {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+  min-height: 80px;
+}
+.c-kanban-coluna.c-kanban-alvo {
+  border-style: dashed;
+  border-color: var(--primary);
+}
+.c-kanban-titulo {
+  font-size: 15px;
+  margin: 2px 4px 10px;
+}
+.c-kanban-vazia {
+  margin: 4px;
+}
+.c-kanban-cartao {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: grab;
+}
+.c-kanban-cartao.c-kanban-atrasada,
+.c-lista-condutas li.c-kanban-atrasada {
+  border-left: 4px solid var(--danger);
+}
+.c-kanban-abrir {
+  all: unset;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.c-kanban-abrir:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.c-kanban-descricao {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  white-space: pre-line;
+}
+.c-kanban-rodape {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-top: 8px;
+}
+.c-kanban-mover {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.c-kanban-mover .c-botao {
+  margin-top: 0;
+}
+
+.c-aplicar-lista {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0;
+  display: grid;
+  gap: 8px;
+}
+.c-aplicar-lista li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 6px;
+  align-items: center;
+}
+.c-aplicar-lista li .c-botao {
+  margin-top: 0;
+}
+.c-aplicar-lista input[type="date"] {
+  width: auto;
+  max-width: 11.5em;
+}
+@media (max-width: 460px) {
+  .c-aplicar-lista li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .c-aplicar-lista li > .c-input:first-child {
+    grid-column: 1 / -1;
+  }
+}
+.c-dia-da-etapa {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.c-dia-da-etapa .c-input {
+  width: 5.5em;
+}
+
+.c-filtros-condutas {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0;
+}
+.c-lista-condutas {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.c-lista-condutas li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.c-lista-condutas-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 220px;
+  overflow-wrap: anywhere;
+}
+.c-lista-condutas-acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.c-lista-condutas-acoes .c-botao {
+  margin-top: 0;
+}
+.c-kanban-conta {
+  display: inline-block;
+  min-width: 1.6em;
+  padding: 0 6px;
+  margin-left: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-muted);
 }

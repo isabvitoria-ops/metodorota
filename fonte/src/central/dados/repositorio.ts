@@ -71,6 +71,14 @@ import type {
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type { OQueMudou } from "@/central/types/oQueMudou";
+import type {
+  Conduta,
+  CondutaPendente,
+  EtapaDoModelo,
+  ModeloDeConduta,
+  StatusDaConduta,
+  TarefaParaAplicar,
+} from "@/central/types/conduta";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
@@ -706,6 +714,41 @@ export interface Repositorio {
 
   /** Histórico de sugestões de uma paciente, para a ficha. */
   sugestoesDoPaciente(pacienteId: string): Promise<SugestaoDoCerebro[]>;
+
+  // ---------------------------------------------------------------------
+  // Condutas em Kanban (0055) — só da nutricionista
+  // ---------------------------------------------------------------------
+
+  /** A biblioteca de modelos ("Protocolo SIBO", "Primeira consulta"…). */
+  listarModelosConduta(): Promise<ModeloDeConduta[]>;
+  /** Cria (id null) ou regrava o modelo inteiro, etapas incluídas. */
+  salvarModeloConduta(
+    id: string | null,
+    nome: string,
+    descricao: string | null,
+    etapas: EtapaDoModelo[],
+  ): Promise<string>;
+  /** Apaga o modelo. O que já foi aplicado fica. */
+  excluirModeloConduta(id: string): Promise<void>;
+  /** Grava as tarefas com as datas que ela confirmou. Devolve quantas. */
+  aplicarModeloConduta(
+    pacienteId: string,
+    modeloId: string | null,
+    tarefas: TarefaParaAplicar[],
+  ): Promise<number>;
+  condutasDe(pacienteId: string): Promise<Conduta[]>;
+  salvarConduta(
+    id: string | null,
+    pacienteId: string,
+    titulo: string,
+    descricao: string | null,
+    prazo: string | null,
+    status: StatusDaConduta,
+  ): Promise<string>;
+  moverConduta(id: string, status: StatusDaConduta): Promise<void>;
+  excluirConduta(id: string): Promise<void>;
+  /** Tudo o que não está concluído, de todas as pacientes. */
+  condutasPendentes(): Promise<CondutaPendente[]>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

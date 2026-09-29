@@ -18,6 +18,7 @@ import { Prontuario } from "./Prontuario";
 import { Metas } from "./Metas";
 import { Treinos } from "./Treinos";
 import { CerebroDoNutri } from "./Cerebro";
+import { Condutas } from "./Condutas";
 import { MenuMais } from "@/central/components/MenuMais";
 
 /**
@@ -51,6 +52,7 @@ const ABAS = [
  * que rolava de lado, e no celular metade ficava fora da tela.
  */
 const MAIS = [
+  { rota: rotas.adminCondutas, rotulo: "Condutas" },
   { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
   { rota: rotas.adminMetas, rotulo: "Metas" },
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
@@ -173,6 +175,7 @@ export function AdminApp() {
               <Route path="rastreabilidade" element={<RastreabilidadeAdmin />} />
               <Route path="rastreabilidade/:pacienteId" element={<RastreabilidadeAdmin />} />
               <Route path="cerebro" element={<CerebroDoNutri />} />
+              <Route path="condutas" element={<Condutas />} />
               <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
               <Route path="*" element={<Navigate to={rotas.admin} replace />} />
             </Routes>
