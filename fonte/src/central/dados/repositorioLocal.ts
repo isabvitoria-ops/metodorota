@@ -43,6 +43,7 @@ import type {
   MeuQuestionario,
   RespostaEnviada,
   QuestionarioDoPaciente,
+  EixoCheckin,
 } from "@/central/types/questionario";
 import {
   semanaDoDesafio,
@@ -1170,6 +1171,7 @@ export const repositorioLocal: Repositorio = {
     periodicidade: PeriodicidadeQuestionario,
     ativo: boolean,
     perguntas: PerguntaQuestionario[],
+    mostraPontuacao: boolean,
   ): Promise<string> {
     const lista = guardaQuestionarios.ler();
     const idFinal = id ?? `q-${Date.now()}`;
@@ -1183,6 +1185,7 @@ export const repositorioLocal: Repositorio = {
       descricao,
       periodicidade,
       ativo,
+      mostraPontuacao,
       criadoEm: new Date().toISOString(),
       pacientes: 0,
       respostas: 0,
@@ -1192,6 +1195,16 @@ export const repositorioLocal: Repositorio = {
       id === null ? [...lista, novo] : lista.map((q) => (q.id === id ? novo : q)),
     );
     return idFinal;
+  },
+
+  async listarEixosCheckin(): Promise<EixoCheckin[]> {
+    return [];
+  },
+  async salvarEixosCheckin(): Promise<EixoCheckin[]> {
+    return [];
+  },
+  async reaplicarRegua(): Promise<number> {
+    return 0;
   },
 
   async definirQuestionarioDoPaciente(
@@ -1235,6 +1248,7 @@ export const repositorioLocal: Repositorio = {
           titulo: q.titulo,
           descricao: q.descricao,
           periodicidade: q.periodicidade,
+          mostraPontuacao: q.mostraPontuacao === true,
           periodo,
           pendente: !enviados.some(
             (e) => q.periodicidade !== "semanal" || e.periodo === semana,
@@ -1780,6 +1794,7 @@ export const repositorioLocal: Repositorio = {
       titulo: q.titulo,
       periodicidade: q.periodicidade,
       ativo: q.ativo,
+      mostraPontuacao: q.mostraPontuacao === true,
       atribuido: guardaAtribuicoes
         .ler()
         .some((a) => a.questionarioId === q.id && a.pacienteId === pacienteId),
@@ -1791,6 +1806,8 @@ export const repositorioLocal: Repositorio = {
         peso: pg.peso,
         invertida: pg.invertida,
         opcoes: pg.opcoes,
+        eixoId: pg.eixoId ?? null,
+        pontosOpcoes: pg.pontosOpcoes ?? [],
       })),
       envios: guardaEnviosQuest
         .ler()

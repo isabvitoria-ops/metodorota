@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import type { QuestionarioDoPaciente } from "@/central/types/questionario";
 import { Link } from "react-router-dom";
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
-import { valorNaEscala, pontuacaoDoEnvio } from "@/central/utils/pontuacaoQuestionario";
+import { valorNaEscala, pontuacaoDoEnvio, pontuacaoPorEixo } from "@/central/utils/pontuacaoQuestionario";
 import { carinhaDe, setaDaVariacao } from "@/central/utils/carinhaDaResposta";
 import { GraficoDaPergunta } from "./GraficoDaPergunta";
 
@@ -159,6 +159,8 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
     Object.fromEntries(questionario.envios.map((e) => [e.id, e.revisado])),
   );
   const [erro, definirErro] = useState<string | null>(null);
+  // Qual envio está com a quebra por eixo aberta (clicando no score).
+  const [eixoAberto, definirEixoAberto] = useState<string | null>(null);
 
   // Só as perguntas que viram coluna. Texto livre não cabe numa célula —
   // vai embaixo, inteiro, que é onde costuma estar a informação mais útil.
@@ -242,8 +244,16 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
               const porId = new Map(envio.respostas.map((r) => [r.perguntaId, r]));
               const nota = notas.get(envio.id) ?? null;
               const variacao = variacoes.get(envio.id) ?? null;
+              const quebra = pontuacaoPorEixo(questionario.perguntas, envio).filter(
+                (e) => e.nota !== null,
+              );
+              // Só vale abrir quando há mais de um eixo: com um só, a quebra
+              // repetiria o total.
+              const temQuebra = quebra.length > 1;
+              const aberto = eixoAberto === envio.id;
               return (
-                <tr key={envio.id}>
+                <Fragment key={envio.id}>
+                <tr>
                   <th scope="row">{diaCurto(envio.periodo)}</th>
                   {colunas.map((p) => {
                     const valor = valorNaEscala(
@@ -274,6 +284,18 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
                   <td className="c-celula-score">
                     {nota === null ? (
                       <span className="c-sem-resposta">—</span>
+                    ) : temQuebra ? (
+                      <button
+                        type="button"
+                        className="c-link"
+                        aria-expanded={aberto}
+                        title="Ver a nota por eixo"
+                        onClick={() => definirEixoAberto(aberto ? null : envio.id)}
+                      >
+                        <strong>{nota}%</strong>
+                        <span className="c-variacao">{setaDaVariacao(variacao)}</span>
+                        <span aria-hidden="true"> {aberto ? "▾" : "▸"}</span>
+                      </button>
                     ) : (
                       <>
                         <strong>{nota}%</strong>
@@ -293,6 +315,21 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
                     />
                   </td>
                 </tr>
+                {aberto && temQuebra && (
+                  <tr className="c-linha-eixos">
+                    <td colSpan={colunas.length + 3}>
+                      <div className="c-eixos-quebra">
+                        {quebra.map((e) => (
+                          <span key={e.eixoId ?? "sem"} className="c-eixo-nota">
+                            <span className="c-eixo-nome">{e.eixoNome}</span>
+                            <strong>{e.nota}%</strong>
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               );
             })}
           </tbody>

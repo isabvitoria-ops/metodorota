@@ -164,11 +164,13 @@ select teste('o periodo oferecido e a segunda desta semana',
 select teste('as perguntas vem junto',
   jsonb_array_length(meus_questionarios() -> 0 -> 'perguntas') = 3);
 
--- A regua da nutricionista nao aparece para quem responde.
-select teste('o peso NAO chega na tela da paciente',
-  not (meus_questionarios() -> 0 -> 'perguntas' -> 0 ? 'peso'));
-select teste('a inversao tambem NAO chega',
-  not (meus_questionarios() -> 0 -> 'perguntas' -> 1 ? 'invertida'));
+-- A regua da nutricionista nao aparece para quem responde: com a nota
+-- ESCONDIDA (mostra_pontuacao = false, o padrao), peso e inversao vem
+-- NULOS -- a chave existe, mas nao carrega valor que vaze a regua.
+select teste('o peso vem nulo quando a nota esta escondida',
+  (meus_questionarios() -> 0 -> 'perguntas' -> 0 -> 'peso') = 'null'::jsonb);
+select teste('a inversao tambem vem nula',
+  (meus_questionarios() -> 0 -> 'perguntas' -> 1 -> 'invertida') = 'null'::jsonb);
 commit;
 
 -- -----------------------------------------------------------------------------

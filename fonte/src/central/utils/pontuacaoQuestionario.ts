@@ -29,6 +29,12 @@ export interface PerguntaPontuavel {
   tipo: "escala" | "sim_nao" | "numero" | "texto" | "escolha";
   peso: number;
   invertida: boolean;
+  /** Só para 'escolha': os rótulos e os pontos (0–10) de cada opção. */
+  opcoes?: string[];
+  pontosOpcoes?: number[];
+  /** A que eixo a pergunta pertence, para a quebra da nota. */
+  eixoId?: string | null;
+  eixoNome?: string | null;
 }
 
 export interface RespostaCrua {
@@ -41,10 +47,30 @@ export interface EnvioCru {
   id: string;
   periodo: string;
   respostas: RespostaCrua[];
+  /**
+   * A régua fotografada quando a paciente respondeu (0054). Quando existe,
+   * é ela que pontua o envio — mudar o peso de uma pergunta hoje não mexe
+   * na nota das semanas já respondidas. Ausente nos envios antigos: aí a
+   * régua atual vale, como antes.
+   */
+  reguaSnapshot?: PerguntaPontuavel[] | null;
 }
 
 /** O máximo que uma pergunta vale, na escala interna de 0 a 10. */
 const TETO = 10;
+
+/**
+ * A régua que pontua um envio: a foto, quando o envio a tem; a atual, quando
+ * não (envio anterior à 0054). É por aqui que o congelamento acontece.
+ */
+export function reguaDoEnvio(
+  perguntasAtuais: PerguntaPontuavel[],
+  envio: EnvioCru,
+): PerguntaPontuavel[] {
+  return envio.reguaSnapshot && envio.reguaSnapshot.length > 0
+    ? envio.reguaSnapshot
+    : perguntasAtuais;
+}
 
 /**
  * Normaliza uma resposta para 0–10, já com a inversão aplicada.
@@ -55,6 +81,22 @@ export function valorNaEscala(
   resposta: RespostaCrua | undefined,
 ): number | null {
   if (pergunta.peso <= 0) return null;
+
+  // Múltipla escolha: a resposta é o rótulo escolhido, e cada rótulo tem um
+  // valor de 0 a 10 que a nutricionista definiu. Sem pontos, não pontua.
+  if (pergunta.tipo === "escolha") {
+    const opcoes = pergunta.opcoes ?? [];
+    const pontos = pergunta.pontosOpcoes ?? [];
+    if (opcoes.length === 0 || pontos.length === 0) return null;
+    const escolhido = resposta?.texto ?? null;
+    if (escolhido === null || escolhido === "") return null;
+    const i = opcoes.indexOf(escolhido);
+    if (i < 0 || i >= pontos.length) return null;
+    const p = pontos[i];
+    if (p === null || p === undefined || Number.isNaN(p)) return null;
+    return Math.min(Math.max(p, 0), TETO);
+  }
+
   if (pergunta.tipo !== "escala" && pergunta.tipo !== "sim_nao") return null;
   if (!resposta || resposta.numero === null || Number.isNaN(resposta.numero)) return null;
 
@@ -68,16 +110,20 @@ export function valorNaEscala(
 
 /**
  * A nota do envio, de 0 a 100 — ou `null` quando não há o que pontuar.
+ *
+ * Usa a régua fotografada do envio quando ela existe (congelamento); senão,
+ * a régua atual passada em `perguntas`.
  */
 export function pontuacaoDoEnvio(
   perguntas: PerguntaPontuavel[],
   envio: EnvioCru,
 ): number | null {
+  const regua = reguaDoEnvio(perguntas, envio);
   const porPergunta = new Map(envio.respostas.map((r) => [r.perguntaId, r]));
   let soma = 0;
   let maximo = 0;
 
-  for (const p of perguntas) {
+  for (const p of regua) {
     const valor = valorNaEscala(p, porPergunta.get(p.id));
     if (valor === null) continue;
     soma += p.peso * valor;
@@ -86,6 +132,47 @@ export function pontuacaoDoEnvio(
 
   if (maximo === 0) return null;
   return Math.round((soma / maximo) * 100);
+}
+
+export interface NotaDeEixo {
+  eixoId: string | null;
+  eixoNome: string;
+  nota: number | null;
+  /** Quantas perguntas pontuáveis daquele eixo entraram na conta. */
+  perguntas: number;
+}
+
+/**
+ * A nota quebrada por eixo, de 0 a 100 em cada. Perguntas sem eixo caem num
+ * grupo "Sem eixo". Um eixo sem nenhuma resposta pontuável fica com `null`,
+ * e não com zero — não pontuar não é pontuar mal.
+ */
+export function pontuacaoPorEixo(
+  perguntas: PerguntaPontuavel[],
+  envio: EnvioCru,
+): NotaDeEixo[] {
+  const regua = reguaDoEnvio(perguntas, envio);
+  const porPergunta = new Map(envio.respostas.map((r) => [r.perguntaId, r]));
+
+  const grupos = new Map<string, { nome: string; soma: number; maximo: number; n: number }>();
+  for (const p of regua) {
+    const valor = valorNaEscala(p, porPergunta.get(p.id));
+    if (valor === null) continue;
+    const chave = p.eixoId ?? "__sem_eixo__";
+    const nome = p.eixoNome ?? (p.eixoId ? "Eixo" : "Sem eixo");
+    const g = grupos.get(chave) ?? { nome, soma: 0, maximo: 0, n: 0 };
+    g.soma += p.peso * valor;
+    g.maximo += p.peso * TETO;
+    g.n += 1;
+    grupos.set(chave, g);
+  }
+
+  return [...grupos.entries()].map(([chave, g]) => ({
+    eixoId: chave === "__sem_eixo__" ? null : chave,
+    eixoNome: g.nome,
+    nota: g.maximo === 0 ? null : Math.round((g.soma / g.maximo) * 100),
+    perguntas: g.n,
+  }));
 }
 
 export interface PontoDaSerie {

@@ -5,6 +5,7 @@ import type {
   PerguntaQuestionario,
   PeriodicidadeQuestionario,
   TipoDePergunta,
+  EixoCheckin,
 } from "@/central/types/questionario";
 import { repositorio } from "@/central/dados/repositorio";
 import { Campo, Selecao, Texto, AreaTexto } from "@/central/admin/componentes/Campos";
@@ -53,6 +54,8 @@ function perguntaVazia(): PerguntaQuestionario {
     opcoes: [],
     peso: 1,
     invertida: false,
+    eixoId: null,
+    pontosOpcoes: [],
     respondida: false,
   };
 }
@@ -95,6 +98,7 @@ export function Questionarios() {
       descricao: null,
       periodicidade,
       ativo: true,
+      mostraPontuacao: false,
       criadoEm: "",
       pacientes: 0,
       respostas: 0,
@@ -241,7 +245,22 @@ function EditorDeQuestionario({
   const [titulo, definirTitulo] = useState(questionario.titulo);
   const [descricao, definirDescricao] = useState(questionario.descricao ?? "");
   const [ativo, definirAtivo] = useState(questionario.ativo);
+  const [mostraPontuacao, definirMostraPontuacao] = useState(questionario.mostraPontuacao);
   const [perguntas, definirPerguntas] = useState<PerguntaQuestionario[]>(questionario.perguntas);
+  const [eixos, definirEixos] = useState<EixoCheckin[]>([]);
+
+  useEffect(() => {
+    let vivo = true;
+    void repositorio
+      .listarEixosCheckin()
+      .then((es) => vivo && definirEixos(es))
+      .catch(() => {
+        /* sem eixos a tela ainda funciona; a pergunta fica "Sem eixo" */
+      });
+    return () => {
+      vivo = false;
+    };
+  }, []);
   // Mesmo recurso do montador de protocolo, pela mesma razão: dez perguntas
   // abertas viram uma página inteira de campos.
   const [recolhidas, definirRecolhidas] = useState<ReadonlySet<number>>(new Set<number>());
@@ -301,6 +320,7 @@ function EditorDeQuestionario({
         questionario.periodicidade,
         ativo,
         limpas,
+        mostraPontuacao,
       );
       if (novoQuestionario) await aoSalvarNovo(id);
       else aoFechar();
@@ -384,14 +404,31 @@ function EditorDeQuestionario({
         </span>
       </label>
 
+      <label className="c-acesso-linha">
+        <input
+          type="checkbox"
+          checked={mostraPontuacao}
+          onChange={(e) => definirMostraPontuacao(e.target.checked)}
+        />
+        <span>
+          Mostrar a pontuação para a paciente
+          <span className="c-dica" style={{ display: "block" }}>
+            Desligado (o normal), a nota é só sua. Ligue só quando quiser que a paciente
+            veja a própria pontuação.
+          </span>
+        </span>
+      </label>
+
+      <GerenciadorDeEixos eixos={eixos} aoMudar={definirEixos} />
+
       <h2 className="c-secao-titulo" style={{ marginTop: 22 }}>
         Perguntas
       </h2>
       {questionario.periodicidade === "semanal" && (
         <p className="c-dica" style={{ marginTop: 0 }}>
-          A pontuação da semana sai das perguntas de <strong>escala</strong> e{" "}
-          <strong>sim/não</strong>, pelo peso de cada uma. Peso zero tira da conta sem tirar
-          da tela.
+          A pontuação da semana sai das perguntas de <strong>escala</strong>,{" "}
+          <strong>sim/não</strong> e <strong>escolha</strong> (nesta, pelos pontos de cada
+          opção), pelo peso de cada uma. Peso zero tira da conta sem tirar da tela.
         </p>
       )}
 
@@ -421,6 +458,7 @@ function EditorDeQuestionario({
           key={i}
           pergunta={pergunta}
           numero={i + 1}
+          eixos={eixos}
           semanal={questionario.periodicidade === "semanal"}
           primeira={i === 0}
           ultima={i === perguntas.length - 1}
@@ -520,6 +558,7 @@ function EditorDeQuestionario({
 function BlocoDaPergunta({
   pergunta,
   numero,
+  eixos,
   semanal,
   primeira,
   ultima,
@@ -531,6 +570,7 @@ function BlocoDaPergunta({
 }: {
   pergunta: PerguntaQuestionario;
   numero: number;
+  eixos: EixoCheckin[];
   semanal: boolean;
   primeira: boolean;
   ultima: boolean;
@@ -541,7 +581,9 @@ function BlocoDaPergunta({
   aoMover: (passo: -1 | 1) => void;
 }) {
   const idConteudo = `pergunta-${numero}`;
-  const pontua = pergunta.tipo === "escala" || pergunta.tipo === "sim_nao";
+  // 'escolha' agora também pontua — pelos pontos de cada opção.
+  const pontua = pergunta.tipo === "escala" || pergunta.tipo === "sim_nao" || pergunta.tipo === "escolha";
+  const escolha = pergunta.tipo === "escolha";
 
   return (
     <div className={`c-bloco${recolhida ? " c-bloco-recolhido" : ""}`}>
@@ -598,54 +640,99 @@ function BlocoDaPergunta({
           />
         </Campo>
 
-        {pergunta.tipo === "escolha" && (
+        {escolha && (
           <Campo rotulo="Opções" dica="Separe por ponto e vírgula. Exemplo: Nunca; Às vezes; Sempre">
             <Texto
               valor={pergunta.opcoes.join("; ")}
-              aoMudar={(v) =>
-                aoTrocar({
-                  ...pergunta,
-                  opcoes: v
-                    .split(";")
-                    .map((x) => x.trim())
-                    .filter((x) => x !== ""),
-                })
-              }
+              aoMudar={(v) => {
+                const opcoes = v
+                  .split(";")
+                  .map((x) => x.trim())
+                  .filter((x) => x !== "");
+                // Mantém os pontos alinhados com as opções: sobra some, falta
+                // entra com 0, e o que já existia é preservado pela posição.
+                const pontosOpcoes = opcoes.map((_, k) => pergunta.pontosOpcoes[k] ?? 0);
+                aoTrocar({ ...pergunta, opcoes, pontosOpcoes });
+              }}
             />
           </Campo>
         )}
 
+        {/* Pontos por opção: só na 'escolha' e só quando pontua a semana. */}
+        {semanal && escolha && pergunta.opcoes.length > 0 && (
+          <Campo
+            rotulo="Pontos de cada opção (0 a 10)"
+            dica="Quanto cada resposta vale. Ex.: Nunca = 10, Às vezes = 5, Sempre = 0."
+          >
+            <div className="c-cupons-edicao">
+              {pergunta.opcoes.map((opcao, k) => (
+                <div key={k} className="c-cupom-edicao-linha">
+                  <span style={{ flex: 1 }}>{opcao}</span>
+                  <input
+                    className="c-input"
+                    style={{ width: 80 }}
+                    value={String(pergunta.pontosOpcoes[k] ?? 0)}
+                    aria-label={`Pontos da opção ${opcao}`}
+                    onChange={(e) => {
+                      const n = numeroDeTexto(e.target.value);
+                      const pontos = [...pergunta.pontosOpcoes];
+                      while (pontos.length < pergunta.opcoes.length) pontos.push(0);
+                      pontos[k] = n === null ? 0 : Math.min(Math.max(n, 0), 10);
+                      aoTrocar({ ...pergunta, pontosOpcoes: pontos });
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          </Campo>
+        )}
+
         {semanal && pontua && (
-          <div className="c-duas-colunas">
-            <Campo
-              rotulo="Peso na pontuação"
-              dica="1 é o normal. 0 tira da conta sem tirar a pergunta da tela."
-            >
-              <Texto
-                valor={String(pergunta.peso)}
-                aoMudar={(v) => {
-                  const n = numeroDeTexto(v);
-                  aoTrocar({ ...pergunta, peso: n !== null && n >= 0 ? n : pergunta.peso });
-                }}
+          <>
+            <div className="c-duas-colunas">
+              <Campo
+                rotulo="Peso na pontuação"
+                dica="1 é o normal. 0 tira da conta sem tirar a pergunta da tela."
+              >
+                <Texto
+                  valor={String(pergunta.peso)}
+                  aoMudar={(v) => {
+                    const n = numeroDeTexto(v);
+                    aoTrocar({ ...pergunta, peso: n !== null && n >= 0 ? n : pergunta.peso });
+                  }}
+                />
+              </Campo>
+              {!escolha && (
+                <Campo rotulo=" ">
+                  <label className="c-acesso-linha">
+                    <input
+                      type="checkbox"
+                      checked={pergunta.invertida}
+                      onChange={(e) => aoTrocar({ ...pergunta, invertida: e.target.checked })}
+                    />
+                    <span>
+                      10 é ruim
+                      <span className="c-dica" style={{ display: "block" }}>
+                        Marque em perguntas como “quanta dor você sentiu”. Sem isto, a semana
+                        pior aumentaria a pontuação.
+                      </span>
+                    </span>
+                  </label>
+                </Campo>
+              )}
+            </div>
+
+            <Campo rotulo="Eixo" dica="Agrupa a pergunta para a quebra da nota (intestino, sono…).">
+              <Selecao
+                valor={pergunta.eixoId ?? ""}
+                aoMudar={(v) => aoTrocar({ ...pergunta, eixoId: v === "" ? null : v })}
+                opcoes={[
+                  { valor: "", rotulo: "Sem eixo" },
+                  ...eixos.map((e) => ({ valor: e.id, rotulo: e.nome })),
+                ]}
               />
             </Campo>
-            <Campo rotulo=" ">
-              <label className="c-acesso-linha">
-                <input
-                  type="checkbox"
-                  checked={pergunta.invertida}
-                  onChange={(e) => aoTrocar({ ...pergunta, invertida: e.target.checked })}
-                />
-                <span>
-                  10 é ruim
-                  <span className="c-dica" style={{ display: "block" }}>
-                    Marque em perguntas como “quanta dor você sentiu”. Sem isto, a semana
-                    pior aumentaria a pontuação.
-                  </span>
-                </span>
-              </label>
-            </Campo>
-          </div>
+          </>
         )}
 
         <label className="c-acesso-linha">
@@ -663,6 +750,117 @@ function BlocoDaPergunta({
             continuam guardadas —, mas não dá para apagá-la sem perder o que já foi dito.
           </p>
         )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Gerencia a lista de eixos do check-in — a lista que ela cria uma vez e
+ * reusa nas perguntas. Recolhido por padrão: quem só quer escrever pergunta
+ * não tropeça nele; quem quer organizar por eixo abre e monta.
+ */
+function GerenciadorDeEixos({
+  eixos,
+  aoMudar,
+}: {
+  eixos: EixoCheckin[];
+  aoMudar: (eixos: EixoCheckin[]) => void;
+}) {
+  const [aberto, definirAberto] = useState(false);
+  const [rascunho, definirRascunho] = useState<{ id: string | null; nome: string }[]>([]);
+  const [salvando, definirSalvando] = useState(false);
+  const [aviso, definirAviso] = useState<string | null>(null);
+
+  function abrir() {
+    definirRascunho(eixos.map((e) => ({ id: e.id, nome: e.nome })));
+    definirAviso(null);
+    definirAberto(true);
+  }
+
+  async function salvar() {
+    definirSalvando(true);
+    definirAviso(null);
+    try {
+      const limpos = rascunho.map((e) => ({ id: e.id, nome: e.nome.trim() })).filter((e) => e.nome);
+      const novos = await repositorio.salvarEixosCheckin(limpos);
+      aoMudar(novos);
+      definirAviso("Eixos salvos.");
+      definirAberto(false);
+    } catch (e) {
+      definirAviso(e instanceof Error ? e.message : "Não consegui salvar os eixos.");
+    } finally {
+      definirSalvando(false);
+    }
+  }
+
+  if (!aberto) {
+    return (
+      <p className="c-dica" style={{ marginTop: 14 }}>
+        {eixos.length === 0
+          ? "Nenhum eixo ainda. "
+          : `Eixos: ${eixos.map((e) => e.nome).join(", ")}. `}
+        <button type="button" className="c-link" onClick={abrir}>
+          {eixos.length === 0 ? "Criar eixos" : "Gerenciar eixos"}
+        </button>
+      </p>
+    );
+  }
+
+  return (
+    <div className="c-bloco" style={{ marginTop: 14 }}>
+      <h2 className="c-secao-titulo" style={{ marginTop: 0 }}>
+        Eixos do check-in
+      </h2>
+      <p className="c-dica" style={{ marginTop: 0 }}>
+        Grupos para a quebra da nota (intestino, sono, hidratação…). Você cria aqui e
+        escolhe em cada pergunta. Um eixo em uso não é apagado.
+      </p>
+
+      <div className="c-cupons-edicao">
+        {rascunho.map((eixo, i) => (
+          <div key={i} className="c-cupom-edicao-linha">
+            <input
+              className="c-input"
+              value={eixo.nome}
+              placeholder="Nome do eixo"
+              aria-label={`Nome do eixo ${i + 1}`}
+              onChange={(e) =>
+                definirRascunho(rascunho.map((x, j) => (j === i ? { ...x, nome: e.target.value } : x)))
+              }
+            />
+            <button
+              type="button"
+              className="c-chip"
+              aria-label={`Tirar o eixo ${eixo.nome || i + 1}`}
+              onClick={() => definirRascunho(rascunho.filter((_, j) => j !== i))}
+            >
+              Tirar
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          className="c-chip"
+          onClick={() => definirRascunho([...rascunho, { id: null, nome: "" }])}
+        >
+          + Adicionar eixo
+        </button>
+      </div>
+
+      {aviso && (
+        <div className={`c-aviso ${aviso === "Eixos salvos." ? "c-aviso-ok" : "c-aviso-erro"}`} role="status">
+          <span>{aviso}</span>
+        </div>
+      )}
+
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <button type="button" className="c-botao" onClick={() => void salvar()} disabled={salvando}>
+          {salvando ? "Salvando…" : "Salvar eixos"}
+        </button>
+        <button type="button" className="c-botao c-botao-secundario" onClick={() => definirAberto(false)}>
+          Fechar
+        </button>
       </div>
     </div>
   );

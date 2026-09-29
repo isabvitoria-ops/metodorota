@@ -52,6 +52,7 @@ import type {
   MeuQuestionario,
   RespostaEnviada,
   QuestionarioDoPaciente,
+  EixoCheckin,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type { Exame, EspacoDosExames } from "@/central/types/exame";
@@ -357,7 +358,21 @@ export interface Repositorio {
     periodicidade: PeriodicidadeQuestionario,
     ativo: boolean,
     perguntas: PerguntaQuestionario[],
+    mostraPontuacao: boolean,
   ): Promise<string>;
+
+  /** Os eixos do check-in (lista gerenciável). */
+  listarEixosCheckin(): Promise<EixoCheckin[]>;
+
+  /** Grava a lista inteira de eixos. Devolve a lista já normalizada. */
+  salvarEixosCheckin(eixos: { id: string | null; nome: string }[]): Promise<EixoCheckin[]>;
+
+  /**
+   * Refotografa a régua atual nos envios de uma paciente naquele
+   * questionário — a saída de emergência para "aplicar o novo peso para
+   * trás". Devolve quantos envios foram refotografados.
+   */
+  reaplicarRegua(questionarioId: string, pacienteId: string): Promise<number>;
 
   /** Liga ou desliga um questionário para uma paciente. */
   definirQuestionarioDoPaciente(

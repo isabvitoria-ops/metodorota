@@ -17,6 +17,7 @@ import type {
   MeuQuestionario,
   QuestionarioDoPaciente,
   RespostaEnviada,
+  ReguaDePergunta,
   TipoDePergunta,
   PeriodicidadeQuestionario,
 } from "@/central/types/questionario";
@@ -253,12 +254,32 @@ function listaDeTextos(v: unknown): string[] {
   return Array.isArray(v) ? v.map((x) => texto(x)).filter((x) => x !== "") : [];
 }
 
+/** Números crus (pode conter zeros); não filtra como `listaDeTextos`. */
+function listaDeNumeros(v: unknown): number[] {
+  return Array.isArray(v) ? v.map((x) => numero(x)) : [];
+}
+
 function paraResposta(l: Linha): RespostaEnviada {
   return {
     perguntaId: texto(l.perguntaId),
     numero: numeroOuNulo(l.numero),
     texto: textoOuNulo(l.texto),
   };
+}
+
+/** A régua fotografada num envio, quando ela existe. */
+function paraReguaSnapshot(v: unknown): ReguaDePergunta[] | null {
+  if (!Array.isArray(v)) return null;
+  return (v as Linha[]).map((p) => ({
+    id: texto(p.perguntaId),
+    tipo: tipoDePergunta(p.tipo),
+    peso: p.peso === null ? 1 : numero(p.peso ?? 1),
+    invertida: p.invertida === true,
+    opcoes: listaDeTextos(p.opcoes),
+    pontosOpcoes: listaDeNumeros(p.pontosOpcoes),
+    eixoId: textoOuNulo(p.eixoId),
+    eixoNome: textoOuNulo(p.eixoNome),
+  }));
 }
 
 export function paraQuestionario(l: Linha): Questionario {
@@ -268,6 +289,7 @@ export function paraQuestionario(l: Linha): Questionario {
     descricao: textoOuNulo(l.descricao),
     periodicidade: periodicidade(l.periodicidade),
     ativo: l.ativo !== false,
+    mostraPontuacao: l.mostraPontuacao === true,
     criadoEm: texto(l.criadoEm),
     pacientes: numero(l.pacientes),
     respostas: numero(l.respostas),
@@ -281,6 +303,8 @@ export function paraQuestionario(l: Linha): Questionario {
       // pergunta da pontuação sem ninguém ter pedido.
       peso: p.peso === null ? 1 : numero(p.peso ?? 1),
       invertida: p.invertida === true,
+      eixoId: textoOuNulo(p.eixoId),
+      pontosOpcoes: listaDeNumeros(p.pontosOpcoes),
       respondida: p.respondida === true,
     })),
   };
@@ -292,6 +316,7 @@ export function paraMeuQuestionario(l: Linha): MeuQuestionario {
     titulo: texto(l.titulo),
     descricao: textoOuNulo(l.descricao),
     periodicidade: periodicidade(l.periodicidade),
+    mostraPontuacao: l.mostraPontuacao === true,
     periodo: texto(l.periodo),
     pendente: l.pendente === true,
     perguntas: (Array.isArray(l.perguntas) ? (l.perguntas as Linha[]) : []).map((p) => ({
@@ -300,11 +325,17 @@ export function paraMeuQuestionario(l: Linha): MeuQuestionario {
       tipo: tipoDePergunta(p.tipo),
       obrigatoria: p.obrigatoria !== false,
       opcoes: listaDeTextos(p.opcoes),
+      // A régua só chega quando o questionário mostra a nota para ela.
+      peso: p.peso === null || p.peso === undefined ? null : numero(p.peso),
+      invertida: p.invertida === null || p.invertida === undefined ? null : p.invertida === true,
+      pontosOpcoes: listaDeNumeros(p.pontosOpcoes),
+      eixoId: textoOuNulo(p.eixoId),
     })),
     enviados: (Array.isArray(l.enviados) ? (l.enviados as Linha[]) : []).map((e) => ({
       periodo: texto(e.periodo),
       respondidoEm: texto(e.respondidoEm),
       respostas: (Array.isArray(e.respostas) ? (e.respostas as Linha[]) : []).map(paraResposta),
+      reguaSnapshot: paraReguaSnapshot(e.reguaSnapshot),
     })),
   };
 }
@@ -315,6 +346,7 @@ export function paraQuestionarioDoPaciente(l: Linha): QuestionarioDoPaciente {
     titulo: texto(l.titulo),
     periodicidade: periodicidade(l.periodicidade),
     ativo: l.ativo !== false,
+    mostraPontuacao: l.mostraPontuacao === true,
     atribuido: l.atribuido === true,
     perguntas: (Array.isArray(l.perguntas) ? (l.perguntas as Linha[]) : []).map((p) => ({
       id: texto(p.id),
@@ -323,6 +355,8 @@ export function paraQuestionarioDoPaciente(l: Linha): QuestionarioDoPaciente {
       peso: p.peso === null ? 1 : numero(p.peso ?? 1),
       invertida: p.invertida === true,
       opcoes: listaDeTextos(p.opcoes),
+      eixoId: textoOuNulo(p.eixoId),
+      pontosOpcoes: listaDeNumeros(p.pontosOpcoes),
     })),
     envios: (Array.isArray(l.envios) ? (l.envios as Linha[]) : []).map((e) => ({
       id: texto(e.id),
@@ -330,6 +364,7 @@ export function paraQuestionarioDoPaciente(l: Linha): QuestionarioDoPaciente {
       respondidoEm: texto(e.respondidoEm),
       revisado: e.revisado === true,
       respostas: (Array.isArray(e.respostas) ? (e.respostas as Linha[]) : []).map(paraResposta),
+      reguaSnapshot: paraReguaSnapshot(e.reguaSnapshot),
     })),
   };
 }

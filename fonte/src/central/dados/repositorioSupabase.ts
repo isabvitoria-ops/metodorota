@@ -28,6 +28,7 @@ import type {
   MeuQuestionario,
   RespostaEnviada,
   QuestionarioDoPaciente,
+  EixoCheckin,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type { Exame, EspacoDosExames } from "@/central/types/exame";
@@ -1349,6 +1350,7 @@ export const repositorioSupabase: Repositorio = {
     periodicidade: PeriodicidadeQuestionario,
     ativo: boolean,
     perguntas: PerguntaQuestionario[],
+    mostraPontuacao: boolean,
   ): Promise<string> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("salvar_questionario", {
@@ -1357,6 +1359,7 @@ export const repositorioSupabase: Repositorio = {
       p_descricao: descricao,
       p_periodicidade: periodicidade,
       p_ativo: ativo,
+      p_mostra_pontuacao: mostraPontuacao,
       p_perguntas: perguntas.map((p) => ({
         // Pergunta nova vai sem id; o banco cria. Mandar string vazia faria
         // o `::uuid` estourar.
@@ -1367,10 +1370,46 @@ export const repositorioSupabase: Repositorio = {
         opcoes: p.opcoes,
         peso: p.peso,
         invertida: p.invertida,
+        eixoId: p.eixoId ?? null,
+        pontosOpcoes: p.pontosOpcoes ?? [],
       })),
     });
     erro("salvar o questionário", error);
     return String(data);
+  },
+
+  async listarEixosCheckin(): Promise<EixoCheckin[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("listar_eixos_checkin");
+    erro("carregar os eixos", error);
+    return ((data ?? []) as Linha[]).map((e) => ({
+      id: texto(e.id),
+      nome: texto(e.nome),
+      ordem: numero(e.ordem),
+    }));
+  },
+
+  async salvarEixosCheckin(eixos: { id: string | null; nome: string }[]): Promise<EixoCheckin[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("salvar_eixos_checkin", {
+      p_eixos: eixos.map((e) => ({ id: e.id ?? null, nome: e.nome })),
+    });
+    erro("salvar os eixos", error);
+    return ((data ?? []) as Linha[]).map((e) => ({
+      id: texto(e.id),
+      nome: texto(e.nome),
+      ordem: numero(e.ordem),
+    }));
+  },
+
+  async reaplicarRegua(questionarioId: string, pacienteId: string): Promise<number> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("reaplicar_regua", {
+      p_questionario: questionarioId,
+      p_paciente: pacienteId,
+    });
+    erro("reaplicar a régua", error);
+    return numero(data);
   },
 
   async definirQuestionarioDoPaciente(

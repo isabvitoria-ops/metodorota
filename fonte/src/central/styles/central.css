@@ -4534,6 +4534,29 @@ body:has(.central) {
   height: 20px;
 }
 
+/* A quebra da nota por eixo, aberta ao clicar no score. */
+.c-linha-eixos td {
+  background: var(--carta-fraca, #f4f2ee);
+  padding: 10px 12px;
+}
+.c-eixos-quebra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+}
+.c-eixo-nota {
+  display: inline-flex;
+  gap: 6px;
+  align-items: baseline;
+  font-size: 0.85rem;
+}
+.c-eixo-nome {
+  color: var(--tinta-fraca, #6b6b6b);
+}
+.c-eixo-nota strong {
+  color: var(--verde, #3a6355);
+}
+
 @media (prefers-color-scheme: dark) {
   .c-carinha.nivel-muito-baixo { background: #4a2a2a; }
   .c-carinha.nivel-baixo       { background: #4a3a26; }

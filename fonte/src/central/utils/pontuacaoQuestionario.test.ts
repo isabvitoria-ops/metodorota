@@ -4,6 +4,7 @@ import { test } from "node:test";
 import {
   valorNaEscala,
   pontuacaoDoEnvio,
+  pontuacaoPorEixo,
   serieDePontuacao,
   compararComAnterior,
   textoDaVariacao,
@@ -183,4 +184,91 @@ test("a semana em curso ainda aberta não quebra a sequência", () => {
 
 test("ninguém respondeu nada: zero semanas", () => {
   assert.equal(semanasSeguidas([], "2026-09-21"), 0);
+});
+
+// --- múltipla escolha com pontos por opção (0054) -------------------------
+
+const escolha: PerguntaPontuavel = {
+  id: "e",
+  tipo: "escolha",
+  peso: 1,
+  invertida: false,
+  opcoes: ["Nunca", "Às vezes", "Sempre"],
+  pontosOpcoes: [10, 5, 0],
+};
+
+test("múltipla escolha: a opção escolhida vale os pontos que ela definiu", () => {
+  assert.equal(valorNaEscala(escolha, { perguntaId: "e", numero: null, texto: "Nunca" }), 10);
+  assert.equal(valorNaEscala(escolha, { perguntaId: "e", numero: null, texto: "Às vezes" }), 5);
+  assert.equal(valorNaEscala(escolha, { perguntaId: "e", numero: null, texto: "Sempre" }), 0);
+});
+
+test("múltipla escolha sem pontos definidos não pontua", () => {
+  const semPontos: PerguntaPontuavel = { ...escolha, pontosOpcoes: [] };
+  assert.equal(valorNaEscala(semPontos, { perguntaId: "e", numero: null, texto: "Nunca" }), null);
+});
+
+test("múltipla escolha com opção desconhecida não pontua", () => {
+  assert.equal(valorNaEscala(escolha, { perguntaId: "e", numero: null, texto: "Talvez" }), null);
+});
+
+test("múltipla escolha entra na nota do envio", () => {
+  // escolha "Às vezes" = 5, peso 1 -> 5/10 = 50%.
+  assert.equal(pontuacaoDoEnvio([escolha], envio("2026-09-21", { e: "Às vezes" })), 50);
+});
+
+// --- quebra por eixo ------------------------------------------------------
+
+test("a quebra por eixo dá uma nota por eixo", () => {
+  const intestino1: PerguntaPontuavel = { id: "i1", tipo: "escala", peso: 1, invertida: false, eixoId: "int", eixoNome: "Intestino" };
+  const intestino2: PerguntaPontuavel = { id: "i2", tipo: "escala", peso: 1, invertida: false, eixoId: "int", eixoNome: "Intestino" };
+  const sono1: PerguntaPontuavel = { id: "s1", tipo: "escala", peso: 1, invertida: false, eixoId: "sono", eixoNome: "Sono" };
+
+  const eixos = pontuacaoPorEixo(
+    [intestino1, intestino2, sono1],
+    envio("2026-09-21", { i1: 8, i2: 6, s1: 10 }),
+  );
+  const porNome = new Map(eixos.map((e) => [e.eixoNome, e]));
+  assert.equal(porNome.get("Intestino")?.nota, 70); // (8+6)/20
+  assert.equal(porNome.get("Sono")?.nota, 100); // 10/10
+  assert.equal(porNome.get("Intestino")?.perguntas, 2);
+});
+
+test("pergunta sem eixo cai no grupo 'Sem eixo'", () => {
+  const eixos = pontuacaoPorEixo([bemEstar], envio("2026-09-21", { a: 7 }));
+  assert.equal(eixos[0]?.eixoNome, "Sem eixo");
+  assert.equal(eixos[0]?.eixoId, null);
+  assert.equal(eixos[0]?.nota, 70);
+});
+
+// --- congelamento pela foto da régua (regua_snapshot) ---------------------
+
+test("a foto da régua congela a nota: mudar o peso hoje não mexe no envio antigo", () => {
+  // Régua atual diz que 'a' tem peso 3. Mas o envio foi respondido quando
+  // 'a' tinha peso 1 — a foto manda, e a nota usa peso 1.
+  const reguaAtual: PerguntaPontuavel[] = [
+    { id: "a", tipo: "escala", peso: 3, invertida: false },
+    { id: "b", tipo: "escala", peso: 1, invertida: true },
+  ];
+  const envioCongelado: EnvioCru = {
+    id: "2026-09-21",
+    periodo: "2026-09-21",
+    respostas: [
+      { perguntaId: "a", numero: 10, texto: null },
+      { perguntaId: "b", numero: 10, texto: null },
+    ],
+    reguaSnapshot: [
+      { id: "a", tipo: "escala", peso: 1, invertida: false },
+      { id: "b", tipo: "escala", peso: 1, invertida: true },
+    ],
+  };
+  // Com a foto (peso 1 e 1): a=10 -> 10, b=10 dor -> 0. (10+0)/20 = 50.
+  assert.equal(pontuacaoDoEnvio(reguaAtual, envioCongelado), 50);
+  // Sem foto, a régua atual (peso 3) daria: (30+0)/40 = 75. Prova o congelamento.
+  assert.equal(pontuacaoDoEnvio(reguaAtual, { ...envioCongelado, reguaSnapshot: null }), 75);
+});
+
+test("envio sem foto usa a régua atual (compatível com o que já existia)", () => {
+  const nota = pontuacaoDoEnvio([bemEstar, dor], envio("2026-09-21", { a: 8, b: 2 }));
+  assert.equal(nota, 80);
 });

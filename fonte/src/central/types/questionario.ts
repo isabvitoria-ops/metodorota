@@ -9,6 +9,13 @@
 export type TipoDePergunta = "escala" | "sim_nao" | "numero" | "texto" | "escolha";
 export type PeriodicidadeQuestionario = "unica" | "semanal";
 
+/** Um eixo do check-in (intestino, sono…). Lista reusada nas perguntas. */
+export interface EixoCheckin {
+  id: string;
+  nome: string;
+  ordem: number;
+}
+
 /** Como a nutricionista vê a pergunta: com a régua da pontuação. */
 export interface PerguntaQuestionario {
   id: string | null;
@@ -19,6 +26,10 @@ export interface PerguntaQuestionario {
   peso: number;
   /** Em "quanta dor", 10 é ruim. Ver `utils/pontuacaoQuestionario.ts`. */
   invertida: boolean;
+  /** O eixo a que a pergunta pertence, ou `null`. */
+  eixoId: string | null;
+  /** Só para 'escolha': pontos (0–10) de cada opção, alinhado com `opcoes`. */
+  pontosOpcoes: number[];
   /** Já respondida por alguém — então apagar não é possível sem perder dado. */
   respondida: boolean;
 }
@@ -29,6 +40,8 @@ export interface Questionario {
   descricao: string | null;
   periodicidade: PeriodicidadeQuestionario;
   ativo: boolean;
+  /** Se a paciente vê a nota. Nasce falso — a nota é da nutricionista. */
+  mostraPontuacao: boolean;
   criadoEm: string;
   /** Quantas pacientes respondem este. */
   pacientes: number;
@@ -50,6 +63,14 @@ export interface PerguntaParaResponder {
   tipo: TipoDePergunta;
   obrigatoria: boolean;
   opcoes: string[];
+  /**
+   * A régua só chega aqui quando o questionário mostra a nota para a
+   * paciente (`mostraPontuacao`); senão vem `null`/vazio, como antes.
+   */
+  peso?: number | null;
+  invertida?: boolean | null;
+  pontosOpcoes?: number[];
+  eixoId?: string | null;
 }
 
 export interface RespostaEnviada {
@@ -58,10 +79,27 @@ export interface RespostaEnviada {
   texto: string | null;
 }
 
+/**
+ * A régua fotografada num envio (congela a nota). O campo é `id` (e não
+ * `perguntaId`) de propósito: assim a foto é usável direto como
+ * `PerguntaPontuavel` pelo `utils/pontuacaoQuestionario.ts`, sem conversão.
+ */
+export interface ReguaDePergunta {
+  id: string;
+  tipo: TipoDePergunta;
+  peso: number;
+  invertida: boolean;
+  opcoes: string[];
+  pontosOpcoes: number[];
+  eixoId: string | null;
+  eixoNome: string | null;
+}
+
 export interface EnvioDeQuestionario {
   periodo: string;
   respondidoEm: string;
   respostas: RespostaEnviada[];
+  reguaSnapshot?: ReguaDePergunta[] | null;
 }
 
 export interface MeuQuestionario {
@@ -69,6 +107,7 @@ export interface MeuQuestionario {
   titulo: string;
   descricao: string | null;
   periodicidade: PeriodicidadeQuestionario;
+  mostraPontuacao: boolean;
   /** A semana (segunda-feira) ou o dia a que a resposta de agora pertence. */
   periodo: string;
   pendente: boolean;
@@ -82,6 +121,7 @@ export interface QuestionarioDoPaciente {
   titulo: string;
   periodicidade: PeriodicidadeQuestionario;
   ativo: boolean;
+  mostraPontuacao: boolean;
   atribuido: boolean;
   perguntas: {
     id: string;
@@ -90,6 +130,8 @@ export interface QuestionarioDoPaciente {
     peso: number;
     invertida: boolean;
     opcoes: string[];
+    eixoId: string | null;
+    pontosOpcoes: number[];
   }[];
   envios: {
     id: string;
@@ -98,5 +140,6 @@ export interface QuestionarioDoPaciente {
     /** Marca da nutricionista. A paciente não vê e não é avisada. */
     revisado: boolean;
     respostas: RespostaEnviada[];
+    reguaSnapshot?: ReguaDePergunta[] | null;
   }[];
 }
