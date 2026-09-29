@@ -29,7 +29,6 @@ export function refeicaoNova(nome = "Nova refeição", horario = "") {
     nome,
     horario,
     recolhida: false,
-    observacao: "",
     opcoes: [{ rotulo: "Principal", itens: [] }],
     opcaoAtiva: 0,
   };
@@ -48,9 +47,6 @@ export function normalizarRefeicao(bruta) {
     nome: bruta.nome ?? "Refeição",
     horario: bruta.horario ?? "",
     recolhida: Boolean(bruta.recolhida),
-    // Recado da refeição inteira, com link opcional. Ficha antiga não tem;
-    // vira string vazia, e nada quebra.
-    observacao: typeof bruta.observacao === "string" ? bruta.observacao : "",
   };
   if (Array.isArray(bruta.opcoes) && bruta.opcoes.length > 0) {
     const opcoes = bruta.opcoes.map((o, i) => ({
