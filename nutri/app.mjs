@@ -1016,6 +1016,12 @@ function desenharDieta() {
       bloco.append(linha);
     }
 
+    // ---- observação da refeição ----------------------------------------
+    // Um recado da refeição inteira, que sai junto no texto para a paciente.
+    // Serve para aconselhar produto: um link colado aqui vira clicável na
+    // tela e no WhatsApp. Vale para todas as opções da refeição.
+    bloco.append(editorDeObservacao(refeicao));
+
     caixa.append(bloco);
   });
 
@@ -1250,6 +1256,66 @@ function totais() {
 }
 
 /**
+ * Escapa HTML e transforma URLs http(s) em links clicáveis.
+ *
+ * ESCAPA ANTES de linkar: texto de observação é digitado pela nutri, mas
+ * passa por `innerHTML` na prévia — sem escapar, um `<script>` colado por
+ * engano viraria código na página. Só http/https viram link; `target` e
+ * `rel` para abrir noutra aba sem dar à página aberta acesso a esta.
+ */
+function linkificar(texto) {
+  const escapado = String(texto).replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+  );
+  return escapado.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`,
+  );
+}
+
+/**
+ * O editor de observação de uma refeição.
+ *
+ * Um recado da refeição inteira (não da opção), que sai junto no texto para
+ * a paciente. É onde ela aconselha produto: um link colado aqui fica
+ * clicável na prévia e no WhatsApp.
+ */
+function editorDeObservacao(refeicao) {
+  const box = document.createElement("div");
+  box.className = "observacao-refeicao";
+
+  const id = `obs-${Math.random().toString(36).slice(2)}`;
+  const rotulo = document.createElement("label");
+  rotulo.className = "nota";
+  rotulo.textContent = "Observação (aparece para a paciente)";
+  rotulo.setAttribute("for", id);
+
+  const campo = document.createElement("textarea");
+  campo.id = id;
+  campo.rows = 2;
+  campo.placeholder = "Ex.: Dica de queijo além da mussarela — https://loja.com/produto";
+  campo.value = refeicao.observacao ?? "";
+
+  const previa = document.createElement("p");
+  previa.className = "observacao-previa nota";
+  const atualizarPrevia = () => {
+    const t = (refeicao.observacao ?? "").trim();
+    previa.hidden = t === "";
+    previa.innerHTML = t ? linkificar(t) : "";
+  };
+  campo.oninput = () => {
+    refeicao.observacao = campo.value;
+    guardarDieta();
+    atualizarPrevia();
+  };
+  atualizarPrevia();
+
+  box.append(rotulo, campo, previa);
+  return box;
+}
+
+/**
  * A dieta em texto, para colar no WhatsApp.
  *
  * Sai com TODAS as opções, não só a aberta: para a paciente, "ou isto ou
@@ -1289,6 +1355,10 @@ function textoDaDieta() {
       }
       if (i < r.opcoes.length - 1 && r.opcoes[i + 1].itens.length) linhas.push("    — ou —");
     });
+    // A observação da refeição, se houver. O link vai como texto — o
+    // WhatsApp o deixa clicável sozinho.
+    const obs = (r.observacao ?? "").trim();
+    if (obs) linhas.push(`  ${obs}`);
     linhas.push("");
   }
   return linhas.join("\n");

@@ -158,6 +158,27 @@ test("apagar uma opção antes da aberta mantém a visão na mesma opção", () 
   assert.equal(opcaoAtiva(r).rotulo, "Opção 3");
 });
 
+test("a refeição nova nasce com observação vazia", () => {
+  assert.equal(refeicaoNova().observacao, "");
+});
+
+test("normalizarRefeicao guarda a observação e tolera ficha antiga sem ela", () => {
+  assert.equal(
+    normalizarRefeicao({ nome: "Café", observacao: "Dica: https://loja.com/x" }).observacao,
+    "Dica: https://loja.com/x",
+  );
+  // Ficha antiga (sem o campo) não quebra e vira string vazia.
+  assert.equal(normalizarRefeicao({ nome: "Café", itens: [] }).observacao, "");
+});
+
+test("duplicar refeição leva a observação junto, sem compartilhar referência", () => {
+  const original = normalizarRefeicao({ nome: "Café", observacao: "abc", itens: [] });
+  const copia = duplicarRefeicao(original);
+  assert.equal(copia.observacao, "abc");
+  copia.observacao = "mudou";
+  assert.equal(original.observacao, "abc", "mexer na cópia não mexe na original");
+});
+
 test("apagar qualquer opção quando há mais de uma sempre funciona", () => {
   let r = normalizarRefeicao({
     nome: "Almoço",
