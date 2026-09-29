@@ -2,6 +2,7 @@ import type { ConteudoProtocolo, Protocolo } from "@/central/types/protocolo";
 import { dataBonita } from "@/central/utils/situacao";
 import { FolhaDeDocumento } from "./FolhaDeDocumento";
 import { Marca } from "./Marca";
+import { TextoComLinks } from "./TextoComLinks";
 
 /**
  * O protocolo alimentar em documento — para imprimir e pendurar na cozinha.
@@ -42,7 +43,11 @@ export function DocumentoProtocolo({
           {protocolo?.versao ? ` · versão ${protocolo.versao}` : ""}
         </p>
 
-        {protocolo?.ajustes && <p className="doc-aviso">{protocolo.ajustes}</p>}
+        {protocolo?.ajustes && (
+          <p className="doc-aviso">
+            <TextoComLinks texto={protocolo.ajustes} />
+          </p>
+        )}
       </header>
 
       {conteudo.orientacoes.length > 0 && (
@@ -50,7 +55,9 @@ export function DocumentoProtocolo({
           <h2 className="doc-titulo">Orientações gerais</h2>
           <ul className="doc-lista">
             {conteudo.orientacoes.map((o, i) => (
-              <li key={i}>{o}</li>
+              <li key={i}>
+                <TextoComLinks texto={o} />
+              </li>
             ))}
           </ul>
         </section>
@@ -98,7 +105,9 @@ export function DocumentoProtocolo({
               {opcao.notas.length > 0 && (
                 <ul className="doc-lista doc-lista-nota">
                   {opcao.notas.map((n, k) => (
-                    <li key={k}>{n}</li>
+                    <li key={k}>
+                      <TextoComLinks texto={n} />
+                    </li>
                   ))}
                 </ul>
               )}
@@ -112,7 +121,7 @@ export function DocumentoProtocolo({
           <h2 className="doc-titulo">{secao.titulo}</h2>
           {secao.paragrafos.map((p, j) => (
             <p className="doc-paragrafo" key={j}>
-              {p}
+              <TextoComLinks texto={p} />
             </p>
           ))}
         </section>

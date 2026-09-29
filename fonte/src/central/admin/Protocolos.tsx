@@ -814,7 +814,7 @@ function BlocoDaRefeicao({
 
           <Campo
             rotulo="Lembrete desta refeição"
-            dica="Um por linha. Chá, suplementação, modo de preparo, vegetais liberados — aparece embaixo desta refeição, na tela dela."
+            dica="Um por linha. Chá, suplementação, modo de preparo, vegetais liberados — aparece embaixo desta refeição, na tela dela. Cole um link (https://…) para indicar produto: fica clicável para a paciente."
           >
             <AreaDeLinhas
               valor={opcao.notas}

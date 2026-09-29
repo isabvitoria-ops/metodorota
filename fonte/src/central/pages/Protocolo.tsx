@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Protocolo as ProtocoloAlimentar, RefeicaoProtocolo } from "@/central/types/protocolo";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
+import { TextoComLinks } from "@/central/components/TextoComLinks";
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { useNavigate } from "react-router-dom";
@@ -87,7 +88,9 @@ export function Protocolo() {
 
             {protocolo?.ajustes && (
               <div className="c-aviso c-aviso-ok" role="status">
-                <span>{protocolo.ajustes}</span>
+                <span>
+                  <TextoComLinks texto={protocolo.ajustes} />
+                </span>
               </div>
             )}
 
@@ -96,7 +99,9 @@ export function Protocolo() {
                 <h2 className="c-secao-titulo">Orientações gerais</h2>
                 <ul className="c-orientacoes">
                   {conteudo.orientacoes.map((texto, i) => (
-                    <li key={i}>{texto}</li>
+                    <li key={i}>
+                      <TextoComLinks texto={texto} />
+                    </li>
                   ))}
                 </ul>
               </section>
@@ -115,7 +120,7 @@ export function Protocolo() {
                       <summary>{secao.titulo}</summary>
                       {secao.paragrafos.map((p, j) => (
                         <p key={j} className="c-sanfona-texto">
-                          {p}
+                          <TextoComLinks texto={p} />
                         </p>
                       ))}
                     </details>
@@ -195,7 +200,7 @@ function Refeicao({ refeicao }: { refeicao: RefeicaoProtocolo }) {
 
       {opcao.notas.map((nota, i) => (
         <p className="c-nota-protocolo" key={i}>
-          {nota}
+          <TextoComLinks texto={nota} />
         </p>
       ))}
     </section>
