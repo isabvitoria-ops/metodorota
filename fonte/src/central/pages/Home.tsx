@@ -32,6 +32,12 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Registre o que você reintroduziu e como se sentiu.",
   },
   {
+    rota: rotas.diario,
+    icone: "camera",
+    titulo: "Diário de fotos",
+    descricao: "Fotografe suas refeições e acompanhe seu dia.",
+  },
+  {
     rota: rotas.treino,
     icone: "evolucao",
     titulo: "Minha evolução",

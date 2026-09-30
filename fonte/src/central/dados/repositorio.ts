@@ -72,6 +72,7 @@ import type {
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type { OQueMudou } from "@/central/types/oQueMudou";
+import type { FotoDoDiario, RefeicaoDoDiario } from "@/central/types/diarioDeFotos";
 import type {
   Conduta,
   CondutaPendente,
@@ -542,6 +543,27 @@ export interface Repositorio {
 
   /** Ativas, ticket médio e permanência média — calculadas na hora (0056). */
   metricasDeAcompanhamento(): Promise<MetricasDeAcompanhamento>;
+
+  // ---------------------------------------------------------------------
+  // Diário de fotos (0057)
+  // ---------------------------------------------------------------------
+
+  /** A paciente manda a foto da refeição (já reduzida) e registra. */
+  enviarFotoDoDiario(
+    foto: Blob,
+    refeicao: RefeicaoDoDiario,
+    legenda: string | null,
+    data: string | null,
+  ): Promise<void>;
+  /** As minhas fotos, para a paciente. */
+  meuDiario(): Promise<FotoDoDiario[]>;
+  /** O diário de uma paciente, para a nutricionista. */
+  diarioDoPaciente(pacienteId: string): Promise<FotoDoDiario[]>;
+  /** Endereço temporário para mostrar a foto (o balde é privado). */
+  enderecoDaFoto(caminho: string): Promise<string>;
+  /** Só a nutricionista curte. Devolve o estado que ficou gravado. */
+  curtirFoto(id: string, curtida: boolean): Promise<boolean>;
+  apagarFotoDoDiario(id: string): Promise<void>;
 
   /** Registra ou edita uma entrada avulsa (PIX, cartão, transferência…). */
   registrarRecebimento(

@@ -52,6 +52,8 @@ import type {
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Conduta, CondutaPendente, ModeloDeConduta, StatusDaConduta } from "@/central/types/conduta";
 import type { MetricasDeAcompanhamento } from "@/central/types/financeiro";
+import type { FotoDoDiario, RefeicaoDoDiario } from "@/central/types/diarioDeFotos";
+import { caminhoDaFoto } from "@/central/utils/diarioDeFotos";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type { OQueMudou } from "@/central/types/oQueMudou";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
@@ -1948,6 +1950,75 @@ export const repositorioSupabase: Repositorio = {
     };
   },
 
+  async enviarFotoDoDiario(foto, refeicao, legenda, data) {
+    const sb = exigirSupabase();
+    // A pasta é sempre a da própria paciente; o banco confere de novo.
+    const { data: pasta, error: erroPasta } = await sb.rpc("minha_pasta_do_diario");
+    erro("descobrir sua pasta", erroPasta);
+    const dona = textoOuNulo(pasta);
+    if (!dona) throw new Error("Não encontrei o seu cadastro.");
+
+    const caminho = caminhoDaFoto(dona);
+    const { error: erroEnvio } = await sb.storage.from("diario-fotos").upload(caminho, foto, {
+      contentType: "image/jpeg",
+      upsert: false,
+    });
+    erro("enviar a foto", erroEnvio);
+
+    const { error: erroRegistro } = await sb.rpc("registrar_diario_foto", {
+      p_caminho: caminho,
+      p_refeicao: refeicao,
+      p_legenda: legenda,
+      p_data: data,
+    });
+    if (erroRegistro) {
+      // A foto subiu e a linha não gravou: sem esta limpeza o balde
+      // acumularia fotos que nenhuma tela mostra.
+      await sb.storage.from("diario-fotos").remove([caminho]);
+      erro("registrar a foto", erroRegistro);
+    }
+  },
+
+  async meuDiario(): Promise<FotoDoDiario[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("meu_diario", { p_dias: 60 });
+    erro("carregar o seu diário", error);
+    return ((data ?? []) as Linha[]).map(paraFotoDoDiario);
+  },
+
+  async diarioDoPaciente(pacienteId: string): Promise<FotoDoDiario[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("diario_do_paciente", { p_paciente: pacienteId, p_dias: 60 });
+    erro("carregar o diário", error);
+    return ((data ?? []) as Linha[]).map(paraFotoDoDiario);
+  },
+
+  async enderecoDaFoto(caminho: string): Promise<string> {
+    const sb = exigirSupabase();
+    // Uma hora: o tempo de olhar a lista. O balde é privado, então o
+    // endereço que vazar deixa de valer.
+    const { data, error } = await sb.storage.from("diario-fotos").createSignedUrl(caminho, 3600);
+    erro("abrir a foto", error);
+    if (!data?.signedUrl) throw new Error("Não consegui abrir esta foto.");
+    return data.signedUrl;
+  },
+
+  async curtirFoto(id: string, curtida: boolean): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("curtir_diario_foto", { p_id: id, p_curtida: curtida });
+    erro("curtir a foto", error);
+    return data === true;
+  },
+
+  async apagarFotoDoDiario(id: string): Promise<void> {
+    const sb = exigirSupabase();
+    // A função devolve o caminho justamente para o arquivo poder ir junto.
+    const { data, error } = await sb.rpc("apagar_diario_foto", { p_id: id });
+    erro("apagar a foto", error);
+    const caminho = texto(data);
+    if (caminho) await sb.storage.from("diario-fotos").remove([caminho]);
+  },
+
   async listarModelosConduta() {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("listar_modelos_conduta");
@@ -2038,6 +2109,23 @@ export const repositorioSupabase: Repositorio = {
     );
   },
 };
+
+const REFEICOES_VALIDAS: RefeicaoDoDiario[] = [
+  "cafe", "lanche_manha", "almoco", "lanche_tarde", "jantar", "ceia", "outro",
+];
+
+function paraFotoDoDiario(l: Linha): FotoDoDiario {
+  const r = texto(l.refeicao) as RefeicaoDoDiario;
+  return {
+    id: texto(l.id),
+    caminho: texto(l.caminho),
+    refeicao: REFEICOES_VALIDAS.includes(r) ? r : "outro",
+    legenda: textoOuNulo(l.legenda),
+    data: texto(l.data),
+    curtida: l.curtida === true,
+    criadoEm: texto(l.criadoEm),
+  };
+}
 
 function paraConduta(l: Linha): Conduta {
   const st = texto(l.status);

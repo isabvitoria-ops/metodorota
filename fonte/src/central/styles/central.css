@@ -5331,3 +5331,99 @@ body:has(.central) {
   text-align: center;
   color: var(--text-muted);
 }
+
+/* ---------------------------------------------------------------- diário de fotos */
+
+.c-diario-escolha {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+}
+.c-diario-escolha .c-botao {
+  margin-top: 0;
+}
+.c-diario-previa {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  max-height: 360px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  margin: 8px 0 12px;
+}
+.c-diario-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+.c-diario-acoes .c-botao {
+  margin-top: 0;
+  width: auto;
+  flex: 1 1 160px;
+}
+.c-diario-dia {
+  margin-top: 18px;
+  max-width: 560px;
+}
+.c-diario-dia-titulo {
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+.c-diario-cartao {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.c-diario-foto {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--surface-2);
+}
+.c-diario-foto-vazia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+.c-diario-corpo {
+  padding: 10px 12px 12px;
+}
+.c-diario-legenda {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.c-diario-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+.c-diario-curtida {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  color: var(--danger);
+}
+.c-diario-curtir[aria-pressed="true"] {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+  color: var(--danger);
+}

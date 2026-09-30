@@ -66,6 +66,8 @@ import type { Consulta } from "@/central/types/consulta";
 import type { Conduta, ModeloDeConduta } from "@/central/types/conduta";
 import { ordenarCondutas } from "@/central/utils/condutas";
 import { calcularMetricas } from "@/central/utils/metricasDeAcompanhamento";
+import type { FotoDoDiario } from "@/central/types/diarioDeFotos";
+import { caminhoDaFoto } from "@/central/utils/diarioDeFotos";
 import type { Meta } from "@/central/types/meta";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { CardioSessao, MetaSemanal, SessaoDeTreino, Treino } from "@/central/types/treino";
@@ -138,6 +140,17 @@ interface ExameDemo extends Exame {
 const guardaExames = armazenamentoLocal<ExameDemo>("central:demo:exames:v1");
 const guardaModelosConduta = armazenamentoLocal<ModeloDeConduta>("central:demo:modelos-conduta:v1");
 const guardaCondutas = armazenamentoLocal<Conduta>("central:demo:condutas:v1");
+/** Na demonstração a foto (já reduzida) mora dentro do próprio registro. */
+type FotoDemo = FotoDoDiario & { pacienteId: string; dataUrl: string };
+const guardaDiario = armazenamentoLocal<FotoDemo>("central:demo:diario-fotos:v1");
+const semDados = ({ pacienteId: _p, dataUrl: _d, ...foto }: FotoDemo): FotoDoDiario => foto;
+const lerComoEndereco = (blob: Blob) =>
+  new Promise<string>((ok, falha) => {
+    const leitor = new FileReader();
+    leitor.onload = () => ok(String(leitor.result));
+    leitor.onerror = () => falha(new Error("Não consegui guardar a foto na demonstração."));
+    leitor.readAsDataURL(blob);
+  });
 
 /** Pela data DO EXAME; sem data, pelo envio. Mesma regra do banco. */
 function ordenarExames<T extends { data: string | null; criadoEm: string }>(lista: T[]): T[] {
@@ -1664,6 +1677,42 @@ export const repositorioLocal: Repositorio = {
       };
     });
     return calcularMetricas(pacientes, guardaRecebimentos.ler());
+  },
+
+  async enviarFotoDoDiario(foto, refeicao, legenda, data) {
+    const dona = pacienteDemoId();
+    guardaDiario.escrever([
+      ...guardaDiario.ler(),
+      {
+        id: `df-${Date.now()}`,
+        pacienteId: dona,
+        caminho: caminhoDaFoto(dona),
+        refeicao,
+        legenda: legenda?.trim() || null,
+        data: data ?? hojeLocal(),
+        curtida: false,
+        criadoEm: new Date().toISOString(),
+        dataUrl: await lerComoEndereco(foto),
+      },
+    ]);
+  },
+  async meuDiario() {
+    return guardaDiario.ler().filter((f) => f.pacienteId === pacienteDemoId()).map(semDados);
+  },
+  async diarioDoPaciente(pacienteId: string) {
+    return guardaDiario.ler().filter((f) => f.pacienteId === pacienteId).map(semDados);
+  },
+  async enderecoDaFoto(caminho: string) {
+    const f = guardaDiario.ler().find((x) => x.caminho === caminho);
+    if (!f) throw new Error("Não achei esta foto.");
+    return f.dataUrl;
+  },
+  async curtirFoto(id: string, curtida: boolean) {
+    guardaDiario.escrever(guardaDiario.ler().map((f) => (f.id === id ? { ...f, curtida } : f)));
+    return curtida;
+  },
+  async apagarFotoDoDiario(id: string) {
+    guardaDiario.escrever(guardaDiario.ler().filter((f) => f.id !== id));
   },
 
   async valoresDosPacientes(): Promise<ValorDoPaciente[]> {

@@ -8,6 +8,7 @@ import { CategoriaDetalhe } from "./pages/CategoriaDetalhe";
 import { EstabelecimentoDetalhe } from "./pages/EstabelecimentoDetalhe";
 import { Desafio } from "./pages/Desafio";
 import { Rastreabilidade } from "./pages/Rastreabilidade";
+import { DiarioDeFotosPagina } from "@/central/pages/DiarioDeFotos";
 import { Protocolo } from "./pages/Protocolo";
 import { Avaliacao } from "./pages/Avaliacao";
 import { Metas } from "./pages/Metas";
@@ -63,6 +64,7 @@ export function CentralApp() {
           />
           <Route path="desafio" element={<Desafio />} />
           <Route path="rastreabilidade" element={<Rastreabilidade />} />
+          <Route path="diario" element={<DiarioDeFotosPagina />} />
           <Route path="salvos" element={<Salvos />} />
           <Route path="busca" element={<Busca />} />
           <Route path="*" element={<Navigate to={rotas.home} replace />} />
