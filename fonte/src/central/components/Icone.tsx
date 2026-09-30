@@ -43,6 +43,8 @@ const TRACOS: Record<string, string> = {
   documentos: "M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Zm0 0v5h5M9 13h6M9 17h4",
   // Câmera do diário de fotos.
   camera: "M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Zm8 9a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
+  // Balão de conversa (chat por refeição).
+  conversa: "M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12Z",
   // Coração só de contorno (a curtida).
   coracao: "M12 20.5s-7.5-4.5-9.3-9.3A5.2 5.2 0 0 1 12 6.6a5.2 5.2 0 0 1 9.3 4.6C19.5 16 12 20.5 12 20.5Z",
 };

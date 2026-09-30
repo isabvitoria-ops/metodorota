@@ -20,6 +20,8 @@ import { CartaDeEncaminhamento } from "./CartaDeEncaminhamento";
 import { CerebroDaFicha } from "./CerebroDaFicha";
 import { CondutasDaFicha } from "./CondutasDaFicha";
 import { DiarioDeFotos } from "@/central/components/DiarioDeFotos";
+import { ConversasDaFicha } from "./ConversasDaFicha";
+import { totalNaoLidas } from "@/central/utils/conversaDaRefeicao";
 import { CheckinDoPaciente } from "@/central/components/CheckinDoPaciente";
 import { Exames } from "@/central/components/Exames";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
@@ -41,7 +43,7 @@ import { AreaTexto, Campo, Selecao, Texto } from "@/central/admin/componentes/Ca
  * sala: peso de agora, adesão e quantas consultas já houve. Cada um vira
  * travessão quando não há de onde sair — um zero ali seria afirmação.
  */
-type Aba = "consulta" | "resumo" | "condutas" | "diario" | "checkin" | "exames" | "cerebro" | "historico" | "carta" | "acessos";
+type Aba = "consulta" | "resumo" | "condutas" | "diario" | "conversas" | "checkin" | "exames" | "cerebro" | "historico" | "carta" | "acessos";
 
 /** As abas à vista. Carta e acessos entram pelo ⋯, porque são de vez em quando. */
 const ABAS_DA_FICHA: [Aba, string][] = [
@@ -49,6 +51,7 @@ const ABAS_DA_FICHA: [Aba, string][] = [
   ["resumo", "Resumo"],
   ["condutas", "Condutas"],
   ["diario", "Diário"],
+  ["conversas", "Conversas"],
   ["checkin", "Check-in"],
   ["exames", "Exames"],
   ["cerebro", "Cérebro"],
@@ -77,11 +80,23 @@ export function Prontuario() {
   const [metas, definirMetas] = useState<Meta[]>([]);
   const [carregando, definirCarregando] = useState(true);
   const [erro, definirErro] = useState<string | null>(null);
+  // Mensagens da paciente ainda não abertas, para a bolinha da aba "Conversas".
+  const [conversasNovas, definirConversasNovas] = useState(0);
   const [editando, definirEditando] = useState<Consulta | "nova" | null>(null);
   const [parametros, definirParametros] = useSearchParams();
   const pedida = parametros.get("aba");
   const aba: Aba = ABAS_VALIDAS.includes(pedida as Aba) ? (pedida as Aba) : "consulta";
   const [filtro, definirFiltro] = useState<"tudo" | "consultas" | "metas" | "avaliacoes">("tudo");
+
+  const atualizarConversasNovas = useCallback(() => {
+    void repositorio
+      .resumoDasConversas(pacienteId)
+      .then((r) => definirConversasNovas(totalNaoLidas(r)))
+      .catch(() => definirConversasNovas(0));
+  }, [pacienteId]);
+  useEffect(() => {
+    atualizarConversasNovas();
+  }, [atualizarConversasNovas]);
 
   const carregar = useCallback(async () => {
     try {
@@ -236,6 +251,11 @@ export function Prontuario() {
             onClick={() => irPara(valor)}
           >
             {rotulo}
+            {valor === "conversas" && conversasNovas > 0 && (
+              <span className="c-conversar-bolinha" style={{ marginLeft: 6 }} aria-label={`${conversasNovas} mensagens novas`}>
+                {conversasNovas}
+              </span>
+            )}
           </button>
         ))}
       </nav>
@@ -285,6 +305,10 @@ export function Prontuario() {
 
       <div hidden={aba !== "diario"}>
         <DiarioDeFotos pacienteId={pacienteId} />
+      </div>
+
+      <div hidden={aba !== "conversas"}>
+        <ConversasDaFicha pacienteId={pacienteId} aoMudar={atualizarConversasNovas} />
       </div>
 
       <div hidden={aba !== "checkin"}>

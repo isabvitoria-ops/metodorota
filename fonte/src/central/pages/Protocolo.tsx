@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Protocolo as ProtocoloAlimentar, RefeicaoProtocolo } from "@/central/types/protocolo";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
+import { ConversaDaRefeicao } from "@/central/components/ConversaDaRefeicao";
+import { Icone } from "@/central/components/Icone";
+import type { ResumoDaConversa } from "@/central/types/conversaDaRefeicao";
+import { alimentosDaRefeicao, naoLidasDaRefeicao } from "@/central/utils/conversaDaRefeicao";
 import { TextoComLinks } from "@/central/components/TextoComLinks";
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
@@ -29,6 +33,15 @@ export function Protocolo() {
   const [carregando, definirCarregando] = useState(true);
   const navegar = useNavigate();
   const { acesso } = useSessao();
+  // A conversa por refeição: qual está aberta, e as "não lidas" de cada uma.
+  const [conversa, definirConversa] = useState<RefeicaoProtocolo | null>(null);
+  const [resumo, definirResumo] = useState<ResumoDaConversa[]>([]);
+  const recarregarResumo = useCallback(() => {
+    void repositorio.resumoDasConversas(null).then(definirResumo).catch(() => definirResumo([]));
+  }, []);
+  useEffect(() => {
+    recarregarResumo();
+  }, [recarregarResumo]);
 
   useEffect(() => {
     let vivo = true;
@@ -108,7 +121,12 @@ export function Protocolo() {
             )}
 
             {conteudo.refeicoes.map((refeicao, i) => (
-              <Refeicao key={`${refeicao.nome}-${i}`} refeicao={refeicao} />
+              <Refeicao
+                key={`${refeicao.nome}-${i}`}
+                refeicao={refeicao}
+                naoLidas={naoLidasDaRefeicao(resumo, refeicao.nome)}
+                aoConversar={() => definirConversa(refeicao)}
+              />
             ))}
 
             {conteudo.secoes.length > 0 && (
@@ -136,11 +154,32 @@ export function Protocolo() {
           </>
         )}
       </div>
+
+      {conversa && (
+        <ConversaDaRefeicao
+          refeicao={conversa.nome}
+          pacienteId={null}
+          alimentos={alimentosDaRefeicao(conversa)}
+          aoFechar={() => {
+            definirConversa(null);
+            recarregarResumo();
+          }}
+          aoMudar={recarregarResumo}
+        />
+      )}
     </>
   );
 }
 
-function Refeicao({ refeicao }: { refeicao: RefeicaoProtocolo }) {
+function Refeicao({
+  refeicao,
+  naoLidas,
+  aoConversar,
+}: {
+  refeicao: RefeicaoProtocolo;
+  naoLidas: number;
+  aoConversar: () => void;
+}) {
   const [escolhida, definirEscolhida] = useState(0);
   const opcoes = refeicao.opcoes;
   const opcao = opcoes[Math.min(escolhida, opcoes.length - 1)];
@@ -150,6 +189,20 @@ function Refeicao({ refeicao }: { refeicao: RefeicaoProtocolo }) {
     <section className="c-secao">
       <h2 className="c-secao-titulo">
         {refeicao.horario ? `${refeicao.horario} · ${refeicao.nome}` : refeicao.nome}
+        <button
+          type="button"
+          className="c-chip c-conversar-botao"
+          onClick={aoConversar}
+          aria-label={
+            naoLidas > 0
+              ? `Conversar sobre ${refeicao.nome}, ${naoLidas} mensagens novas`
+              : `Conversar sobre ${refeicao.nome}`
+          }
+        >
+          <Icone nome="conversa" tamanho={15} />
+          Conversar
+          {naoLidas > 0 && <span className="c-conversar-bolinha">{naoLidas}</span>}
+        </button>
       </h2>
 
       {opcoes.length > 1 && (

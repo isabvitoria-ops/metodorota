@@ -67,6 +67,8 @@ import type { Conduta, ModeloDeConduta } from "@/central/types/conduta";
 import { ordenarCondutas } from "@/central/utils/condutas";
 import { calcularMetricas } from "@/central/utils/metricasDeAcompanhamento";
 import type { FotoDoDiario } from "@/central/types/diarioDeFotos";
+import type { MensagemDaRefeicao, ResumoDaConversa } from "@/central/types/conversaDaRefeicao";
+import { mesmaRefeicao } from "@/central/utils/conversaDaRefeicao";
 import { caminhoDaFoto } from "@/central/utils/diarioDeFotos";
 import type { Meta } from "@/central/types/meta";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
@@ -143,6 +145,8 @@ const guardaCondutas = armazenamentoLocal<Conduta>("central:demo:condutas:v1");
 /** Na demonstração a foto (já reduzida) mora dentro do próprio registro. */
 type FotoDemo = FotoDoDiario & { pacienteId: string; dataUrl: string };
 const guardaDiario = armazenamentoLocal<FotoDemo>("central:demo:diario-fotos:v1");
+type MensagemDemo = MensagemDaRefeicao & { pacienteId: string; refeicao: string };
+const guardaMensagens = armazenamentoLocal<MensagemDemo>("central:demo:mensagens-refeicao:v1");
 const semDados = ({ pacienteId: _p, dataUrl: _d, ...foto }: FotoDemo): FotoDoDiario => foto;
 const lerComoEndereco = (blob: Blob) =>
   new Promise<string>((ok, falha) => {
@@ -1713,6 +1717,68 @@ export const repositorioLocal: Repositorio = {
   },
   async apagarFotoDoDiario(id: string) {
     guardaDiario.escrever(guardaDiario.ler().filter((f) => f.id !== id));
+  },
+
+  async enviarMensagemDeRefeicao(pacienteId: string | null, refeicao: string, texto: string) {
+    const t = texto.trim();
+    if (!refeicao.trim()) throw new Error("Faltou dizer de qual refeição é a conversa.");
+    if (!t) throw new Error("Escreva a mensagem.");
+    if (t.length > 1000) throw new Error("A mensagem passou de 1000 letras. Divida em duas.");
+    guardaMensagens.escrever([
+      ...guardaMensagens.ler(),
+      {
+        id: `mr-${Date.now()}`,
+        pacienteId: pacienteId ?? pacienteDemoId(),
+        refeicao: refeicao.trim(),
+        autor: pacienteId === null ? "paciente" : "nutri",
+        texto: t,
+        criadoEm: new Date().toISOString(),
+        lida: false,
+      },
+    ]);
+  },
+  async conversaDaRefeicao(pacienteId: string | null, refeicao: string) {
+    const dona = pacienteId ?? pacienteDemoId();
+    return guardaMensagens
+      .ler()
+      .filter((m) => m.pacienteId === dona && mesmaRefeicao(m.refeicao, refeicao))
+      .sort((a, b) => a.criadoEm.localeCompare(b.criadoEm))
+      .map(({ pacienteId: _p, refeicao: _r, ...m }) => m);
+  },
+  async marcarConversaLida(pacienteId: string | null, refeicao: string) {
+    const dona = pacienteId ?? pacienteDemoId();
+    const doOutro = pacienteId === null ? "nutri" : "paciente";
+    guardaMensagens.escrever(
+      guardaMensagens
+        .ler()
+        .map((m) =>
+          m.pacienteId === dona && m.autor === doOutro && mesmaRefeicao(m.refeicao, refeicao)
+            ? { ...m, lida: true }
+            : m,
+        ),
+    );
+  },
+  async resumoDasConversas(pacienteId: string | null): Promise<ResumoDaConversa[]> {
+    const dona = pacienteId ?? pacienteDemoId();
+    const doOutro = pacienteId === null ? "nutri" : "paciente";
+    const porRefeicao = new Map<string, MensagemDemo[]>();
+    for (const m of guardaMensagens.ler().filter((x) => x.pacienteId === dona)) {
+      const chave = m.refeicao.trim().toLowerCase();
+      porRefeicao.set(chave, [...(porRefeicao.get(chave) ?? []), m]);
+    }
+    return [...porRefeicao.values()]
+      .map((lista) => {
+        const ordenada = [...lista].sort((a, b) => b.criadoEm.localeCompare(a.criadoEm));
+        const ultima = ordenada[0]!;
+        return {
+          refeicao: ultima.refeicao,
+          total: lista.length,
+          naoLidas: lista.filter((m) => m.autor === doOutro && !m.lida).length,
+          ultimaEm: ultima.criadoEm,
+          ultimoAutor: ultima.autor,
+        };
+      })
+      .sort((a, b) => b.ultimaEm.localeCompare(a.ultimaEm));
   },
 
   async valoresDosPacientes(): Promise<ValorDoPaciente[]> {

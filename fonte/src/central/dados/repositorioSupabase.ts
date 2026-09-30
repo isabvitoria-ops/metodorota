@@ -53,6 +53,7 @@ import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Conduta, CondutaPendente, ModeloDeConduta, StatusDaConduta } from "@/central/types/conduta";
 import type { MetricasDeAcompanhamento } from "@/central/types/financeiro";
 import type { FotoDoDiario, RefeicaoDoDiario } from "@/central/types/diarioDeFotos";
+import type { MensagemDaRefeicao, ResumoDaConversa } from "@/central/types/conversaDaRefeicao";
 import { caminhoDaFoto } from "@/central/utils/diarioDeFotos";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type { OQueMudou } from "@/central/types/oQueMudou";
@@ -2017,6 +2018,54 @@ export const repositorioSupabase: Repositorio = {
     erro("apagar a foto", error);
     const caminho = texto(data);
     if (caminho) await sb.storage.from("diario-fotos").remove([caminho]);
+  },
+
+  async enviarMensagemDeRefeicao(pacienteId, refeicao, texto) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("enviar_mensagem_refeicao", {
+      p_paciente: pacienteId,
+      p_refeicao: refeicao,
+      p_texto: texto,
+    });
+    erro("enviar a mensagem", error);
+  },
+
+  async conversaDaRefeicao(pacienteId, refeicao): Promise<MensagemDaRefeicao[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("conversa_da_refeicao", {
+      p_paciente: pacienteId,
+      p_refeicao: refeicao,
+    });
+    erro("carregar a conversa", error);
+    return ((data ?? []) as Linha[]).map((m) => ({
+      id: texto(m.id),
+      autor: m.autor === "nutri" ? "nutri" : "paciente",
+      texto: texto(m.texto),
+      criadoEm: texto(m.criadoEm),
+      lida: m.lida === true,
+    }));
+  },
+
+  async marcarConversaLida(pacienteId, refeicao) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("marcar_conversa_lida", {
+      p_paciente: pacienteId,
+      p_refeicao: refeicao,
+    });
+    erro("marcar a conversa como lida", error);
+  },
+
+  async resumoDasConversas(pacienteId): Promise<ResumoDaConversa[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("resumo_das_conversas", { p_paciente: pacienteId });
+    erro("carregar as conversas", error);
+    return ((data ?? []) as Linha[]).map((r) => ({
+      refeicao: texto(r.refeicao),
+      total: numero(r.total),
+      naoLidas: numero(r.naoLidas),
+      ultimaEm: texto(r.ultimaEm),
+      ultimoAutor: r.ultimoAutor === "nutri" ? "nutri" : "paciente",
+    }));
   },
 
   async listarModelosConduta() {

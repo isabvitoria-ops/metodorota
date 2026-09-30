@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import type {
   ItemDeReintroducao,
   NovoRegistroDeReintroducao,
@@ -30,6 +31,8 @@ import {
 } from "@/central/utils/reintroducao";
 import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { rotas } from "@/central/rotas";
+import { lerPreenchimento, type PreenchimentoDaRastreabilidade } from "@/central/utils/conversaDaRefeicao";
+import { normalizar } from "@/central/utils/texto";
 import { RastreioAlimentar } from "@/central/components/RastreioAlimentar";
 import { DocumentoRastreio } from "@/central/components/DocumentoRastreio";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
@@ -66,6 +69,28 @@ export function Rastreabilidade() {
   const [registrando, definirRegistrando] = useState<boolean | string>(false);
   const [editando, definirEditando] = useState<RegistroDeReintroducao | null>(null);
   const [semanaVisivel, definirSemanaVisivel] = useState<number | "todas">("todas");
+
+  // Vindo do atalho da CONVERSA POR REFEIÇÃO ("me deu inchaço"): abre o
+  // formulário já com o alimento, o sintoma e o texto. Nada é gravado sozinho —
+  // ela confere e toca em salvar. O que vem no endereço é lido com cautela
+  // (`lerPreenchimento` descarta sintoma inventado e corta o tamanho).
+  const [busca, definirBusca] = useSearchParams();
+  const [preenchimento, definirPreenchimento] = useState<
+    (PreenchimentoDaRastreabilidade & { itemId: string | null }) | null
+  >(null);
+  const jaLeuOEndereco = useRef(false);
+  useEffect(() => {
+    if (jaLeuOEndereco.current || carregando || !dados || dados.previa) return;
+    const p = lerPreenchimento(busca);
+    if (!p) return;
+    jaLeuOEndereco.current = true;
+    const alvo = itensParaRegistrar(dados.itens).find(
+      (i) => normalizar(i.nome) === normalizar(p.alimento),
+    );
+    definirPreenchimento({ ...p, itemId: alvo?.id ?? null });
+    definirRegistrando(alvo?.id ?? true);
+    definirBusca({}, { replace: true });
+  }, [busca, carregando, dados, definirBusca]);
 
   if (carregando) {
     return (
@@ -262,9 +287,11 @@ export function Rastreabilidade() {
           itens={disponiveis}
           registro={editando}
           itemInicial={typeof registrando === "string" ? registrando : null}
+          preenchimento={registrando && !editando ? preenchimento : null}
           aoFechar={() => {
             definirRegistrando(false);
             definirEditando(null);
+            definirPreenchimento(null);
           }}
           aoSalvar={async (novo) => {
             const deuCerto = await comRecarga(() =>
@@ -469,6 +496,7 @@ function FormularioRegistro({
   itens,
   registro,
   itemInicial = null,
+  preenchimento = null,
   aoFechar,
   aoSalvar,
 }: {
@@ -476,12 +504,16 @@ function FormularioRegistro({
   registro: RegistroDeReintroducao | null;
   /** O alimento que ela tocou na lista, quando veio pelo atalho. */
   itemInicial?: string | null;
+  /** Vindo da conversa por refeição: alimento, sintoma e texto já preenchidos. */
+  preenchimento?: (PreenchimentoDaRastreabilidade & { itemId: string | null }) | null;
   aoFechar: () => void;
   aoSalvar: (novo: NovoRegistroDeReintroducao) => Promise<boolean>;
 }) {
   const [itemId, definirItemId] = useState(registro?.itemId ?? itemInicial ?? itens[0]?.id ?? "");
-  const [outro, definirOutro] = useState(false);
-  const [nomeNovo, definirNomeNovo] = useState("");
+  const [outro, definirOutro] = useState(Boolean(preenchimento && !preenchimento.itemId));
+  const [nomeNovo, definirNomeNovo] = useState(
+    preenchimento && !preenchimento.itemId ? preenchimento.alimento : "",
+  );
   const [data, definirData] = useState(registro?.data ?? hojeSaoPaulo());
   const [horario, definirHorario] = useState(registro?.horario ?? "");
   const [quantidade, definirQuantidade] = useState(registro?.quantidade ?? "");
@@ -493,14 +525,21 @@ function FormularioRegistro({
         // formulário abre com a lista de sintomas aberta, e ela só marca
         // qual. Abrir em "não" obrigaria a responder de novo o que o botão
         // que ela acabou de tocar já disse.
-        itemInicial !== null,
+        itemInicial !== null || preenchimento !== null,
   );
   const [sintomas, definirSintomas] = useState<SintomaReintroducao[]>(
-    registro?.sintomas.filter((s) => s !== "nenhum") ?? [],
+    registro?.sintomas.filter((s) => s !== "nenhum") ?? preenchimento?.sintomas ?? [],
   );
   const [intensidade, definirIntensidade] = useState(registro?.intensidade ?? 0);
   const [bristol, definirBristol] = useState<number | "">(registro?.bristol ?? "");
-  const [observacao, definirObservacao] = useState(registro?.observacao ?? "");
+  const [observacao, definirObservacao] = useState(
+    registro?.observacao ??
+      (preenchimento
+        ? [preenchimento.refeicao && `(${preenchimento.refeicao})`, preenchimento.observacao]
+            .filter(Boolean)
+            .join(" ")
+        : ""),
+  );
   const [aviso, definirAviso] = useState<string | null>(null);
   const [salvando, definirSalvando] = useState(false);
 

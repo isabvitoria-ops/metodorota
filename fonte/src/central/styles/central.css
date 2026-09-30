@@ -5427,3 +5427,57 @@ body:has(.central) {
   border-color: var(--danger);
   color: var(--danger);
 }
+
+/* ---------------------------------------------------------------- conversa por refeição */
+
+.c-conversa {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 40dvh;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
+.c-conversa-msg {
+  max-width: 88%;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.c-conversa-msg p {
+  margin: 2px 0 0;
+  white-space: pre-line;
+}
+.c-conversa-quem {
+  font-size: 11.5px;
+  color: var(--text-subtle);
+}
+.c-conversa-minha {
+  align-self: flex-end;
+  background: var(--primary-soft);
+  border-color: transparent;
+}
+.c-conversa-outra {
+  align-self: flex-start;
+  background: var(--surface-2);
+}
+.c-conversar-botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+.c-conversar-bolinha {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}

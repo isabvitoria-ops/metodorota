@@ -73,6 +73,7 @@ import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type { OQueMudou } from "@/central/types/oQueMudou";
 import type { FotoDoDiario, RefeicaoDoDiario } from "@/central/types/diarioDeFotos";
+import type { MensagemDaRefeicao, ResumoDaConversa } from "@/central/types/conversaDaRefeicao";
 import type {
   Conduta,
   CondutaPendente,
@@ -564,6 +565,19 @@ export interface Repositorio {
   /** Só a nutricionista curte. Devolve o estado que ficou gravado. */
   curtirFoto(id: string, curtida: boolean): Promise<boolean>;
   apagarFotoDoDiario(id: string): Promise<void>;
+
+  // ---------------------------------------------------------------------
+  // Conversa por refeição (0058)
+  // ---------------------------------------------------------------------
+  //
+  // `pacienteId` nulo = sou a paciente (a conversa é a minha). Preenchido = é
+  // a nutricionista, escrevendo na conversa daquela paciente.
+
+  enviarMensagemDeRefeicao(pacienteId: string | null, refeicao: string, texto: string): Promise<void>;
+  conversaDaRefeicao(pacienteId: string | null, refeicao: string): Promise<MensagemDaRefeicao[]>;
+  /** Marca como lidas as mensagens da outra ponta. */
+  marcarConversaLida(pacienteId: string | null, refeicao: string): Promise<void>;
+  resumoDasConversas(pacienteId: string | null): Promise<ResumoDaConversa[]>;
 
   /** Registra ou edita uma entrada avulsa (PIX, cartão, transferência…). */
   registrarRecebimento(
