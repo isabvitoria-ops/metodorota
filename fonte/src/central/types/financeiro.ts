@@ -106,3 +106,21 @@ export interface Balanco {
   };
   recebimentos: Recebimento[];
 }
+
+/**
+ * Os números de saúde do negócio (migração 0056). Nulo quer dizer "ainda não
+ * há de onde tirar" — nunca zero, porque um zero ali seria uma afirmação.
+ */
+export interface MetricasDeAcompanhamento {
+  /** Pacientes com acesso hoje (ativa ou perto de vencer). */
+  ativas: number;
+  /** Pacientes cujo plano já terminou. */
+  encerradas: number;
+  /** Dias entre início e fim do plano, só de quem já encerrou. */
+  permanenciaMediaDias: number | null;
+  pacientesQuePagaram: number;
+  /** O que já entrou no caixa vindo de pacientes (entrada avulsa fica fora). */
+  totalRecebido: number;
+  ticketMedio: number | null;
+  valorMensalMedioAtivas: number | null;
+}

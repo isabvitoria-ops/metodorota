@@ -6,6 +6,7 @@ import type {
   Balanco,
   Recebimento,
   FormaDePagamento,
+  MetricasDeAcompanhamento,
 } from "@/central/types/financeiro";
 import { repositorio } from "@/central/dados/repositorio";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
@@ -28,6 +29,7 @@ import {
   FORMAS_DE_PAGAMENTO,
 } from "@/central/utils/cobranca";
 import { numeroDeTexto } from "@/central/utils/numero";
+import { textoDaPermanencia } from "@/central/utils/metricasDeAcompanhamento";
 
 /**
  * Cobrança — área da nutricionista.
@@ -60,9 +62,10 @@ export function Financeiro() {
   const [painel, definirPainel] = useState<PainelFinanceiro | null>(null);
   const [valores, definirValores] = useState<ValorDoPaciente[]>([]);
   const [balanco, definirBalanco] = useState<Balanco | null>(null);
-  const [aba, definirAba] = useState<"balanco" | "cobrancas" | "recebimentos" | "valores">(
-    "balanco",
-  );
+  const [metricas, definirMetricas] = useState<MetricasDeAcompanhamento | null>(null);
+  const [aba, definirAba] = useState<
+    "balanco" | "cobrancas" | "recebimentos" | "valores" | "acompanhamento"
+  >("balanco");
   const [carregando, definirCarregando] = useState(true);
   const [aviso, definirAviso] = useState<string | null>(null);
   const [erro, definirErro] = useState<string | null>(null);
@@ -70,14 +73,16 @@ export function Financeiro() {
   const carregar = useCallback(async () => {
     definirCarregando(true);
     try {
-      const [p, v, b] = await Promise.all([
+      const [p, v, b, m] = await Promise.all([
         repositorio.painelFinanceiro(null),
         repositorio.valoresDosPacientes(),
         repositorio.balancoFinanceiro(6),
+        repositorio.metricasDeAcompanhamento(),
       ]);
       definirPainel(p);
       definirValores(v);
       definirBalanco(b);
+      definirMetricas(m);
       definirErro(null);
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui carregar o financeiro.");
@@ -168,6 +173,14 @@ export function Financeiro() {
         <button
           type="button"
           className="c-chip"
+          aria-pressed={aba === "acompanhamento"}
+          onClick={() => definirAba("acompanhamento")}
+        >
+          Acompanhamento
+        </button>
+        <button
+          type="button"
+          className="c-chip"
           aria-pressed={aba === "cobrancas"}
           onClick={() => definirAba("cobrancas")}
         >
@@ -234,6 +247,8 @@ export function Financeiro() {
       )}
 
       {aba === "balanco" && balanco && <AbaDoBalanco balanco={balanco} />}
+
+      {aba === "acompanhamento" && metricas && <AbaDoAcompanhamento metricas={metricas} />}
 
       {aba === "recebimentos" && balanco && (
         <AbaDeRecebimentos
@@ -564,6 +579,57 @@ function ValorDaPaciente({
  * nunca "ótimo mês": um mês menor pode ser férias, pode ser escolha, pode
  * ser sazonalidade do consultório. Quem sabe é ela.
  */
+/**
+ * Os três números do negócio. Onde não há de onde tirar (ninguém pagou ainda,
+ * ninguém encerrou), aparece "—" e a explicação, nunca zero: um zero ali
+ * seria uma afirmação ("ticket de R$ 0"), e não é isso que aconteceu.
+ */
+function AbaDoAcompanhamento({ metricas: m }: { metricas: MetricasDeAcompanhamento }) {
+  return (
+    <>
+      <div className="c-painel-numeros" style={{ marginTop: 14 }}>
+        <span>
+          <strong>{m.ativas}</strong>
+          <small>{m.ativas === 1 ? "paciente ativa" : "pacientes ativas"}</small>
+        </span>
+        <span>
+          <strong>{m.ticketMedio === null ? "—" : reais(m.ticketMedio)}</strong>
+          <small>ticket médio por paciente</small>
+        </span>
+        <span>
+          <strong>{textoDaPermanencia(m.permanenciaMediaDias)}</strong>
+          <small>permanência média</small>
+        </span>
+      </div>
+
+      <ul className="c-dica" style={{ paddingLeft: 18 }}>
+        <li>
+          <strong>Ativas</strong>: quem tem acesso hoje, incluindo quem está perto de vencer. Convite
+          pendente, suspensa e plano vencido ficam de fora.
+        </li>
+        <li>
+          <strong>Ticket médio</strong>:{" "}
+          {m.ticketMedio === null
+            ? "ainda não há recebimento de paciente no caixa."
+            : `${reais(m.totalRecebido)} recebidos de ${m.pacientesQuePagaram} ${
+                m.pacientesQuePagaram === 1 ? "paciente" : "pacientes"
+              }, ao longo de todo o acompanhamento. Entrada avulsa (palestra, material) não entra.`}
+          {m.valorMensalMedioAtivas !== null &&
+            ` O valor mensal médio das ativas é ${reais(m.valorMensalMedioAtivas)}.`}
+        </li>
+        <li>
+          <strong>Permanência média</strong>:{" "}
+          {m.permanenciaMediaDias === null
+            ? "ainda nenhuma paciente encerrou, então não há o que calcular."
+            : `do início ao fim do plano, contando só as ${m.encerradas} ${
+                m.encerradas === 1 ? "que já encerrou" : "que já encerraram"
+              }. Quem ainda está em acompanhamento não entra.`}
+        </li>
+      </ul>
+    </>
+  );
+}
+
 function AbaDoBalanco({ balanco }: { balanco: Balanco }) {
   const alturas = alturasDasBarras(balanco.meses);
   const houveEntrada = balanco.totais.noPeriodo > 0;

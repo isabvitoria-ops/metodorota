@@ -51,6 +51,7 @@ import type {
 } from "@/central/types/financeiro";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Conduta, CondutaPendente, ModeloDeConduta, StatusDaConduta } from "@/central/types/conduta";
+import type { MetricasDeAcompanhamento } from "@/central/types/financeiro";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type { OQueMudou } from "@/central/types/oQueMudou";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
@@ -1928,6 +1929,23 @@ export const repositorioSupabase: Repositorio = {
     const { data, error } = await sb.rpc("sugestoes_do_paciente", { p_paciente: pacienteId });
     erro("carregar as sugestões", error);
     return ((data ?? []) as Linha[]).map(paraSugestao);
+  },
+
+  async metricasDeAcompanhamento(): Promise<MetricasDeAcompanhamento> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("metricas_acompanhamento");
+    erro("carregar as métricas", error);
+    const l = (data ?? {}) as Linha;
+    const ouNulo = (v: unknown) => (typeof v === "number" ? v : v == null ? null : numero(v));
+    return {
+      ativas: numero(l.ativas),
+      encerradas: numero(l.encerradas),
+      permanenciaMediaDias: ouNulo(l.permanenciaMediaDias),
+      pacientesQuePagaram: numero(l.pacientesQuePagaram),
+      totalRecebido: numero(l.totalRecebido),
+      ticketMedio: ouNulo(l.ticketMedio),
+      valorMensalMedioAtivas: ouNulo(l.valorMensalMedioAtivas),
+    };
   },
 
   async listarModelosConduta() {

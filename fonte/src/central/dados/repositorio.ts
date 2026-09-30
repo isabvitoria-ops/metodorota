@@ -67,6 +67,7 @@ import type {
   ValorDoPaciente,
   Balanco,
   FormaDePagamento,
+  MetricasDeAcompanhamento,
 } from "@/central/types/financeiro";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
 import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
@@ -538,6 +539,9 @@ export interface Repositorio {
    * impossível por construção.
    */
   balancoFinanceiro(meses: number): Promise<Balanco>;
+
+  /** Ativas, ticket médio e permanência média — calculadas na hora (0056). */
+  metricasDeAcompanhamento(): Promise<MetricasDeAcompanhamento>;
 
   /** Registra ou edita uma entrada avulsa (PIX, cartão, transferência…). */
   registrarRecebimento(

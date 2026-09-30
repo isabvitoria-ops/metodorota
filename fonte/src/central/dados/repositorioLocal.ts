@@ -65,6 +65,7 @@ import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositori
 import type { Consulta } from "@/central/types/consulta";
 import type { Conduta, ModeloDeConduta } from "@/central/types/conduta";
 import { ordenarCondutas } from "@/central/utils/condutas";
+import { calcularMetricas } from "@/central/utils/metricasDeAcompanhamento";
 import type { Meta } from "@/central/types/meta";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { CardioSessao, MetaSemanal, SessaoDeTreino, Treino } from "@/central/types/treino";
@@ -1648,6 +1649,21 @@ export const repositorioLocal: Repositorio = {
         previstoNoMes: soma((c) => c.status !== "cancelada" && c.competencia === mes),
       },
     };
+  },
+
+  async metricasDeAcompanhamento() {
+    const valores = guardaValores.ler();
+    const alerta = configuracoesAtuais().alertaVencimentoDias;
+    const pacientes = mesclar(pacientesDaSemente(), guardaPacientes.ler()).map((p) => {
+      const comSit = comSituacao(p, alerta);
+      return {
+        situacao: comSit.situacao,
+        dataInicio: comSit.dataInicio,
+        dataFim: comSit.dataFim,
+        valorMensal: valores.find((v) => v.id === p.id)?.valorMensal ?? null,
+      };
+    });
+    return calcularMetricas(pacientes, guardaRecebimentos.ler());
   },
 
   async valoresDosPacientes(): Promise<ValorDoPaciente[]> {

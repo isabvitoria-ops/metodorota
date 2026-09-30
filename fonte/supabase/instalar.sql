@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql
 -- =============================================================================
 
 
@@ -15621,3 +15621,79 @@ begin
   end loop;
 end;
 $$;
+
+
+-- ###########################################################################
+-- 0056_metricas_acompanhamento.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0056 — Métricas simplificadas de acompanhamento
+--
+-- Três números para a saúde do negócio, calculados na hora (nada é gravado,
+-- então não há como ficarem desatualizados):
+--
+--   * ATIVAS: pacientes com acesso hoje (situação "ativo" ou "próximo do
+--     vencimento"). Convite pendente, suspensa, ainda não iniciada e expirada
+--     NÃO entram.
+--   * TICKET MÉDIO: o que já entrou no caixa vindo de pacientes, dividido por
+--     quantas pacientes já pagaram alguma vez. Entrada avulsa (palestra,
+--     material), sem paciente, fica de fora — não é ticket de paciente.
+--   * PERMANÊNCIA MÉDIA: dias entre o início e o fim do plano, só de quem já
+--     encerrou (situação "expirado"). Quem ainda está em acompanhamento não
+--     entra: a permanência dela ainda não terminou.
+--
+-- Extra que ajuda a ler o ticket: o valor mensal médio das ativas.
+--
+-- Só a nutricionista lê.
+-- =============================================================================
+
+create or replace function metricas_acompanhamento()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v jsonb;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê as métricas.' using errcode = '42501';
+  end if;
+
+  with base as (
+    select p.data_inicio, p.data_fim, p.valor_mensal,
+           situacao_paciente(p.status, p.perfil_id, p.data_inicio, p.data_fim) as s
+      from pacientes p
+  ),
+  pagas as (
+    select r.paciente_id, sum(r.valor) as total
+      from recebimentos r
+     where r.paciente_id is not null
+     group by r.paciente_id
+  )
+  select jsonb_build_object(
+    'ativas',
+      (select count(*) from base where s in ('ativo', 'proximo_do_vencimento')),
+    'encerradas',
+      (select count(*) from base where s = 'expirado'),
+    'permanenciaMediaDias',
+      (select round(avg(data_fim - data_inicio)::numeric, 1) from base where s = 'expirado'),
+    'pacientesQuePagaram',
+      (select count(*) from pagas),
+    'totalRecebido',
+      coalesce((select sum(total) from pagas), 0),
+    'ticketMedio',
+      (select round(sum(total) / nullif(count(*), 0), 2) from pagas),
+    'valorMensalMedioAtivas',
+      (select round(avg(valor_mensal), 2) from base
+        where s in ('ativo', 'proximo_do_vencimento') and valor_mensal is not null)
+  ) into v;
+
+  return v;
+end;
+$$;
+
+revoke all on function metricas_acompanhamento() from anon, public;
+grant execute on function metricas_acompanhamento() to authenticated;
