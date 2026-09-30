@@ -51,6 +51,7 @@ import {
   tudoParaBackup,
 } from "./meusAlimentos.mjs";
 import { apagarTabela, importarTabela, lerTabela } from "./tabelaImportada.mjs";
+import { gravarMemoria, lerMemoria, montarSugestoes, registrar } from "./sugestoes.mjs";
 import {
   apagarFicha,
   fichaVazia,
@@ -405,6 +406,14 @@ function porcaoEmTexto(quantidade, medida, gramas) {
 // ---------------------------------------------------------------------------
 
 let dieta = { peso: "", meta: "", refeicoes: [] };
+
+/**
+ * As sugestões abertas: aparecem quando ela põe o PRIMEIRO alimento de uma
+ * opção, e ficam até ela usar, ignorar tudo, fechar ou tirar esse alimento.
+ * `ignoradas` vale só para esta sessão de tela (o histórico de longo prazo
+ * fica na memória de `sugestoes.mjs`).
+ */
+let sugestaoAberta = null;
 
 /** A dieta não tem mais gaveta própria: ela é um pedaço da ficha aberta. */
 function guardarDieta() {
@@ -983,14 +992,22 @@ function desenharDieta() {
 
     bloco.append(
       campoDeBusca((alimento) => {
+        const eraOPrimeiro = opcao.itens.length === 0;
         opcao.itens.push({
           codigo: alimento.id,
           nome: alimento.nome,
           quantidade: 100,
           medida: { ...MEDIDA_GRAMA },
         });
+        if (eraOPrimeiro) {
+          sugestaoAberta = { iR, iO: refeicao.opcaoAtiva, codigo: alimento.id, nome: alimento.nome, ignoradas: new Set() };
+        }
       }),
     );
+
+    // ---- sugestões para acompanhar o primeiro alimento ------------------
+    const painel = painelDeSugestoes(opcao, iR, refeicao.opcaoAtiva);
+    if (painel) bloco.append(painel);
 
     // ---- grupos favoritos -----------------------------------------------
     const grupos = listarGrupos();
@@ -1093,6 +1110,87 @@ function criarMedida(codigo, nome) {
  * alimento entra é `aoEscolher`: na opção aberta, ou nos substitutos de um
  * item.
  */
+/**
+ * O painel "costuma acompanhar": sugestões tiradas do que ela já montou (ver
+ * `sugestoes.mjs`). Nada entra na dieta sem o clique em "usar".
+ */
+function painelDeSugestoes(opcao, iR, iO) {
+  const aberta = sugestaoAberta;
+  if (!aberta || aberta.iR !== iR || aberta.iO !== iO) return null;
+  // O alimento de partida saiu da opção: as sugestões perderam o sentido.
+  if (!opcao.itens.some((i) => i.codigo === aberta.codigo)) return null;
+
+  const sugestoes = montarSugestoes({
+    fichas: listarFichas(),
+    grupos: listarGrupos(),
+    codigoBase: aberta.codigo,
+    jaNaOpcao: new Set(opcao.itens.map((i) => i.codigo)),
+    memoria: lerMemoria(),
+  }).filter((x) => !aberta.ignoradas.has(x.codigo));
+  if (!sugestoes.length) return null;
+
+  const caixa = document.createElement("div");
+  caixa.className = "sugestoes-refeicao";
+  caixa.setAttribute("role", "region");
+  caixa.setAttribute("aria-label", `Sugestões para acompanhar ${aberta.nome}`);
+
+  const titulo = document.createElement("div");
+  titulo.className = "nota";
+  titulo.textContent = `Costuma acompanhar ${aberta.nome}:`;
+  caixa.append(titulo);
+
+  for (const x of sugestoes) {
+    const linha = document.createElement("div");
+    linha.className = "sugestao-linha";
+
+    const nome = document.createElement("span");
+    nome.className = "sugestao-nome";
+    nome.textContent = `${x.nome} · ${mostrar(x.quantidade, x.quantidade % 1 ? 1 : 0)} ${x.medida.nome}`;
+    nome.title =
+      x.origem === "grupo"
+        ? `Está no seu grupo "${x.grupos.join('", "')}"`
+        : x.vezes > 1
+          ? `Apareceu junto ${x.vezes} vezes nas suas dietas salvas`
+          : "Apareceu junto numa das suas dietas salvas";
+
+    const usar = document.createElement("button");
+    usar.className = "mini";
+    usar.textContent = "usar";
+    usar.setAttribute("aria-label", `Usar ${x.nome}`);
+    usar.onclick = () => {
+      opcao.itens.push(
+        normalizarItem({ codigo: x.codigo, nome: x.nome, quantidade: x.quantidade, medida: { ...x.medida } }),
+      );
+      gravarMemoria(registrar(lerMemoria(), aberta.codigo, x.codigo, "aceita"));
+      guardarDieta();
+      desenharDieta();
+    };
+
+    const ignorar = document.createElement("button");
+    ignorar.className = "mini";
+    ignorar.textContent = "ignorar";
+    ignorar.setAttribute("aria-label", `Ignorar ${x.nome}`);
+    ignorar.onclick = () => {
+      aberta.ignoradas.add(x.codigo);
+      gravarMemoria(registrar(lerMemoria(), aberta.codigo, x.codigo, "ignorada"));
+      desenharDieta();
+    };
+
+    linha.append(nome, usar, ignorar);
+    caixa.append(linha);
+  }
+
+  const fechar = document.createElement("button");
+  fechar.className = "mini";
+  fechar.textContent = "fechar sugestões";
+  fechar.onclick = () => {
+    sugestaoAberta = null;
+    desenharDieta();
+  };
+  caixa.append(fechar);
+  return caixa;
+}
+
 function campoDeBusca(aoEscolher, dica = "Buscar alimento e apertar Enter") {
   const caixa = document.createElement("div");
   caixa.className = "busca";
