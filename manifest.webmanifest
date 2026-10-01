@@ -1,7 +1,7 @@
 {
-  "name": "Protocolo Nutricional",
-  "short_name": "Protocolo Nutricional",
-  "description": "Protocolo Nutricional — seu plano, trocas de alimentos, comer fora e acompanhamento.",
+  "name": "Marvia",
+  "short_name": "Marvia",
+  "description": "Marvia — seu plano, trocas de alimentos, comer fora e acompanhamento.",
   "start_url": "/metodorota/",
   "scope": "/metodorota/",
   "display": "standalone",
