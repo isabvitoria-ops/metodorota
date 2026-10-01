@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
 import { repositorio } from "@/central/dados/repositorio";
 import type { MesDaMinhaEvolucao } from "@/central/types/desafio";
-import { alturasDasBarras, nomeCurtoDoMes, nomeDoMes } from "@/central/utils/historicoDePontos";
+import { alturasDasBarras, fraseDoMes, nomeCurtoDoMes, nomeDoMes } from "@/central/utils/historicoDePontos";
+import { hojeSaoPaulo } from "@/central/utils/situacao";
 
 /**
  * "Minha evolução": os pontos que a paciente fez em cada mês, para ela ver o
  * caminho andando. Aparece só depois do primeiro ponto — antes disso seria um
  * gráfico de zeros dizendo que ela não fez nada.
  *
- * Mostra o mês atual e os 3 anteriores. Os pontos mais antigos continuam no
+ * Em cima, a frase do mês que acabou (pontos e posição), para ela saber por que
+ * recebe o presente. Mostra o mês atual e os 3 anteriores. Os pontos mais antigos continuam no
  * saldo; só saem desta lista.
  */
 export function MinhaEvolucaoDePontos() {
@@ -20,10 +22,21 @@ export function MinhaEvolucaoDePontos() {
 
   if (meses.length === 0) return null;
   const alturas = alturasDasBarras(meses);
+  // O mês que acabou: é o dos presentes. A paciente precisa ver ali o que ela
+  // fez e em que lugar ficou, para entender o que está ganhando.
+  const mesDeHoje = `${hojeSaoPaulo().slice(0, 7)}-01`;
+  const passado = [...meses].reverse().find((m) => m.mes < mesDeHoje);
+  const frase = passado ? fraseDoMes(passado) : null;
 
   return (
     <section className="c-secao">
       <h2 className="c-secao-titulo">Minha evolução</h2>
+      {frase && passado && (
+        <p className="c-mes-passado">
+          <span aria-hidden="true">{passado.posicao === 1 ? "👑" : passado.posicao === 2 ? "🥈" : passado.posicao === 3 ? "🥉" : "🌱"}</span>{" "}
+          {frase}
+        </p>
+      )}
       <div className="c-evolucao" role="img" aria-label={meses.map((m) => `${nomeDoMes(m.mes)}: ${m.pontos} pontos`).join(". ")}>
         {meses.map((m, i) => (
           <div key={m.mes} className="c-evolucao-coluna">

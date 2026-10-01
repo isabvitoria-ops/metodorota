@@ -474,6 +474,10 @@ export const repositorioLocal: Repositorio = {
   // checklist que nunca sai de "aguardando" não mostraria como a tela fica.
   // A faixa amarela do topo avisa o tempo todo que ali nada é de verdade.
 
+  async garantirDesafioDoMes() {
+    /* na demonstração o desafio já vem pronto */
+  },
+
   async meuDesafio() {
     const desafio = desafioDemo();
     const envios = guardaEnvios.ler();
@@ -595,7 +599,27 @@ export const repositorioLocal: Repositorio = {
   },
 
   async listarDesafios() {
-    return [desafioDemoAdmin()];
+    // O do mês e o do mês passado (encerrado), para a demonstração mostrar a
+    // janela de uma semana para lançar pontos atrasados.
+    const atual = desafioDemoAdmin();
+    const [ano, mes] = atual.dataInicio.split("-").map(Number) as [number, number];
+    const anoAnt = mes === 1 ? ano - 1 : ano;
+    const mesAnt = mes === 1 ? 12 : mes - 1;
+    const dois = (n: number) => String(n).padStart(2, "0");
+    const inicio = `${anoAnt}-${dois(mesAnt)}-01`;
+    const fim = `${anoAnt}-${dois(mesAnt)}-${dois(new Date(Date.UTC(anoAnt, mesAnt, 0)).getUTCDate())}`;
+    const passado: DesafioAdmin = {
+      ...atual,
+      id: "demo-passado",
+      nome: `Desafio de ${MESES[mesAnt - 1]}`,
+      dataInicio: inicio,
+      dataFim: fim,
+      status: "ativo",
+      situacao: situacaoDoDesafio("ativo", inicio, fim),
+      semanaAtual: null,
+      totalDeSemanas: totalDeSemanas(inicio, fim),
+    };
+    return [atual, passado];
   },
 
   async salvarDesafio() {
@@ -652,10 +676,10 @@ export const repositorioLocal: Repositorio = {
       return d.toISOString().slice(0, 10);
     };
     return [
-      { mes: mes(3), pontos: 0, saldo: 0 },
-      { mes: mes(2), pontos: 25, saldo: 25 },
-      { mes: mes(1), pontos: 45, saldo: 70 },
-      { mes: mes(0), pontos: 20, saldo: 90 },
+      { mes: mes(3), pontos: 0, saldo: 0, posicao: null, participantes: 0 },
+      { mes: mes(2), pontos: 25, saldo: 25, posicao: 3, participantes: 5 },
+      { mes: mes(1), pontos: 45, saldo: 70, posicao: 2, participantes: 6 },
+      { mes: mes(0), pontos: 20, saldo: 90, posicao: 4, participantes: 4 },
     ];
   },
 

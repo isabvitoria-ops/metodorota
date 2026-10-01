@@ -5532,3 +5532,94 @@ body:has(.central) {
   overflow: visible;
   overflow-wrap: anywhere;
 }
+
+/* =========================================================================
+   Placar do mês (PDF para a comunidade do WhatsApp)
+   ========================================================================= */
+@media print {
+  .doc-placar-lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .doc-placar-linha {
+    display: grid;
+    grid-template-columns: 11mm 13mm minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 3mm;
+    padding: 3mm 4mm;
+    border-bottom: 1px solid #e3e0dc;
+    font-size: 13pt;
+    break-inside: avoid;
+    /* Os três primeiros ganham fundo; sem tinta (preto e branco) a medalha e o
+       "1º/2º/3º" escritos continuam dizendo a mesma coisa. */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .doc-placar-p1,
+  .doc-placar-p2,
+  .doc-placar-p3 {
+    font-size: 17pt;
+    padding: 5mm 4mm;
+    margin-bottom: 2mm;
+    border-bottom: 0;
+    border-left: 4px solid #c9a227;
+    background: #fbf5dc;
+  }
+
+  .doc-placar-p2 {
+    font-size: 15pt;
+    border-left-color: #9aa4ad;
+    background: #eef1f3;
+  }
+
+  .doc-placar-p3 {
+    font-size: 14pt;
+    border-left-color: #b4733c;
+    background: #f7ebe0;
+  }
+
+  .doc-placar-medalha {
+    font-size: 1.4em;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .doc-placar-posicao {
+    font-weight: 700;
+    color: #38546c;
+  }
+
+  .doc-placar-nome {
+    font-weight: 600;
+  }
+
+  .doc-placar-pontos {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .doc-placar-mensagem {
+    margin: 10mm 0 0;
+    padding: 5mm;
+    border-left: 3px solid #5a7a8f;
+    background: #f4f7f9;
+    font-size: 12pt;
+    white-space: pre-wrap;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* "Em setembro você fez 120 pontos e ficou em 2º lugar" — o recado do mês que
+   acabou, em cima da evolução. */
+.central .c-mes-passado {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--c-fundo-suave, rgba(90, 122, 143, 0.1));
+  font-weight: 600;
+  line-height: 1.4;
+}

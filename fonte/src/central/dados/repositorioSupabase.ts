@@ -406,7 +406,22 @@ export const repositorioSupabase: Repositorio = {
 
   // ---------------------------------------------------------------- desafio
 
+  /**
+   * Garante que o desafio do mês exista (0060). Quem abre o app a chama; se já
+   * há desafio no mês, o banco não faz nada. Falhar aqui nunca pode impedir a
+   * tela de abrir, então o erro é engolido: o botão "Criar o desafio de <mês>"
+   * continua lá como plano B.
+   */
+  async garantirDesafioDoMes() {
+    try {
+      await exigirSupabase().rpc("garantir_desafio_do_mes");
+    } catch {
+      /* rede instável — a leitura que vem a seguir mostra o que há */
+    }
+  },
+
   async meuDesafio() {
+    await repositorioSupabase.garantirDesafioDoMes();
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("meu_desafio");
     erro("carregar o desafio", error);
@@ -436,6 +451,7 @@ export const repositorioSupabase: Repositorio = {
   },
 
   async listarDesafios() {
+    await repositorioSupabase.garantirDesafioDoMes();
     const sb = exigirSupabase();
     const { data, error } = await sb
       .from("desafios")
@@ -507,6 +523,8 @@ export const repositorioSupabase: Repositorio = {
       mes: texto(m.mes),
       pontos: numero(m.pontos),
       saldo: numero(m.saldo),
+      posicao: m.posicao === null || m.posicao === undefined ? null : numero(m.posicao),
+      participantes: numero(m.participantes),
     }));
   },
 

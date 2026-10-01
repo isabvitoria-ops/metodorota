@@ -3,6 +3,17 @@ import assert from "node:assert/strict";
 import type { MesDoHistorico } from "@/central/types/desafio";
 import {
   alturasDasBarras,
+  diasEntre,
+  fraseDoMes,
+  medalhaDaPosicao,
+  nomeAbreviado,
+  placarParaWhatsApp,
+  placarPublicavel,
+  posicoesDoPlacar,
+  prazoDoLancamento,
+  rotuloDaSemana,
+  semanaDoDia,
+  somarDias,
   escolherDesafioPadrao,
   nomeCurtoDoMes,
   nomeDoDesafioDoMes,
@@ -47,7 +58,7 @@ test("o placar em texto, para copiar", () => {
 });
 
 test("barras: proporção, mínimo visível e zero de verdade", () => {
-  const m = (pontos: number) => ({ mes: "2026-09-01", pontos, saldo: pontos });
+  const m = (pontos: number) => ({ mes: "2026-09-01", pontos, saldo: pontos, posicao: null, participantes: 0 });
   assert.deepEqual(alturasDasBarras([m(100), m(50), m(0), m(1)]), [100, 50, 0, 6]);
   assert.deepEqual(alturasDasBarras([m(0), m(0)]), [0, 0]);
   assert.deepEqual(alturasDasBarras([]), []);
@@ -69,4 +80,116 @@ test("o desafio que abre por padrão: no ar, depois o mais recente que não é r
   );
   assert.equal(escolherDesafioPadrao([{ id: "so", situacao: "rascunho" }]), "so");
   assert.equal(escolherDesafioPadrao([]), null);
+});
+
+test("nome abreviado, como o ranking da paciente", () => {
+  assert.equal(nomeAbreviado("Eduarda Martins Souza"), "Eduarda S.");
+  assert.equal(nomeAbreviado("  ana   maria "), "ana M.");
+  assert.equal(nomeAbreviado("Felipe"), "Felipe");
+});
+
+test("medalhas: coroa, prata, bronze e mais nada", () => {
+  assert.equal(medalhaDaPosicao(1), "👑");
+  assert.equal(medalhaDaPosicao(2), "🥈");
+  assert.equal(medalhaDaPosicao(3), "🥉");
+  assert.equal(medalhaDaPosicao(4), "");
+});
+
+test("empate divide o lugar e o seguinte pula", () => {
+  assert.deepEqual(posicoesDoPlacar([100, 100, 80, 80, 10]), [1, 1, 3, 3, 5]);
+  assert.deepEqual(posicoesDoPlacar([]), []);
+});
+
+test("placar publicável: nome curto, sem saldo, sem quem não pontuou", () => {
+  const mes: MesDoHistorico = {
+    mes: "2026-09-01",
+    total: 0,
+    ranking: [
+      { pacienteId: "a", nome: "Eduarda Martins", pontos: 100, resgatou: 0, saldo: 900, recompensa: "Kit" },
+      { pacienteId: "b", nome: "Felipe Souza", pontos: 60, resgatou: 0, saldo: 60, recompensa: null },
+      { pacienteId: "c", nome: "Gustavo", pontos: 0, resgatou: 0, saldo: 5, recompensa: null },
+    ],
+  };
+  const p = placarPublicavel(mes);
+  assert.equal(p.titulo, "Setembro de 2026");
+  assert.deepEqual(p.linhas.map((l) => [l.posicao, l.medalha, l.nome, l.pontos]), [
+    [1, "👑", "Eduarda M.", 100],
+    [2, "🥈", "Felipe S.", 60],
+  ]);
+  assert.equal(p.participantes, 2);
+  assert.equal(p.total, 160);
+  assert.equal(placarPublicavel(mes, { nomeCompleto: true }).linhas[0]?.nome, "Eduarda Martins");
+});
+
+test("o limite nunca corta no meio de um empate", () => {
+  const ranking = ["A", "B", "C", "D", "E"].map((n, i) => ({
+    pacienteId: n, nome: `${n} X`, pontos: i < 2 ? 50 : i === 2 ? 40 : 10, resgatou: 0, saldo: 0, recompensa: null,
+  }));
+  const mes: MesDoHistorico = { mes: "2026-09-01", total: 0, ranking };
+  assert.equal(placarPublicavel(mes, { limite: 3 }).linhas.length, 3);
+  assert.equal(placarPublicavel(mes, { limite: 3 }).ocultas, 2);
+  // limite 1 com dois empatados em 1º: os dois ficam
+  assert.equal(placarPublicavel(mes, { limite: 1 }).linhas.length, 2);
+  assert.equal(placarPublicavel(mes, { limite: null }).ocultas, 0);
+});
+
+test("texto do WhatsApp com as medalhas", () => {
+  const mes: MesDoHistorico = {
+    mes: "2026-09-01", total: 0,
+    ranking: [
+      { pacienteId: "a", nome: "Eduarda Martins", pontos: 100, resgatou: 0, saldo: 0, recompensa: null },
+      { pacienteId: "b", nome: "Felipe Souza", pontos: 60, resgatou: 0, saldo: 0, recompensa: null },
+      { pacienteId: "c", nome: "Gustavo Lima", pontos: 40, resgatou: 0, saldo: 0, recompensa: null },
+      { pacienteId: "d", nome: "Helena Dias", pontos: 1, resgatou: 0, saldo: 0, recompensa: null },
+    ],
+  };
+  const t = placarParaWhatsApp(mes, { limite: 3 }, "Bora, verão! 💚");
+  assert.match(t, /^🏆 \*Placar de Setembro de 2026\*/);
+  assert.match(t, /👑 1º Eduarda M\. — 100 pontos/);
+  assert.match(t, /🥈 2º Felipe S\. — 60 pontos/);
+  assert.match(t, /🥉 3º Gustavo L\. — 40 pontos/);
+  assert.match(t, /…e mais 1 pessoa que pontuou!/);
+  assert.match(t, /Bora, verão! 💚$/);
+  assert.equal(
+    placarParaWhatsApp({ mes: "2026-09-01", total: 0, ranking: [] }),
+    "Placar de Setembro de 2026: ninguém pontuou.",
+  );
+});
+
+test("datas: somar dias e contar a diferença", () => {
+  assert.equal(somarDias("2026-09-30", 7), "2026-10-07");
+  assert.equal(somarDias("2026-12-28", 7), "2027-01-04");
+  assert.equal(diasEntre("2026-10-01", "2026-10-07"), 6);
+});
+
+test("prazo de lançar: dentro do mês, na semana de graça e depois dela", () => {
+  const set = { dataInicio: "2026-09-01", dataFim: "2026-09-30" };
+  assert.deepEqual(prazoDoLancamento(set, "2026-09-15"), { tipo: "atual" });
+  assert.deepEqual(prazoDoLancamento(set, "2026-09-30"), { tipo: "atual" });
+  assert.deepEqual(prazoDoLancamento(set, "2026-10-01"), { tipo: "retroativo", ultimoDia: "2026-10-07", diasRestantes: 6 });
+  // o último dia da janela ainda vale
+  assert.deepEqual(prazoDoLancamento(set, "2026-10-07"), { tipo: "retroativo", ultimoDia: "2026-10-07", diasRestantes: 0 });
+  assert.deepEqual(prazoDoLancamento(set, "2026-10-08"), { tipo: "fechado", ultimoDia: "2026-10-07", diasDeAtraso: 1 });
+  assert.deepEqual(prazoDoLancamento(set, "2026-08-20"), { tipo: "futuro" });
+});
+
+test("a semana de um dia e o rótulo dela, com a mesma conta do banco", () => {
+  const set = { dataInicio: "2026-09-01", dataFim: "2026-09-30" };
+  assert.equal(semanaDoDia(set, "2026-09-01"), 1);
+  assert.equal(semanaDoDia(set, "2026-09-07"), 1);
+  assert.equal(semanaDoDia(set, "2026-09-08"), 2);
+  assert.equal(semanaDoDia(set, "2026-09-30"), 5);
+  // depois do fim, vale a última semana (é para ela lançar o que faltou)
+  assert.equal(semanaDoDia(set, "2026-10-02"), 5);
+  assert.equal(rotuloDaSemana(set, 5), "Semana 5 · 29/09 a 30/09");
+  assert.equal(rotuloDaSemana(set, 1), "Semana 1 · 01/09 a 07/09");
+});
+
+test("a frase do mês passado, para a paciente", () => {
+  assert.equal(
+    fraseDoMes({ mes: "2026-09-01", pontos: 120, posicao: 2, participantes: 8 }),
+    "Em setembro você fez 120 pontos e ficou em 2º lugar entre 8 participantes.",
+  );
+  assert.equal(fraseDoMes({ mes: "2026-09-01", pontos: 1, posicao: 1, participantes: 1 }), "Em setembro você fez 1 ponto.");
+  assert.equal(fraseDoMes({ mes: "2026-09-01", pontos: 0, posicao: null, participantes: 5 }), null);
 });

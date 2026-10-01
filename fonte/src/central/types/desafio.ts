@@ -215,4 +215,8 @@ export interface MesDaMinhaEvolucao {
   mes: string;
   pontos: number;
   saldo: number;
+  /** O lugar dela no mês (empate divide); nulo se não pontuou. */
+  posicao: number | null;
+  /** Quantas pacientes pontuaram naquele mês. */
+  participantes: number;
 }

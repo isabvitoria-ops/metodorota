@@ -152,6 +152,8 @@ export interface Repositorio {
   // como escrever um ponto. Ele marca ação, registra indicação e lê o
   // resultado. Quem transforma isso em ponto é o banco, na aprovação.
 
+  /** Cria o desafio do mês se ainda não houver (0060). Idempotente; nunca lança. */
+  garantirDesafioDoMes(): Promise<void>;
   /** Tudo que a tela do desafio mostra, numa chamada só. */
   meuDesafio(): Promise<MeuDesafio>;
   /** "Eu fiz isso." Nasce pendente, sempre. */

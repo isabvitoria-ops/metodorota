@@ -20,6 +20,9 @@ import {
   nomeDoDesafioDoMes,
   periodoDoMes,
   precisaCriarDesafio,
+  prazoDoLancamento,
+  rotuloDaSemana,
+  semanaDoDia,
 } from "@/central/utils/historicoDePontos";
 
 /**
@@ -180,7 +183,7 @@ export function Desafios() {
                   <VisaoGeral desafio={desafio} aoEditar={() => definirEditando(desafio)} />
                 )}
                 {aba === "Pendências" && <Pendencias desafioId={desafio.id} />}
-                {aba === "Lançar pontos" && <LancarPontos desafio={desafio} />}
+                {aba === "Lançar pontos" && <LancarPontos desafio={desafio} desafios={desafios} />}
                 {aba === "Ranking" && <Ranking desafioId={desafio.id} />}
                 {aba === "Histórico" && <HistoricoDePontos />}
                 {aba === "Indicações" && <Indicacoes desafioId={desafio.id} />}
@@ -392,13 +395,34 @@ function Pendencias({ desafioId }: { desafioId: string }) {
  * não é ação nenhuma: uma correção, um combinado à parte. Os dois caem no
  * mesmo ledger, e nenhum dos dois apaga nada.
  */
-function LancarPontos({ desafio }: { desafio: DesafioAdmin }) {
+function LancarPontos({ desafio, desafios }: { desafio: DesafioAdmin; desafios: DesafioAdmin[] }) {
+  const hoje = hojeSaoPaulo();
+  // O desafio em que os pontos caem. Começa no que a aba de cima escolheu, mas
+  // dá para trocar aqui: o mês que acabou ainda aceita lançamento por uma
+  // semana ("a cliente pontuou ontem e eu não tive tempo de lançar").
+  const [alvoId, definirAlvoId] = useState(desafio.id);
+  useEffect(() => definirAlvoId(desafio.id), [desafio.id]);
+  const alvo = desafios.find((d) => d.id === alvoId) ?? desafio;
+  const prazo = prazoDoLancamento(alvo, hoje);
+  const [confirmouFechado, definirConfirmouFechado] = useState(false);
+  useEffect(() => definirConfirmouFechado(false), [alvo.id]);
+
+  // Quais meses oferecer: o do momento e os que já acabaram (até 3), do mais
+  // novo para o mais velho. Rascunho e mês futuro não recebem ponto.
+  const candidatos = desafios
+    .filter((d) => d.situacao !== "rascunho" && prazoDoLancamento(d, hoje).tipo !== "futuro")
+    .slice(0, 3);
+  const naJanela = candidatos.find((d) => prazoDoLancamento(d, hoje).tipo === "retroativo");
+
   const [pacientes, definirPacientes] = useState<Paciente[]>([]);
   const [acoes, definirAcoes] = useState<AcaoAdmin[]>([]);
   const [busca, definirBusca] = useState("");
   const [paciente, definirPaciente] = useState<string>("");
   const [acao, definirAcao] = useState<string>("");
-  const [semana, definirSemana] = useState<string>(String(desafio.semanaAtual ?? 1));
+  // Mês corrente: a semana de hoje. Mês que acabou: a última, que é onde cai
+  // "ontem" — e ela troca se for outra.
+  const semanaInicial = (d: DesafioAdmin) => String(semanaDoDia(d, hoje));
+  const [semana, definirSemana] = useState<string>(semanaInicial(alvo));
   const [pontos, definirPontos] = useState("");
   const [motivo, definirMotivo] = useState("");
   const [ocupado, definirOcupado] = useState(false);
@@ -414,7 +438,7 @@ function LancarPontos({ desafio }: { desafio: DesafioAdmin }) {
   // lançaria no desafio errado sem a tela dar sinal nenhum.
   useEffect(() => {
     void repositorio
-      .acoesDoDesafio(desafio.id)
+      .acoesDoDesafio(alvo.id)
       .then((lista) => {
         const ativas = lista.filter((a) => a.ativo && a.chave !== "indicacao");
         definirAcoes(ativas);
@@ -423,15 +447,24 @@ function LancarPontos({ desafio }: { desafio: DesafioAdmin }) {
         );
       })
       .catch(() => definirAcoes([]));
-    definirSemana(String(desafio.semanaAtual ?? 1));
-  }, [desafio.id, desafio.semanaAtual]);
+    definirSemana(String(semanaDoDia({ dataInicio: alvo.dataInicio, dataFim: alvo.dataFim }, hoje)));
+    definirFeito(null);
+    definirErro(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alvo.id]);
 
   const visiveis = pacientes.filter((p) =>
     p.nome.toLowerCase().includes(busca.trim().toLowerCase()),
   );
   const escolhida = pacientes.find((p) => p.id === paciente) ?? null;
   const acaoEscolhida = acoes.find((a) => a.id === acao) ?? null;
-  const semanas = Array.from({ length: desafio.totalDeSemanas }, (_, i) => i + 1);
+  const semanas = Array.from({ length: alvo.totalDeSemanas }, (_, i) => i + 1);
+  // Passou da semana de graça: só lança depois de confirmar.
+  const travado = prazo.tipo === "fechado" && !confirmouFechado;
+  const dataCurta = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+  /** "Desafio de Setembro" → "Setembro". */
+  const mesDe = (d: DesafioAdmin) => d.nome.replace(/^Desafio de /, "");
+  const nomeDoAlvo = alvo.nome;
 
   /** Devolve se deu certo: limpar os campos depois de um erro apagaria o que
    *  ela acabou de digitar, e ela teria de escrever tudo de novo. */
@@ -441,7 +474,7 @@ function LancarPontos({ desafio }: { desafio: DesafioAdmin }) {
     definirFeito(null);
     try {
       await tarefa();
-      definirFeito(recado);
+      definirFeito(`${recado} (em ${nomeDoAlvo})`);
       return true;
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui lançar.");
@@ -461,6 +494,69 @@ function LancarPontos({ desafio }: { desafio: DesafioAdmin }) {
       {feito && (
         <div className="c-aviso" role="status">
           <span>{feito}</span>
+        </div>
+      )}
+
+      {candidatos.length > 1 && (
+        <Campo rotulo="Lançar em qual mês?">
+          <div className="c-chips">
+            {candidatos.map((d) => {
+              const p = prazoDoLancamento(d, hoje);
+              return (
+                <button
+                  key={d.id}
+                  type="button"
+                  className="c-chip"
+                  aria-pressed={d.id === alvo.id}
+                  onClick={() => definirAlvoId(d.id)}
+                >
+                  {d.nome}
+                  {p.tipo === "atual" ? " · mês atual" : p.tipo === "retroativo" ? " · mês passado" : " · já fechado"}
+                </button>
+              );
+            })}
+          </div>
+        </Campo>
+      )}
+
+      {naJanela && naJanela.id !== alvo.id && prazo.tipo === "atual" && (
+        <div className="c-aviso" role="status" style={{ display: "block" }}>
+          <p style={{ margin: "0 0 8px" }}>
+            <strong>{mesDe(naJanela)} ainda aceita lançamentos</strong> até{" "}
+            {dataCurta((prazoDoLancamento(naJanela, hoje) as { ultimoDia: string }).ultimoDia)}. Você está lançando
+            em <strong>{mesDe(alvo)}</strong>.
+          </p>
+          <button type="button" className="c-botao c-botao-pequeno" onClick={() => definirAlvoId(naJanela.id)}>
+            Lançar em {mesDe(naJanela)} (mês passado)
+          </button>
+        </div>
+      )}
+
+      {prazo.tipo === "retroativo" && (
+        <div className="c-aviso" role="status" style={{ display: "block" }}>
+          <strong>Lançando no mês passado ({mesDe(alvo)}).</strong> O ponto conta para o placar de{" "}
+          {mesDe(alvo)}, não para o mês atual.{" "}
+          {prazo.diasRestantes === 0
+            ? "Hoje é o último dia desta janela."
+            : `Faltam ${prazo.diasRestantes} ${prazo.diasRestantes === 1 ? "dia" : "dias"} (até ${dataCurta(prazo.ultimoDia)}).`}
+        </div>
+      )}
+
+      {prazo.tipo === "fechado" && (
+        <div className="c-aviso c-aviso-erro" role="alert" style={{ display: "block" }}>
+          <p style={{ margin: "0 0 8px" }}>
+            <strong>{mesDe(alvo)} já fechou</strong> (a janela de lançamento acabou em{" "}
+            {dataCurta(prazo.ultimoDia)}). Os presentes desse mês já podem ter sido entregues; mudar
+            os pontos muda um placar que alguém já viu.
+          </p>
+          <label className="c-campo" style={{ display: "block" }}>
+            <input
+              type="checkbox"
+              checked={confirmouFechado}
+              onChange={(e) => definirConfirmouFechado(e.target.checked)}
+            />{" "}
+            Sei disso, quero lançar mesmo assim
+          </label>
         </div>
       )}
 
@@ -504,14 +600,14 @@ function LancarPontos({ desafio }: { desafio: DesafioAdmin }) {
                     <Selecao
                       valor={semana}
                       aoMudar={definirSemana}
-                      opcoes={semanas.map((n) => ({ valor: String(n), rotulo: `Semana ${n}` }))}
+                      opcoes={semanas.map((n) => ({ valor: String(n), rotulo: rotuloDaSemana(alvo, n) }))}
                     />
                   </Campo>
                 )}
                 <button
                   type="button"
                   className="c-botao c-botao-pequeno"
-                  disabled={ocupado || !acao}
+                  disabled={ocupado || !acao || travado}
                   onClick={() =>
                     void executar(
                       () =>
@@ -547,7 +643,7 @@ function LancarPontos({ desafio }: { desafio: DesafioAdmin }) {
             <button
               type="button"
               className="c-botao c-botao-secundario c-botao-pequeno"
-              disabled={ocupado || !pontos.trim() || !motivo.trim() || Number(pontos) === 0}
+              disabled={ocupado || travado || !pontos.trim() || !motivo.trim() || Number(pontos) === 0}
               onClick={() =>
                 void executar(
                   () =>
@@ -555,7 +651,7 @@ function LancarPontos({ desafio }: { desafio: DesafioAdmin }) {
                       escolhida.id,
                       Number(pontos),
                       motivo.trim(),
-                      desafio.id,
+                      alvo.id,
                     ),
                   `Lancei ${pontos} para ${escolhida.nome}.`,
                 ).then((deuCerto) => {
