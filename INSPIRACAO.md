@@ -59,7 +59,7 @@ adivinhar o conteúdo.
 
 ## PARTE 2 — Inventário do meu app (o que JÁ existe)
 
-> Atualizado em: **2026-09-28**
+> Atualizado em: **2026-10-01**
 > Meu app: **Central do Paciente** (site em
 > `isabvitoria-ops.github.io/metodorota`) + uma **Calculadora** separada em
 > `.../metodorota/nutri/`. Banco no Supabase. Método **ROTA**.
@@ -93,7 +93,11 @@ fazer contas.
   que eu guardei.
 - **Check-in / Questionários**: responde questionários que eu criei
   (semanais, etc.), passo a passo.
-- **Salvos / Favoritos**, **Busca global** dentro do app.
+- **Busca global** dentro do app. (A aba **Salvos** foi retirada em 01/10: as pacientes não usavam.)
+- **Diário de fotos** da refeição (a paciente registra, a nutri curte; sem comentário).
+- **Conversa por refeição** ligada à Rastreabilidade.
+- **Meus pontos mês a mês** (evolução, posição no mês) dentro do Desafio.
+- **Nome e ícone na tela inicial**: "Meu Protocolo", com o monograma.
 - **Tela de diagnóstico** pública (`/diagnostico`) que mostra papel,
   situação de acesso e se o banco respondeu — para eu depurar do lado dela.
 - **Conta**: entrar, definir/recuperar senha, aviso de acesso encerrado
@@ -121,8 +125,9 @@ fazer contas.
 - **Metas** por paciente e por semana.
 - **Equivalências** e **Alimentos** (cadastro do banco de alimentos).
 - **Conteúdos** (materiais/guias que libero).
-- **Desafio**: crio os desafios, ações, pontuação, valido indicações,
-  concedo/ajusto pontos, defino cupons.
+- **Desafio**: o desafio do mês nasce sozinho; lanço pontos até 7 dias depois
+  do fim do mês; registro indicação por uma paciente; histórico mensal com
+  placar em PDF e texto de WhatsApp; limpeza de pontos antigos a cada 3 meses.
 - **Rastreabilidade**: vejo o mapa de alimento × sintoma da paciente,
   registro retroativo, marcações minhas, painel de padrões.
 - **Configurações**: nome da Central, frases, WhatsApp, dias de aviso de
@@ -143,7 +148,10 @@ fazer contas.
   e a **Diferença**, para bater os macros.
 - **Bancos de alimentos**: TACO, TBCA, USDA e "Meus alimentos"
   (cadastro meu), com tratamento de "traço" (Tr) e valores ausentes.
-- **Cálculo de gasto energético** (sexo, idade, atividade, protocolos).
+- **Cálculo de gasto energético**: 28 equações do DietSystem (24 calculam; 4
+  aguardam fonte), com "como este cálculo é feito"; atividade por fator OU por
+  MET líquido (602 atividades com busca); regra de bolso e VENTA. Gestantes,
+  lactantes e infantil estão feitos, mas ficam parados até haver paciente.
 - **Composição corporal / dobras**: os protocolos de avaliação física.
 - **Fichas** salvas por paciente, **backup** (baixar/restaurar/apagar).
 - **Grupos favoritos** de alimentos para inserir de uma vez.
@@ -153,8 +161,8 @@ fazer contas.
 
 Não me traga estas de volta como novidade:
 
-- **Diário alimentar com foto da refeição** — descartado; competiria com a
-  Rastreabilidade, que já faz o registro que importa (alimento × sintoma).
+- **Diário alimentar com comparação ao plano** — descartado; o Diário de fotos
+  existe, mas só registra e recebe curtida (sem comentário nem conferência).
 - **Recordatório alimentar como ação do desafio** — removido.
 - **Recursos "por completude"** (ter porque o concorrente tem). Só entra o
   que passa pelo meu filtro de método e foco em GI.
