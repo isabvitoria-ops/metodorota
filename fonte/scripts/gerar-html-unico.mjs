@@ -10,7 +10,7 @@
  *
  * Rode com `npm run html-unico`.
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
@@ -98,7 +98,13 @@ const faviconEmDados = `data:image/svg+xml;base64,${Buffer.from(favicon).toStrin
 const agora = new Date();
 const versao = agora.toISOString().slice(0, 16).replace("T", " ") + " UTC";
 
-const titulo = html.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? "Central do Paciente";
+const titulo = html.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? "Meu Protocolo";
+// Nome curto embaixo do ícone (o iOS corta por volta de 12 a 13 letras).
+const nomeNaTela = html.match(/<meta name="apple-mobile-web-app-title" content="([^"]*)"/)?.[1] ?? titulo;
+// Endereço do site no GitHub Pages: o ícone e o manifesto são ARQUIVOS ao lado do
+// index.html, e a página também abre em /metodorota/trocas (404.html), então o
+// caminho tem que ser absoluto. Se o site mudar de endereço, é só aqui.
+const BASE_PAGES = "/metodorota/";
 const descricao = html.match(/<meta name="description" content="([^"]*)"/)?.[1] ?? "";
 
 const pagina = `<!doctype html>
@@ -116,6 +122,15 @@ const pagina = `<!doctype html>
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <link rel="icon" href="${faviconEmDados}" />
+    ${
+      paraPages
+        ? `<link rel="apple-touch-icon" href="${BASE_PAGES}apple-touch-icon.png" />
+    <link rel="manifest" href="${BASE_PAGES}manifest.webmanifest" />`
+        : ""
+    }
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="${nomeNaTela}" />
+    <meta name="application-name" content="${nomeNaTela}" />
     <title>${titulo}</title>
     <style>${css}</style>
   </head>
@@ -137,6 +152,35 @@ writeFileSync(path.join(destino, "index.html"), pagina);
 // token volta no fim da URL e brigaria com rotas por hash.
 if (paraPages) {
   writeFileSync(path.join(destino, "404.html"), pagina);
+
+  // Ícone da tela inicial (a logo dela) e manifesto: o nome e a imagem que o
+  // celular usa quando a paciente "adiciona à tela de início". Sem o
+  // apple-touch-icon o iPhone desenha só a primeira letra do nome.
+  const icones = fileURLToPath(new URL("../public/icons/", import.meta.url));
+  for (const [de, para] of [
+    ["apple-touch-icon.png", "apple-touch-icon.png"],
+    ["icon-192.png", "icone-192.png"],
+    ["icon-512.png", "icone-512.png"],
+    ["icon-512-maskable.png", "icone-512-maskable.png"],
+  ]) {
+    copyFileSync(path.join(icones, de), path.join(destino, para));
+  }
+  const manifesto = {
+    name: titulo,
+    short_name: nomeNaTela,
+    description: descricao,
+    start_url: BASE_PAGES,
+    scope: BASE_PAGES,
+    display: "standalone",
+    theme_color: "#38546C",
+    background_color: "#FFFFFF",
+    icons: [
+      { src: `${BASE_PAGES}icone-192.png`, sizes: "192x192", type: "image/png" },
+      { src: `${BASE_PAGES}icone-512.png`, sizes: "512x512", type: "image/png" },
+      { src: `${BASE_PAGES}icone-512-maskable.png`, sizes: "512x512", type: "image/png", purpose: "maskable" },
+    ],
+  };
+  writeFileSync(path.join(destino, "manifest.webmanifest"), JSON.stringify(manifesto, null, 2) + "\n");
 }
 
 const mb = (pagina.length / 1024 / 1024).toFixed(2);
