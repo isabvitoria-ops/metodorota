@@ -12,6 +12,7 @@ import { Campo, Selecao, Texto, AreaTexto } from "@/central/admin/componentes/Ca
 import { alternar, todas, moverRecolhidas, removerRecolhida } from "@/central/utils/recolherRefeicoes";
 import { numeroDeTexto } from "@/central/utils/numero";
 import { Esqueleto } from "@/central/components/Esqueleto";
+import { MODELOS_ANAMNESE, type ModeloDeAnamnese } from "@/central/dados/sementes/anamnese";
 
 /**
  * Questionários e check-in semanal — área da nutricionista.
@@ -65,6 +66,7 @@ export function Questionarios() {
   const [lista, definirLista] = useState<Questionario[]>([]);
   const [pacientes, definirPacientes] = useState<Paciente[]>([]);
   const [editando, definirEditando] = useState<Questionario | null>(null);
+  const [escolhendoModelo, definirEscolhendoModelo] = useState(false);
   const [carregando, definirCarregando] = useState(true);
   const [erro, definirErro] = useState<string | null>(null);
 
@@ -107,6 +109,36 @@ export function Questionarios() {
     });
   }
 
+  function novoDeModelo(modelo: ModeloDeAnamnese) {
+    definirEscolhendoModelo(false);
+    definirAvisoDoEditor(
+      "Modelo carregado. Mude o que quiser antes de salvar — o modelo é só o ponto de partida.",
+    );
+    definirEditando({
+      id: "",
+      titulo: modelo.titulo,
+      descricao: modelo.descricao,
+      periodicidade: "unica",
+      ativo: true,
+      mostraPontuacao: false,
+      criadoEm: "",
+      pacientes: 0,
+      respostas: 0,
+      perguntas: modelo.perguntas.map((p) => ({
+        id: null,
+        texto: p.texto,
+        tipo: p.tipo,
+        obrigatoria: p.obrigatoria,
+        opcoes: p.opcoes,
+        peso: 1,
+        invertida: p.invertida,
+        eixoId: null,
+        pontosOpcoes: [],
+        respondida: false,
+      })),
+    });
+  }
+
   /**
    * Cópia com as mesmas perguntas, pesos e inversões — mas SEM id, sem
    * respostas e sem ninguém liberado: é um modelo novo, e quem responde o
@@ -126,6 +158,19 @@ export function Questionarios() {
       ativo: true,
       perguntas: base.perguntas.map((p) => ({ ...p, id: null, respondida: false })),
     });
+  }
+
+  if (escolhendoModelo) {
+    return (
+      <EscolherModelo
+        aoEscolher={novoDeModelo}
+        aoEmBranco={() => {
+          definirEscolhendoModelo(false);
+          novo("unica");
+        }}
+        aoFechar={() => definirEscolhendoModelo(false)}
+      />
+    );
   }
 
   if (editando) {
@@ -179,8 +224,8 @@ export function Questionarios() {
         <button type="button" className="c-botao" onClick={() => novo("semanal")}>
           + Novo modelo de check-in
         </button>
-        <button type="button" className="c-botao c-botao-secundario" onClick={() => novo("unica")}>
-          + Questionário de vez única
+        <button type="button" className="c-botao c-botao-secundario" onClick={() => definirEscolhendoModelo(true)}>
+          + Anamnese / questionário único
         </button>
       </div>
 
@@ -761,6 +806,59 @@ function BlocoDaPergunta({
  * reusa nas perguntas. Recolhido por padrão: quem só quer escrever pergunta
  * não tropeça nele; quem quer organizar por eixo abre e monta.
  */
+function EscolherModelo({
+  aoEscolher,
+  aoEmBranco,
+  aoFechar,
+}: {
+  aoEscolher: (modelo: ModeloDeAnamnese) => void;
+  aoEmBranco: () => void;
+  aoFechar: () => void;
+}) {
+  return (
+    <>
+      <button type="button" className="c-link" onClick={aoFechar}>
+        ← Voltar aos modelos
+      </button>
+      <h1 className="c-titulo" style={{ marginTop: 8 }}>
+        Novo questionário de vez única
+      </h1>
+      <p className="c-dica">
+        Comece de um modelo pronto — você pode editar todas as perguntas antes de salvar — ou
+        monte do zero.
+      </p>
+
+      <div className="c-atalhos" style={{ marginTop: 16 }}>
+        {MODELOS_ANAMNESE.map((modelo) => (
+          <button
+            key={modelo.id}
+            type="button"
+            className="c-atalho"
+            onClick={() => aoEscolher(modelo)}
+          >
+            <span className="c-atalho-texto">
+              <h3>{modelo.titulo}</h3>
+              <p>{modelo.descricao}</p>
+              <p className="c-contagem" style={{ marginTop: 4 }}>
+                {modelo.perguntas.length} perguntas
+              </p>
+            </span>
+            <span className="c-atalho-seta" aria-hidden="true">›</span>
+          </button>
+        ))}
+
+        <button type="button" className="c-atalho" onClick={aoEmBranco}>
+          <span className="c-atalho-texto">
+            <h3>Em branco</h3>
+            <p>Comece sem nenhuma pergunta e monte o seu.</p>
+          </span>
+          <span className="c-atalho-seta" aria-hidden="true">›</span>
+        </button>
+      </div>
+    </>
+  );
+}
+
 function GerenciadorDeEixos({
   eixos,
   aoMudar,
