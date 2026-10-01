@@ -50,8 +50,23 @@ export interface AcaoDoDesafio {
 export interface LinhaDoRanking {
   posicao: number;
   nome: string;
+  /** Os pontos do mês do desafio (o número grande). */
   pontos: number;
+  /** O mês e os 3 anteriores somados (o número pequeno); o resgate não conta. */
+  acumulado?: number;
   souEu: boolean;
+}
+
+/** O que a limpeza de pontos antigos faria (ou fez). */
+export interface LimpezaDePontos {
+  /** Primeiro dia do mês a partir do qual tudo fica. */
+  corte: string;
+  linhas: number;
+  pacientes: number;
+  pontos: number;
+  /** Quantas pacientes ficariam com saldo negativo depois da limpeza. */
+  saldoNegativo: number;
+  apagou: boolean;
 }
 
 export interface LancamentoDePontos {

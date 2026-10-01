@@ -626,6 +626,14 @@ function LancarPontos({ desafio, desafios }: { desafio: DesafioAdmin; desafios: 
             )}
           </div>
 
+          <IndicacaoPelaNutri
+            paciente={escolhida}
+            desafioNome={nomeDoAlvo}
+            travado={travado}
+            aoFeito={definirFeito}
+            aoErro={definirErro}
+          />
+
           <div className="c-bloco" style={{ marginTop: 14 }}>
             <strong style={{ fontSize: 14 }}>Pontos avulsos</strong>
             <p className="c-dica">
@@ -671,6 +679,88 @@ function LancarPontos({ desafio, desafios }: { desafio: DesafioAdmin; desafios: 
   );
 }
 
+/**
+ * "A paciente X indicou a Fulana", lançado por quem tem o acesso de tudo.
+ *
+ * O desenho é o da própria paciente: a indicação nasce REGISTRADA, com o nome da
+ * indicada, e os pontos só entram quando se confirma que a indicada começou o
+ * acompanhamento. Quem lança aqui pode confirmar no mesmo gesto, para o caso de
+ * a indicada já ter começado.
+ */
+function IndicacaoPelaNutri({
+  paciente,
+  desafioNome,
+  travado,
+  aoFeito,
+  aoErro,
+}: {
+  paciente: Paciente;
+  desafioNome: string;
+  travado: boolean;
+  aoFeito: (texto: string | null) => void;
+  aoErro: (texto: string | null) => void;
+}) {
+  const [nome, definirNome] = useState("");
+  const [contato, definirContato] = useState("");
+  const [jaComecou, definirJaComecou] = useState(false);
+  const [ocupado, definirOcupado] = useState(false);
+
+  async function registrar() {
+    definirOcupado(true);
+    aoErro(null);
+    aoFeito(null);
+    try {
+      const email = contato.includes("@") ? contato.trim() : null;
+      const telefone = contato.trim() && !email ? contato.trim() : null;
+      const id = await repositorio.registrarIndicacaoPor(paciente.id, nome.trim(), email, telefone);
+      if (jaComecou) await repositorio.validarIndicacao(id);
+      aoFeito(
+        jaComecou
+          ? `Indicação de ${nome.trim()} lançada para ${paciente.nome} e já confirmada — os pontos entraram.`
+          : `Indicação de ${nome.trim()} lançada para ${paciente.nome}. Os pontos entram quando você confirmar, na aba Indicações.`,
+      );
+      definirNome("");
+      definirContato("");
+      definirJaComecou(false);
+    } catch (e) {
+      aoErro(e instanceof Error ? e.message : "Não consegui lançar a indicação.");
+    } finally {
+      definirOcupado(false);
+    }
+  }
+
+  return (
+    <div className="c-bloco" style={{ marginTop: 14 }}>
+      <strong style={{ fontSize: 14 }}>{paciente.nome} indicou alguém</strong>
+      <p className="c-dica">
+        Escreva o nome de quem foi indicada. Fica na aba Indicações, como se ela mesma tivesse
+        registrado ({desafioNome}).
+      </p>
+      <div className="c-duas-colunas">
+        <Campo rotulo="Nome da indicada">
+          <Texto valor={nome} aoMudar={definirNome} placeholder="Fulana de Tal" />
+        </Campo>
+        <Campo rotulo="WhatsApp ou e-mail (opcional)">
+          <Texto valor={contato} aoMudar={definirContato} placeholder="(31) 99999-0000" />
+        </Campo>
+      </div>
+      <label className="c-campo" style={{ display: "block" }}>
+        <input type="checkbox" checked={jaComecou} onChange={(e) => definirJaComecou(e.target.checked)} />{" "}
+        A indicada já começou o acompanhamento (dar os pontos agora)
+      </label>
+      <button
+        type="button"
+        className="c-botao c-botao-pequeno"
+        style={{ marginTop: 10 }}
+        disabled={ocupado || travado || !nome.trim()}
+        onClick={() => void registrar()}
+      >
+        Lançar indicação para {paciente.nome}
+      </button>
+    </div>
+  );
+}
+
 // ---------------------------------------------------------------- ranking
 
 function Ranking({ desafioId }: { desafioId: string }) {
@@ -695,10 +785,19 @@ function Ranking({ desafioId }: { desafioId: string }) {
           <div key={`${l.posicao}-${l.nome}`} className={`c-ranking-linha ${l.posicao <= 3 ? "destaque" : ""}`}>
             <span className="c-ranking-posicao">{l.posicao}º</span>
             <span className="c-ranking-nome">{l.nome}</span>
-            <span className="c-ranking-pontos">{l.pontos} pts</span>
+            <span className="c-ranking-pontos">
+              {l.pontos} pts
+              {l.acumulado !== undefined && (
+                <small className="c-ranking-acumulado">acumulado {l.acumulado}</small>
+              )}
+            </span>
           </div>
         ))}
       </div>
+      <p className="c-dica">
+        Grande: pontos do mês. Pequeno: acumulado deste mês e dos 3 anteriores (o que fica guardado
+        depois da limpeza de 3 em 3 meses, na aba Histórico).
+      </p>
     </>
   );
 }

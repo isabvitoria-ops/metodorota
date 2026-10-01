@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { repositorio } from "@/central/dados/repositorio";
-import type { MesDoHistorico } from "@/central/types/desafio";
+import type { LimpezaDePontos, MesDoHistorico } from "@/central/types/desafio";
 import { DocumentoPlacar } from "@/central/components/DocumentoPlacar";
 import {
   nomeDoMes,
@@ -65,6 +65,8 @@ export function HistoricoDePontos() {
           <span>{aviso}</span>
         </div>
       )}
+
+      <LimpezaDosAntigos />
 
       {meses.map((mes) => {
         const atual = mes.mes === mesDeHoje;
@@ -212,6 +214,96 @@ function PlacarParaComunidade({
         </button>
       </div>
       {imprimindo && <DocumentoPlacar placar={placar} mensagem={mensagem} />}
+    </div>
+  );
+}
+
+/**
+ * A limpeza de 3 em 3 meses. Em outubro, sai de junho para trás e ficam julho,
+ * agosto, setembro e outubro. Primeiro MOSTRA o que sairia; só apaga depois de
+ * uma confirmação, e as linhas vão para um arquivo antes de saírem do saldo.
+ */
+function LimpezaDosAntigos() {
+  const [previa, definirPrevia] = useState<LimpezaDePontos | null>(null);
+  const [confirmando, definirConfirmando] = useState(false);
+  const [ocupado, definirOcupado] = useState(false);
+  const [recado, definirRecado] = useState<string | null>(null);
+  const [erro, definirErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    void repositorio.limparPontosAntigos(false).then(definirPrevia).catch(() => definirPrevia(null));
+  }, []);
+
+  async function limpar() {
+    definirOcupado(true);
+    definirErro(null);
+    try {
+      const r = await repositorio.limparPontosAntigos(true);
+      definirRecado(
+        r.apagou
+          ? `Pronto: ${r.linhas} lançamentos de ${r.pacientes} ${r.pacientes === 1 ? "paciente" : "pacientes"} saíram do saldo e foram guardados no arquivo.`
+          : "Não havia nada para limpar.",
+      );
+      definirConfirmando(false);
+      definirPrevia(await repositorio.limparPontosAntigos(false));
+    } catch (e) {
+      definirErro(e instanceof Error ? e.message : "Não consegui limpar.");
+    } finally {
+      definirOcupado(false);
+    }
+  }
+
+  if (!previa) return null;
+  const corte = nomeDoMes(previa.corte);
+
+  return (
+    <div className="c-bloco" style={{ marginTop: 12 }}>
+      <strong style={{ fontSize: 14 }}>Limpeza de 3 em 3 meses</strong>
+      <p className="c-dica">
+        Ficam {corte} em diante; o que for mais antigo sai do saldo (e dos prêmios). As indicações
+        não mudam.
+      </p>
+      {recado && (
+        <div className="c-aviso c-aviso-ok" role="status">
+          <span>{recado}</span>
+        </div>
+      )}
+      {erro && (
+        <div className="c-aviso c-aviso-erro" role="alert">
+          <span>{erro}</span>
+        </div>
+      )}
+      {previa.linhas === 0 ? (
+        <p className="c-dica">Nada para limpar agora: não há pontos anteriores a {corte}.</p>
+      ) : (
+        <>
+          <p className="c-dica">
+            Hoje há <strong>{previa.linhas}</strong> lançamentos antigos ({previa.pontos} pontos, de{" "}
+            {previa.pacientes} {previa.pacientes === 1 ? "paciente" : "pacientes"}).
+            {previa.saldoNegativo > 0
+              ? ` Atenção: ${previa.saldoNegativo} ${previa.saldoNegativo === 1 ? "paciente ficaria" : "pacientes ficariam"} com saldo negativo, porque resgataram prêmios com pontos que são antigos.`
+              : ""}
+          </p>
+          {confirmando ? (
+            <div className="c-linha-botoes-treino">
+              <button type="button" className="c-botao c-botao-pequeno" disabled={ocupado} onClick={() => void limpar()}>
+                {ocupado ? "Limpando…" : "Sim, limpar agora"}
+              </button>
+              <button type="button" className="c-link" onClick={() => definirConfirmando(false)}>
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="c-botao c-botao-secundario c-botao-pequeno"
+              onClick={() => definirConfirmando(true)}
+            >
+              Limpar os pontos antigos…
+            </button>
+          )}
+        </>
+      )}
     </div>
   );
 }

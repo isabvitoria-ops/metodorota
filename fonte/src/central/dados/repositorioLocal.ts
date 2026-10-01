@@ -14,6 +14,7 @@ import type {
   Favorito,
   Guia,
   IndicacaoPendente,
+  LimpezaDePontos,
   LinhaDoRanking,
   MeuDesafio,
   NovoPaciente,
@@ -514,11 +515,11 @@ export const repositorioLocal: Repositorio = {
     const saldoAcumulado = pontosNoMes + 145;
 
     const ranking: LinhaDoRanking[] = [
-      { posicao: 1, nome: "Ana M.", pontos: 75, souEu: false },
-      { posicao: 2, nome: "Maria S.", pontos: 70, souEu: false },
-      { posicao: 3, nome: "Júlia R.", pontos: 65, souEu: false },
-      { posicao: 4, nome: "Carla B.", pontos: 60, souEu: false },
-      { posicao: 5, nome: "Você", pontos: pontosNoMes, souEu: true },
+      { posicao: 1, nome: "Ana M.", pontos: 75, acumulado: 275, souEu: false },
+      { posicao: 2, nome: "Maria S.", pontos: 70, acumulado: 170, souEu: false },
+      { posicao: 3, nome: "Júlia R.", pontos: 65, acumulado: 190, souEu: false },
+      { posicao: 4, nome: "Carla B.", pontos: 60, acumulado: 60, souEu: false },
+      { posicao: 5, nome: "Você", pontos: pontosNoMes, acumulado: pontosNoMes + 145, souEu: true },
     ].sort((a, b) => b.pontos - a.pontos)
       .map((l, i) => ({ ...l, posicao: i + 1 }));
 
@@ -583,6 +584,29 @@ export const repositorioLocal: Repositorio = {
 
   async cancelarEnvio(envioId: string) {
     guardaEnvios.escrever(guardaEnvios.ler().filter((e) => e.id !== envioId));
+  },
+
+  async registrarIndicacaoPor(_pacienteId: string, nome: string) {
+    const id = `ind-${Date.now()}`;
+    guardaIndicacoes.escrever([
+      ...guardaIndicacoes.ler(),
+      { id, nome, status: "registrada", pontos: 0, criadoEm: new Date().toISOString() },
+    ]);
+    return id;
+  },
+
+  async limparPontosAntigos(confirmar: boolean): Promise<LimpezaDePontos> {
+    // Na demonstração não há livro de pontos; devolve um exemplo para a tela.
+    const hoje = hojeLocal();
+    const d = new Date(Date.UTC(Number(hoje.slice(0, 4)), Number(hoje.slice(5, 7)) - 1 - 3, 1));
+    return {
+      corte: d.toISOString().slice(0, 10),
+      linhas: 6,
+      pacientes: 3,
+      pontos: 240,
+      saldoNegativo: 0,
+      apagou: false && confirmar,
+    };
   },
 
   async registrarIndicacao(nome: string) {

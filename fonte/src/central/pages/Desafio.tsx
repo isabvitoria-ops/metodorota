@@ -165,13 +165,19 @@ export function Desafio() {
                 >
                   <span className="c-ranking-posicao">{linha.posicao}º</span>
                   <span className="c-ranking-nome">{linha.souEu ? "Você" : linha.nome}</span>
-                  <span className="c-ranking-pontos">{linha.pontos} pts</span>
+                  <span className="c-ranking-pontos">
+                    {linha.pontos} pts
+                    {linha.acumulado !== undefined && (
+                      <small className="c-ranking-acumulado">acumulado {linha.acumulado}</small>
+                    )}
+                  </span>
                 </div>
               ))}
             </div>
             <p className="c-dica">
-              O ranking mostra sua constância no desafio, não o seu valor nem o seu resultado
-              corporal.
+              O número grande são os pontos deste mês; o pequeno é o acumulado deste mês e dos 3
+              anteriores. O ranking mostra sua constância no desafio, não o seu valor nem o seu
+              resultado corporal.
             </p>
           </section>
         )}

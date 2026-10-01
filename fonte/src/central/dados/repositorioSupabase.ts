@@ -425,7 +425,17 @@ export const repositorioSupabase: Repositorio = {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("meu_desafio");
     erro("carregar o desafio", error);
-    return (data ?? { temDesafio: false, saldoAcumulado: 0, recompensas: [] }) as MeuDesafio;
+    const desafio = (data ?? { temDesafio: false, saldoAcumulado: 0, recompensas: [] }) as MeuDesafio;
+    // O ranking de `meu_desafio` não traz o acumulado; vem da função do ranking,
+    // na mesma ordem. Se ela falhar, o ranking segue sem o número pequeno.
+    if (desafio.temDesafio && desafio.desafio?.id && (desafio.ranking?.length ?? 0) > 0) {
+      try {
+        desafio.ranking = await repositorioSupabase.rankingDoDesafio(desafio.desafio.id);
+      } catch {
+        /* fica o ranking de antes */
+      }
+    }
+    return desafio;
   },
 
   async enviarAcao(acaoId: string, observacao?: string | null) {
@@ -438,6 +448,38 @@ export const repositorioSupabase: Repositorio = {
     const sb = exigirSupabase();
     const { error } = await sb.rpc("cancelar_envio", { p_envio: envioId });
     erro("desfazer o envio", error);
+  },
+
+  async registrarIndicacaoPor(
+    pacienteId: string,
+    nome: string,
+    email?: string | null,
+    telefone?: string | null,
+  ) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("registrar_indicacao_por", {
+      p_paciente: pacienteId,
+      p_nome: nome,
+      p_email: email ?? null,
+      p_telefone: telefone ?? null,
+    });
+    erro("registrar a indicação", error);
+    return texto(data);
+  },
+
+  async limparPontosAntigos(confirmar: boolean) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("limpar_pontos_antigos", { p_confirmar: confirmar });
+    erro(confirmar ? "limpar os pontos antigos" : "ver os pontos antigos", error);
+    const d = (data ?? {}) as Linha;
+    return {
+      corte: texto(d.corte),
+      linhas: numero(d.linhas),
+      pacientes: numero(d.pacientes),
+      pontos: numero(d.pontos),
+      saldoNegativo: numero(d.saldoNegativo),
+      apagou: d.apagou === true,
+    };
   },
 
   async registrarIndicacao(nome: string, email?: string | null, telefone?: string | null) {
@@ -536,6 +578,7 @@ export const repositorioSupabase: Repositorio = {
       posicao: numero(l.posicao),
       nome: texto(l.nome),
       pontos: numero(l.pontos),
+      acumulado: numero(l.acumulado),
       souEu: l.sou_eu === true,
     }));
   },

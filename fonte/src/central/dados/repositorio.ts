@@ -14,6 +14,7 @@ import type {
   MesDaMinhaEvolucao,
   MesDoHistorico,
   IndicacaoPendente,
+  LimpezaDePontos,
   LinhaDoRanking,
   MarcadorDoAlimento,
   MeuDesafio,
@@ -161,6 +162,18 @@ export interface Repositorio {
   /** Desfaz o próprio envio, enquanto não foi conferido. */
   cancelarEnvio(envioId: string): Promise<void>;
   registrarIndicacao(nome: string, email?: string | null, telefone?: string | null): Promise<void>;
+  /** A nutricionista registra a indicação POR uma paciente (0061). Devolve o id. */
+  registrarIndicacaoPor(
+    pacienteId: string,
+    nome: string,
+    email?: string | null,
+    telefone?: string | null,
+  ): Promise<string>;
+  /**
+   * Mostra (`confirmar` falso) ou faz (verdadeiro) a limpeza dos pontos de mais
+   * de 3 meses atrás. As linhas vão para um arquivo antes de saírem do saldo.
+   */
+  limparPontosAntigos(confirmar: boolean): Promise<LimpezaDePontos>;
 
   // Área da nutricionista
   listarDesafios(): Promise<DesafioAdmin[]>;

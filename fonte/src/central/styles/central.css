@@ -5623,3 +5623,13 @@ body:has(.central) {
   font-weight: 600;
   line-height: 1.4;
 }
+
+/* O acumulado do ranking: pequeno, embaixo do número grande dos pontos do mês. */
+.central .c-ranking-acumulado {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.2;
+  opacity: 0.7;
+  white-space: nowrap;
+}
