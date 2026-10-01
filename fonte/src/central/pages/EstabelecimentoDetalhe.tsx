@@ -3,7 +3,6 @@ import { catalogo } from "@/central/dados/catalogo";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { ConteudoDaCasa } from "@/central/components/ConteudoDaCasa";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
-import { BotaoFavorito } from "@/central/components/BotaoFavorito";
 import { rotas } from "@/central/rotas";
 
 /**
@@ -36,21 +35,10 @@ export function EstabelecimentoDetalhe() {
         titulo={casa.nome}
         descricao={casa.resumo ?? categoria.nome}
         voltarPara={rotas.categoria(categoria.id)}
-        acao={
-          <BotaoFavorito
-            item={{
-              tipo: "categoria",
-              refId: `${categoria.id}/${casa.id}`,
-              titulo: casa.nome,
-              subtitulo: categoria.nome,
-              rota: rotas.estabelecimento(categoria.id, casa.id),
-            }}
-          />
-        }
       />
 
       <div className="c-conteudo">
-        <ConteudoDaCasa casa={casa} categoriaId={categoria.id} categoriaNome={`${categoria.nome} · ${casa.nome}`} />
+        <ConteudoDaCasa casa={casa} />
       </div>
     </>
   );

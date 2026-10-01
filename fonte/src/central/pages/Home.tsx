@@ -8,7 +8,6 @@ import { BarraBusca } from "@/central/components/BarraBusca";
 import { useState } from "react";
 import { rotas } from "@/central/rotas";
 import { useDesafio } from "@/central/hooks/useDesafio";
-import { useFavoritos } from "@/central/hooks/useFavoritos";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 
 /**
@@ -82,19 +81,11 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     titulo: "Meus documentos",
     descricao: "Protocolo, avaliação e rastreio para imprimir e guardar.",
   },
-  {
-    rota: rotas.salvos,
-    grupo: "ferramentas",
-    icone: "salvos",
-    titulo: "Salvos",
-    descricao: "Seus conteúdos guardados.",
-  },
 ];
 
 export function Home() {
   const navegar = useNavigate();
   const [consulta, definirConsulta] = useState("");
-  const salvos = useFavoritos((estado) => estado.itens.length);
   const { acesso, configuracoes, sair } = useSessao();
 
   const primeiroNome = acesso.nome?.trim().split(" ")[0] ?? null;
@@ -192,11 +183,7 @@ export function Home() {
                     </span>
                     <span className="c-atalho-texto">
                       <h3>{atalho.titulo}</h3>
-                      <p>
-                        {atalho.rota === rotas.salvos && salvos > 0
-                          ? `${salvos} ${salvos === 1 ? "item guardado" : "itens guardados"}.`
-                          : atalho.descricao}
-                      </p>
+                      <p>{atalho.descricao}</p>
                     </span>
                     <span className="c-atalho-seta">
                       <Icone nome="seta" tamanho={18} />

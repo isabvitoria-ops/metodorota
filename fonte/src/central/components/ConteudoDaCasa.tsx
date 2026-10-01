@@ -21,13 +21,9 @@ const FILTROS: { valor: NivelEscolha | "todos"; rotulo: string }[] = [
 
 export function ConteudoDaCasa({
   casa,
-  categoriaId,
-  categoriaNome,
   mostrarGrupo = true,
 }: {
   casa: EstabelecimentoComerFora;
-  categoriaId: string;
-  categoriaNome: string;
   /** Dentro da categoria, o grupo já é redundante com o título da tela. */
   mostrarGrupo?: boolean;
 }) {
@@ -84,8 +80,6 @@ export function ConteudoDaCasa({
                 <CartaoOpcao
                   key={opcao.id}
                   opcao={opcao}
-                  categoriaId={categoriaId}
-                  categoriaNome={categoriaNome}
                 />
               ))
             )}

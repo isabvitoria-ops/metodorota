@@ -9,7 +9,6 @@ import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { CampoAlimento } from "@/central/components/CampoAlimento";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { Icone } from "@/central/components/Icone";
-import { BotaoFavorito } from "@/central/components/BotaoFavorito";
 import { useHistorico } from "@/central/hooks/useHistorico";
 import { rotas } from "@/central/rotas";
 import { numeroDeTexto } from "@/central/utils/numero";
@@ -266,18 +265,6 @@ export function TrocaInteligente() {
                 {nota}
               </p>
             ))}
-            <div className="c-resultado-acoes">
-              <BotaoFavorito
-                classe="c-resultado-acao"
-                item={{
-                  tipo: "troca",
-                  refId: `${origem.id}>${destino.id}`,
-                  titulo: `${origem.nome} → ${destino.nome}`,
-                  subtitulo: `${numero(valor)} ${rotuloUnidade(valor, catalogo.unidade(unidadeId), unidadeId)} equivalem a ${numero(resultado.saida.quantidade)} ${rotuloUnidade(resultado.saida.quantidade, catalogo.unidade(resultado.saida.unidadeId), resultado.saida.unidadeId)}`,
-                  rota: rotas.trocaCom(origem.id),
-                }}
-              />
-            </div>
           </section>
         )}
 

@@ -32,7 +32,6 @@ export const rotas = {
   desafio: "/desafio",
   rastreabilidade: "/rastreabilidade",
   diario: "/diario",
-  salvos: "/salvos",
   busca: (consulta?: string) => (consulta ? `/busca?q=${encodeURIComponent(consulta)}` : "/busca"),
   diagnostico: "/diagnostico",
 

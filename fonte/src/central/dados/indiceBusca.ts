@@ -43,14 +43,6 @@ export function indiceBusca(): ItemIndice[] {
       rota: rotas.protocolo,
       palavras: ["protocolo", "dieta", "plano", "cardapio", "refeicao", "alimentar"],
     },
-    {
-      id: "ferramenta:salvos",
-      tipo: "ferramenta",
-      titulo: "Salvos",
-      subtitulo: "Seus conteúdos favoritos",
-      rota: rotas.salvos,
-      palavras: ["salvo", "favorito", "guardado"],
-    },
   ];
 
   for (const alimento of catalogo.alimentos()) {

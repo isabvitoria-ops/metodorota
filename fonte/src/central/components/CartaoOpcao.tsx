@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import type { OpcaoComerFora } from "@/central/types";
 import { Icone } from "./Icone";
 import { Selo } from "./Selo";
-import { BotaoFavorito } from "./BotaoFavorito";
-import { rotas } from "@/central/rotas";
 
 /**
  * Cartão de opção de "Comer fora" (§14).
@@ -18,13 +16,9 @@ import { rotas } from "@/central/rotas";
  */
 export function CartaoOpcao({
   opcao,
-  categoriaId,
-  categoriaNome,
   destacada = false,
 }: {
   opcao: OpcaoComerFora;
-  categoriaId: string;
-  categoriaNome: string;
   /** Veio de um link da busca: rola até ela e marca por um instante. */
   destacada?: boolean;
 }) {
@@ -68,15 +62,6 @@ export function CartaoOpcao({
             />
           )}
         </button>
-        <BotaoFavorito
-          item={{
-            tipo: "opcao",
-            refId: `${categoriaId}:${opcao.id}`,
-            titulo: opcao.titulo,
-            subtitulo: categoriaNome,
-            rota: rotas.opcao(categoriaId, opcao.id),
-          }}
-        />
       </div>
 
       {aberto && temCorpo && (

@@ -6,7 +6,6 @@ import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { CartaoOpcao } from "@/central/components/CartaoOpcao";
 import { ConteudoDaCasa } from "@/central/components/ConteudoDaCasa";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
-import { BotaoFavorito } from "@/central/components/BotaoFavorito";
 import { Icone } from "@/central/components/Icone";
 import { Logo } from "@/central/components/Logo";
 import { rotas } from "@/central/rotas";
@@ -73,17 +72,6 @@ export function CategoriaDetalhe() {
         titulo={categoria.nome}
         descricao={categoria.resumo}
         voltarPara={rotas.comerFora}
-        acao={
-          <BotaoFavorito
-            item={{
-              tipo: "categoria",
-              refId: categoria.id,
-              titulo: categoria.nome,
-              subtitulo: "Comer fora",
-              rota: rotas.categoria(categoria.id),
-            }}
-          />
-        }
       />
 
       <div className="c-conteudo">
@@ -104,8 +92,6 @@ export function CategoriaDetalhe() {
         {casaUnica && (
           <ConteudoDaCasa
             casa={casaUnica}
-            categoriaId={categoria.id}
-            categoriaNome={categoria.nome}
             mostrarGrupo={false}
           />
         )}
@@ -180,8 +166,6 @@ export function CategoriaDetalhe() {
                   <CartaoOpcao
                     key={opcao.id}
                     opcao={opcao}
-                    categoriaId={categoria.id}
-                    categoriaNome={categoria.nome}
                     destacada={opcao.id === opcaoDestacada}
                   />
                 ))

@@ -14,7 +14,6 @@ import { Avaliacao } from "./pages/Avaliacao";
 import { Metas } from "./pages/Metas";
 import { Treino } from "./pages/Treino";
 import { Documentos } from "./pages/Documentos";
-import { Salvos } from "./pages/Salvos";
 import { Busca } from "./pages/Busca";
 import { FaixaDemonstracao } from "./components/FaixaDemonstracao";
 import { FaixaAdmin } from "./components/FaixaAdmin";
@@ -65,7 +64,6 @@ export function CentralApp() {
           <Route path="desafio" element={<Desafio />} />
           <Route path="rastreabilidade" element={<Rastreabilidade />} />
           <Route path="diario" element={<DiarioDeFotosPagina />} />
-          <Route path="salvos" element={<Salvos />} />
           <Route path="busca" element={<Busca />} />
           <Route path="*" element={<Navigate to={rotas.home} replace />} />
         </Routes>
