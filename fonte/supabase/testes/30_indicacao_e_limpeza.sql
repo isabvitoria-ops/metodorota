@@ -154,6 +154,10 @@ select teste('rodar de novo nao faz nada', (:'de_novo'::jsonb ->> 'linhas')::int
 select teste('a paciente NAO le o arquivo (so a nutricionista)',
   (select count(*) from information_schema.role_table_grants where table_name = 'pontos_arquivo' and grantee = 'anon') = 0);
 
+select teste('o arquivo de pontos tem chave primaria', exists (select 1 from pg_constraint where conrelid = 'pontos_arquivo'::regclass and contype = 'p'));
+select teste('as funcoes do aviso de seguranca tem search_path fixo',
+  (select count(*) from pg_proc where proname in ('semana_de', 'situacao_cobranca') and proconfig is not null) = 2);
+
 select case when bool_and(passou) then count(*) || '/' || count(*) || ' verificacoes da indicacao e da limpeza passaram'
             else (count(*) filter (where not passou)) || ' verificacoes da indicacao e da limpeza falharam' end
     as resultado

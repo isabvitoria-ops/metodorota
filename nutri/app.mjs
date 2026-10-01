@@ -34,6 +34,7 @@ import {
   normalizarItem,
   normalizarRefeicao,
   opcaoAtiva,
+  ordenarPorRelevancia,
   porcaoEquivalente,
   refeicaoNova,
   removerOpcao,
@@ -71,8 +72,25 @@ import {
 
 const $ = (id) => document.getElementById(id);
 const num = (v) => {
-  const n = parseFloat(String(v ?? "").replace(",", "."));
+  let texto = String(v ?? "").trim();
+  // "1.234,5": o ponto é de milhar e a vírgula é a decimal. Sem isto, o
+  // parseFloat parava no segundo ponto e lia 1,234.
+  if (texto.includes(",") && texto.includes(".")) texto = texto.replace(/\./g, "");
+  const n = parseFloat(texto.replace(",", "."));
   return Number.isFinite(n) ? n : 0;
+};
+/**
+ * Número que não pode ser negativo (gramas, peso, calorias, macros). Valor
+ * negativo vira zero E o campo fica marcado: antes a conta engolia o "−50" e
+ * SUBTRAÍA 62 kcal do total do dia, sem nenhum aviso.
+ */
+const numNaoNegativo = (v, campo) => {
+  const n = num(v);
+  if (campo) {
+    campo.setAttribute("aria-invalid", n < 0 ? "true" : "false");
+    campo.title = n < 0 ? "Não pode ser negativo — está contando como zero." : "";
+  }
+  return n < 0 ? 0 : n;
 };
 /** Texto que vai para dentro de `innerHTML` sem virar código. */
 const escaparHtml = (t) =>
@@ -210,15 +228,14 @@ async function carregarTaco() {
   montarAlimentos();
 
   $("fonte-taco").innerHTML =
-    `<strong>${TACO.alimentos.length}</strong> alimentos da ${TACO.nome} (${TACO.instituicao})` +
-    (ibge
-      ? `, <strong>${ibge.alimentos.length}</strong> da ${ibge.nome} (${ibge.instituicao})`
-      : "") +
+    `Tabelas carregadas (valores por 100 g): ` +
+    `<strong>TACO</strong> ${TACO.alimentos.length} alimentos (${TACO.nome}, ${TACO.instituicao})` +
+    (ibge ? ` · <strong>IBGE</strong> ${ibge.alimentos.length} (${ibge.nome})` : "") +
     (usda
-      ? ` e <strong>${usda.alimentos.length}</strong> do ${usda.fonte} (${usda.instituicao}) — ` +
-        `esses com o nome em inglês, como vieram; procurar por “manteiga” acha “butter”`
+      ? ` · <strong>USDA</strong> ${usda.alimentos.length} (${usda.fonte}) — esses com o nome em inglês, ` +
+        `como vieram; procurar por “manteiga” acha “butter”`
       : "") +
-    `, por 100 g. Cada alimento mostra de qual tabela veio. ` +
+    `. Cada alimento mostra de qual tabela veio. ` +
     `Valor que a tabela não traz aparece como “—” e não entra como zero na soma.`;
 }
 
@@ -357,7 +374,8 @@ function buscar(termo) {
     .split(/[\s,.;:/()\-]+/)
     .filter(Boolean);
   if (!palavras.length || palavras.join("").length < 2) return [];
-  return ALIMENTOS.filter((a) => palavras.every((p) => a.busca.includes(p))).slice(0, 40);
+  const achados = ALIMENTOS.filter((a) => palavras.every((p) => a.busca.includes(p)));
+  return ordenarPorRelevancia(achados, palavras, semAcento).slice(0, 40);
 }
 
 /** O alimento de um item da dieta, pelo id composto. */
@@ -731,7 +749,7 @@ function desenharDieta() {
         qtdInput.style.width = "64px";
         qtdInput.style.textAlign = "right";
         qtdInput.oninput = () => {
-          item.quantidade = num(qtdInput.value);
+          item.quantidade = numNaoNegativo(qtdInput.value, qtdInput);
           guardarDieta();
           recalcular();
         };
@@ -1302,8 +1320,8 @@ function totais() {
   // "Fibra 10,9 g" sem marca parecia completo quando faltava o frango.
   const marca = (chave) => (incompleto[chave] ? " *" : "");
 
-  const peso = num($("d-peso").value);
-  const meta = num($("d-meta").value);
+  const peso = numNaoNegativo($("d-peso").value, $("d-peso"));
+  const meta = numNaoNegativo($("d-meta").value, $("d-meta"));
   const dist = distribuicao(soma.carboidrato, soma.proteina, soma.lipideos);
 
   // "— g" seria estranho, e "0,0 g" seria mentira: o que não foi medido sai
@@ -1816,12 +1834,12 @@ carregarTaco()
 // ---------------------------------------------------------------------------
 
 function calcularMacros() {
-  const kcal = num($("m-kcal").value);
-  const peso = num($("m-peso").value);
+  const kcal = numNaoNegativo($("m-kcal").value, $("m-kcal"));
+  const peso = numNaoNegativo($("m-peso").value, $("m-peso"));
   const pct = {
-    carboidrato: num($("m-cho").value),
-    proteina: num($("m-ptn").value),
-    lipideo: num($("m-lip").value),
+    carboidrato: numNaoNegativo($("m-cho").value, $("m-cho")),
+    proteina: numNaoNegativo($("m-ptn").value, $("m-ptn")),
+    lipideo: numNaoNegativo($("m-lip").value, $("m-lip")),
   };
   const soma = pct.carboidrato + pct.proteina + pct.lipideo;
 
@@ -1896,7 +1914,13 @@ function calcularMacros() {
         ]
           .map(([t, v, apoio]) => `<div><dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd></div>`)
           .join("") +
-        "</dl>";
+        "</dl>" +
+        // Plausibilidade, não proibição: 7700 kcal/kg é uma conta estática e
+        // não avisa quando o prazo pede um ritmo que ninguém sustenta
+        // (3 dias para perder 10 kg dava "25.667 kcal por dia", sem um aviso).
+        (kgSemana > 1
+          ? `<div class="aviso">Isto é <strong>${mostrar(kgSemana, 1)} kg por semana</strong>. Costuma-se planejar até cerca de 1 kg por semana; um ritmo maior pode ser inviável ou exigir um consumo abaixo do seguro. Confira o prazo.</div>`
+          : "");
 }
 
 for (const campo of document.querySelectorAll("#macros input")) {

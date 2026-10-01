@@ -246,3 +246,40 @@ test("duplicar a refeição copia os substitutos sem compartilhar", () => {
   copia.opcoes[0].itens[0].substitutos.push({ codigo: "x", nome: "", medida: { nome: "g", gramas: 1 } });
   assert.equal(original.opcoes[0].itens[0].substitutos.length, 1);
 });
+
+import { ordenarPorRelevancia } from "./dieta.mjs";
+
+const semAcentoTeste = (x) => String(x).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+test("busca: o nome que COMEÇA pelo termo vem antes do que só o contém", () => {
+  const achados = [
+    { nome: "Coxinha de frango, frita" },
+    { nome: "Empada de frango" },
+    { nome: "Frango, peito, sem pele, cozido" },
+    { nome: "Frango, coxa, assada" },
+  ];
+  const ordenados = ordenarPorRelevancia(achados, ["frango"], semAcentoTeste).map((a) => a.nome);
+  assert.deepEqual(ordenados.slice(0, 2), ["Frango, coxa, assada", "Frango, peito, sem pele, cozido"]);
+  assert.equal(ordenados.length, 4);
+});
+
+test("busca: palavra no começo de OUTRA palavra do nome vence palavra no meio de uma", () => {
+  const achados = [{ nome: "Pão de queijo, com mamão" }, { nome: "Doce de leite com pão" }, { nome: "Compão" }];
+  const r = ordenarPorRelevancia(achados, ["pao"], semAcentoTeste).map((a) => a.nome);
+  assert.equal(r[0], "Pão de queijo, com mamão");
+  assert.equal(r[2], "Compão");
+});
+
+test("busca: empate no mesmo grupo, o nome mais curto vem primeiro; depois, a ordem de antes", () => {
+  const achados = [{ nome: "Arroz, integral, cozido, com feijão" }, { nome: "Arroz, cozido" }, { nome: "Arroz, cozido" }];
+  const r = ordenarPorRelevancia(achados, ["arroz"], semAcentoTeste);
+  assert.equal(r[0], achados[1]);
+  assert.equal(r[1], achados[2]);
+});
+
+test("busca: sem palavras devolve uma cópia na mesma ordem", () => {
+  const achados = [{ nome: "B" }, { nome: "A" }];
+  const r = ordenarPorRelevancia(achados, [], semAcentoTeste);
+  assert.deepEqual(r, achados);
+  assert.notEqual(r, achados);
+});

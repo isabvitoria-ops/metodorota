@@ -35,6 +35,7 @@
         --alerta: #8a6d2f;
       }
       * { box-sizing: border-box; }
+      input[aria-invalid="true"] { border-color: var(--vinho); background: #fbf1f0; }
       body {
         margin: 0;
         background: var(--papel);
@@ -292,7 +293,7 @@
           <button type="button" class="leve" id="copiar">Copiar como texto</button>
           <button type="button" class="leve" onclick="window.print()">Imprimir / PDF</button>
           <button type="button" class="leve" id="limpar-dieta">Limpar</button>
-        </div>
+        </p>
 
         <h2>Meus alimentos e grupos</h2>
         <p class="nota" style="margin-bottom: 10px">
@@ -324,7 +325,6 @@
           <input id="arquivo-tabela" type="file" accept="application/json,.json" aria-label="Arquivo da tabela de alimentos" hidden />
         </div>
         <p class="nota" id="estado-tabela"></p>
-        </p>
       </section>
 
       <!-- ---------------------------------------------------- composição -->

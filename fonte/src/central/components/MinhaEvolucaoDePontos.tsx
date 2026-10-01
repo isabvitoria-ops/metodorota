@@ -5,7 +5,7 @@ import { alturasDasBarras, fraseDoMes, nomeCurtoDoMes, nomeDoMes } from "@/centr
 import { hojeSaoPaulo } from "@/central/utils/situacao";
 
 /**
- * "Minha evolução": os pontos que a paciente fez em cada mês, para ela ver o
+ * "Meus pontos mês a mês": os pontos que a paciente fez em cada mês, para ela ver o
  * caminho andando. Aparece só depois do primeiro ponto — antes disso seria um
  * gráfico de zeros dizendo que ela não fez nada.
  *
@@ -30,7 +30,7 @@ export function MinhaEvolucaoDePontos() {
 
   return (
     <section className="c-secao">
-      <h2 className="c-secao-titulo">Minha evolução</h2>
+      <h2 className="c-secao-titulo">Meus pontos mês a mês</h2>
       {frase && passado && (
         <p className="c-mes-passado">
           <span aria-hidden="true">{passado.posicao === 1 ? "👑" : passado.posicao === 2 ? "🥈" : passado.posicao === 3 ? "🥉" : "🌱"}</span>{" "}

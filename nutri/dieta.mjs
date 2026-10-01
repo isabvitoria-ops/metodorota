@@ -242,3 +242,37 @@ export function removerOpcao(refeicao, indice) {
   r.opcaoAtiva = Math.max(0, Math.min(ativa, r.opcoes.length - 1));
   return r;
 }
+
+/**
+ * Ordena o que a busca achou por RELEVÂNCIA, antes de cortar a lista.
+ *
+ * DEFEITO QUE ISTO CONSERTA: a busca devolvia os primeiros 40 na ordem da
+ * tabela. Procurando "frango", a "Coxinha de frango" vinha antes de "Frango,
+ * peito, sem pele" — e, onde há mais de 40 acertos, o alimento certo podia
+ * ficar de fora da lista sem ninguém perceber.
+ *
+ * A ordem, do melhor para o pior:
+ *   0. o nome COMEÇA pelo que foi digitado ("Frango, peito…");
+ *   1. todas as palavras digitadas começam uma palavra do nome;
+ *   2. o resto (a palavra está no meio de outra, ou só no grupo/apelido).
+ * Empatando, o nome mais curto vem antes ("Arroz, cozido" antes de "Arroz,
+ * integral, cozido, com feijão"); e, empatando de novo, vale a ordem de antes
+ * — a que já põe os alimentos dela na frente das tabelas.
+ *
+ * `achados`: [{ nome, ... }]; `palavras`: as palavras digitadas, sem acento e
+ * em minúsculas. `semAcento` é a mesma função da busca.
+ */
+export function ordenarPorRelevancia(achados, palavras, semAcento) {
+  if (!palavras.length) return [...achados];
+  const primeira = palavras[0];
+  const pontuar = (a) => {
+    const nome = semAcento(a.nome);
+    if (nome.startsWith(primeira)) return 0;
+    const inicios = nome.split(/[\s,.;:/()\-]+/).filter(Boolean);
+    return palavras.every((p) => inicios.some((w) => w.startsWith(p))) ? 1 : 2;
+  };
+  return achados
+    .map((a, i) => ({ a, i, ponto: pontuar(a), tamanho: String(a.nome ?? "").length }))
+    .sort((x, y) => x.ponto - y.ponto || x.tamanho - y.tamanho || x.i - y.i)
+    .map((x) => x.a);
+}
