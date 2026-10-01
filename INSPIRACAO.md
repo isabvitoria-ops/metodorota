@@ -97,7 +97,7 @@ fazer contas.
 - **Diário de fotos** da refeição (a paciente registra, a nutri curte; sem comentário).
 - **Conversa por refeição** ligada à Rastreabilidade.
 - **Meus pontos mês a mês** (evolução, posição no mês) dentro do Desafio.
-- **Nome e ícone na tela inicial**: "Meu Protocolo", com o monograma.
+- **Nome e ícone na tela inicial**: "Protocolo Nutricional", com o monograma.
 - **Tela de diagnóstico** pública (`/diagnostico`) que mostra papel,
   situação de acesso e se o banco respondeu — para eu depurar do lado dela.
 - **Conta**: entrar, definir/recuperar senha, aviso de acesso encerrado
