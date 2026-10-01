@@ -21,6 +21,8 @@ import { PROTOCOLOS } from "./protocolos.mjs";
 import { CATEGORIAS, EQUACOES, equacaoPorId } from "./motor/equacoes.mjs";
 import { calcularGasto, compararEquacoes } from "./motor/gasto.mjs";
 import { fmt as fmtMotor } from "./motor/formato.mjs";
+import { ATIVIDADES_MET } from "./motor/met-dados.mjs";
+import { metPeloNome } from "./motor/met.mjs";
 import {
   CRITERIOS,
   CRITERIO_PADRAO,
@@ -1700,16 +1702,34 @@ function montarGasto() {
   cat.value = "geral";
   listarEquacoes();
 
+  // Lista do Compêndio: um <datalist> só, usado pelas cinco linhas. Digitar filtra;
+  // escolher um item preenche o MET (que continua editável).
+  const lista = document.createElement("datalist");
+  lista.id = "met-lista";
+  for (const [, nome] of ATIVIDADES_MET) {
+    const o = document.createElement("option");
+    o.value = nome;
+    lista.append(o);
+  }
+  document.body.append(lista);
+
   const linhas = $("g-met-linhas");
   for (let i = 0; i < LINHAS_MET; i++) {
     const d = document.createElement("div");
     d.className = "met-linha";
     d.innerHTML =
-      `<input id="met-nome-${i}" type="text" placeholder="Atividade (ex.: corrida)" aria-label="Atividade ${i + 1}" />` +
+      `<input id="met-nome-${i}" type="text" list="met-lista" autocomplete="off" placeholder="Atividade (ex.: corrida)" aria-label="Atividade ${i + 1}" />` +
       `<input id="met-valor-${i}" type="text" inputmode="decimal" placeholder="MET" aria-label="MET da atividade ${i + 1}" />` +
       `<input id="met-min-${i}" type="text" inputmode="decimal" placeholder="min/sessão" aria-label="Minutos por sessão da atividade ${i + 1}" />` +
       `<input id="met-vezes-${i}" type="text" inputmode="decimal" placeholder="vezes/sem." aria-label="Vezes por semana da atividade ${i + 1}" />`;
     linhas.append(d);
+    $(`met-nome-${i}`).addEventListener("input", () => {
+      const met = metPeloNome($(`met-nome-${i}`).value, ATIVIDADES_MET);
+      if (met !== null) {
+        $(`met-valor-${i}`).value = String(met).replace(".", ",");
+        $(`met-valor-${i}`).dispatchEvent(new Event("input", { bubbles: true }));
+      }
+    });
   }
 }
 

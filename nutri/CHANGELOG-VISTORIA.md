@@ -80,3 +80,12 @@ Mande os arquivos/tabelas e essas equações entram.
 obesidade (Weltman, Lahav, Woolcott, US Navy) · 4. Circunferências, RCQ (Bray & Gray), diâmetros e
 fracionamento · 5. Bioimpedância e estimativas de peso/estatura · 6. Pediatria (curvas OMS) ·
 7. Bolso e VENTA com guardas.
+
+## 01/10/2026 — Lista de METs (planilha da nutricionista)
+- `motor/met-dados.mjs`: 602 atividades, na ordem da planilha `tabela_met_dietsystem.xlsx`, nomes
+  como vieram (inclusive erros de digitação do original). Status: em vistoria — o MET de cada item
+  é o da planilha; conferir amostras contra o Compêndio oficial.
+- Tela de gasto, modo "Sedentário + exercícios": o nome da atividade tem busca (lista de 602) e
+  escolher um item preenche o MET (editável). Conta continua LÍQUIDA (MET − 1).
+- Vetor da spec: pular corda 12 MET, 70 kg, 60 min × 3/sem = 360 kcal/dia na conta BRUTA
+  (a do DietSystem); líquida = 330 kcal/dia.

@@ -28,3 +28,32 @@ export function totalDeAtividades(atividades, pesoKg, liquido = true) {
   }));
   return { total: linhas.reduce((s, l) => s + (l.kcal ?? 0), 0), linhas };
 }
+
+/** Tira acento e caixa para a busca: "pedalar" acha "Pedalar", "agua" acha "Água". */
+function chave(texto) {
+  return String(texto).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+/**
+ * Busca por texto na lista de atividades (met-dados.mjs). Todas as palavras
+ * digitadas têm que aparecer no nome, em qualquer ordem. Devolve [] se o texto
+ * for vazio. `lista` é injetável para teste.
+ */
+export function buscarAtividade(texto, lista, limite = 30) {
+  const palavras = chave(texto).split(/\s+/).filter(Boolean);
+  if (!palavras.length) return [];
+  const achadas = [];
+  for (const [numero, nome, met] of lista) {
+    const k = chave(nome);
+    if (palavras.every((p) => k.includes(p))) achadas.push({ numero, nome, met });
+    if (achadas.length >= limite) break;
+  }
+  return achadas;
+}
+
+/** O MET de uma atividade pelo nome EXATO (como vem da lista), ou null. */
+export function metPeloNome(nome, lista) {
+  const alvo = String(nome ?? "").trim();
+  const linha = lista.find(([, n]) => n === alvo);
+  return linha ? linha[2] : null;
+}

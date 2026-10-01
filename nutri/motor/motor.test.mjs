@@ -199,3 +199,33 @@ test("formato: vírgula decimal e sem zeros sobrando; linear() monta fórmula e 
   assert.equal(r.formula, "5 + 10×P − 3×I");
   assert.equal(r.substituicao, "5 + 10×2 − 3×4");
 });
+
+// --- Lista de METs (planilha da nutricionista, 602 itens) -----------------------------------
+import { ATIVIDADES_MET } from "./met-dados.mjs";
+import { buscarAtividade, metPeloNome, kcalDeAtividade as kcalMet } from "./met.mjs";
+
+test("lista de METs: 602 itens, números 1..602, METs entre 0,9 e 18, nomes sem repetição", () => {
+  assert.equal(ATIVIDADES_MET.length, 602);
+  assert.deepEqual(ATIVIDADES_MET.map((l) => l[0]), Array.from({ length: 602 }, (_, i) => i + 1));
+  assert.ok(ATIVIDADES_MET.every((l) => l[2] >= 0.9 && l[2] <= 18 && typeof l[1] === "string" && l[1].length > 3));
+  assert.equal(new Set(ATIVIDADES_MET.map((l) => l[1])).size, 602);
+});
+
+test("lista de METs: pontas conferidas contra a planilha", () => {
+  assert.deepEqual(ATIVIDADES_MET[0], [1, "Pular corda, velocidade moderada, geral", 10]);
+  assert.equal(ATIVIDADES_MET[601][2], 3);
+  assert.equal(metPeloNome("Ciclismo, BMX ou montanha", ATIVIDADES_MET), 8.5);
+});
+
+test("busca de atividade: sem acento, sem caixa, palavras em qualquer ordem", () => {
+  const a = buscarAtividade("CICLISMO estacionario 100", ATIVIDADES_MET);
+  assert.ok(a.length >= 1 && a.every((x) => /estacion/i.test(x.nome.normalize("NFD").replace(/[̀-ͯ]/g, ""))));
+  assert.equal(a[0].met, 5.5);
+  assert.deepEqual(buscarAtividade("   ", ATIVIDADES_MET), []);
+  assert.deepEqual(buscarAtividade("zzzxxyy", ATIVIDADES_MET), []);
+});
+
+test("spec: pular corda rápida (MET 12), 70 kg, 60 min x 3/sem = 360 kcal/dia pela conta BRUTA", () => {
+  assert.equal(Math.round(kcalMet({ met: 12, pesoKg: 70, minutos: 60, vezesPorSemana: 3, liquido: false })), 360);
+  assert.equal(Math.round(kcalMet({ met: 12, pesoKg: 70, minutos: 60, vezesPorSemana: 3 })), 330);
+});
