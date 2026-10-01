@@ -1,7 +1,7 @@
 {
-  "name": "Marvia",
-  "short_name": "Marvia",
-  "description": "Marvia — seu plano, trocas de alimentos, comer fora e acompanhamento.",
+  "name": "MARVIA",
+  "short_name": "MARVIA",
+  "description": "MARVIA — seu plano, trocas de alimentos, comer fora e acompanhamento.",
   "start_url": "/metodorota/",
   "scope": "/metodorota/",
   "display": "standalone",

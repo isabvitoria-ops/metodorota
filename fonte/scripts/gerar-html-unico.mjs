@@ -98,7 +98,7 @@ const faviconEmDados = `data:image/svg+xml;base64,${Buffer.from(favicon).toStrin
 const agora = new Date();
 const versao = agora.toISOString().slice(0, 16).replace("T", " ") + " UTC";
 
-const titulo = html.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? "Marvia";
+const titulo = html.match(/<title>([\s\S]*?)<\/title>/)?.[1] ?? "MARVIA";
 // Nome curto embaixo do ícone (o iOS corta por volta de 12 a 13 letras).
 const nomeNaTela = html.match(/<meta name="apple-mobile-web-app-title" content="([^"]*)"/)?.[1] ?? titulo;
 // Endereço do site no GitHub Pages: o ícone e o manifesto são ARQUIVOS ao lado do
