@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Consulta } from "@/central/types/consulta";
 import { repositorio } from "@/central/dados/repositorio";
 import { AreaTexto, Campo } from "@/central/admin/componentes/Campos";
 import { hojeSaoPaulo } from "@/central/utils/situacao";
+import { apagarRascunho, chaveDoRascunho, guardarRascunho, lerRascunho } from "@/central/utils/rascunho";
 import {
   anotacaoDeHoje,
   comNovaAnotacao,
@@ -36,10 +37,32 @@ export function AbaConsulta({
   aoMudar: () => Promise<void>;
 }) {
   const hoje = hojeSaoPaulo();
-  const [texto, definirTexto] = useState("");
+  const chave = chaveDoRascunho("consulta", pacienteId);
+  const guarda = typeof window === "undefined" ? null : window.localStorage;
+  // O que ela digitou e não salvou volta sozinho: fechar a aba no meio não perde a anotação.
+  const recuperado = useRef(lerRascunho(guarda, chave));
+  const [texto, definirTexto] = useState(recuperado.current);
+  const [avisoRecuperado, definirAvisoRecuperado] = useState(recuperado.current.trim() !== "");
   const [salvando, definirSalvando] = useState(false);
   const [aviso, definirAviso] = useState<string | null>(null);
   const anteriores = consultasAnteriores(consultas, hoje);
+
+  // Rascunho automático: meio segundo depois da última tecla.
+  useEffect(() => {
+    const espera = window.setTimeout(() => guardarRascunho(guarda, chave, texto), 500);
+    return () => window.clearTimeout(espera);
+  }, [texto, chave, guarda]);
+
+  // Se há texto não salvo, o navegador pergunta antes de fechar ou recarregar.
+  useEffect(() => {
+    if (!texto.trim()) return;
+    const avisar = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", avisar);
+    return () => window.removeEventListener("beforeunload", avisar);
+  }, [texto]);
 
   async function salvar() {
     if (!texto.trim()) return;
@@ -48,7 +71,9 @@ export function AbaConsulta({
     try {
       const { id, dados } = anotacaoDeHoje(consultas, texto, hoje, horaSaoPaulo());
       await repositorio.salvarConsulta(id, pacienteId, dados);
+      apagarRascunho(guarda, chave);
       definirTexto("");
+      definirAvisoRecuperado(false);
       await aoMudar();
     } catch (e) {
       definirAviso(e instanceof Error ? e.message : "Não consegui salvar.");
@@ -61,7 +86,14 @@ export function AbaConsulta({
     <>
       <section className="c-bloco c-anotar-consulta">
         <h2 className="c-secao-titulo">Anotar consulta / atendimento</h2>
-        <Campo rotulo="Observações da consulta" dica="Só você vê. A paciente não alcança estas anotações.">
+        <Campo
+          rotulo="Observações da consulta"
+          dica={
+            texto.trim()
+              ? "Só você vê. Rascunho guardado automaticamente neste aparelho até você salvar."
+              : "Só você vê. A paciente não alcança estas anotações."
+          }
+        >
           <AreaTexto
             valor={texto}
             aoMudar={definirTexto}
@@ -69,6 +101,12 @@ export function AbaConsulta({
             placeholder="Registre as observações do atendimento: evolução, ajustes na dieta, queixas, orientações…"
           />
         </Campo>
+
+        {avisoRecuperado && (
+          <div className="c-aviso" role="status">
+            <span>Recuperei o que você tinha digitado e não salvou. Confira e salve quando quiser.</span>
+          </div>
+        )}
 
         {aviso && (
           <div className="c-aviso c-aviso-erro" role="alert">
