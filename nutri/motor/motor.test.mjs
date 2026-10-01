@@ -1,0 +1,201 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { EQUACOES, CATEGORIAS, equacaoPorId } from "./equacoes.mjs";
+import { calcularGasto, compararEquacoes, FA_SEDENTARIO } from "./gasto.mjs";
+import { kcalDeAtividade, totalDeAtividades } from "./met.mjs";
+import { avisosDaEquacao, avisosDoResultado, imc } from "./guardas.mjs";
+import { fmt, linear } from "./formato.mjs";
+
+/**
+ * Os VALORES ESPERADOS abaixo foram recalculados à mão, por fora do código
+ * (cada conta está escrita ao lado). Onde o DietSystem diverge da conta
+ * correta, o teste segue a conta correta.
+ */
+const perto = (a, b, tol = 0.01) => assert.ok(Math.abs(a - b) <= tol, `esperado ${b}, veio ${a}`);
+
+const MULHER_21 = { sexo: "feminino", idade: 21, peso: 90, alturaCm: 178, massaMagra: 50.5 };
+
+test("Mifflin: mulher 21 a, 77,05 kg, 158 cm = 1492; ×1,55 = 2312,6 (spec)", () => {
+  // 10×77,05 + 6,25×158 − 5×21 − 161 = 770,5 + 987,5 − 105 − 161
+  const r = calcularGasto("mifflin", { sexo: "feminino", idade: 21, peso: 77.05, alturaCm: 158 }, { modo: "fa", fa: 1.55 });
+  perto(r.geb, 1492);
+  perto(r.get, 2312.6);
+  assert.match(r.passos[1].texto, /1\.492/);
+});
+
+test("Harris-Benedict 1984: mulher 21 a, 90 kg, 178 cm = 1740,34; ×1,55×1,10 = 2967 (spec)", () => {
+  // 447,593 + 9,247×90 + 3,098×178 − 4,33×21 = 447,593 + 832,23 + 551,444 − 90,93
+  const r = calcularGasto("hb1984", MULHER_21, { modo: "fa", fa: 1 });
+  perto(r.geb, 1740.337);
+  perto(1740.337 * 1.55 * 1.1, 2967, 1);
+});
+
+test("Harris-Benedict 1919, mulher: 655,0955 + 9,5634×90 + 1,8496×178 − 4,6756×21 = 1746,84", () => {
+  perto(calcularGasto("hb1919", MULHER_21).geb, 1746.8427);
+});
+
+test("DRI 2023 19+: mulher 21 a, 90 kg, 178 cm, pouco ativo = 2695,96 (spec)", () => {
+  // 575,77 − 7,01×21 + 6,60×178 + 12,14×90 = 575,77 − 147,21 + 1174,8 + 1092,6
+  const r = calcularGasto("dri2023_19", MULHER_21, { modo: "fa", pa: "pouco_ativo" });
+  perto(r.geb, 2695.96);
+  assert.equal(r.fator, null, "o nível já está dentro da fórmula: sem multiplicar de novo");
+  perto(r.get, 2695.96);
+});
+
+test("EER/IOM adulto: mulher 21 a, 90 kg, 178 cm, PA 1,12 = 2599,7 (spec)", () => {
+  // 354 − 6,91×21 + 1,12×(9,36×90 + 726×1,78) = 208,89 + 1,12×2134,68
+  const r = calcularGasto("eer_adulto", MULHER_21, { modo: "fa", pa: "pouco_ativo" });
+  perto(r.geb, 2599.7, 0.1);
+});
+
+test("EER/IOM adulto, homem: 662 − 9,53×30 + 1,25×(15,91×80 + 539,6×1,80) (PA ativo)", () => {
+  // 662 − 285,9 + 1,25×(1272,8 + 971,28) = 376,1 + 1,25×2244,08 = 376,1 + 2805,1
+  const r = calcularGasto("eer_adulto", { sexo: "masculino", idade: 30, peso: 80, alturaCm: 180 }, { modo: "fa", pa: "ativo" });
+  perto(r.geb, 3181.2, 0.05);
+});
+
+test("DRI 2023 3 a 18: menina 15 a, 55 kg, 160 cm, pouco ativo", () => {
+  // −297,54 − 22,25×15 + 12,77×160 + 14,73×55 = −297,54 − 333,75 + 2043,2 + 810,15
+  const r = calcularGasto("dri2023_3_18", { sexo: "feminino", idade: 15, peso: 55, alturaCm: 160 }, { modo: "fa", pa: "pouco_ativo" });
+  perto(r.geb, 2222.06);
+});
+
+test("Schofield: mulher 21 a, 90 kg = 14,818×90 + 486,6 = 1820,22", () => {
+  perto(calcularGasto("schofield", MULHER_21).geb, 1820.22);
+});
+
+test("Schofield: fronteiras de idade usam a faixa de cima; homem 40 a, 80 kg = 11,472×80 + 873,1", () => {
+  perto(calcularGasto("schofield", { sexo: "masculino", idade: 40, peso: 80 }).geb, 11.472 * 80 + 873.1);
+  perto(calcularGasto("schofield", { sexo: "masculino", idade: 18, peso: 70 }).geb, 15.057 * 70 + 692.2);
+  perto(calcularGasto("schofield", { sexo: "masculino", idade: 2, peso: 12 }).geb, 59.512 * 12 - 30.4);
+});
+
+test("Henry & Rees: mulher 21 a, 90 kg = (0,047×90 + 2,57)×239 = 1625,2; homem 40 a, 80 kg = 1634,76", () => {
+  perto(calcularGasto("henry_rees", MULHER_21).geb, 1625.2);
+  perto(calcularGasto("henry_rees", { sexo: "masculino", idade: 40, peso: 80 }).geb, 1634.76);
+});
+
+test("Atletas: Cunningham, Katch-McArdle, Tinsley (MM 50,5 kg / peso 90 kg)", () => {
+  perto(calcularGasto("cunningham", MULHER_21).geb, 500 + 22 * 50.5); // 1611
+  perto(calcularGasto("katch_mcardle", MULHER_21).geb, 370 + 21.6 * 50.5); // 1460,8
+  perto(calcularGasto("tinsley_mm", MULHER_21).geb, 25.9 * 50.5 + 284); // 1591,95
+  perto(calcularGasto("tinsley_peso", MULHER_21).geb, 24.8 * 90 + 10); // 2242
+});
+
+test("Ten Haaf: a conta em kcal bate com a do artigo em kJ ÷ 4,184 (conferência independente)", () => {
+  // Artigo (kJ/dia): peso: 49,940P + 2459,053E_m − 34,014I + 799,257S + 122,502 | MM: 95,272MM + 2026,161
+  const kjPeso = 49.94 * 90 + 2459.053 * 1.78 - 34.014 * 21 + 799.257 * 0 + 122.502;
+  perto(calcularGasto("tenhaaf_peso", MULHER_21).geb, kjPeso / 4.184, 0.05);
+  const kjMM = 95.272 * 50.5 + 2026.161;
+  perto(calcularGasto("tenhaaf_mm", MULHER_21).geb, kjMM / 4.184, 0.05);
+  // homem (S = 1)
+  const h = { sexo: "masculino", idade: 25, peso: 75, alturaCm: 180, massaMagra: 65 };
+  const kjH = 49.94 * 75 + 2459.053 * 1.8 - 34.014 * 25 + 799.257 + 122.502;
+  perto(calcularGasto("tenhaaf_peso", h).geb, kjH / 4.184, 0.05);
+});
+
+test("Obesidade: Horie = 560,43 + 5,39×90 + 14,14×50,5 = 1759,6; IOM obesidade, mulher PA 1,16 = 2749,32", () => {
+  perto(calcularGasto("horie_waitzberg", MULHER_21).geb, 1759.6);
+  // 448 − 7,95×21 + 1,16×(11,4×90 + 619×1,78)
+  perto(calcularGasto("iom_obesidade", MULHER_21, { modo: "fa", pa: "pouco_ativo" }).geb, 2749.317, 0.01);
+});
+
+test("MET: 8, 77,05 kg, 60 min, 3×/semana → bruto 264,2; líquido (MET−1) 231,2 (spec)", () => {
+  const base = { met: 8, pesoKg: 77.05, minutos: 60, vezesPorSemana: 3 };
+  perto(kcalDeAtividade({ ...base, liquido: false }), 264.2, 0.05);
+  perto(kcalDeAtividade(base), 7 * 77.05 * (3 / 7), 0.01); // 231,15
+  assert.equal(kcalDeAtividade({ ...base, met: 0 }), null);
+  assert.equal(kcalDeAtividade({ ...base, met: 1 }), 0, "1 MET é o repouso: líquido zero");
+  assert.equal(kcalDeAtividade({ ...base, minutos: -5 }), null);
+});
+
+test("FA e MET NÃO se somam: no modo MET a base é sedentária (1,2), sem o fator escolhido", () => {
+  const e = { sexo: "feminino", idade: 21, peso: 77.05, alturaCm: 158 };
+  const exercicios = [{ nome: "Corrida", met: 8, minutos: 60, vezes: 3 }];
+  const fa = calcularGasto("mifflin", e, { modo: "fa", fa: 1.9, exercicios });
+  const met = calcularGasto("mifflin", e, { modo: "met", fa: 1.9, exercicios });
+  perto(fa.get, 1492 * 1.9, 0.01);
+  assert.equal(fa.kcalMet, 0, "no modo FA o exercício NÃO entra por MET");
+  perto(met.get, 1492 * FA_SEDENTARIO + 7 * 77.05 * (3 / 7), 0.01);
+  assert.equal(met.fator, FA_SEDENTARIO, "o 1,9 escolhido é ignorado no modo MET");
+});
+
+test("Equação que já é TEE: o modo MET usa o nível sedentário da fórmula e soma o exercício", () => {
+  const exercicios = [{ nome: "Natação", met: 6, minutos: 45, vezes: 4 }];
+  const r = calcularGasto("dri2023_19", MULHER_21, { modo: "met", pa: "muito_ativo", exercicios });
+  // sedentário: 584,90 − 7,01×21 + 5,72×178 + 11,71×90 = 584,9 − 147,21 + 1018,16 + 1053,9
+  perto(r.geb, 2509.75, 0.01);
+  perto(r.kcalMet, 5 * 90 * 0.75 * (4 / 7), 0.01);
+});
+
+test("o que a spec não expõe NÃO calcula e diz por quê (não se inventa coeficiente)", () => {
+  for (const id of ["dri2023_0_2", "dri2005_0_3", "dri2005_3_8", "eer_9_18"]) {
+    const r = calcularGasto(id, MULHER_21);
+    assert.equal(r.ok, false);
+    assert.equal(r.aguardando, true);
+    assert.match(r.motivo, /tabela|fórmula/i);
+  }
+});
+
+test("entrada faltando não vira zero: devolve o que falta", () => {
+  const r = calcularGasto("mifflin", { sexo: "feminino", idade: 21, peso: 70 });
+  assert.equal(r.ok, false);
+  assert.deepEqual(r.faltando, ["altura"]);
+  assert.equal(calcularGasto("cunningham", { peso: 70 }).ok, false);
+});
+
+test("guardas: idade e IMC fora da validade avisam, sem bloquear", () => {
+  const mif = equacaoPorId("mifflin");
+  assert.equal(avisosDaEquacao(mif, { idade: 15, peso: 60, alturaCm: 165 }).length, 1);
+  assert.equal(avisosDaEquacao(mif, { idade: 30, peso: 60, alturaCm: 165 }).length, 0);
+  const obeso = avisosDaEquacao(mif, { idade: 30, peso: 130, alturaCm: 165 }); // IMC 47,8
+  assert.ok(obeso.some((a) => /IMC/.test(a)));
+  const r = calcularGasto("mifflin", { sexo: "feminino", idade: 15, peso: 60, alturaCm: 165 });
+  assert.equal(r.ok, true, "avisa, mas calcula");
+  assert.ok(r.avisos.length > 0);
+  perto(imc(90, 178), 28.4, 0.05);
+});
+
+test("resultado absurdo nunca sai sem aviso", () => {
+  assert.equal(avisosDoResultado(2000).length, 0);
+  assert.equal(avisosDoResultado(200).length, 1);
+  assert.equal(avisosDoResultado(9000).length, 1);
+});
+
+test("a explicação usa os MESMOS números da conta (fórmula, substituição e resultado)", () => {
+  const r = calcularGasto("mifflin", { sexo: "feminino", idade: 21, peso: 77.05, alturaCm: 158 }, { modo: "fa", fa: 1.55 });
+  assert.equal(r.passos[0].texto, "GEB = 10×P + 6,25×E − 5×I − 161");
+  assert.equal(r.passos[1].texto, "GEB = 10×77,05 + 6,25×158 − 5×21 − 161 = 1.492 kcal");
+});
+
+test("catálogo: cada equação tem fonte e status; as que calculam têm função", () => {
+  const ids = new Set();
+  for (const e of EQUACOES) {
+    assert.ok(!ids.has(e.id), `id repetido: ${e.id}`);
+    ids.add(e.id);
+    assert.ok(e.nome && e.fonte && e.categoria, e.id);
+    assert.ok(CATEGORIAS.some((c) => c.chave === e.categoria), `categoria desconhecida em ${e.id}`);
+    assert.ok(["em_vistoria", "aguardando_fonte"].includes(e.status), e.id);
+    if (e.status === "em_vistoria") assert.equal(typeof e.calcular, "function", e.id);
+    else assert.ok(e.motivo, e.id);
+  }
+  // Geral = 12 equações, como na spec (4 delas aguardando fonte).
+  assert.equal(EQUACOES.filter((e) => e.categoria === "geral").length, 12);
+  assert.equal(EQUACOES.filter((e) => e.categoria === "atletas").length, 6);
+});
+
+test("compararEquacoes devolve só as que calculam, para a tabela de comparação", () => {
+  const lista = compararEquacoes(MULHER_21, { modo: "fa", fa: 1.55, pa: "pouco_ativo" });
+  assert.ok(lista.length >= 10);
+  assert.ok(lista.every((x) => x.resultado.ok));
+});
+
+test("formato: vírgula decimal e sem zeros sobrando; linear() monta fórmula e substituição juntas", () => {
+  assert.equal(fmt(6.25), "6,25");
+  assert.equal(fmt(10), "10");
+  assert.equal(fmt(null), "—");
+  const r = linear(5, [[10, "P", 2], [-3, "I", 4]]);
+  assert.equal(r.valor, 13);
+  assert.equal(r.formula, "5 + 10×P − 3×I");
+  assert.equal(r.substituicao, "5 + 10×2 − 3×4");
+});

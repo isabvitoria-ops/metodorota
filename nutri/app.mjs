@@ -2,17 +2,12 @@ import {
   ATIVIDADE,
   classificarIMC,
   CONVERSOES,
-  cunningham,
   distribuicao,
   FAIXAS_MACROS,
-  faoOms,
-  fatorFao,
-  harrisBenedict,
   imc,
   massaGorda,
   macrosPorPercentual,
   massaMagra,
-  mifflin,
   pesoIdeal,
   relacaoCinturaQuadril,
   riscoCintura,
@@ -23,6 +18,9 @@ import {
   venta,
 } from "./calculos.mjs";
 import { PROTOCOLOS } from "./protocolos.mjs";
+import { CATEGORIAS, EQUACOES, equacaoPorId } from "./motor/equacoes.mjs";
+import { calcularGasto, compararEquacoes } from "./motor/gasto.mjs";
+import { fmt as fmtMotor } from "./motor/formato.mjs";
 import {
   CRITERIOS,
   CRITERIO_PADRAO,
@@ -1679,41 +1677,176 @@ function calcularCorpo() {
       .join("") +
     "</dl>";
 
-  // Gasto energético
-  const fator = num($("c-atividade").value) || 1;
-  const tmbMifflin = mifflin(peso, alturaCm, idade, sexo);
-  const tmbHB = harrisBenedict(peso, alturaCm, idade, sexo);
-  const tmbCun = magra ? cunningham(magra) : null;
-  const tmbFao = faoOms(peso, idade, sexo);
-  const fatorOcupacional = fatorFao($("c-fao").value, idade, sexo);
-
-  $("resultado-energia").innerHTML =
-    "<dl>" +
-    [
-      ["Mifflin-St Jeor", mostrar(tmbMifflin, 0), tmbMifflin ? `total ${mostrar(tmbMifflin * fator, 0)}` : ""],
-      ["Harris-Benedict", mostrar(tmbHB, 0), tmbHB ? `total ${mostrar(tmbHB * fator, 0)}` : ""],
-      ["Cunningham", mostrar(tmbCun, 0), tmbCun ? `total ${mostrar(tmbCun * fator, 0)}` : ""],
-      [
-        "FAO/OMS 1985",
-        mostrar(tmbFao, 0),
-        tmbFao && fatorOcupacional
-          ? `× ${mostrar(fatorOcupacional, 2)} = ${mostrar(tmbFao * fatorOcupacional, 0)}`
-          : "",
-      ],
-    ]
-      .map(([t, v, apoio]) => `<div><dt>${t}</dt><dd>${v}${apoio ? ` <span>${apoio}</span>` : ""}</dd></div>`)
-      .join("") +
-    "</dl>";
-
-  $("aviso-energia").innerHTML =
-    idade && idade < 18
-      ? caixaDeAviso([
-          "Mifflin-St Jeor, Harris-Benedict e Cunningham foram feitas para adultos. " +
-            "Para menores de 18 anos a FAO/OMS acima já usa a faixa da idade; o fator ocupacional é o de adulto.",
-        ])
-      : "";
+  // Gasto energético — o motor (motor/) faz a conta; aqui só se lê a tela.
+  desenharGasto({ sexo, idade, peso, alturaCm, magra });
 
   guardarCorpo();
+}
+
+// ---------------------------------------------------------------------------
+// Gasto energético (motor/)
+// ---------------------------------------------------------------------------
+
+const LINHAS_MET = 5;
+
+function montarGasto() {
+  const cat = $("g-categoria");
+  for (const c of CATEGORIAS) {
+    const o = document.createElement("option");
+    o.value = c.chave;
+    o.textContent = c.rotulo;
+    cat.append(o);
+  }
+  cat.value = "geral";
+  listarEquacoes();
+
+  const linhas = $("g-met-linhas");
+  for (let i = 0; i < LINHAS_MET; i++) {
+    const d = document.createElement("div");
+    d.className = "met-linha";
+    d.innerHTML =
+      `<input id="met-nome-${i}" type="text" placeholder="Atividade (ex.: corrida)" aria-label="Atividade ${i + 1}" />` +
+      `<input id="met-valor-${i}" type="text" inputmode="decimal" placeholder="MET" aria-label="MET da atividade ${i + 1}" />` +
+      `<input id="met-min-${i}" type="text" inputmode="decimal" placeholder="min/sessão" aria-label="Minutos por sessão da atividade ${i + 1}" />` +
+      `<input id="met-vezes-${i}" type="text" inputmode="decimal" placeholder="vezes/sem." aria-label="Vezes por semana da atividade ${i + 1}" />`;
+    linhas.append(d);
+  }
+}
+
+/** As equações da categoria escolhida. Mantém a escolha se ela ainda existir. */
+function listarEquacoes() {
+  const sel = $("g-equacao");
+  const antes = sel.value;
+  sel.innerHTML = "";
+  // As que calculam vêm primeiro; as "aguardando fonte" ficam no fim da lista,
+  // para a primeira opção (a que abre sozinha) ser sempre uma que funciona.
+  const daCategoria = EQUACOES.filter((x) => x.categoria === $("g-categoria").value);
+  const ordenadas = [
+    ...daCategoria.filter((x) => x.padrao),
+    ...daCategoria.filter((x) => !x.padrao && x.status !== "aguardando_fonte"),
+    ...daCategoria.filter((x) => x.status === "aguardando_fonte"),
+  ];
+  for (const e of ordenadas) {
+    const o = document.createElement("option");
+    o.value = e.id;
+    o.textContent = e.nome + (e.status === "aguardando_fonte" ? " — aguardando fonte" : "");
+    sel.append(o);
+  }
+  if ([...sel.options].some((o) => o.value === antes)) sel.value = antes;
+}
+
+/** Os níveis de atividade da equação escolhida (só as que os trazem na fórmula). */
+function montarNiveis(eq) {
+  const seletor = $("g-pa");
+  if (eq.atividade?.tipo !== "pa") return;
+  const atual = seletor.value;
+  seletor.innerHTML = "";
+  for (const n of eq.atividade.niveis) {
+    const o = document.createElement("option");
+    o.value = n.chave;
+    o.textContent = n.rotulo;
+    seletor.append(o);
+  }
+  if ([...seletor.options].some((o) => o.value === atual)) seletor.value = atual;
+}
+
+const explicaModo = {
+  fa: "Um fator só para a atividade do dia inteiro (GET = GEB × fator). Nas equações que já trazem o nível de atividade dentro da fórmula, o nível é o da própria equação.",
+  met: "A base é SEDENTÁRIA (GEB × 1,2) e os exercícios entram à parte pelo MET líquido. O fator de atividade some de propósito: usar os dois contaria a atividade duas vezes.",
+};
+
+function desenharGasto(ctx) {
+  const eq = equacaoPorId($("g-equacao").value);
+  if (!eq) return;
+  const modo = $("g-modo").value;
+  $("g-explica-modo").textContent = explicaModo[modo];
+
+  // O que aparece depende da equação e do modo.
+  const tipo = eq.atividade?.tipo;
+  $("g-fa-caixa").hidden = modo === "met" || tipo === "pa" || tipo === "fao";
+  $("g-fao-caixa").hidden = modo === "met" || tipo !== "fao";
+  $("g-pa-caixa").hidden = modo === "met" || tipo !== "pa";
+  $("g-met").hidden = modo !== "met";
+  $("g-mm-caixa").hidden = !eq.entradas.includes("massaMagra");
+
+  const seletorPa = $("g-pa");
+  montarNiveis(eq);
+
+  const mmDigitada = num($("c-mm").value);
+  const entrada = {
+    sexo: ctx.sexo,
+    idade: ctx.idade,
+    peso: ctx.peso,
+    alturaCm: ctx.alturaCm,
+    massaMagra: mmDigitada > 0 ? mmDigitada : ctx.magra || 0,
+  };
+  const exercicios = [];
+  for (let i = 0; i < LINHAS_MET; i++) {
+    const met = num($(`met-valor-${i}`).value);
+    const minutos = num($(`met-min-${i}`).value);
+    const vezes = num($(`met-vezes-${i}`).value);
+    if (met || minutos || vezes || $(`met-nome-${i}`).value.trim()) {
+      exercicios.push({ nome: $(`met-nome-${i}`).value.trim(), met, minutos, vezes });
+    }
+  }
+  const atividade = {
+    modo,
+    fa: num($("c-atividade").value) || 1,
+    fao: $("c-fao").value,
+    pa: seletorPa.value || "sedentario",
+    exercicios,
+  };
+
+  const selo = eq.status === "aguardando_fonte"
+    ? '<span class="selo-vistoria selo-espera">aguardando fonte</span>'
+    : '<span class="selo-vistoria">em vistoria</span>';
+  const r = calcularGasto(eq, entrada, atividade);
+  const caixa = $("resultado-gasto");
+  const como = $("g-como-corpo");
+
+  if (!r.ok) {
+    caixa.innerHTML = `<p class="nota">${escaparHtml(eq.nome)} ${selo}<br>${escaparHtml(r.motivo ?? "")}</p>`;
+    $("aviso-gasto").innerHTML = "";
+    como.innerHTML = `<p class="nota">${escaparHtml(eq.fonte ?? "")}</p>`;
+  } else {
+    const itens = [
+      [eq.resultado === "get" ? "Gasto da fórmula (TEE/EER)" : "GEB (gasto basal)", mostrar(r.geb, 0, " kcal"), ""],
+    ];
+    if (r.fator) itens.push(["Fator de atividade", mostrar(r.fator, 3), r.modo === "met" ? "sedentário" : ""]);
+    if (r.modo === "met") itens.push(["Exercícios (MET líquido)", mostrar(r.kcalMet, 0, " kcal"), "por dia, em média"]);
+    itens.push(["GET (gasto total)", mostrar(r.get, 0, " kcal"), "por dia"]);
+    caixa.innerHTML =
+      `<p class="nota" style="margin:0 0 8px">${escaparHtml(eq.nome)} ${selo}</p>` +
+      "<dl>" +
+      itens.map(([t, v, ap]) => `<div><dt>${t}</dt><dd>${v}${ap ? ` <span>${ap}</span>` : ""}</dd></div>`).join("") +
+      "</dl>";
+    $("aviso-gasto").innerHTML = caixaDeAviso(r.avisos);
+    como.innerHTML =
+      '<ul class="passos">' +
+      r.passos.map((p) => `<li><strong>${escaparHtml(p.rotulo)}:</strong> <code>${escaparHtml(p.texto)}</code></li>`).join("") +
+      (r.modo === "met" && r.atividades.length
+        ? r.atividades
+            .map((a) => `<li><strong>MET:</strong> <code>${escaparHtml(a.nome || "atividade")} — (${fmtMotor(a.met)} − 1) × ${fmtMotor(ctx.peso)} kg × ${fmtMotor(a.minutos)}/60 h × ${fmtMotor(a.vezes)}/7 = ${a.kcal === null ? "faltam dados" : fmtMotor(a.kcal, 1) + " kcal/dia"}</code></li>`)
+            .join("")
+        : "") +
+      "</ul>" +
+      `<p class="nota"><strong>Fonte:</strong> ${escaparHtml(eq.fonte)}</p>` +
+      (eq.observacao ? `<p class="nota">${escaparHtml(eq.observacao)}</p>` : "") +
+      (eq.conferida ? `<p class="nota"><strong>Conferência:</strong> ${escaparHtml(eq.conferida)}</p>` : "");
+  }
+
+  // Comparação: todas as que calculam, no mesmo modo.
+  const comp = compararEquacoes(entrada, atividade);
+  $("g-comparar").innerHTML = comp.length
+    ? '<table style="margin-top:6px"><tr><th style="text-align:left">Equação</th><th>GEB</th><th>GET</th></tr>' +
+      comp
+        .map(
+          ({ equacao, resultado }) =>
+            `<tr><td style="text-align:left">${escaparHtml(equacao.nome)}</td><td>${mostrar(resultado.geb, 0)}</td><td><strong>${mostrar(resultado.get, 0)}</strong></td></tr>`,
+        )
+        .join("") +
+      "</table>"
+    : '<p class="nota">Preencha sexo, idade, peso e altura para comparar.</p>';
 }
 
 /**
@@ -1729,6 +1862,8 @@ function idsDoCorpo() {
   return [
     "c-data", "c-sexo", "c-idade", "c-peso", "c-altura",
     "c-protocolo", "c-equacao", "c-atividade", "c-fao",
+    "g-categoria", "g-equacao", "g-pa", "g-modo", "c-mm",
+    ...Array.from({ length: LINHAS_MET }, (_, i) => [`met-nome-${i}`, `met-valor-${i}`, `met-min-${i}`, `met-vezes-${i}`]).flat(),
     ...DOBRAS.map(([c]) => `dob-${c}`),
     ...CIRCUNFERENCIAS.map(([c]) => `cir-${c}`),
   ];
@@ -1754,6 +1889,11 @@ document.querySelectorAll("nav button").forEach((botao) => {
 });
 
 camposCorpo();
+montarGasto();
+$("g-categoria").addEventListener("change", () => {
+  listarEquacoes();
+  calcularCorpo();
+});
 for (const campo of document.querySelectorAll("#corpo input, #corpo select")) {
   campo.addEventListener("input", calcularCorpo);
 }
@@ -2075,6 +2215,13 @@ function mostrarFicha(ficha) {
   $("d-peso").value = dieta.peso;
   $("d-meta").value = dieta.meta;
 
+  // As listas do gasto dependem umas das outras (categoria → equação → níveis):
+  // montam-se na ordem ANTES de jogar os valores guardados, senão o valor
+  // não encontra a opção e volta para a primeira.
+  definirCampo("g-categoria", ficha?.corpo?.["g-categoria"]);
+  listarEquacoes();
+  definirCampo("g-equacao", ficha?.corpo?.["g-equacao"]);
+  montarNiveis(equacaoPorId($("g-equacao").value) ?? EQUACOES[0]);
   for (const id of idsDoCorpo()) definirCampo(id, ficha?.corpo?.[id]);
   if (!$("c-data").value) $("c-data").value = hoje();
 

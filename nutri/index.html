@@ -35,6 +35,15 @@
         --alerta: #8a6d2f;
       }
       * { box-sizing: border-box; }
+      details.como { margin-top: 10px; background: var(--carta); border: 1px solid var(--borda); border-radius: 8px; padding: 8px 12px; }
+      details.como summary { cursor: pointer; font-weight: 600; color: var(--verde); }
+      .selo-vistoria { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: #f6ecd5; color: var(--alerta); margin-left: 6px; vertical-align: middle; }
+      .selo-espera { background: #f2e1df; color: var(--vinho); }
+      .passos { margin: 8px 0 0; padding: 0; list-style: none; }
+      .passos li { margin: 4px 0; font-size: 13.5px; }
+      .passos code { background: #f3f0ea; padding: 1px 5px; border-radius: 4px; word-break: break-word; }
+      .met-linha { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+      @media (max-width: 520px) { .met-linha { grid-template-columns: 1fr 1fr; } }
       input[aria-invalid="true"] { border-color: var(--vinho); background: #fbf1f0; }
       body {
         margin: 0;
@@ -378,18 +387,6 @@
             <select id="c-equacao"></select>
             <p class="nota" id="aviso-conversao"></p>
           </div>
-          <div>
-            <label for="c-atividade">Fator de atividade (Mifflin / HB / Cunningham)</label>
-            <select id="c-atividade"></select>
-          </div>
-          <div>
-            <label for="c-fao">Atividade ocupacional (FAO/OMS)</label>
-            <select id="c-fao">
-              <option value="leve">Leve</option>
-              <option value="moderada">Moderada</option>
-              <option value="intensa">Intensa</option>
-            </select>
-          </div>
         </div>
         <p class="nota" id="quais-dobras"></p>
 
@@ -405,12 +402,70 @@
         </p>
 
         <h2>Gasto energético</h2>
-        <div class="painel" id="resultado-energia"></div>
-        <div id="aviso-energia"></div>
+        <div class="linha">
+          <div>
+            <label for="g-categoria">Categoria</label>
+            <select id="g-categoria"></select>
+          </div>
+          <div>
+            <label for="g-equacao">Equação</label>
+            <select id="g-equacao"></select>
+          </div>
+          <div id="g-mm-caixa">
+            <label for="c-mm">Massa magra (kg)</label>
+            <input id="c-mm" type="text" inputmode="decimal" placeholder="vazio = a das dobras" />
+          </div>
+        </div>
+        <div class="linha">
+          <div>
+            <label for="g-modo">Como contar a atividade física</label>
+            <select id="g-modo">
+              <option value="fa">Fator de atividade (um número só)</option>
+              <option value="met">Sedentário + exercícios (MET)</option>
+            </select>
+          </div>
+          <div id="g-fa-caixa">
+            <label for="c-atividade">Fator de atividade</label>
+            <select id="c-atividade"></select>
+          </div>
+          <div id="g-fao-caixa" hidden>
+            <label for="c-fao">Atividade ocupacional (FAO/OMS)</label>
+            <select id="c-fao">
+              <option value="leve">Leve</option>
+              <option value="moderada">Moderada</option>
+              <option value="intensa">Intensa</option>
+            </select>
+          </div>
+          <div id="g-pa-caixa" hidden>
+            <label for="g-pa">Nível de atividade (da equação)</label>
+            <select id="g-pa"></select>
+          </div>
+        </div>
+        <p class="nota" id="g-explica-modo"></p>
+        <div id="g-met" hidden>
+          <p class="nota">
+            Exercícios, pelo MET do Compêndio de Atividades Físicas. Conta só o que passa do
+            repouso — (MET − 1) — porque o gasto basal já inclui o repouso. A lista do
+            Compêndio ainda não está carregada: digite o MET da atividade.
+          </p>
+          <div id="g-met-linhas"></div>
+        </div>
+
+        <div class="painel" id="resultado-gasto"></div>
+        <div id="aviso-gasto"></div>
+        <details class="como" id="g-como" open>
+          <summary>Como este cálculo é feito</summary>
+          <div id="g-como-corpo"></div>
+        </details>
+        <details class="como">
+          <summary>Comparar com as outras equações</summary>
+          <div id="g-comparar"></div>
+        </details>
         <p class="nota">
-          Mifflin-St Jeor (1990), Harris-Benedict revisada por Roza &amp; Shizgal (1984),
-          Cunningham (1980) a partir da massa magra medida, e FAO/OMS (1985) com o fator
-          ocupacional da Tabela 25 — que muda com idade e sexo. Nenhuma foi adaptada.
+          Cada equação mostra a fonte e o estado: <strong>em vistoria</strong> quer dizer que os
+          coeficientes ainda precisam ser conferidos por você contra a fonte (ver
+          CHANGELOG-VISTORIA.md). <strong>Aguardando fonte</strong>: a fórmula não foi exposta
+          e não será inventada.
         </p>
 
         <p style="margin-top: 14px">
