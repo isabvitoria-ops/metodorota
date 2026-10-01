@@ -6,6 +6,7 @@ import { Campo, Texto } from "./componentes/Campos";
 import { BaixarBackup } from "@/central/components/BaixarBackup";
 import { versaoLegivel } from "@/central/utils/versaoDoSite";
 import type { Cupom } from "@/central/types";
+import { TermoELgpd } from "./TermoELgpd";
 
 /**
  * Configurações do app (§46, §47 do briefing).
@@ -160,6 +161,8 @@ export function ConfiguracoesAdmin() {
           {salvando ? "Salvando…" : "Salvar configurações"}
         </button>
       </div>
+
+      <TermoELgpd />
 
       <BaixarBackup />
 

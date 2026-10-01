@@ -5903,3 +5903,38 @@ body:has(.central) {
     scroll-snap-align: start;
   }
 }
+
+/* ---- Termo de uso e privacidade (LGPD) ---- */
+.central .c-termo { max-width: 640px; }
+.central .c-termo-rolagem {
+  max-height: 46vh;
+  overflow-y: auto;
+  margin: 16px 0 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.central .c-termo-rolagem-longa { max-height: none; overflow: visible; }
+.central .c-termo-texto { display: flex; flex-direction: column; gap: 12px; font-size: 15px; line-height: 1.55; color: var(--text); }
+.central .c-termo-texto h2 { font-family: var(--font-display); font-size: 18px; margin: 0; }
+.central .c-termo-texto h3 { font-size: 15px; margin: 0 0 2px; color: var(--primary-dark); }
+.central .c-termo-texto p { margin: 0; white-space: pre-line; }
+.central .c-termo-aceite { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 14px; font-size: 15px; cursor: pointer; }
+.central .c-termo-aceite input { width: 22px; height: 22px; margin-top: 1px; flex: none; accent-color: var(--primary); }
+.central .c-link-discreto { color: var(--text-subtle); font-size: 14px; }
+
+/* ---- Guia "colocar na tela inicial" ---- */
+.central .c-instalar { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+.central .c-instalar-abas { display: flex; flex-wrap: wrap; gap: 8px; }
+.central .c-chip-ativo { background: var(--primary); color: #fff; border-color: var(--primary); }
+.central .c-passos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
+.central .c-passo { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; }
+.central .c-passo-numero {
+  width: 30px; height: 30px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-dark);
+  display: grid; place-items: center; font-weight: 700; font-size: 15px;
+}
+.central .c-passo-corpo h3 { font-size: 16px; margin: 3px 0 2px; }
+.central .c-passo-corpo p { margin: 0 0 8px; font-size: 14.5px; line-height: 1.5; color: var(--text-muted); }
+.central .c-passo-figura { width: 100%; max-width: 340px; height: auto; display: block; }
+.central .c-rodape-links { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 14px; }

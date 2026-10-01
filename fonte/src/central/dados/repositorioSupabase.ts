@@ -1,3 +1,5 @@
+import type { EstadoDoTermo, PedidoLgpd } from "@/central/types";
+import { TERMO_PADRAO } from "./sementes/termo";
 import type {
   MesDaMinhaEvolucao,
   MesDoHistorico,
@@ -2249,6 +2251,98 @@ export const repositorioSupabase: Repositorio = {
       (l): CondutaPendente => ({ ...paraConduta(l), pacienteNome: texto(l.pacienteNome) }),
     );
   },
+
+  // ---------------------------------------------------------------------
+  // Termo de uso, privacidade e direitos (LGPD) — 0063
+  // ---------------------------------------------------------------------
+
+  async lerTermo() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb
+      .from("termo_de_uso")
+      .select("versao, texto, publicado_em")
+      .order("versao", { ascending: false })
+      .limit(1);
+    erro("ler o termo de uso", error);
+    const l = (data ?? [])[0];
+    if (!l) return { versao: 0, texto: TERMO_PADRAO, publicadoEm: null };
+    return { versao: Number(l.versao), texto: texto(l.texto), publicadoEm: textoOuNulo(l.publicado_em) };
+  },
+
+  async meuTermo() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("meu_termo");
+    erro("ver o aceite do termo", error);
+    return paraEstadoDoTermo(data);
+  },
+
+  async aceitarTermo(versao: number) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("aceitar_termo", { p_versao: versao });
+    erro("registrar o aceite", error);
+    return paraEstadoDoTermo(data);
+  },
+
+  async publicarTermo(textoNovo: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("publicar_termo", { p_texto: textoNovo });
+    erro("publicar o termo", error);
+    const d = (data ?? {}) as { versao?: number; mudou?: boolean };
+    return { versao: Number(d.versao ?? 0), mudou: Boolean(d.mudou) };
+  },
+
+  async situacaoDosAceites() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("situacao_dos_aceites");
+    erro("ver os aceites do termo", error);
+    const d = (data ?? {}) as Record<string, number>;
+    return {
+      versao: Number(d.versao ?? 0),
+      aceitaram: Number(d.aceitaram ?? 0),
+      comConta: Number(d.comConta ?? 0),
+      pendentes: Number(d.pendentes ?? 0),
+    };
+  },
+
+  async exportarMeusDados() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("exportar_meus_dados");
+    erro("baixar os meus dados", error);
+    return data;
+  },
+
+  async exportarFichaCompleta(pacienteId: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("exportar_ficha_completa", { p_paciente: pacienteId });
+    erro("exportar a ficha", error);
+    return data;
+  },
+
+  async pedirExclusaoDosMeusDados(motivo: string | null) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("pedir_exclusao_dos_meus_dados", { p_motivo: motivo });
+    erro("pedir a exclusão", error);
+  },
+
+  async meusPedidosLgpd() {
+    return listarPedidosLgpd();
+  },
+
+  async pedidosLgpd() {
+    return listarPedidosLgpd();
+  },
+
+  async concluirBoasVindas() {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("concluir_boas_vindas");
+    erro("registrar as boas-vindas", error);
+  },
+
+  async atenderPedidoLgpd(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("atender_pedido_lgpd", { p_pedido: id });
+    erro("marcar o pedido como atendido", error);
+  },
 };
 
 const REFEICOES_VALIDAS: RefeicaoDoDiario[] = [
@@ -2541,4 +2635,31 @@ function paraSugestao(l: Linha): SugestaoDoCerebro {
     criadoEm: texto(l.criadoEm),
     respondidoEm: textoOuNulo(l.respondidoEm),
   };
+}
+
+function paraEstadoDoTermo(dado: unknown): EstadoDoTermo {
+  const d = (dado ?? {}) as { versao?: number; aceito?: boolean; aceitoEm?: string | null; boasVindasVistas?: boolean };
+  return {
+    versao: Number(d.versao ?? 0),
+    aceito: Boolean(d.aceito),
+    aceitoEm: d.aceitoEm ?? null,
+    boasVindasVistas: Boolean(d.boasVindasVistas),
+  };
+}
+
+async function listarPedidosLgpd(): Promise<PedidoLgpd[]> {
+  const sb = exigirSupabase();
+  const { data, error } = await sb
+    .from("pedidos_lgpd")
+    .select("id, paciente_id, paciente_nome, motivo, criado_em, atendido_em")
+    .order("criado_em", { ascending: false });
+  erro("ler os pedidos de exclusão", error);
+  return (data ?? []).map((l) => ({
+    id: texto(l.id),
+    pacienteId: textoOuNulo(l.paciente_id),
+    pacienteNome: texto(l.paciente_nome),
+    motivo: textoOuNulo(l.motivo),
+    criadoEm: texto(l.criado_em),
+    atendidoEm: textoOuNulo(l.atendido_em),
+  }));
 }

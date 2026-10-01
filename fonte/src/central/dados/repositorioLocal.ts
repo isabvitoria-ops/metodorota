@@ -1,3 +1,4 @@
+import { TERMO_PADRAO } from "./sementes/termo";
 import type {
   MesDaMinhaEvolucao,
   MesDoHistorico,
@@ -2168,6 +2169,48 @@ export const repositorioLocal: Repositorio = {
         .map((c) => ({ ...c, pacienteNome: nomes.get(c.pacienteId) ?? "Paciente" })),
     );
   },
+
+  // ---------------------------------------------------------------------
+  // Termo de uso, privacidade e direitos (LGPD) — 0063
+  // Na demonstração quem usa é a nutricionista, que nunca fica pendente.
+  // ---------------------------------------------------------------------
+
+  async lerTermo() {
+    return { versao: 1, texto: TERMO_PADRAO, publicadoEm: null };
+  },
+  async meuTermo() {
+    return { versao: 1, aceito: true, aceitoEm: null, boasVindasVistas: true };
+  },
+  async aceitarTermo(versao: number) {
+    return { versao, aceito: true, aceitoEm: new Date().toISOString(), boasVindasVistas: true };
+  },
+  async publicarTermo() {
+    return { versao: 1, mudou: false };
+  },
+  async situacaoDosAceites() {
+    return { versao: 1, aceitaram: 0, comConta: 0, pendentes: 0 };
+  },
+  async exportarMeusDados() {
+    return { aviso: "Na demonstração não há dados de paciente para baixar." };
+  },
+  async exportarFichaCompleta(pacienteId: string) {
+    return { aviso: "Na demonstração não há ficha completa para baixar.", pacienteId };
+  },
+  async pedirExclusaoDosMeusDados() {
+    /* nada a fazer na demonstração */
+  },
+  async meusPedidosLgpd() {
+    return [];
+  },
+  async pedidosLgpd() {
+    return [];
+  },
+  async concluirBoasVindas() {
+    /* na demonstração não há paciente */
+  },
+  async atenderPedidoLgpd() {
+    /* nada a fazer na demonstração */
+  },
 };
 
 /**
@@ -2851,6 +2894,7 @@ const MARCACAO_DEMO: Record<string, MarcadorDoAlimento[]> = {
   manga: [{ nome: "Oxalato", nivel: "alta" }],
   "pêra": [{ nome: "Histamina", nivel: "media" }],
   // Pêssego é baixo nos três: fica sem marcação, e é assim que deve ser.
+
 
 };
 

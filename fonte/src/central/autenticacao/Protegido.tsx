@@ -2,6 +2,8 @@ import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { rotas } from "@/central/rotas";
 import { useSessao } from "./SessaoContexto";
+import { TermoDeUso } from "./TermoDeUso";
+import { BoasVindas } from "./BoasVindas";
 
 /**
  * Os portões do frontend.
@@ -42,10 +44,14 @@ export function ExigeSessao({ children }: { children: ReactNode }) {
 
 /** Exige acesso liberado: cadastro vinculado, não suspenso, dentro do período. */
 export function ExigeAcesso({ children }: { children: ReactNode }) {
-  const { pronto, acesso } = useSessao();
+  const { pronto, acesso, termo } = useSessao();
   if (!pronto) return <Carregando />;
   if (!acesso.autenticado) return <Navigate to={rotas.entrar} replace />;
   if (!acesso.temAcesso) return <Navigate to={rotas.semAcesso} replace />;
+  // O termo vem antes de tudo: sem o aceite da versão atual, a paciente só vê o texto.
+  if (acesso.papel !== "admin" && termo && !termo.aceito) return <TermoDeUso />;
+  // Depois do termo, na primeira entrada, o guia de colocar o app na tela inicial.
+  if (acesso.papel !== "admin" && termo && !termo.boasVindasVistas) return <BoasVindas />;
   return <>{children}</>;
 }
 

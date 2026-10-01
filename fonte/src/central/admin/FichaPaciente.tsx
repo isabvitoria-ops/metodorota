@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import type { EventoHistorico, Paciente, Plano } from "@/central/types";
 import { usePacientes } from "@/central/hooks/usePacientes";
+import { repositorio } from "@/central/dados/repositorio";
+import { baixarJson } from "@/central/utils/baixarJson";
 import { SeloSituacao } from "@/central/components/Selo";
 import { dataBonita, hojeSaoPaulo, somarDias } from "@/central/utils/situacao";
 import { Modal } from "./componentes/Modal";
@@ -27,6 +29,7 @@ const ROTULOS_EVENTO: Record<string, string> = {
   suspenso: "Acesso suspenso",
   reativado: "Acesso reativado",
   status_alterado: "Situação alterada",
+  pedido_exclusao_lgpd: "Pediu a exclusão dos dados (LGPD)",
 };
 
 export function FichaPaciente({
@@ -184,9 +187,24 @@ export function FichaPaciente({
                 </div>
               </div>
             ) : (
-              <button type="button" className="c-link" onClick={() => definirConfirmando(true)}>
-                Excluir paciente
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="c-link"
+                  disabled={ocupado}
+                  onClick={() =>
+                    void executar(async () => {
+                      const dados = await repositorio.exportarFichaCompleta(paciente.id);
+                      baixarJson(`ficha-${paciente.nome.replace(/\s+/g, "-").toLowerCase()}-${hojeSaoPaulo()}.json`, dados);
+                    }, "Ficha completa baixada (inclui as suas anotações clínicas).")
+                  }
+                >
+                  Baixar a ficha completa (cópia dos dados)
+                </button>
+                <button type="button" className="c-link" onClick={() => definirConfirmando(true)}>
+                  Excluir paciente
+                </button>
+              </>
             )}
           </div>
 

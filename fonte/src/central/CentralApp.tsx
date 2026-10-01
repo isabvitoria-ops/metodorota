@@ -19,6 +19,7 @@ import { FaixaDemonstracao } from "./components/FaixaDemonstracao";
 import { FaixaAdmin } from "./components/FaixaAdmin";
 import { rotas } from "./rotas";
 import { Questionarios } from "@/central/pages/Questionarios";
+import { InstalarPagina } from "@/central/pages/InstalarPagina";
 
 /**
  * A Central do paciente — a casca.
@@ -65,6 +66,7 @@ export function CentralApp() {
           <Route path="rastreabilidade" element={<Rastreabilidade />} />
           <Route path="diario" element={<DiarioDeFotosPagina />} />
           <Route path="busca" element={<Busca />} />
+          <Route path="instalar" element={<InstalarPagina />} />
           <Route path="*" element={<Navigate to={rotas.home} replace />} />
         </Routes>
         <NavPrincipal />

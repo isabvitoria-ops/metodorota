@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import "@/central/styles/central.css";
 import { ProvedorSessao } from "@/central/autenticacao/SessaoContexto";
+import { Privacidade } from "@/central/autenticacao/Privacidade";
 import { Carregando, ExigeAcesso, ExigeAdmin, ExigeSessao } from "@/central/autenticacao/Protegido";
 import { Entrar } from "@/central/autenticacao/Entrar";
 import { DefinirSenha } from "@/central/autenticacao/DefinirSenha";
@@ -71,6 +72,8 @@ export function App() {
                 sessão para chegar nela seria só ter diagnóstico para quem
                 não precisa. Ela não mostra dado de paciente nenhum. */}
             <Route path={rotas.diagnostico} element={<Diagnostico />} />
+            {/* O termo abre sem login: a paciente o lê ANTES de aceitar. */}
+            <Route path={rotas.privacidade} element={<Privacidade />} />
             <Route
               path={rotas.semAcesso}
               element={

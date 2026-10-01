@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import type { Acesso, Configuracoes } from "@/central/types";
+import type { Acesso, Configuracoes, EstadoDoTermo } from "@/central/types";
 import { MODO_DEMONSTRACAO, supabase } from "@/central/supabase/cliente";
 import { repositorio } from "@/central/dados/repositorio";
 import { hidratar } from "@/central/dados/catalogo";
@@ -67,7 +67,16 @@ interface ValorSessao {
   pronto: boolean;
   acesso: Acesso;
   configuracoes: Configuracoes;
+  /**
+   * O aceite do termo de uso. `null` = não se sabe (demonstração, nutricionista
+   * ou o banco não respondeu): nesses casos a paciente NÃO é barrada. Barrar por
+   * um erro de rede trancaria todo mundo para fora por causa de um aviso.
+   */
+  termo: EstadoDoTermo | null;
   modoDemonstracao: boolean;
+  aceitarTermo(): Promise<void>;
+  /** Registra que a paciente viu as boas-vindas. Nunca volta a aparecer. */
+  concluirBoasVindas(): Promise<void>;
   entrarComSenha(email: string, senha: string): Promise<void>;
   enviarLink(email: string): Promise<void>;
   definirSenha(senha: string): Promise<void>;
@@ -88,6 +97,7 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
   const [pronto, definirPronto] = useState(false);
   const [acesso, definirAcesso] = useState<Acesso>(MODO_DEMONSTRACAO ? ACESSO_DEMONSTRACAO : ACESSO_VAZIO);
   const [configuracoes, definirConfiguracoes] = useState<Configuracoes>(CONFIGURACOES_PADRAO);
+  const [termo, definirTermo] = useState<EstadoDoTermo | null>(null);
 
   const resolver = useCallback(async () => {
     definirCarregando(true);
@@ -116,6 +126,16 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
       hidratar(dados);
       invalidarIndice();
       definirConfiguracoes(dados.configuracoes);
+
+      if (atual.temAcesso && atual.papel !== "admin" && !MODO_DEMONSTRACAO) {
+        try {
+          definirTermo(await repositorio.meuTermo());
+        } catch {
+          definirTermo(null);
+        }
+      } else {
+        definirTermo(null);
+      }
 
       if (atual.temAcesso) {
         void useFavoritos.getState().carregar();
@@ -149,7 +169,24 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
       pronto,
       acesso,
       configuracoes,
+      termo,
       modoDemonstracao: MODO_DEMONSTRACAO,
+
+      async aceitarTermo() {
+        if (!termo) return;
+        definirTermo(await repositorio.aceitarTermo(termo.versao));
+      },
+
+      async concluirBoasVindas() {
+        // Some da tela primeiro: se a rede falhar, ela não fica presa nas
+        // boas-vindas. Pior caso, aparecem de novo no próximo acesso.
+        definirTermo((atual) => (atual ? { ...atual, boasVindasVistas: true } : atual));
+        try {
+          await repositorio.concluirBoasVindas();
+        } catch {
+          /* tenta de novo no próximo acesso */
+        }
+      },
 
       async entrarComSenha(email, senha) {
         if (!supabase) return;
@@ -191,7 +228,7 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
 
       recarregar: resolver,
     }),
-    [acesso, carregando, pronto, configuracoes, resolver],
+    [acesso, carregando, pronto, configuracoes, termo, resolver],
   );
 
   return <Contexto.Provider value={valor}>{children}</Contexto.Provider>;

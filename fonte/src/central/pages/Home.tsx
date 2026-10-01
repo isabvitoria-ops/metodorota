@@ -200,6 +200,14 @@ export function Home() {
             Abrir a área da nutricionista
           </button>
         )}
+        <div className="c-rodape-links">
+          <button type="button" className="c-link c-link-discreto" onClick={() => navegar(rotas.instalar)}>
+            Colocar na tela inicial
+          </button>
+          <button type="button" className="c-link c-link-discreto" onClick={() => navegar(rotas.privacidade)}>
+            Privacidade e meus dados
+          </button>
+        </div>
       </div>
     </>
   );

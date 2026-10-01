@@ -34,6 +34,10 @@ export const rotas = {
   diario: "/diario",
   busca: (consulta?: string) => (consulta ? `/busca?q=${encodeURIComponent(consulta)}` : "/busca"),
   diagnostico: "/diagnostico",
+  /** Termo de uso e privacidade; abre sem login. */
+  privacidade: "/privacidade",
+  /** Guia de como colocar o app na tela inicial do celular. */
+  instalar: "/instalar",
 
   // Conta
   entrar: "/entrar",

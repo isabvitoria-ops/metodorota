@@ -1,3 +1,4 @@
+import type { EstadoDoTermo, PedidoLgpd, SituacaoDosAceites, TermoDeUso } from "@/central/types";
 import type {
   AcaoAdmin,
   Alimento,
@@ -814,6 +815,31 @@ export interface Repositorio {
   excluirConduta(id: string): Promise<void>;
   /** Tudo o que não está concluído, de todas as pacientes. */
   condutasPendentes(): Promise<CondutaPendente[]>;
+
+  // ---------------------------------------------------------------------
+  // Termo de uso, privacidade e direitos (LGPD) — 0063
+  // ---------------------------------------------------------------------
+
+  /** A versão atual do termo. Abre sem login. */
+  lerTermo(): Promise<TermoDeUso>;
+  /** Se quem está usando já aceitou a versão atual. */
+  meuTermo(): Promise<EstadoDoTermo>;
+  aceitarTermo(versao: number): Promise<EstadoDoTermo>;
+  /** Publica texto novo (sobe a versão e todas aceitam de novo). */
+  publicarTermo(texto: string): Promise<{ versao: number; mudou: boolean }>;
+  situacaoDosAceites(): Promise<SituacaoDosAceites>;
+  /** A cópia dos dados da própria paciente (sem as anotações clínicas). */
+  exportarMeusDados(): Promise<unknown>;
+  /** A ficha completa, para a nutricionista entregar a pedido formal. */
+  exportarFichaCompleta(pacienteId: string): Promise<unknown>;
+  pedirExclusaoDosMeusDados(motivo: string | null): Promise<void>;
+  /** Os pedidos da própria paciente (ela vê se já foi atendido). */
+  meusPedidosLgpd(): Promise<PedidoLgpd[]>;
+  /** Todos os pedidos, para a nutricionista. */
+  pedidosLgpd(): Promise<PedidoLgpd[]>;
+  atenderPedidoLgpd(id: string): Promise<void>;
+  /** Marca que a paciente já viu as boas-vindas (uma vez só, para sempre). */
+  concluirBoasVindas(): Promise<void>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

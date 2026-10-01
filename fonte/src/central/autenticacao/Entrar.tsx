@@ -74,6 +74,9 @@ export function Entrar() {
           <button type="button" className="c-link" onClick={() => navegar(rotas.recuperarSenha)}>
             Esqueci minha senha
           </button>
+          <button type="button" className="c-link" onClick={() => navegar(rotas.privacidade)}>
+            Privacidade
+          </button>
         </>
       }
     >

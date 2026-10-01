@@ -12,3 +12,4 @@ export type * from "./treino";
 export type * from "./questionario";
 export type * from "./fase";
 export type * from "./exame";
+export type * from "./lgpd";
