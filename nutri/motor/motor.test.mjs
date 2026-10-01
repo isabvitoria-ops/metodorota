@@ -129,7 +129,7 @@ test("Equação que já é TEE: o modo MET usa o nível sedentário da fórmula 
 });
 
 test("o que a spec não expõe NÃO calcula e diz por quê (não se inventa coeficiente)", () => {
-  for (const id of ["dri2023_0_2", "dri2005_0_3", "dri2005_3_8", "eer_9_18"]) {
+  for (const id of ["dri2023_0_2", "dri2023_lact1_14", "dri2023_lact2_14", "gestante_14_19"]) {
     const r = calcularGasto(id, MULHER_21);
     assert.equal(r.ok, false);
     assert.equal(r.aguardando, true);
@@ -228,4 +228,83 @@ test("busca de atividade: sem acento, sem caixa, palavras em qualquer ordem", ()
 test("spec: pular corda rápida (MET 12), 70 kg, 60 min x 3/sem = 360 kcal/dia pela conta BRUTA", () => {
   assert.equal(Math.round(kcalMet({ met: 12, pesoKg: 70, minutos: 60, vezesPorSemana: 3, liquido: false })), 360);
   assert.equal(Math.round(kcalMet({ met: 12, pesoKg: 70, minutos: 60, vezesPorSemana: 3 })), 330);
+});
+
+// --- Etapa 2: IOM infantil, gestantes, lactantes, Bolso ----------------------------------------
+import { regraDeBolso } from "./bolso.mjs";
+import { trimestreDa, deposicaoPorImc } from "./equacoes.mjs";
+
+const MULHER = { sexo: "feminino", idade: 22, peso: 70, alturaCm: 170 };
+const arred = (x) => Math.round(x);
+
+test("catálogo: 28 equações, só 4 aguardando fonte (nenhuma inventada)", () => {
+  assert.equal(EQUACOES.length, 28);
+  assert.deepEqual(
+    EQUACOES.filter((e) => e.status === "aguardando_fonte").map((e) => e.id).sort(),
+    ["dri2023_0_2", "dri2023_lact1_14", "dri2023_lact2_14", "gestante_14_19"],
+  );
+});
+
+test("vetor DietSystem: EER/IOM 9-18, menina, PA 1,00 = 1.771 kcal", () => {
+  const r = calcularGasto("eer_9_18", MULHER, { pa: "sedentario" });
+  assert.equal(arred(r.get), 1771);
+});
+
+test("EER 3-8 anos usa +20 e 9-18 usa +25; PA da menina 1,16 / menino 1,13 no pouco ativo", () => {
+  const menina = { sexo: "feminino", idade: 6, peso: 20, alturaCm: 115 };
+  const sed = calcularGasto("dri2005_3_8", menina, { pa: "sedentario" }).get;
+  assert.equal(arred(sed), arred(135.3 - 30.8 * 6 + (10 * 20 + 934 * 1.15) + 20));
+  const pouco = calcularGasto("dri2005_3_8", menina, { pa: "pouco_ativo" }).get;
+  assert.equal(arred(pouco), arred(135.3 - 30.8 * 6 + 1.16 * (10 * 20 + 934 * 1.15) + 20));
+  const menino = { sexo: "masculino", idade: 12, peso: 40, alturaCm: 150 };
+  const m = calcularGasto("eer_9_18", menino, { pa: "pouco_ativo" }).get;
+  assert.equal(arred(m), arred(88.5 - 61.9 * 12 + 1.13 * (26.7 * 40 + 903 * 1.5) + 25));
+});
+
+test("DRI 2005 0-3 anos: acréscimo por faixa de meses e exigência da idade em meses", () => {
+  const conta = (meses) => calcularGasto("dri2005_0_3", { peso: 6, idadeMeses: meses }, {}).get;
+  assert.equal(conta(2), 89 * 6 - 100 + 175);
+  assert.equal(conta(5), 89 * 6 - 100 + 56);
+  assert.equal(conta(10), 89 * 6 - 100 + 22);
+  assert.equal(conta(20), 89 * 6 - 100 + 20);
+  const sem = calcularGasto("dri2005_0_3", { peso: 6 }, {});
+  assert.equal(sem.ok, false);
+});
+
+test("vetor DietSystem: gestante 19+ (IOM), PA 1,00: 2.091 / 2.431 / 2.543 por trimestre", () => {
+  const por = (sg) => arred(calcularGasto("gestante_19", { ...MULHER, semanaGestacional: sg }, { pa: "sedentario" }).get);
+  assert.equal(por(8), 2091);
+  assert.equal(por(20), 2431);
+  assert.equal(por(30), 2543);
+  assert.deepEqual([trimestreDa(13), trimestreDa(14), trimestreDa(27), trimestreDa(28)], [1, 2, 2, 3]);
+});
+
+test("vetor DietSystem: lactante NASEM inativa, 1º semestre 2.623 e 2º semestre 2.603", () => {
+  assert.equal(arred(calcularGasto("dri2023_lact1_19", MULHER, { pa: "sedentario" }).get), 2623);
+  assert.equal(arred(calcularGasto("dri2023_lact2_19", MULHER, { pa: "sedentario" }).get), 2603);
+});
+
+test("DRI 2023 gestante: fórmula do nível + 9,16×SG + deposição pelo IMC pré-gestacional", () => {
+  const base = 1131.2 - 2.04 * 22 + 0.34 * 170 + 12.15 * 70 + 9.16 * 20;
+  const r = calcularGasto("dri2023_gestante", { ...MULHER, semanaGestacional: 20 }, { pa: "sedentario" });
+  assert.ok(Math.abs(r.get - (base + 200)) < 0.01); // IMC 24,2 = eutrófica = +200
+  // Com peso pré-gestacional de obesa (95 kg, IMC 32,9): -50
+  const ob = calcularGasto("dri2023_gestante", { ...MULHER, semanaGestacional: 20, pesoPreGestacional: 95 }, { pa: "sedentario" });
+  assert.ok(Math.abs(ob.get - (base - 50)) < 0.01);
+  assert.deepEqual([18.4, 18.5, 24.9, 25, 29.9, 30].map((i) => deposicaoPorImc(i).kcal), [300, 200, 200, 150, 150, -50]);
+  // 1º trimestre: a fórmula não cobre, e diz o que fazer
+  const primeiro = calcularGasto("dri2023_gestante", { ...MULHER, semanaGestacional: 8 }, {});
+  assert.equal(primeiro.ok, false);
+  assert.match(primeiro.motivo, /1º trimestre/);
+});
+
+test("equações aguardando fonte continuam sem calcular, e dizem por quê", () => {
+  const r = calcularGasto("gestante_14_19", { ...MULHER, idade: 17, semanaGestacional: 20 }, {});
+  assert.equal(r.ok, false);
+  assert.equal(r.aguardando, true);
+});
+
+test("regra de bolso: 70 kg = 1.400–1.750 (perder) e 2.100–2.450 (ganhar)", () => {
+  assert.deepEqual(regraDeBolso(70), { perda: [1400, 1750], ganho: [2100, 2450] });
+  assert.equal(regraDeBolso(0), null);
 });

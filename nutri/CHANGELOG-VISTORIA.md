@@ -89,3 +89,27 @@ fracionamento · 5. Bioimpedância e estimativas de peso/estatura · 6. Pediatri
   escolher um item preenche o MET (editável). Conta continua LÍQUIDA (MET − 1).
 - Vetor da spec: pular corda 12 MET, 70 kg, 60 min × 3/sem = 360 kcal/dia na conta BRUTA
   (a do DietSystem); líquida = 330 kcal/dia.
+
+## 01/10/2026 — Etapa 2 do gasto energético (documento `prompt_code_antropometria_gasto_energetico.docx`)
+Catálogo completo: **28 equações** (as do DietSystem). 24 calculam; 4 seguem "aguardando fonte".
+
+Entraram (todas "em vistoria"):
+- **EER/IOM 9-18 anos** e **DRI 2005 3-8 anos** (menina e menino, 4 níveis de PA). Vetor medido no
+  DietSystem: menina 22 a, 170 cm, 70 kg, PA 1,00 = 1.771 kcal ✔. Menino e 3-8 anos vêm da literatura
+  (o documento diz isso): sem conferência independente.
+- **DRI 2005 0-3 anos** (EER por meses: +175 / +56 / +22 / +20). Pede a idade em MESES.
+- **Gestante 19+ (IOM)**: EER adulta feminina + 0 / 340 / 452 por trimestre. Vetor ✔ 2.091 / 2.431 / 2.543.
+- **DRI 2023 Gestante**: fórmula por nível + 9,16×SG + deposição pelo IMC pré-gestacional
+  (+300 / +200 / +150 / −50). Só 2º e 3º trimestres (SG ≥ 14); no 1º a tela explica o que usar.
+- **Lactante DRI 2023, 19+**: mulher adulta + 400 (1º semestre) ou + 380 (2º). Vetor ✔ 2.623 / 2.603.
+- **Regra de bolso**: 20-25 kcal/kg (perder), 30-35 kcal/kg (ganhar) — 70 kg: 1.400-1.750 / 2.100-2.450.
+
+DIVERGÊNCIAS / O QUE FICA PARA CONFERIR NA FONTE (nada foi escolhido em silêncio):
+1. **DRI 2023 Gestante: qual peso é o "P"?** O documento só diz "P (kg)". Usei o peso ATUAL informado.
+   Se a NASEM define P como peso pré-gestacional, o resultado muda. Conferir.
+2. **Acréscimos de lactação (+400/+380) e de gestação IOM (+340/+452)** foram INFERIDOS pelo
+   documento a partir de testes no DietSystem. Conferir na publicação.
+3. **Lactante e gestante de 14-19 anos**, e **DRI 2023 0-2 anos**: o documento não traz as fórmulas.
+   Continuam sem calcular (3 + 1 equações). Precisam das tabelas da NASEM/IOM.
+4. **Fator de injúria**: o documento não traz valores (só diz que não existe na calculadora). Não implementado.
+5. DRI 2005 0-3: o piso de digitação do peso passou a 2 kg quando a idade está vazia ou < 10 anos.

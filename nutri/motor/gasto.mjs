@@ -35,6 +35,8 @@ export function calcularGasto(equacaoOuId, entrada, atividade = {}) {
   if (precisa.has("sexo") && !entrada.sexo) faltando.push("sexo");
   if (precisa.has("massaMagra") && !(entrada.massaMagra > 0)) faltando.push("massa magra");
   if (faltando.length) return { ok: false, faltando, motivo: `Preencha: ${faltando.join(", ")}.`, equacao };
+  const impedimento = equacao.validar?.(entrada);
+  if (impedimento) return { ok: false, motivo: impedimento, equacao };
 
   const modo = atividade.modo === "met" ? "met" : "fa";
   const liquido = atividade.liquido !== false;

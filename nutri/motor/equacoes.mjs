@@ -108,6 +108,69 @@ const SCHOFIELD = {
 /** O mesmo texto de PA para o painel "Como este cálculo é feito". */
 const rotuloNivel = (lista, chave) => lista.find((n) => n.chave === chave)?.rotulo ?? chave;
 
+// ---- EER/IOM 2005 de crianças e adolescentes (3 a 18 anos) ----
+const PA_CRIANCA = {
+  masculino: { sedentario: 1.0, pouco_ativo: 1.13, ativo: 1.26, muito_ativo: 1.42 },
+  feminino: { sedentario: 1.0, pouco_ativo: 1.16, ativo: 1.31, muito_ativo: 1.56 },
+};
+
+/** `crescimento`: kcal de depósito de energia (20 de 3 a 8 anos; 25 de 9 a 18). */
+function eerCrianca(e, crescimento) {
+  const h = e.sexo === "masculino";
+  const pa = PA_CRIANCA[h ? "masculino" : "feminino"][e.pa ?? "sedentario"];
+  const m = e.alturaCm / 100;
+  const [k, ci, cp, ch] = h ? [88.5, -61.9, 26.7, 903] : [135.3, -30.8, 10.0, 934];
+  return {
+    valor: k + ci * e.idade + pa * (cp * e.peso + ch * m) + crescimento,
+    formula: `EER = ${fmt(k)} − ${fmt(Math.abs(ci))}×I + PA×(${fmt(cp)}×P + ${fmt(ch)}×E_m) + ${crescimento}`,
+    substituicao: `EER = ${fmt(k)} − ${fmt(Math.abs(ci))}×${fmt(e.idade)} + ${fmt(pa)}×(${fmt(cp)}×${fmt(e.peso)} + ${fmt(ch)}×${fmt(m)}) + ${crescimento}`,
+    extra: { pa },
+  };
+}
+
+// ---- Gestação e lactação ----
+/** Trimestre pela semana gestacional (1º até a 13ª; 2º da 14ª à 27ª; 3º a partir da 28ª). */
+export function trimestreDa(semana) {
+  return semana < 14 ? 1 : semana < 28 ? 2 : 3;
+}
+
+/** Deposição de energia pelo IMC pré-gestacional (DRI 2023). */
+export function deposicaoPorImc(imcPre) {
+  if (imcPre < 18.5) return { kcal: 300, classe: "baixo peso" };
+  if (imcPre < 25) return { kcal: 200, classe: "eutrófica" };
+  if (imcPre < 30) return { kcal: 150, classe: "sobrepeso" };
+  return { kcal: -50, classe: "obesa" };
+}
+
+const DRI2023_GESTANTE = {
+  sedentario: [1131.2, 0.34, 12.15],
+  pouco_ativo: [693.35, 5.73, 10.2],
+  ativo: [-223.84, 13.23, 8.15],
+  muito_ativo: [-779.72, 18.45, 8.73],
+  idadeCoef: -2.04,
+  semanaCoef: 9.16,
+};
+
+/** A conta de uma mulher adulta da DRI 2023 (usada pela lactante). */
+function dri2023Mulher(e) {
+  const [k, ce, cp] = DRI2023_ADULTO.feminino[e.pa ?? "sedentario"];
+  return linear(k, [
+    [DRI2023_ADULTO.idadeCoef.feminino, "I", e.idade],
+    [ce, "E", e.alturaCm],
+    [cp, "P", e.peso],
+  ]);
+}
+
+/** Lactante: a mulher adulta da DRI 2023 + acréscimo do semestre de lactação. */
+function lactante(e, acrescimo, rotuloSemestre) {
+  const r = dri2023Mulher(e);
+  return {
+    valor: r.valor + acrescimo,
+    formula: `TEE = ${r.formula} + ${acrescimo} (${rotuloSemestre})`,
+    substituicao: `TEE = ${r.substituicao} + ${acrescimo}`,
+  };
+}
+
 export const EQUACOES = [
   // ------------------------------------------------------------------ GERAL
   {
@@ -129,11 +192,22 @@ export const EQUACOES = [
     categoria: "geral",
     sexo: "ambos",
     idade: [0, 3],
-    entradas: ["peso", "idade"],
+    entradas: ["peso", "idadeMeses"],
     resultado: "get",
-    status: "aguardando_fonte",
-    motivo: "Fórmula não exposta na spec. Envie a tabela da IOM (2005) para implementar.",
-    fonte: "IOM. Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. 2005.",
+    status: "em_vistoria",
+    fonte: "IOM. Dietary Reference Intakes for Energy, Carbohydrate, Fiber, Fat, Fatty Acids, Cholesterol, Protein, and Amino Acids. 2005 (EER de 0 a 35 meses).",
+    observacao:
+      "Pede a idade em MESES. EER = (89×P − 100) + acréscimo de crescimento: 0-3 meses +175; 4-6 +56; 7-12 +22; 13-35 +20. Fórmula da literatura (o DietSystem não a exibe): conferir na fonte antes de uso clínico.",
+    validar: (e) => (e.idadeMeses >= 0 && e.idadeMeses < 36 ? null : "Informe a idade em meses (0 a 35) no campo que aparece para esta equação."),
+    calcular(e) {
+      const m = e.idadeMeses;
+      const add = m <= 3 ? 175 : m <= 6 ? 56 : m <= 12 ? 22 : 20;
+      return {
+        valor: 89 * e.peso - 100 + add,
+        formula: `EER = (89×P − 100) + ${add}`,
+        substituicao: `EER = (89×${fmt(e.peso)} − 100) + ${add}`,
+      };
+    },
   },
   {
     id: "dri2023_3_18",
@@ -192,9 +266,12 @@ export const EQUACOES = [
     idade: [3, 8],
     entradas: ["peso", "altura", "idade", "sexo"],
     resultado: "get",
-    status: "aguardando_fonte",
-    motivo: "Fórmula não exposta na spec. Envie a tabela da IOM (2005) para implementar.",
-    fonte: "IOM. DRI for Energy... 2005.",
+    atividade: { tipo: "pa", niveis: NIVEIS_IOM },
+    status: "em_vistoria",
+    fonte: "IOM. Dietary Reference Intakes for Energy... 2005 (EER de crianças, 3 a 8 anos).",
+    observacao:
+      "O PA já está na fórmula; altura em metros. Fórmula da literatura (o DietSystem não a exibe): a menina com PA 1,00 foi conferida contra o valor medido no DietSystem; o menino e os demais PA não foram conferidos de forma independente.",
+    calcular: (e) => eerCrianca(e, 20),
   },
   {
     id: "eer_9_18",
@@ -204,9 +281,13 @@ export const EQUACOES = [
     idade: [9, 18],
     entradas: ["peso", "altura", "idade", "sexo"],
     resultado: "get",
-    status: "aguardando_fonte",
-    motivo: "Fórmula não exposta na spec. Envie a tabela da IOM (2005) para implementar.",
-    fonte: "IOM. DRI for Energy... 2005.",
+    atividade: { tipo: "pa", niveis: NIVEIS_IOM },
+    status: "em_vistoria",
+    fonte: "IOM. Dietary Reference Intakes for Energy... 2005 (EER de adolescentes, 9 a 18 anos, peso saudável).",
+    observacao:
+      "O PA já está na fórmula; altura em metros. Menina de 22 anos, 170 cm, 70 kg, PA 1,00 = 1.771 kcal, igual ao valor medido no DietSystem. O menino vem da literatura.",
+    conferida: "Vetor: 135,3 − 30,8×22 + 1,00×(10,0×70 + 934×1,70) + 25 = 1.770,5 kcal (DietSystem: 1.771).",
+    calcular: (e) => eerCrianca(e, 25),
   },
   {
     id: "eer_adulto",
@@ -477,6 +558,144 @@ export const EQUACOES = [
     },
   },
 
+  // ------------------------------------------------------------- LACTANTES
+  {
+    id: "dri2023_lact1_19",
+    nome: "DRI 2023 - Lactante 1º semestre (19+ anos)",
+    categoria: "lactantes",
+    sexo: "feminino",
+    idade: [19, 120],
+    entradas: ["peso", "altura", "idade"],
+    resultado: "get",
+    atividade: { tipo: "pa", niveis: NIVEIS_DRI2023 },
+    status: "em_vistoria",
+    fonte: "NASEM. Dietary Reference Intakes for Energy. 2023.",
+    observacao:
+      "INFERIDO, não publicado pelo DietSystem: é a equação da mulher adulta (DRI 2023, 19+) no nível escolhido + 400 kcal. O acréscimo foi deduzido de testes no DietSystem (2.223 → 2.623); conferir na publicação da NASEM antes de uso clínico. Meses 1 a 6 de lactação.",
+    conferida: "Vetor do DietSystem: 22 anos, 170 cm, 70 kg, inativa = 2.223 + 400 = 2.623 kcal.",
+    calcular: (e) => lactante(e, 400, "1º semestre"),
+  },
+  {
+    id: "dri2023_lact2_19",
+    nome: "DRI 2023 - Lactante 2º semestre (19+ anos)",
+    categoria: "lactantes",
+    sexo: "feminino",
+    idade: [19, 120],
+    entradas: ["peso", "altura", "idade"],
+    resultado: "get",
+    atividade: { tipo: "pa", niveis: NIVEIS_DRI2023 },
+    status: "em_vistoria",
+    fonte: "NASEM. Dietary Reference Intakes for Energy. 2023.",
+    observacao:
+      "INFERIDO, não publicado pelo DietSystem: mulher adulta (DRI 2023, 19+) + 380 kcal. Deduzido de testes no DietSystem (2.223 → 2.603); conferir na NASEM antes de uso clínico. Meses 7 a 12 de lactação.",
+    conferida: "Vetor do DietSystem: 22 anos, 170 cm, 70 kg, inativa = 2.223 + 380 = 2.603 kcal.",
+    calcular: (e) => lactante(e, 380, "2º semestre"),
+  },
+  {
+    id: "dri2023_lact1_14",
+    nome: "DRI 2023 - Lactante 1º semestre (14-19 anos)",
+    categoria: "lactantes",
+    sexo: "feminino",
+    idade: [14, 19],
+    entradas: ["peso", "altura", "idade"],
+    resultado: "get",
+    status: "aguardando_fonte",
+    motivo: "O comportamento da adolescente lactante não foi medido na spec. Envie a tabela da NASEM (2023) para implementar.",
+    fonte: "NASEM. Dietary Reference Intakes for Energy. 2023.",
+  },
+  {
+    id: "dri2023_lact2_14",
+    nome: "DRI 2023 - Lactante 2º semestre (14-19 anos)",
+    categoria: "lactantes",
+    sexo: "feminino",
+    idade: [14, 19],
+    entradas: ["peso", "altura", "idade"],
+    resultado: "get",
+    status: "aguardando_fonte",
+    motivo: "O comportamento da adolescente lactante não foi medido na spec. Envie a tabela da NASEM (2023) para implementar.",
+    fonte: "NASEM. Dietary Reference Intakes for Energy. 2023.",
+  },
+
+  // -------------------------------------------------------------- GESTANTES
+  {
+    id: "dri2023_gestante",
+    nome: "DRI 2023 - Gestante",
+    categoria: "gestantes",
+    sexo: "feminino",
+    idade: [19, 50],
+    entradas: ["peso", "altura", "idade", "semanaGestacional"],
+    resultado: "get",
+    atividade: { tipo: "pa", niveis: NIVEIS_DRI2023 },
+    status: "em_vistoria",
+    fonte: "NASEM. Dietary Reference Intakes for Energy. 2023 (2º e 3º trimestres).",
+    observacao:
+      "TEE = fórmula por nível de atividade + 9,16×SG, mais a deposição de energia pelo IMC pré-gestacional (+300 baixo peso, +200 eutrófica, +150 sobrepeso, −50 obesa). Sem o peso pré-gestacional, usa-se o peso atual para classificar o IMC (e a conta avisa). DIVERGÊNCIA A CONFERIR: a spec chama de P o peso, sem dizer se é o atual ou o pré-gestacional; aqui entra o peso atual. Gestante adolescente (até 18 anos) tem equação própria, ainda sem fonte.",
+    validar: (e) =>
+      e.semanaGestacional >= 14 && e.semanaGestacional <= 42
+        ? null
+        : "A fórmula cobre o 2º e o 3º trimestres (semana 14 em diante). No 1º trimestre use a equação da mulher adulta (DRI 2023 19+), sem acréscimo. Informe a semana gestacional.",
+    calcular(e) {
+      const [k, ce, cp] = DRI2023_GESTANTE[e.pa ?? "sedentario"];
+      const r = linear(k, [
+        [DRI2023_GESTANTE.idadeCoef, "I", e.idade],
+        [ce, "E", e.alturaCm],
+        [cp, "P", e.peso],
+        [DRI2023_GESTANTE.semanaCoef, "SG", e.semanaGestacional],
+      ]);
+      const pre = e.pesoPreGestacional > 0 ? e.pesoPreGestacional : e.peso;
+      const m = e.alturaCm / 100;
+      const imcPre = pre / (m * m);
+      const dep = deposicaoPorImc(imcPre);
+      return {
+        valor: r.valor + dep.kcal,
+        formula: `TEE = ${r.formula} ${dep.kcal < 0 ? "−" : "+"} ${Math.abs(dep.kcal)} (deposição, IMC pré-gestacional)`,
+        substituicao: `TEE = ${r.substituicao} ${dep.kcal < 0 ? "−" : "+"} ${Math.abs(dep.kcal)}  [IMC pré-gestacional ${fmt(imcPre, 1)}: ${dep.classe}${e.pesoPreGestacional > 0 ? "" : ", calculado com o peso ATUAL"}]`,
+        extra: { imcPre, deposicao: dep.kcal },
+      };
+    },
+  },
+  {
+    id: "gestante_14_19",
+    nome: "Gestante 14-19 anos",
+    categoria: "gestantes",
+    sexo: "feminino",
+    idade: [14, 19],
+    entradas: ["peso", "altura", "idade", "semanaGestacional"],
+    resultado: "get",
+    status: "aguardando_fonte",
+    motivo: "A spec manda usar equações próprias de 14 a 19 anos, mas não as traz. Envie a tabela (NASEM/IOM) para implementar.",
+    fonte: "NASEM. Dietary Reference Intakes for Energy. 2023.",
+  },
+  {
+    id: "gestante_19",
+    nome: "Gestante 19+ anos (estilo IOM 2005)",
+    categoria: "gestantes",
+    sexo: "feminino",
+    idade: [19, 50],
+    entradas: ["peso", "altura", "idade", "semanaGestacional"],
+    resultado: "get",
+    atividade: { tipo: "pa", niveis: NIVEIS_IOM },
+    status: "em_vistoria",
+    fonte: "IOM. Dietary Reference Intakes for Energy... 2005 (EER de gestantes: equação da mulher adulta + acréscimo por trimestre).",
+    observacao:
+      "Equação EER da mulher adulta (IOM 2005) + acréscimo por trimestre: 1º +0, 2º +340, 3º +452 kcal. Comportamento medido no DietSystem; conferir os acréscimos na publicação do IOM. O trimestre sai da semana gestacional (2º: 14ª a 27ª; 3º: a partir da 28ª).",
+    conferida: "Vetor do DietSystem: 22 anos, 170 cm, 70 kg, PA 1,00 = 2.091 (1º) / 2.431 (2º) / 2.543 (3º).",
+    validar: (e) => (e.semanaGestacional >= 1 && e.semanaGestacional <= 42 ? null : "Informe a semana gestacional (1 a 42)."),
+    calcular(e) {
+      const pa = equacaoPorId("eer_adulto").PA.feminino[e.pa ?? "sedentario"];
+      const m = e.alturaCm / 100;
+      const base = 354 - 6.91 * e.idade + pa * (9.36 * e.peso + 726 * m);
+      const tri = trimestreDa(e.semanaGestacional);
+      const add = [0, 340, 452][tri - 1];
+      return {
+        valor: base + add,
+        formula: `EER = 354 − 6,91×I + PA×(9,36×P + 726×E_m) + ${add} (${tri}º trimestre)`,
+        substituicao: `EER = 354 − 6,91×${fmt(e.idade)} + ${fmt(pa)}×(9,36×${fmt(e.peso)} + 726×${fmt(m)}) + ${add}`,
+        extra: { pa, trimestre: tri },
+      };
+    },
+  },
+
   // -------------------------------------------------------------- OBESIDADE
   {
     id: "iom_obesidade",
@@ -584,6 +803,8 @@ export const EQUACOES = [
 export const CATEGORIAS = [
   { chave: "geral", rotulo: "Geral" },
   { chave: "atletas", rotulo: "Atletas" },
+  { chave: "lactantes", rotulo: "Lactantes" },
+  { chave: "gestantes", rotulo: "Gestantes" },
   { chave: "obesidade", rotulo: "Sobrepeso e obesidade" },
   { chave: "extras", rotulo: "Extras (já existiam na calculadora)" },
 ];

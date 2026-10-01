@@ -419,6 +419,18 @@
             <label for="c-mm">Massa magra (kg)</label>
             <input id="c-mm" type="text" inputmode="decimal" placeholder="vazio = a das dobras" />
           </div>
+          <div id="g-sg-caixa" hidden>
+            <label for="g-sg">Semana gestacional</label>
+            <input id="g-sg" type="text" inputmode="decimal" placeholder="ex.: 20" />
+          </div>
+          <div id="g-pre-caixa" hidden>
+            <label for="g-pre">Peso antes da gravidez (kg)</label>
+            <input id="g-pre" type="text" inputmode="decimal" placeholder="vazio = peso atual" />
+          </div>
+          <div id="g-meses-caixa" hidden>
+            <label for="g-meses">Idade em meses (0 a 35)</label>
+            <input id="g-meses" type="text" inputmode="decimal" placeholder="ex.: 8" />
+          </div>
         </div>
         <div class="linha">
           <div>
@@ -539,6 +551,7 @@
             <input id="m-dias" type="text" inputmode="decimal" value="30" />
           </div>
         </div>
+        <div class="painel" id="resultado-bolso"></div>
         <div class="painel" id="resultado-venta"></div>
         <p class="nota">
           (peso atual − peso desejado) × 7.700 ÷ dias. O consumo do dia vira o gasto menos esse

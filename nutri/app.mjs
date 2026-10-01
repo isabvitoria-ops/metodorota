@@ -23,6 +23,7 @@ import { calcularGasto, compararEquacoes } from "./motor/gasto.mjs";
 import { fmt as fmtMotor } from "./motor/formato.mjs";
 import { ATIVIDADES_MET } from "./motor/met-dados.mjs";
 import { metPeloNome } from "./motor/met.mjs";
+import { regraDeBolso } from "./motor/bolso.mjs";
 import {
   CRITERIOS,
   CRITERIO_PADRAO,
@@ -1551,7 +1552,9 @@ function calcularCorpo() {
   const sexo = $("c-sexo").value;
   const avisosDados = [];
   const idade = lerMedida("c-idade", FAIXAS_DIGITACAO.idade, avisosDados);
-  const peso = lerMedida("c-peso", FAIXAS_DIGITACAO.peso, avisosDados);
+  // Lactente e criança pequena pesam menos de 10 kg: sem idade (ou abaixo de 10 anos) o piso é 2 kg.
+  const faixaDoPeso = !idade || idade < 10 ? { ...FAIXAS_DIGITACAO.peso, min: 2 } : FAIXAS_DIGITACAO.peso;
+  const peso = lerMedida("c-peso", faixaDoPeso, avisosDados);
   const alturaCm = lerMedida("c-altura", FAIXAS_DIGITACAO.altura, avisosDados);
   const protocolo = $("c-protocolo").value;
   const dados = PROTOCOLOS[protocolo];
@@ -1788,6 +1791,10 @@ function desenharGasto(ctx) {
   $("g-pa-caixa").hidden = modo === "met" || tipo !== "pa";
   $("g-met").hidden = modo !== "met";
   $("g-mm-caixa").hidden = !eq.entradas.includes("massaMagra");
+  $("g-sg-caixa").hidden = !eq.entradas.includes("semanaGestacional");
+  // O peso antes da gravidez só serve à DRI 2023 (deposição pelo IMC pré-gestacional).
+  $("g-pre-caixa").hidden = eq.id !== "dri2023_gestante";
+  $("g-meses-caixa").hidden = !eq.entradas.includes("idadeMeses");
 
   const seletorPa = $("g-pa");
   montarNiveis(eq);
@@ -1799,6 +1806,9 @@ function desenharGasto(ctx) {
     peso: ctx.peso,
     alturaCm: ctx.alturaCm,
     massaMagra: mmDigitada > 0 ? mmDigitada : ctx.magra || 0,
+    semanaGestacional: num($("g-sg").value),
+    pesoPreGestacional: num($("g-pre").value),
+    idadeMeses: $("g-meses").value.trim() === "" ? NaN : num($("g-meses").value),
   };
   const exercicios = [];
   for (let i = 0; i < LINHAS_MET; i++) {
@@ -1882,7 +1892,7 @@ function idsDoCorpo() {
   return [
     "c-data", "c-sexo", "c-idade", "c-peso", "c-altura",
     "c-protocolo", "c-equacao", "c-atividade", "c-fao",
-    "g-categoria", "g-equacao", "g-pa", "g-modo", "c-mm",
+    "g-categoria", "g-equacao", "g-pa", "g-modo", "c-mm", "g-sg", "g-pre", "g-meses",
     ...Array.from({ length: LINHAS_MET }, (_, i) => [`met-nome-${i}`, `met-valor-${i}`, `met-min-${i}`, `met-vezes-${i}`]).flat(),
     ...DOBRAS.map(([c]) => `dob-${c}`),
     ...CIRCUNFERENCIAS.map(([c]) => `cir-${c}`),
@@ -2047,6 +2057,17 @@ function calcularMacros() {
     .join("");
 
   const atual = num($("m-atual").value);
+  const bolso = regraDeBolso(atual);
+  $("resultado-bolso").innerHTML = bolso
+    ? "<dl>" +
+      [
+        ["Regra de bolso — para perder", `${mostrar(bolso.perda[0], 0)} a ${mostrar(bolso.perda[1], 0)} kcal`, "20 a 25 kcal por kg do peso atual"],
+        ["Regra de bolso — para ganhar", `${mostrar(bolso.ganho[0], 0)} a ${mostrar(bolso.ganho[1], 0)} kcal`, "30 a 35 kcal por kg do peso atual"],
+      ]
+        .map(([t, v, ap]) => `<div><dt>${t}</dt><dd>${v} <span>${ap}</span></dd></div>`)
+        .join("") +
+      "</dl>"
+    : "";
   const desejado = num($("m-desejado").value);
   const dias = num($("m-dias").value);
   const ajuste = venta(atual, desejado, dias);
