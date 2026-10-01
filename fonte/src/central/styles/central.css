@@ -5938,3 +5938,170 @@ body:has(.central) {
 .central .c-passo-corpo p { margin: 0 0 8px; font-size: 14.5px; line-height: 1.5; color: var(--text-muted); }
 .central .c-passo-figura { width: 100%; max-width: 340px; height: auto; display: block; }
 .central .c-rodape-links { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 14px; }
+
+/* ---- Semáforo FODMAP ---- */
+.central .c-fodmap-fases {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.central .c-fodmap-filtros {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+.central .c-chips-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+.central .c-chips-scroll::-webkit-scrollbar { display: none; }
+.central .c-chip-pequeno {
+  font-size: 0.78rem;
+  padding: 4px 10px;
+  min-height: 30px;
+  white-space: nowrap;
+}
+.central .c-fodmap-contagem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.central .c-fodmap-contagem-niveis {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.central .c-fodmap-sinal {
+  display: inline-block;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.central .c-fodmap-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.central .c-fodmap-cartao {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.central .c-fodmap-cartao:hover {
+  background: var(--surface-2);
+}
+.central .c-fodmap-cartao:focus-visible {
+  outline: none;
+  box-shadow: var(--foco);
+}
+.central .c-fodmap-cartao-topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.central .c-fodmap-cartao-nome {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--text);
+}
+.central .c-fodmap-cartao-porcao {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.central .c-fodmap-cartao-detalhe {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.84rem;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.central .c-fodmap-cartao-nivel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.central .c-fodmap-cartao-categoria {
+  font-size: 0.78rem;
+  color: var(--text-subtle);
+}
+.central .c-fodmap-detalhe-linha {
+  margin: 0;
+}
+.central .c-fodmap-detalhe-linha strong {
+  font-weight: 600;
+}
+.central .c-fodmap-dica {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.central .c-fodmap-legenda {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+.central .c-fodmap-legenda-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.central .c-fodmap-legenda-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.central .c-fodmap-legenda-item strong {
+  font-size: 0.88rem;
+}
+.central .c-fodmap-legenda-item span {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.central .c-fodmap-grupos-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+.central .c-fodmap-grupos-info p {
+  margin: 0;
+}
+.central .c-fodmap-grupos-info strong {
+  color: var(--text);
+}

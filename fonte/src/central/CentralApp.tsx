@@ -8,6 +8,7 @@ import { CategoriaDetalhe } from "./pages/CategoriaDetalhe";
 import { EstabelecimentoDetalhe } from "./pages/EstabelecimentoDetalhe";
 import { Desafio } from "./pages/Desafio";
 import { Rastreabilidade } from "./pages/Rastreabilidade";
+import { FodmapSemaforo } from "./pages/FodmapSemaforo";
 import { DiarioDeFotosPagina } from "@/central/pages/DiarioDeFotos";
 import { Protocolo } from "./pages/Protocolo";
 import { Avaliacao } from "./pages/Avaliacao";
@@ -64,6 +65,7 @@ export function CentralApp() {
           />
           <Route path="desafio" element={<Desafio />} />
           <Route path="rastreabilidade" element={<Rastreabilidade />} />
+          <Route path="fodmap" element={<FodmapSemaforo />} />
           <Route path="diario" element={<DiarioDeFotosPagina />} />
           <Route path="busca" element={<Busca />} />
           <Route path="instalar" element={<InstalarPagina />} />

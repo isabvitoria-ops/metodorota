@@ -61,6 +61,13 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "O que combinamos, e quanto você já fez.",
   },
   {
+    rota: rotas.fodmap,
+    grupo: "ferramentas",
+    icone: "folha",
+    titulo: "Semáforo FODMAP",
+    descricao: "Consulte o que pode comer, com porções seguras, em cada fase.",
+  },
+  {
     rota: rotas.trocas,
     grupo: "ferramentas",
     icone: "troca",
