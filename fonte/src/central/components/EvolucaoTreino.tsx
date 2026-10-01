@@ -19,6 +19,7 @@ import {
   evolucaoDoExercicio,
   recordesDe,
 } from "@/central/utils/progressaoTreino";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * A evolução de treino da paciente.
@@ -84,7 +85,7 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
     };
   }, [carregar]);
 
-  if (carregando) return <p className="c-dica">Carregando…</p>;
+  if (carregando) return <Esqueleto />;
 
   const exercicios = nomesDeExercicio(treino, sessoes);
 

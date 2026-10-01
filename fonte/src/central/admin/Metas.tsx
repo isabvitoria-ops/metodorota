@@ -6,6 +6,7 @@ import { repositorio } from "@/central/dados/repositorio";
 import { Campo, Selecao, Texto } from "@/central/admin/componentes/Campos";
 import { CartaoDeMeta } from "@/central/components/CartaoDeMeta";
 import { hojeSaoPaulo } from "@/central/utils/situacao";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Metas — área da nutricionista.
@@ -149,7 +150,7 @@ function PainelDasMetas({ paciente }: { paciente: Paciente }) {
       )}
 
       {carregando ? (
-        <p className="c-dica">Carregando…</p>
+        <Esqueleto />
       ) : metas.length === 0 ? (
         <div className="c-bloco">
           <p className="c-item-protocolo-nome">Nenhuma meta para {paciente.nome}</p>

@@ -30,6 +30,7 @@ import {
 } from "@/central/utils/cobranca";
 import { numeroDeTexto } from "@/central/utils/numero";
 import { textoDaPermanencia } from "@/central/utils/metricasDeAcompanhamento";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Cobrança — área da nutricionista.
@@ -204,7 +205,7 @@ export function Financeiro() {
         </button>
       </div>
 
-      {carregando && <p className="c-contagem">Carregando…</p>}
+      {carregando && <Esqueleto />}
 
       {aba === "cobrancas" && painel && (
         <>

@@ -28,7 +28,10 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { AcessosDaPaciente } from "./AcessosDaPaciente";
 import { AbaConsulta } from "./AbaConsulta";
 import { MenuMais } from "@/central/components/MenuMais";
+import { SeloSituacao } from "@/central/components/Selo";
+import { dataBonita } from "@/central/utils/situacao";
 import { AreaTexto, Campo, Selecao, Texto } from "@/central/admin/componentes/Campos";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * O prontuário: tudo de uma paciente, em ordem cronológica.
@@ -148,7 +151,7 @@ export function Prontuario() {
   );
   const serie = useMemo(() => seriePeso(avaliacoes), [avaliacoes]);
 
-  if (carregando) return <p className="c-dica">Carregando…</p>;
+  if (carregando) return <Esqueleto />;
 
   if (erro || !paciente) {
     return (
@@ -201,6 +204,15 @@ export function Prontuario() {
             {paciente.proximaConsulta &&
               ` · próximo retorno ${quando(paciente.proximaConsulta.data, hoje)}`}
           </p>
+          {/* A situação num olhar, antes de qualquer número: o acesso dela, até
+              quando vai o plano e a condição acompanhada. */}
+          <div className="c-prontuario-chips">
+            <SeloSituacao situacao={paciente.situacao} />
+            {paciente.dataFim && (
+              <span className="c-selo neutro">Plano até {dataBonita(paciente.dataFim)}</span>
+            )}
+            {paciente.condicao && <span className="c-selo neutro">{paciente.condicao}</span>}
+          </div>
         </div>
         {/* O que é desta paciente mas mora em outra seção. Antes eram chips
             soltos no topo; aqui ficam juntos e fora do caminho. */}

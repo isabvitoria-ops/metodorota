@@ -11,6 +11,7 @@ import { repositorio } from "@/central/dados/repositorio";
 import { Campo, Selecao, Texto, AreaTexto } from "@/central/admin/componentes/Campos";
 import { alternar, todas, moverRecolhidas, removerRecolhida } from "@/central/utils/recolherRefeicoes";
 import { numeroDeTexto } from "@/central/utils/numero";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Questionários e check-in semanal — área da nutricionista.
@@ -183,7 +184,7 @@ export function Questionarios() {
         </button>
       </div>
 
-      {carregando && <p className="c-contagem">Carregando…</p>}
+      {carregando && <Esqueleto />}
 
       {!carregando && lista.length === 0 && (
         <p className="c-dica">

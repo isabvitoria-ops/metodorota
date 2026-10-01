@@ -10,6 +10,7 @@ import {
 } from "@/central/utils/historicoDePontos";
 import { hojeSaoPaulo } from "@/central/utils/situacao";
 import { AreaTexto, Campo, Selecao } from "./componentes/Campos";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * O placar de cada mês, para a nutricionista.
@@ -50,7 +51,7 @@ export function HistoricoDePontos() {
       </div>
     );
   }
-  if (!meses) return <p className="c-contagem">Carregando…</p>;
+  if (!meses) return <Esqueleto />;
 
   return (
     <>

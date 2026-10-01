@@ -15,6 +15,7 @@ import {
 } from "@/central/utils/diarioDeFotos";
 import { reduzirFoto } from "@/central/utils/reduzirFoto";
 import { hojeSaoPaulo, somarDias } from "@/central/utils/situacao";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Diário de fotos — o mesmo componente dos dois lados (como os exames).
@@ -105,7 +106,7 @@ export function DiarioDeFotos({ pacienteId }: { pacienteId: string | null }) {
         </p>
       )}
 
-      {carregando && <p className="c-contagem">Carregando…</p>}
+      {carregando && <Esqueleto />}
 
       {!carregando && fotos.length === 0 && (
         <p className="c-dica">

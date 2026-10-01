@@ -8,6 +8,7 @@ import {
   enderecoDaRastreabilidade,
   sintomasMencionados,
 } from "@/central/utils/conversaDaRefeicao";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * A conversa de UMA refeição, nos dois lados.
@@ -109,7 +110,7 @@ export function ConversaDaRefeicao({
       </p>
 
       <div className="c-conversa" role="log" aria-live="polite">
-        {carregando && <p className="c-dica">Carregando…</p>}
+        {carregando && <Esqueleto />}
         {!carregando && mensagens.length === 0 && (
           <p className="c-dica">Ainda não há mensagens nesta refeição.</p>
         )}

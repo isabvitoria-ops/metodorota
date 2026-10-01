@@ -15,6 +15,7 @@ import { EvolucaoTreino } from "@/central/components/EvolucaoTreino";
 import { PainelDeTreino } from "@/central/components/PainelDeTreino";
 import { hojeSaoPaulo, dataBonita } from "@/central/utils/situacao";
 import { domingoDaSemana, segundaDaSemana } from "@/central/utils/metasSemanais";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Treino — área da nutricionista.
@@ -151,7 +152,7 @@ function PainelDoTreino({ paciente }: { paciente: Paciente }) {
           acabou de escrever. */}
       <div hidden={aba !== "plano"}>
         {carregando ? (
-          <p className="c-dica">Carregando…</p>
+          <Esqueleto />
         ) : (
           <EditorDoPlano
             paciente={paciente}
@@ -613,6 +614,6 @@ function Painel({ pacienteId }: { pacienteId: string }) {
     };
   }, [pacienteId]);
 
-  if (carregando) return <p className="c-dica">Carregando…</p>;
+  if (carregando) return <Esqueleto />;
   return <PainelDeTreino treinos={treinos} cardio={cardio} metas={metas} />;
 }

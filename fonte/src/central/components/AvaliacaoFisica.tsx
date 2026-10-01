@@ -10,6 +10,7 @@ import {
   variacaoRecente,
   variacaoTotal,
 } from "@/central/utils/evolucaoAvaliacoes";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * A avaliação física da paciente, e a evolução dela no tempo.
@@ -48,7 +49,7 @@ export function AvaliacaoFisica() {
     };
   }, []);
 
-  if (carregando) return <p className="c-dica">Carregando…</p>;
+  if (carregando) return <Esqueleto />;
   if (!avaliacao) {
     return (
       <div className="c-bloco">

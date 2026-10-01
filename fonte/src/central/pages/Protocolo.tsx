@@ -11,6 +11,7 @@ import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { useNavigate } from "react-router-dom";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Protocolo Alimentar — a dieta da paciente.
@@ -67,7 +68,7 @@ export function Protocolo() {
       />
 
       <div className="c-conteudo">
-        {carregando && <p className="c-dica">Carregando…</p>}
+        {carregando && <Esqueleto />}
 
         {!carregando && !temRefeicoes && (
           <EstadoVazio

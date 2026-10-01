@@ -9,6 +9,7 @@ import { repositorio } from "@/central/dados/repositorio";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { rotas } from "@/central/rotas";
 import { naoEntendido, numeroDeTexto } from "@/central/utils/numero";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Onde a paciente responde o check-in da semana e os questionários.
@@ -113,7 +114,7 @@ export function Questionarios() {
           </button>
         </div>
 
-        {carregando && <p className="c-contagem">Carregando…</p>}
+        {carregando && <Esqueleto />}
         {erro && (
           <div className="c-aviso c-aviso-erro" role="status">
             <span>{erro}</span>

@@ -18,57 +18,73 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
  * busca no topo, para quem já sabe o que quer, e cinco portas grandes, para
  * quem está só procurando. Nada de conteúdo institucional.
  */
-const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: string }[] = [
+type Grupo = "acompanhamento" | "ferramentas";
+
+const GRUPOS: { chave: Grupo; titulo: string }[] = [
+  { chave: "acompanhamento", titulo: "Meu acompanhamento" },
+  { chave: "ferramentas", titulo: "Ferramentas" },
+];
+
+const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: string; grupo: Grupo }[] = [
   {
     rota: rotas.protocolo,
+    grupo: "acompanhamento",
     icone: "lista",
     titulo: "Protocolo Alimentar",
     descricao: "Seu plano, com as substituições de cada item.",
   },
   {
     rota: rotas.rastreabilidade,
+    grupo: "acompanhamento",
     icone: "folha",
     titulo: "Rastreabilidade",
     descricao: "Registre o que você reintroduziu e como se sentiu.",
   },
   {
     rota: rotas.diario,
+    grupo: "acompanhamento",
     icone: "camera",
     titulo: "Diário de fotos",
     descricao: "Fotografe suas refeições e acompanhe seu dia.",
   },
   {
     rota: rotas.treino,
+    grupo: "acompanhamento",
     icone: "evolucao",
     titulo: "Minha evolução",
     descricao: "Seu treino registrado, e o que mudou de uma sessão para a outra.",
   },
   {
     rota: rotas.metas,
+    grupo: "acompanhamento",
     icone: "evolucao",
     titulo: "Minhas metas",
     descricao: "O que combinamos, e quanto você já fez.",
   },
   {
     rota: rotas.trocas,
+    grupo: "ferramentas",
     icone: "troca",
     titulo: "Troca inteligente",
     descricao: "Substitua alimentos mantendo a quantidade adequada.",
   },
   {
     rota: rotas.comerFora,
+    grupo: "ferramentas",
     icone: "comerFora",
     titulo: "Comer fora",
     descricao: "Estratégias para escolher melhor fora de casa.",
   },
   {
     rota: rotas.documentos,
+    grupo: "ferramentas",
     icone: "documentos",
     titulo: "Meus documentos",
     descricao: "Protocolo, avaliação e rastreio para imprimir e guardar.",
   },
   {
     rota: rotas.salvos,
+    grupo: "ferramentas",
     icone: "salvos",
     titulo: "Salvos",
     descricao: "Seus conteúdos guardados.",
@@ -147,45 +163,50 @@ export function Home() {
 
         <CardDoDesafio />
 
-        <section className="c-secao">
-          <div className="c-atalhos">
-            {/* A Rastreabilidade é para quem faz o acompanhamento intestinal.
-                Para quem não faz, o atalho não existe — em vez de existir e
-                abrir uma tela vazia explicando que não é para ela. */}
-            {ATALHOS.filter(
-              (atalho) =>
-                (atalho.rota !== rotas.rastreabilidade || acesso.rastreio) &&
-                (atalho.rota !== rotas.protocolo || acesso.protocolo) &&
-                // Mesma regra: sem treino ativo e sem nenhuma sessão
-                // registrada, a porta não existe — em vez de existir e abrir
-                // uma tela de evolução que não tem o que mostrar.
-                (atalho.rota !== rotas.treino || acesso.treino) &&
-                // Mesma regra de novo: sem meta combinada, a porta não
-                // existe. É a terceira vez que esta regra aparece, e é de
-                // propósito que ela apareça escrita: cada porta decide a
-                // própria existência, e uma lista de exceções num lugar só
-                // seria esquecida na próxima porta.
-                (atalho.rota !== rotas.metas || acesso.metas),
-            ).map((atalho) => (
-              <button key={atalho.rota} type="button" className="c-atalho" onClick={() => navegar(atalho.rota)}>
-                <span className="c-atalho-icone">
-                  <Icone nome={atalho.icone} tamanho={22} />
-                </span>
-                <span className="c-atalho-texto">
-                  <h3>{atalho.titulo}</h3>
-                  <p>
-                    {atalho.rota === rotas.salvos && salvos > 0
-                      ? `${salvos} ${salvos === 1 ? "item guardado" : "itens guardados"}.`
-                      : atalho.descricao}
-                  </p>
-                </span>
-                <span className="c-atalho-seta">
-                  <Icone nome="seta" tamanho={18} />
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
+        {/* A Rastreabilidade é para quem faz o acompanhamento intestinal.
+            Para quem não faz, o atalho não existe — em vez de existir e
+            abrir uma tela vazia explicando que não é para ela. Cada porta
+            decide a própria existência, e uma lista de exceções num lugar só
+            seria esquecida na próxima porta. */}
+        {GRUPOS.map((grupo) => {
+          const portas = ATALHOS.filter(
+            (atalho) =>
+              atalho.grupo === grupo.chave &&
+              (atalho.rota !== rotas.rastreabilidade || acesso.rastreio) &&
+              (atalho.rota !== rotas.protocolo || acesso.protocolo) &&
+              // Sem treino ativo e sem nenhuma sessão registrada, a porta não
+              // existe — em vez de abrir uma evolução sem o que mostrar.
+              (atalho.rota !== rotas.treino || acesso.treino) &&
+              // Sem meta combinada, a porta não existe.
+              (atalho.rota !== rotas.metas || acesso.metas),
+          );
+          if (portas.length === 0) return null;
+          return (
+            <section className="c-secao" key={grupo.chave} aria-label={grupo.titulo}>
+              <h2 className="c-secao-titulo">{grupo.titulo}</h2>
+              <div className="c-atalhos">
+                {portas.map((atalho) => (
+                  <button key={atalho.rota} type="button" className="c-atalho" onClick={() => navegar(atalho.rota)}>
+                    <span className="c-atalho-icone">
+                      <Icone nome={atalho.icone} tamanho={20} />
+                    </span>
+                    <span className="c-atalho-texto">
+                      <h3>{atalho.titulo}</h3>
+                      <p>
+                        {atalho.rota === rotas.salvos && salvos > 0
+                          ? `${salvos} ${salvos === 1 ? "item guardado" : "itens guardados"}.`
+                          : atalho.descricao}
+                      </p>
+                    </span>
+                    <span className="c-atalho-seta">
+                      <Icone nome="seta" tamanho={18} />
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          );
+        })}
 
         {acesso.papel === "admin" && (
           <button type="button" className="c-link" style={{ marginTop: 20 }} onClick={() => navegar(rotas.admin)}>

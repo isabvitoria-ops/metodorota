@@ -7,6 +7,7 @@ import { filtrarPendentes, rotuloDoPrazo, situacaoDoPrazo, type FiltroDePendente
 import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { AreaTexto, Campo, Texto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Mais → Condutas.
@@ -140,7 +141,7 @@ function Pendentes() {
       </div>
 
       {carregando ? (
-        <p className="c-dica">Carregando…</p>
+        <Esqueleto />
       ) : lista.length === 0 ? (
         <p className="c-dica" style={{ marginTop: 16 }}>
           Nenhuma tarefa aberta. As tarefas nascem na ficha de cada paciente, aba Condutas.
@@ -231,7 +232,7 @@ function Modelos() {
       )}
 
       {carregando ? (
-        <p className="c-dica">Carregando…</p>
+        <Esqueleto />
       ) : modelos.length === 0 ? (
         <p className="c-dica" style={{ marginTop: 16 }}>
           Nenhum modelo ainda. Exemplo: “Protocolo SIBO” — pedir teste (dia 0), iniciar dieta (dia 7),

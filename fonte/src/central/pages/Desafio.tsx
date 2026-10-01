@@ -10,6 +10,7 @@ import { repositorio } from "@/central/dados/repositorio";
 import { fraseDoProgresso, periodoDaSemana } from "@/central/utils/desafio";
 import { dataBonita } from "@/central/utils/situacao";
 import { rotas } from "@/central/rotas";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Desafio do Mês — Ponto de Virada.
@@ -32,7 +33,7 @@ export function Desafio() {
       <>
         <CabecalhoPagina titulo="Desafio do mês" voltarPara={rotas.home} />
         <div className="c-conteudo">
-          <p className="c-contagem">Carregando…</p>
+          <Esqueleto />
         </div>
       </>
     );
@@ -384,7 +385,7 @@ function CartaoAcao({
             disabled={ocupado}
             onClick={() => void marcar()}
           >
-            <Icone nome="salvos" tamanho={15} /> Marcar como feito
+            <Icone nome="feito" tamanho={15} /> Marcar como feito
           </button>
         ))}
 

@@ -21,6 +21,7 @@ import { rotas } from "@/central/rotas";
 import { Modal } from "./componentes/Modal";
 import { AreaTexto, Campo, Selecao, Texto } from "./componentes/Campos";
 import { FichaPaciente } from "./FichaPaciente";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Pacientes — a tela única.
@@ -232,7 +233,7 @@ export function Pacientes() {
         </div>
       )}
 
-      {carregando && pacientes.length === 0 && <p className="c-contagem">Carregando…</p>}
+      {carregando && pacientes.length === 0 && <Esqueleto />}
 
       {!carregando && pacientes.length === 0 && (
         <EstadoVazio

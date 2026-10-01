@@ -24,24 +24,24 @@
     -->
     <style>
       :root {
-        --papel: #f6f4f1;
+        --papel: #f6f8fa;
         --carta: #fff;
-        --tinta: #23201d;
-        --apagado: #655f59;
-        --borda: #e6e1d9;
-        --verde: #3a6355;
-        --verde-claro: #e8efeb;
-        --vinho: #9d5f5a;
+        --tinta: #1c2833;
+        --apagado: #55626e;
+        --borda: #e2e8ed;
+        --azul: #38546c;
+        --azul-claro: #e6eef3;
+        --vinho: #8f4034;
         --alerta: #8a6d2f;
       }
       * { box-sizing: border-box; }
       details.como { margin-top: 10px; background: var(--carta); border: 1px solid var(--borda); border-radius: 8px; padding: 8px 12px; }
-      details.como summary { cursor: pointer; font-weight: 600; color: var(--verde); }
+      details.como summary { cursor: pointer; font-weight: 600; color: var(--azul); }
       .selo-vistoria { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; background: #f6ecd5; color: var(--alerta); margin-left: 6px; vertical-align: middle; }
       .selo-espera { background: #f2e1df; color: var(--vinho); }
       .passos { margin: 8px 0 0; padding: 0; list-style: none; }
       .passos li { margin: 4px 0; font-size: 13.5px; }
-      .passos code { background: #f3f0ea; padding: 1px 5px; border-radius: 4px; word-break: break-word; }
+      .passos code { background: #eef2f5; padding: 1px 5px; border-radius: 4px; word-break: break-word; }
       .met-linha { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 6px; margin-bottom: 6px; }
       @media (max-width: 520px) { .met-linha { grid-template-columns: 1fr 1fr; } }
       input[aria-invalid="true"] { border-color: var(--vinho); background: #fbf1f0; }
@@ -52,11 +52,12 @@
         font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       }
       header {
-        background: var(--verde);
+        background: var(--azul);
         color: #fff;
         padding: 14px 18px;
       }
-      header h1 { margin: 0; font-size: 17px; font-weight: 600; }
+      header .marca { display: block; width: auto; height: 30px; margin-bottom: 8px; }
+      header h1 { margin: 0; font-size: 16px; font-weight: 600; }
       header p { margin: 3px 0 0; font-size: 12.5px; opacity: 0.85; }
       nav { display: flex; gap: 4px; padding: 10px 18px 0; flex-wrap: wrap; }
       nav button {
@@ -113,17 +114,17 @@
          nova perseguindo os macros da de referência. */
       tfoot tr.referencia td, tfoot tr.diferenca td { font-weight: 500; border-top: none; color: var(--apagado); }
       tfoot tr.referencia td:first-child, tfoot tr.diferenca td:first-child { font-weight: 600; }
-      .dif-ok { color: var(--verde); font-weight: 600; }
+      .dif-ok { color: var(--azul); font-weight: 600; }
       .dif-longe { color: var(--vinho); font-weight: 600; }
       button.acao {
-        background: var(--verde); color: #fff; border: 0; border-radius: 8px;
+        background: var(--azul); color: #fff; border: 0; border-radius: 8px;
         padding: 8px 14px; cursor: pointer; font: inherit;
       }
       /* `.leve` so trocava cor e borda -- herdava o padding padrao do
          navegador e ficava com 19px de altura, que o dedo erra. Passa a ter
          o mesmo tamanho de alvo do `.acao`, que e o botao irmao dele. */
       button.leve {
-        background: none; color: var(--verde); border: 1px solid var(--borda);
+        background: none; color: var(--azul); border: 1px solid var(--borda);
         border-radius: 8px; padding: 8px 14px; cursor: pointer; font: inherit;
         min-height: 40px;
       }
@@ -161,9 +162,9 @@
         max-height: 260px; overflow: auto; box-shadow: 0 8px 20px rgba(0,0,0,.08);
       }
       .sugestoes div { padding: 7px 10px; cursor: pointer; font-size: 13.5px; }
-      .sugestoes div:hover, .sugestoes div.marcado { background: var(--verde-claro); }
+      .sugestoes div:hover, .sugestoes div.marcado { background: var(--azul-claro); }
       .sugestoes small { color: var(--apagado); }
-      .painel { background: var(--verde-claro); border-radius: 9px; padding: 12px; margin-top: 12px; }
+      .painel { background: var(--azul-claro); border-radius: 9px; padding: 12px; margin-top: 12px; }
       /* DEFEITO QUE O <div> CONSERTA: <dt> e <dd> são itens SEPARADOS do
          grid, então cada um procura a própria coluna. Com cinco pares e
          largura para nove colunas, o último valor caía sozinho na linha de
@@ -187,7 +188,7 @@
         padding: 8px 14px; cursor: pointer; font: inherit; font-size: 12.5px; color: inherit;
         min-height: 36px;
       }
-      .opcao[aria-pressed="true"] { background: var(--verde); color: #fff; border-color: var(--verde); }
+      .opcao[aria-pressed="true"] { background: var(--azul); color: #fff; border-color: var(--azul); }
       /* A aba e o seu "×" andam juntos. O × apaga aquela opção. */
       .opcao-wrap { display: inline-flex; align-items: center; gap: 2px; }
       .opcao-x {
@@ -199,7 +200,7 @@
       .opcao-x:focus-visible { outline: 2px solid var(--vinho); outline-offset: 1px; }
       .resumo-refeicao { margin: 0; }
       .grupos-atalho { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
-      .sugestoes-refeicao { margin-top: 10px; padding: 8px 10px; border: 1px dashed var(--borda, #b8c4bd); border-radius: 8px; display: grid; gap: 6px; }
+      .sugestoes-refeicao { margin-top: 10px; padding: 8px 10px; border: 1px dashed var(--borda, #b5c4d0); border-radius: 8px; display: grid; gap: 6px; }
       .sugestao-linha { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
       .sugestao-nome { flex: 1 1 200px; min-width: 0; overflow-wrap: anywhere; }
       .cartao-meu {
@@ -216,12 +217,12 @@
       }
       /* Substitutos: o selo no alimento e as sub-linhas logo abaixo dele. */
       .selo-subst {
-        background: var(--verde-claro); color: var(--verde); border: 1px solid var(--verde);
+        background: var(--azul-claro); color: var(--azul); border: 1px solid var(--azul);
         border-radius: 999px; font: inherit; font-size: 11.5px; font-weight: 600;
         padding: 2px 8px; cursor: pointer; vertical-align: 1px; white-space: nowrap;
       }
       button.mini.selo-subst-vazio { font-size: 11.5px; margin-left: 0; white-space: nowrap; }
-      tr.subst td { background: #fafaf7; color: var(--apagado); font-size: 13px; }
+      tr.subst td { background: #f9fbfc; color: var(--apagado); font-size: 13px; }
       tr.subst td:first-child { padding-left: 22px; color: inherit; }
       .subst-ou {
         font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em;
@@ -241,8 +242,11 @@
   </head>
   <body>
     <header>
+      <!-- A logo oficial (a mesma versão clara da Central), no azul da marca. A
+           altura manda e a largura sai da proporção: nunca esticada. -->
+      <img class="marca" src="marca-clara.svg" alt="Isabela Marçal — nutricionista" height="30" />
       <h1>Cálculo — uso da nutricionista</h1>
-      <p>Isabela Marçal · fora da Central, nenhuma paciente vê esta página</p>
+      <p>Fora da Central: nenhuma paciente vê esta página</p>
     </header>
 
     <!-- A ficha vale para as tres abas: dieta, composicao e macros sao da

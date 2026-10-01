@@ -11,6 +11,7 @@ import { porColuna, rotuloDoPrazo, situacaoDoPrazo, tarefasDoModelo } from "@/ce
 import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { AreaTexto, Campo, Selecao, Texto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * A aba "Condutas" da ficha: o Kanban da paciente.
@@ -94,7 +95,7 @@ export function CondutasDaFicha({ pacienteId }: { pacienteId: string }) {
       )}
 
       {carregando ? (
-        <p className="c-dica">Carregando…</p>
+        <Esqueleto />
       ) : condutas.length === 0 ? (
         <p className="c-dica" style={{ marginTop: 12 }}>
           Nenhuma conduta ainda. Crie uma tarefa solta ou aplique um modelo — os

@@ -8,6 +8,7 @@ import type {
 import { partirEmTrechos, porQueNaoServe, tamanhoBonito } from "@/central/utils/cerebroDoNutri";
 import { extrairTextoDoPdf } from "@/central/utils/extrairPdf";
 import { AreaTexto, Campo, Texto } from "./componentes/Campos";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Cérebro do Nutri: a base de conhecimento privada da nutricionista.
@@ -274,7 +275,7 @@ function BlocoLista({
       </p>
 
       {carregando ? (
-        <p className="c-dica">Carregando…</p>
+        <Esqueleto />
       ) : fontes.length === 0 ? (
         <p className="c-dica">Vazio. Adicione a primeira fonte acima.</p>
       ) : (

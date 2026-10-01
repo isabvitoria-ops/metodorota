@@ -5,6 +5,7 @@ import { CartaoDeMeta } from "@/central/components/CartaoDeMeta";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * "Minhas metas" — a tela da paciente.
@@ -44,7 +45,7 @@ export function Metas() {
         voltarPara={rotas.home}
       />
       <div className="c-conteudo">
-        {carregando && <p className="c-dica">Carregando…</p>}
+        {carregando && <Esqueleto />}
 
         {erro && (
           <div className="c-aviso c-aviso-erro" role="alert">

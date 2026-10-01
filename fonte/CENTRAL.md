@@ -226,16 +226,19 @@ Tudo no primeiro bloco de `src/central/styles/central.css`:
 
 ```css
 .central {
-  --primary: #3a6355;
-  --background: #f6f4f1;
-  --surface: #ffffff;
-  --text: #1f1d1b;
-  --border: #e6e1d9;
-  --success: #3d6650;
-  --warning: #7d5c14;
-  --danger: #8f4034;
-  --radius: 20px;
-  --font-display: "Fraunces", Georgia, serif;
+  /* paleta da identidade visual (designer) */
+  --marca-marfim: #f7eee7;   --marca-areia: #c9bcac;
+  --marca-gelo: #c8dae4;     --marca-azul-medio: #5a7a8f;
+  --marca-azul-profundo: #38546c;
+
+  --primary: #38546c;        --primary-soft: #e6eef3;
+  --accent: #7b6850;         --accent-soft: #f3ede5;
+  --background: #ffffff;     --surface-2: #f6f8fa;
+  --text: #1c2833;           --text-muted: #55626e;
+  --border: #e2e8ed;         --border-campo: #77899a;
+  --success / --warning / --danger  (semânticas, ficam fora da marca)
+  --radius: 16px;            --radius-sm: 12px;
+  --font-display: "Fraunces", Georgia, serif;   /* corpo: Public Sans */
 }
 ```
 

@@ -10,6 +10,7 @@ import { Icone } from "@/central/components/Icone";
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Meus documentos — a central de onde saem os PDFs.
@@ -130,7 +131,7 @@ export function Documentos() {
       />
 
       <div className="c-conteudo">
-        {carregando && <p className="c-dica">Carregando…</p>}
+        {carregando && <Esqueleto />}
 
         {!carregando && !temProtocolo && !temAvaliacao && !temRastreio && (
           <div className="c-bloco">

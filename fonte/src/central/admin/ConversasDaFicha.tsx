@@ -5,6 +5,7 @@ import { Icone } from "@/central/components/Icone";
 import type { ResumoDaConversa } from "@/central/types/conversaDaRefeicao";
 import type { RefeicaoProtocolo } from "@/central/types/protocolo";
 import { chaveDaRefeicao, mesmaRefeicao } from "@/central/utils/conversaDaRefeicao";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * A aba "Conversas" da ficha: uma conversa por refeição do plano dela.
@@ -82,7 +83,7 @@ export function ConversasDaFicha({
           <span>{erro}</span>
         </div>
       )}
-      {carregando && <p className="c-dica">Carregando…</p>}
+      {carregando && <Esqueleto />}
       {!carregando && linhas.length === 0 && (
         <p className="c-dica">
           Esta paciente ainda não tem protocolo publicado nem conversa. Quando publicar, as

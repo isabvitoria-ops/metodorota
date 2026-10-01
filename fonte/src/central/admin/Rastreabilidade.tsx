@@ -39,6 +39,7 @@ import { Modal } from "./componentes/Modal";
 import { RastreioAlimentar } from "@/central/components/RastreioAlimentar";
 import { DocumentoRastreio } from "@/central/components/DocumentoRastreio";
 import { PadroesDoRastreio } from "@/central/components/PadroesDoRastreio";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Rastreabilidade alimentar — área da nutricionista.
@@ -184,7 +185,7 @@ function PainelDaPaciente({
       .catch(() => definirMaterial([]));
   }, []);
 
-  if (carregando) return <p className="c-contagem">Carregando…</p>;
+  if (carregando) return <Esqueleto />;
 
   const ativo = dados?.ativo ?? false;
 

@@ -67,40 +67,60 @@ body {
 
 .central {
   /* ---- cores ---- */
-  --primary: #3a6355;
-  --primary-dark: #274539;
-  --primary-soft: #e7efea;
-  --accent: #9d5f5a;
-  --accent-soft: #f4e9e7;
 
-  /* "Quero fundo branco, não essa cor creme." O fundo das telas era o creme
-     #f6f4f1. Passou a branco.
+  /* A PALETA É A DA MARCA, e não foi inventada aqui: vem do manual de identidade
+     visual entregue pela designer (Mariane Malafaia, `ENTREGAISABELA.pdf`):
 
-     `--surface` continua branco e passa a coincidir com o fundo: o cartão
-     não se distingue mais pela cor, e sim pela sombra e pela borda — que já
-     estavam lá. `--surface-2`, o cartão de dentro, ficou um cinza frio bem
-     leve no lugar do creme: sobre branco ele precisa de alguma diferença
-     para continuar sendo um bloco, e qualquer calor aqui traria o creme de
-     volta pela porta dos fundos. */
+        marfim        #F7EEE7     o fundo "papel" da marca
+        areia         #C9BCAC     o neutro quente
+        azul gelo     #C8DAE4     o azul porcelana, claro
+        azul médio    #5A7A8F
+        azul profundo #38546C     a cor da logo
+
+     Os quatro primeiros ficam declarados por nome logo abaixo (`--marca-*`)
+     para quem precisar de um tom da marca em estado puro. As cores de uso
+     (`--primary`, `--accent`…) são derivadas deles, ajustadas só até passar na
+     régua de contraste da WCAG — o teste `contraste.test.ts` confere. */
+  --marca-marfim: #f7eee7;
+  --marca-areia: #c9bcac;
+  --marca-gelo: #c8dae4;
+  --marca-azul-medio: #5a7a8f;
+  --marca-azul-profundo: #38546c;
+
+  --primary: #38546c;
+  --primary-dark: #263d52;
+  --primary-soft: #e6eef3;
+  --accent: #7b6850;
+  --accent-soft: #f3ede5;
+
+  /* "Quero fundo branco, não essa cor creme." Decisão dela, mantida: o fundo
+     das telas é BRANCO. O marfim da marca aparece só em momentos de marca (a
+     capa dos documentos, a frase de identidade), nunca como fundo de tela.
+
+     `--surface-2` é o cartão de dentro: um azul-acinzentado quase branco, que
+     combina com a marca e não traz o creme de volta pela porta dos fundos. */
   --background: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f8f8f9;
+  --surface-2: #f6f8fa;
 
-  --text: #1f1d1b;
+  --text: #1c2833;
   /* Os dois tons de texto de apoio passam de 4,5:1 sobre o fundo e sobre o
      cartão — a hierarquia vem do tamanho e do peso, não de clarear a cor
      até o texto sumir no sol. `--icone` é só para ícone decorativo (a lupa,
      a seta do cartão), onde a régua é 3:1. */
-  --text-muted: #655f59;
-  --text-subtle: #726c65;
-  --icone: #8f877f;
+  --text-muted: #55626e;
+  --text-subtle: #5f6d7a;
+  --icone: #7a8b99;
   /* `--border` desenha separador e contorno de cartão (decorativo);
      `--border-campo` desenha a moldura de campo, seletor e chip, que
      precisa de 3:1 para o controle ser identificável (WCAG 1.4.11). */
-  --border: #e4e4e7;
-  --border-strong: #cfcfd4;
-  --border-campo: #84848c;
+  --border: #e2e8ed;
+  --border-strong: #cdd6dd;
+  --border-campo: #77899a;
 
+  /* Estados: ficam em tons semânticos (verde, âmbar, tijolo) porque cor de
+     estado precisa ser entendida num olhar. São versões sóbrias, no mesmo
+     "peso" da paleta, para não destoarem do azul da marca. */
   --success: #3d6650;
   --success-soft: #e6efe9;
   --warning: #7d5c14;
@@ -109,11 +129,15 @@ body {
   --danger-soft: #f6e8e5;
 
   /* ---- forma e profundidade ---- */
-  --radius: 20px;
-  --radius-sm: 14px;
+  --radius: 16px;
+  --radius-sm: 12px;
   --radius-pill: 999px;
-  --shadow: 0 1px 2px rgba(31, 29, 27, 0.04), 0 10px 24px -18px rgba(31, 29, 27, 0.28);
-  --shadow-forte: 0 2px 6px rgba(31, 29, 27, 0.06), 0 18px 40px -24px rgba(31, 29, 27, 0.36);
+  --shadow: 0 1px 2px rgba(28, 40, 51, 0.04), 0 8px 20px -16px rgba(28, 40, 51, 0.22);
+  --shadow-forte: 0 2px 6px rgba(28, 40, 51, 0.06), 0 16px 36px -22px rgba(28, 40, 51, 0.32);
+
+  /* ---- foco e movimento ---- */
+  --foco: 0 0 0 3px rgba(90, 122, 143, 0.38);
+  --transicao: 0.16s ease;
 
   /* ---- tipografia ---- */
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
@@ -220,7 +244,7 @@ body:has(.central) {
 
 .c-marca {
   font-family: var(--font-display);
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--primary);
@@ -329,8 +353,11 @@ body:has(.central) {
   margin-top: 28px;
 }
 
-.c-secao-titulo {
+.c-secao-titulo,
+.central h2.c-secao-titulo,
+.central h3.c-secao-titulo {
   font-family: var(--font-body);
+  font-weight: 600;
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -342,38 +369,46 @@ body:has(.central) {
 /* Grade dos acessos da home */
 .c-atalhos {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   grid-template-columns: 1fr;
 }
 
+/* Uma linha leve por porta: ícone, título e UMA frase. Eram cartões grandes
+   com sombra, nove empilhados — a tela inicial virava uma rolagem longa de
+   blocos iguais. Agora a lista cabe quase inteira numa olhada, e o que muda
+   o dia (a meta de hoje, o desafio) aparece primeiro, acima dela. */
 .c-atalho {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   width: 100%;
   text-align: left;
-  padding: 18px;
+  padding: 12px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
   cursor: pointer;
-  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  transition: background var(--transicao), border-color var(--transicao), transform var(--transicao);
 }
 
 .c-atalho:active {
-  transform: scale(0.985);
+  transform: scale(0.99);
 }
 
 .c-atalho:hover {
-  box-shadow: var(--shadow-forte);
+  background: var(--surface-2);
   border-color: var(--border-strong);
 }
 
+.c-atalho:focus-visible {
+  outline: none;
+  box-shadow: var(--foco);
+}
+
 .c-atalho-icone {
-  width: 46px;
-  height: 46px;
-  min-width: 46px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
   border-radius: var(--radius-sm);
   display: grid;
   place-items: center;
@@ -382,15 +417,19 @@ body:has(.central) {
 }
 
 .c-atalho-texto h3 {
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1.2;
 }
 
 .c-atalho-texto p {
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--text-muted);
-  margin-top: 4px;
-  line-height: 1.4;
+  margin-top: 2px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .c-atalho-seta {
@@ -528,8 +567,9 @@ body:has(.central) {
   font-size: 16px;
   color: var(--text);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-campo);
   border-radius: var(--radius-sm);
+  transition: border-color var(--transicao), box-shadow var(--transicao);
 }
 
 .c-campo > textarea:not([class]) {
@@ -544,7 +584,7 @@ body:has(.central) {
 .c-campo > textarea:not([class]):focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-soft);
+  box-shadow: var(--foco);
 }
 
 .c-rotulo {
@@ -572,12 +612,23 @@ body:has(.central) {
   font: inherit;
   color: var(--text);
   outline: none;
+  transition: border-color var(--transicao), box-shadow var(--transicao);
+}
+
+.c-input:disabled,
+.c-select:disabled,
+.c-campo > input:not([class]):disabled,
+.c-campo > select:not([class]):disabled,
+.c-campo > textarea:not([class]):disabled {
+  background: var(--surface-2);
+  color: var(--text-subtle);
+  cursor: not-allowed;
 }
 
 .c-input:focus,
 .c-select:focus {
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px var(--primary-soft);
+  box-shadow: var(--foco);
 }
 
 .c-select {
@@ -735,7 +786,18 @@ body:has(.central) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition: background var(--transicao), color var(--transicao), border-color var(--transicao);
+}
+
+.c-chip:hover:not(:disabled):not([aria-pressed="true"]) {
+  background: var(--surface-2);
+  border-color: var(--primary);
+  color: var(--text);
+}
+
+.c-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--foco);
 }
 
 .c-chip[aria-pressed="true"] {
@@ -763,7 +825,7 @@ body:has(.central) {
 }
 
 .c-resultado-rotulo {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   opacity: 0.72;
@@ -1667,7 +1729,7 @@ body:has(.central) {
   cursor: pointer;
   color: var(--text-muted);
   min-height: 50px;
-  font-size: 10.5px;
+  font-size: 12px;
   letter-spacing: 0.01em;
   transition: color 0.15s ease;
 }
@@ -1681,7 +1743,7 @@ body:has(.central) {
   line-height: 1;
   /* 10,5px era pequeno demais para quem le sem oculos de perto -- e esta
      barra e o caminho para tudo no aplicativo. */
-  font-size: 11.5px;
+  font-size: 12px;
 }
 
 /* ---------------------------------------------------------------- resultados da busca */
@@ -1845,7 +1907,8 @@ body:has(.central) {
   cursor: pointer;
   text-align: center;
   line-height: 48px;
-  transition: background 0.15s ease;
+  transition: background var(--transicao), border-color var(--transicao),
+    box-shadow var(--transicao), transform var(--transicao);
 }
 
 .c-botao:hover {
@@ -1853,8 +1916,21 @@ body:has(.central) {
   border-color: var(--primary-dark);
 }
 
+.c-botao:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.c-botao:focus-visible {
+  outline: none;
+  box-shadow: var(--foco);
+}
+
 .c-botao:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.c-botao[aria-busy="true"] {
   cursor: progress;
 }
 
@@ -1979,7 +2055,7 @@ body:has(.central) {
 .c-faixa-admin {
   background: var(--primary-soft);
   color: var(--primary-dark);
-  border-bottom: 1px solid rgba(58, 99, 85, 0.2);
+  border-bottom: 1px solid rgba(56, 84, 108, 0.2);
   padding: 8px var(--gutter);
   font-size: 12.5px;
   line-height: 1.35;
@@ -2415,7 +2491,7 @@ body:has(.central) {
    comparar alimentos parecidos, e só aparece quando houve sintoma. */
 .c-marcacao {
   margin-top: 6px;
-  font-size: 11.5px;
+  font-size: 12px;
   line-height: 1.45;
   letter-spacing: 0.01em;
   color: var(--text-muted);
@@ -3409,7 +3485,7 @@ body:has(.central) {
 
 .c-destaque-rotulo {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -3472,7 +3548,7 @@ body:has(.central) {
 .c-variacao {
   display: block;
   margin-top: 4px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.35;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
@@ -3518,7 +3594,7 @@ body:has(.central) {
   justify-content: space-between;
   gap: 12px;
   margin-top: 8px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -3560,7 +3636,7 @@ body:has(.central) {
 
 .c-tabela-medidas thead th {
   font-weight: 500;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.3;
   color: var(--text-muted);
   border-bottom: 1px solid var(--border);
@@ -3572,7 +3648,7 @@ body:has(.central) {
   /* "1ª", "2ª", "3ª" no cabecalho da avaliacao. Sobe de 10px porque e o
      rotulo que diz de QUAL consulta e a coluna -- ler errado aqui e
      comparar a medida de hoje com a de tres meses atras. */
-  font-size: 11.5px;
+  font-size: 12px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-subtle);
@@ -3806,7 +3882,7 @@ body:has(.central) {
 
 .c-grafico-faixa {
   margin: 6px 0 0;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-subtle);
   font-variant-numeric: tabular-nums;
 }
@@ -3832,7 +3908,7 @@ body:has(.central) {
 }
 
 .c-barra-valor {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   margin-bottom: 3px;
@@ -3854,7 +3930,7 @@ body:has(.central) {
 
 .c-barra-rotulo {
   margin-top: 5px;
-  font-size: 9px;
+  font-size: 12px;
   color: var(--text-subtle);
   white-space: nowrap;
 }
@@ -4058,7 +4134,7 @@ body:has(.central) {
 }
 
 .c-paciente-adesao span {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-subtle);
 }
 
@@ -4066,7 +4142,7 @@ body:has(.central) {
   display: inline-block;
   padding: 2px 8px;
   border-radius: var(--radius-pill);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -4198,7 +4274,7 @@ body:has(.central) {
 
 .c-evento-data span {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-subtle);
 }
 
@@ -4227,7 +4303,7 @@ body:has(.central) {
 }
 
 .c-evento-marca {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text-subtle);
 }
 
@@ -4364,7 +4440,7 @@ body:has(.central) {
 }
 
 .c-recolher:focus-visible {
-  outline: 2px solid var(--verde, #3a6355);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -4415,18 +4491,18 @@ body:has(.central) {
 }
 
 .c-escala-numero:hover {
-  border-color: var(--verde, #3a6355);
+  border-color: var(--primary);
 }
 
 .c-escala-numero[aria-pressed="true"] {
-  background: var(--verde, #3a6355);
-  border-color: var(--verde, #3a6355);
+  background: var(--primary);
+  border-color: var(--primary);
   color: #fff;
   font-weight: 600;
 }
 
 .c-escala-numero:focus-visible {
-  outline: 2px solid var(--verde, #3a6355);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -4450,7 +4526,7 @@ body:has(.central) {
 
 .c-barra-semana > .barra {
   width: 100%;
-  background: var(--verde, #3a6355);
+  background: var(--primary);
   border-radius: 4px 4px 0 0;
   min-height: 3px;
 }
@@ -4536,7 +4612,7 @@ body:has(.central) {
 }
 
 .c-celula-score strong {
-  color: var(--verde, #3a6355);
+  color: var(--primary);
 }
 
 .c-variacao {
@@ -4570,7 +4646,7 @@ body:has(.central) {
   color: var(--tinta-fraca, #6b6b6b);
 }
 .c-eixo-nota strong {
-  color: var(--verde, #3a6355);
+  color: var(--primary);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -4651,7 +4727,7 @@ body:has(.central) {
 }
 
 .c-cartoes-compactos .c-metrica-rotulo {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.06em;
 }
 
@@ -4716,7 +4792,7 @@ body:has(.central) {
   border-color: var(--accent);
 }
 .central .c-cupom-marca {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-muted);
 }
 .central .c-cupom-codigo {
@@ -4941,7 +5017,7 @@ body:has(.central) {
 }
 
 .c-grafico-carinhas .c-eixo-data {
-  font-size: 10px;
+  font-size: 12px;
   fill: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
@@ -5453,7 +5529,7 @@ body:has(.central) {
   white-space: pre-line;
 }
 .c-conversa-quem {
-  font-size: 11.5px;
+  font-size: 12px;
   color: var(--text-subtle);
 }
 .c-conversa-minha {
@@ -5479,7 +5555,7 @@ body:has(.central) {
   border-radius: 99px;
   background: var(--danger);
   color: #fff;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 18px;
   text-align: center;
@@ -5630,9 +5706,200 @@ body:has(.central) {
 /* O acumulado do ranking: pequeno, embaixo do número grande dos pontos do mês. */
 .central .c-ranking-acumulado {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   line-height: 1.2;
   opacity: 0.7;
   white-space: nowrap;
+}
+
+/* =========================================================================
+   Refinamento visual — a linguagem única do app
+
+   Este bloco reúne o que é novo ou foi normalizado na revisão de identidade
+   visual. Ele NÃO desenha tela nenhuma: só os componentes que as telas
+   reaproveitam (esqueleto de carregamento, selos de situação, o cabeçalho da
+   área da nutricionista) e as regras de acessibilidade comuns a todas elas.
+   ========================================================================= */
+
+/* ---- cabeçalho da área da nutricionista ---- */
+.c-admin-marca {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.c-admin-papel {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  color: var(--text-subtle);
+}
+
+/* O rótulo da seção que está aberta dentro do "Mais" não pode empurrar as
+   abas: com "Equivalências" ativo, "Conteúdos" e "Cobrança" chegavam cortados
+   no celular. O texto ganha um teto e reticências. */
+.c-admin-aba-mais {
+  max-width: 150px;
+  flex: none;
+}
+
+.c-aba-texto {
+  display: inline-block;
+  max-width: 108px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.c-admin-aba {
+  flex: none;
+  transition: color var(--transicao), border-color var(--transicao), background var(--transicao);
+}
+
+.c-admin-aba:hover:not(.ativo) {
+  color: var(--text);
+  border-bottom-color: var(--border-strong);
+}
+
+.c-admin-aba:focus-visible {
+  outline: none;
+  box-shadow: inset var(--foco);
+  border-radius: 6px 6px 0 0;
+}
+
+/* ---- ficha da paciente: a situação num olhar ---- */
+.c-prontuario-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+/* "Cadastro", ao lado de cada linha da lista: é uma ação secundária, e não
+   deve brigar com o nome da paciente. */
+.c-paciente-cadastro {
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--primary);
+  padding: 0 14px;
+  align-self: stretch;
+  transition: background var(--transicao);
+}
+
+.c-paciente-cadastro:hover {
+  background: var(--primary-soft);
+}
+
+/* ---- carregando: esqueleto ---- */
+.c-esqueleto {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.c-esqueleto-faixa {
+  display: block;
+  height: 16px;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--primary-soft) 0%,
+    var(--surface-2) 45%,
+    var(--primary-soft) 90%
+  );
+  background-size: 220% 100%;
+  animation: c-esqueleto-brilho 1.4s ease-in-out infinite;
+}
+
+.c-esqueleto-faixa:first-of-type {
+  height: 22px;
+}
+
+@keyframes c-esqueleto-brilho {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+/* ---- acessibilidade e movimento ---- */
+
+/* Quem pediu menos movimento no aparelho recebe a tela parada. */
+@media (prefers-reduced-motion: reduce) {
+  .central *,
+  .central *::before,
+  .central *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Um foco que se vê em QUALQUER fundo: anel escuro por dentro, claro por fora.
+   Só vale para quem navega por teclado (`:focus-visible`), então o toque no
+   celular não ganha contorno. */
+.central a:focus-visible,
+.central summary:focus-visible,
+.central [role="button"]:focus-visible,
+.central [tabindex]:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.9);
+}
+
+/* Alvo de toque: nada que se toca fica abaixo de 40 px de altura. */
+.central .c-link,
+.central .c-chip,
+.central .c-voltar {
+  min-height: 40px;
+}
+
+/* ---- barras de progresso: um desenho só ---- */
+.c-progresso {
+  background: var(--primary-soft);
+}
+
+/* "Cadastro" precisa vencer `.central button { color: inherit }`. */
+.central .c-paciente-cadastro {
+  color: var(--primary);
+}
+
+/* ---- ficha da paciente no celular ---- */
+
+/* Os três números ficam LADO A LADO também no celular (peso, adesão, consultas
+   formam uma leitura só; o terceiro caía numa segunda linha sozinho). */
+.c-painel-numeros {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 12px 8px;
+}
+
+@media (min-width: 480px) {
+  .c-painel-numeros {
+    gap: 10px;
+    padding: 14px;
+  }
+}
+
+/* As abas da ficha são nove e passam da largura do celular: a borda direita
+   some num esmaecido, que diz "tem mais para lá" sem pôr seta nem rolagem
+   visível. No computador cabem todas e a máscara não existe. */
+@media (max-width: 640px) {
+  .c-abas-prontuario {
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, #000 88%, transparent);
+    scroll-snap-type: x proximity;
+  }
+
+  .c-abas-prontuario .c-admin-aba {
+    scroll-snap-align: start;
+  }
 }

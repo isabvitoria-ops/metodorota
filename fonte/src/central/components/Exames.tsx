@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { Exame } from "@/central/types/exame";
 import { repositorio } from "@/central/dados/repositorio";
 import { porQueNaoServe, tamanhoBonito, TIPOS_ACEITOS } from "@/central/utils/exames";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Exames guardados — o mesmo componente dos dois lados.
@@ -160,7 +161,7 @@ export function Exames({ pacienteId }: { pacienteId: string | null }) {
       </label>
 
       {enviando && <p className="c-contagem">Enviando…</p>}
-      {carregando && <p className="c-contagem">Carregando…</p>}
+      {carregando && <Esqueleto />}
 
       {!carregando && lista.length === 0 && (
         <p className="c-dica">

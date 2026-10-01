@@ -89,9 +89,9 @@ export function AdminApp() {
         <FaixaDemonstracao />
         <header className="c-admin-topo">
           <div className="c-admin-topo-linha">
-            <div>
-              <Marca altura={28} />
-              <strong style={{ fontSize: 15 }}>Área da nutricionista</strong>
+            <div className="c-admin-marca">
+              <Marca altura={34} />
+              <span className="c-admin-papel">Área da nutricionista</span>
             </div>
             <button
               type="button"
@@ -129,7 +129,8 @@ export function AdminApp() {
               classe={`c-admin-aba c-admin-aba-mais ${secaoDoMais ? "ativo" : ""}`}
               gatilho={
                 <>
-                  {secaoDoMais?.rotulo ?? "Mais"} <span aria-hidden="true">▾</span>
+                  <span className="c-aba-texto">{secaoDoMais?.rotulo ?? "Mais"}</span>{" "}
+                  <span aria-hidden="true">▾</span>
                 </>
               }
               itens={[

@@ -106,7 +106,7 @@ const pagina = `<!doctype html>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#3A6355" />
+    <meta name="theme-color" content="#38546C" />
     <meta name="description" content="${descricao}" />
     <meta name="versao-do-site" content="${versao}" />
     <!-- O navegador guarda HTML por padrao, e este arquivo E o aplicativo

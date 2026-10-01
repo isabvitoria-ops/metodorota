@@ -36,6 +36,7 @@ import { normalizar } from "@/central/utils/texto";
 import { RastreioAlimentar } from "@/central/components/RastreioAlimentar";
 import { DocumentoRastreio } from "@/central/components/DocumentoRastreio";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Rastreabilidade alimentar — a tela da paciente.
@@ -97,7 +98,7 @@ export function Rastreabilidade() {
       <>
         <CabecalhoPagina titulo="Rastreabilidade alimentar" voltarPara={rotas.home} />
         <div className="c-conteudo">
-          <p className="c-contagem">Carregando…</p>
+          <Esqueleto />
         </div>
       </>
     );

@@ -24,6 +24,7 @@ import {
   rotuloDaSemana,
   semanaDoDia,
 } from "@/central/utils/historicoDePontos";
+import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
  * Desafio do Mês — área da nutricionista.
@@ -144,7 +145,7 @@ export function Desafios() {
       )}
 
       {carregando ? (
-        <p className="c-contagem">Carregando…</p>
+        <Esqueleto />
       ) : desafios.length === 0 ? (
         <p className="c-contagem">Nenhum desafio criado ainda.</p>
       ) : (
