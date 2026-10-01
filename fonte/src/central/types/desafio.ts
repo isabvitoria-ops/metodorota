@@ -185,3 +185,34 @@ export interface DesafioAdmin extends Omit<Desafio, "semanaAtual" | "totalDeSema
   semanaAtual: number | null;
   totalDeSemanas: number;
 }
+
+// ---------------------------------------------------------------- histórico mensal (0059)
+
+/** Uma paciente no placar de um mês. */
+export interface LinhaDoHistorico {
+  pacienteId: string;
+  nome: string;
+  /** O que ela ganhou naquele mês (resgate não conta como ganho). */
+  pontos: number;
+  /** Quanto ela gastou em recompensas naquele mês. */
+  resgatou: number;
+  /** O saldo de sempre até o fim daquele mês. */
+  saldo: number;
+  /** A maior recompensa que esse saldo já alcançou. */
+  recompensa: string | null;
+}
+
+/** O placar de um mês, da maior para a menor pontuação. */
+export interface MesDoHistorico {
+  /** O primeiro dia do mês, AAAA-MM-01. */
+  mes: string;
+  total: number;
+  ranking: LinhaDoHistorico[];
+}
+
+/** Um mês da evolução da própria paciente. */
+export interface MesDaMinhaEvolucao {
+  mes: string;
+  pontos: number;
+  saldo: number;
+}

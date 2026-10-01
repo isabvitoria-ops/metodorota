@@ -1,3 +1,4 @@
+import { MinhaEvolucaoDePontos } from "@/central/components/MinhaEvolucaoDePontos";
 import { useState } from "react";
 import type { AcaoDoDesafio, Cupom, IndicacaoDaPaciente } from "@/central/types";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
@@ -174,6 +175,8 @@ export function Desafio() {
             </p>
           </section>
         )}
+
+        <MinhaEvolucaoDePontos />
 
         <PontoDeVirada saldo={dados.saldoAcumulado} recompensas={recompensas} />
 

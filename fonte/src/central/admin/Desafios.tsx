@@ -14,6 +14,13 @@ import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { SeloNeutro } from "@/central/components/Selo";
 import { Campo, Selecao, Texto, AreaTexto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
+import { HistoricoDePontos } from "./HistoricoDePontos";
+import {
+  escolherDesafioPadrao,
+  nomeDoDesafioDoMes,
+  periodoDoMes,
+  precisaCriarDesafio,
+} from "@/central/utils/historicoDePontos";
 
 /**
  * Desafio do Mês — área da nutricionista.
@@ -23,7 +30,7 @@ import { Modal } from "./componentes/Modal";
  * cuidar das indicações. Nenhuma delas soma ponto por conta própria: todas
  * chamam a função do banco, e o resultado volta da leitura seguinte.
  */
-const ABAS = ["Visão geral", "Pendências", "Lançar pontos", "Ranking", "Indicações"] as const;
+const ABAS = ["Visão geral", "Pendências", "Lançar pontos", "Ranking", "Histórico", "Indicações"] as const;
 type Aba = (typeof ABAS)[number];
 
 const SITUACOES: Record<string, string> = {
@@ -45,7 +52,10 @@ export function Desafios() {
     try {
       const lista = await repositorio.listarDesafios();
       definirDesafios(lista);
-      definirEscolhido((atual) => atual ?? lista.find((d) => d.situacao === "ativo")?.id ?? lista[0]?.id ?? null);
+      // O que abre: o que está no ar; senão o mais recente que não seja
+      // rascunho. O rascunho vazio vinha primeiro e era ele que abria, sem
+      // nenhuma ação para lançar.
+      definirEscolhido((atual) => atual ?? escolherDesafioPadrao(lista));
       definirErro(null);
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui carregar os desafios.");
@@ -59,6 +69,37 @@ export function Desafios() {
   }, [carregar]);
 
   const desafio = desafios.find((d) => d.id === escolhido) ?? null;
+  const [criandoMes, definirCriandoMes] = useState(false);
+  // Sem desafio no ar nem agendado, a lista de ações some e não dá para
+  // lançar ponto novo. Foi o que aconteceu no dia 1º de outubro: o de setembro
+  // acabou e ninguém tinha criado o do mês.
+  const faltaODoMes = !carregando && precisaCriarDesafio(desafios);
+
+  async function criarDesafioDoMes() {
+    definirCriandoMes(true);
+    try {
+      const hoje = hojeSaoPaulo();
+      const { inicio, fim } = periodoDoMes(hoje);
+      // Os textos (lema, descrição, como funciona) vêm do desafio mais recente
+      // que não seja rascunho; as ações o próprio banco copia.
+      const modelo = desafios.find((d) => d.situacao !== "rascunho") ?? desafios[0];
+      await repositorio.salvarDesafio({
+        nome: nomeDoDesafioDoMes(hoje),
+        lema: modelo?.lema ?? "Cada pequena ação conta.",
+        descricao: modelo?.descricao ?? null,
+        regras: modelo?.regras ?? null,
+        dataInicio: inicio,
+        dataFim: fim,
+        status: "ativo",
+      });
+      definirEscolhido(null);
+      await carregar();
+    } catch (e) {
+      definirErro(e instanceof Error ? e.message : "Não consegui criar o desafio do mês.");
+    } finally {
+      definirCriandoMes(false);
+    }
+  }
 
   return (
     <>
@@ -78,6 +119,24 @@ export function Desafios() {
       {erro && (
         <div className="c-aviso c-aviso-erro" role="alert">
           <span>{erro}</span>
+        </div>
+      )}
+
+      {faltaODoMes && (
+        <div className="c-aviso" role="status" style={{ display: "block" }}>
+          <p style={{ margin: "0 0 8px" }}>
+            <strong>Não há desafio no ar hoje.</strong> Sem ele a lista de ações some (inclusive
+            “Indiquei uma amiga”) e não dá para lançar pontos novos. Os pontos dos meses
+            anteriores continuam todos guardados — veja na aba Histórico.
+          </p>
+          <button
+            type="button"
+            className="c-botao c-botao-pequeno"
+            disabled={criandoMes}
+            onClick={() => void criarDesafioDoMes()}
+          >
+            {criandoMes ? "Criando…" : `Criar o ${nomeDoDesafioDoMes(hojeSaoPaulo())}`}
+          </button>
         </div>
       )}
 
@@ -123,6 +182,7 @@ export function Desafios() {
                 {aba === "Pendências" && <Pendencias desafioId={desafio.id} />}
                 {aba === "Lançar pontos" && <LancarPontos desafio={desafio} />}
                 {aba === "Ranking" && <Ranking desafioId={desafio.id} />}
+                {aba === "Histórico" && <HistoricoDePontos />}
                 {aba === "Indicações" && <Indicacoes desafioId={desafio.id} />}
               </div>
             </>

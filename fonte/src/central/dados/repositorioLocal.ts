@@ -1,4 +1,6 @@
 import type {
+  MesDaMinhaEvolucao,
+  MesDoHistorico,
   AcaoAdmin,
   AcaoDoDesafio,
   AlimentoDoMaterial,
@@ -615,6 +617,46 @@ export const repositorioLocal: Repositorio = {
         total: envios.filter((e) => e.acaoId === a.id && e.status === "aprovado").length,
       })),
     };
+  },
+
+  async historicoMensalDePontos(): Promise<MesDoHistorico[]> {
+    // Exemplo para a demonstração: o mês passado com três pacientes da semente.
+    const hoje = hojeLocal();
+    const [a, m] = [Number(hoje.slice(0, 4)), Number(hoje.slice(5, 7))];
+    const passado = m === 1 ? `${a - 1}-12-01` : `${a}-${String(m - 1).padStart(2, "0")}-01`;
+    const nomes = pacientesDaSemente().slice(0, 3).map((p) => p.nome);
+    const dados = [
+      { pontos: 100, saldo: 245, recompensa: "30 dias de acompanhamento" },
+      { pontos: 60, saldo: 60, recompensa: null },
+      { pontos: 15, saldo: 15, recompensa: null },
+    ];
+    return [
+      { mes: `${hoje.slice(0, 7)}-01`, total: 0, ranking: [] },
+      {
+        mes: passado,
+        total: dados.reduce((t, d) => t + d.pontos, 0),
+        ranking: nomes.map((nome, i) => ({
+          pacienteId: `demo-${i}`,
+          nome,
+          resgatou: 0,
+          ...dados[i]!,
+        })),
+      },
+    ];
+  },
+  async meuHistoricoDePontos(): Promise<MesDaMinhaEvolucao[]> {
+    const hoje = hojeLocal();
+    const [a, m] = [Number(hoje.slice(0, 4)), Number(hoje.slice(5, 7))];
+    const mes = (atras: number) => {
+      const d = new Date(Date.UTC(a, m - 1 - atras, 1));
+      return d.toISOString().slice(0, 10);
+    };
+    return [
+      { mes: mes(3), pontos: 0, saldo: 0 },
+      { mes: mes(2), pontos: 25, saldo: 25 },
+      { mes: mes(1), pontos: 45, saldo: 70 },
+      { mes: mes(0), pontos: 20, saldo: 90 },
+    ];
   },
 
   async rankingDoDesafio() {

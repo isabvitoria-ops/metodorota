@@ -11,6 +11,8 @@ import type {
   Favorito,
   GrupoAlimentar,
   Guia,
+  MesDaMinhaEvolucao,
+  MesDoHistorico,
   IndicacaoPendente,
   LinhaDoRanking,
   MarcadorDoAlimento,
@@ -163,6 +165,14 @@ export interface Repositorio {
   salvarDesafio(desafio: Partial<DesafioAdmin> & { nome: string; dataInicio: string; dataFim: string }): Promise<void>;
   painelDoDesafio(desafioId: string): Promise<PainelDoDesafio>;
   rankingDoDesafio(desafioId: string): Promise<LinhaDoRanking[]>;
+  /**
+   * O placar de cada mês (o atual e os `meses` anteriores), para a nutricionista
+   * dar os presentes no começo do mês (0059). Lê o livro de pontos: nada é
+   * guardado a mais e nada é apagado.
+   */
+  historicoMensalDePontos(meses?: number): Promise<MesDoHistorico[]>;
+  /** A minha evolução mês a mês, para a paciente. Vazio se nunca pontuou. */
+  meuHistoricoDePontos(): Promise<MesDaMinhaEvolucao[]>;
   enviosPendentes(desafioId: string): Promise<EnvioPendente[]>;
   aprovarEnvio(envioId: string): Promise<void>;
   recusarEnvio(envioId: string, motivo?: string | null): Promise<void>;

@@ -1,4 +1,6 @@
 import type {
+  MesDaMinhaEvolucao,
+  MesDoHistorico,
   AcaoAdmin,
   Alimento,
   AlimentoDoMaterial,
@@ -477,6 +479,35 @@ export const repositorioSupabase: Repositorio = {
     const { data, error } = await sb.rpc("painel_do_desafio", { p_desafio: desafioId });
     erro("carregar o painel do desafio", error);
     return data as PainelDoDesafio;
+  },
+
+  async historicoMensalDePontos(meses = 3): Promise<MesDoHistorico[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("historico_mensal_de_pontos", { p_meses: meses });
+    erro("carregar o histórico de pontos", error);
+    return ((data ?? []) as Linha[]).map((m) => ({
+      mes: texto(m.mes),
+      total: numero(m.total),
+      ranking: (Array.isArray(m.ranking) ? (m.ranking as Linha[]) : []).map((r) => ({
+        pacienteId: texto(r.pacienteId),
+        nome: texto(r.nome),
+        pontos: numero(r.pontos),
+        resgatou: numero(r.resgatou),
+        saldo: numero(r.saldo),
+        recompensa: textoOuNulo(r.recompensa),
+      })),
+    }));
+  },
+
+  async meuHistoricoDePontos(): Promise<MesDaMinhaEvolucao[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("meu_historico_de_pontos", { p_meses: 3 });
+    erro("carregar a sua evolução", error);
+    return ((data ?? []) as Linha[]).map((m) => ({
+      mes: texto(m.mes),
+      pontos: numero(m.pontos),
+      saldo: numero(m.saldo),
+    }));
   },
 
   async rankingDoDesafio(desafioId: string) {
