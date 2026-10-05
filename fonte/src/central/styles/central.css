@@ -5986,11 +5986,26 @@ body:has(.central) {
   border-radius: 999px;
   flex-shrink: 0;
 }
+.central .c-fodmap-faixas {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 12px;
+}
+.central .c-fodmap-faixa-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding-left: 10px;
+  border-left: 3px solid;
+  margin-bottom: 6px;
+}
 .central .c-fodmap-lista {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 10px;
 }
 .central .c-fodmap-cartao {
   display: flex;

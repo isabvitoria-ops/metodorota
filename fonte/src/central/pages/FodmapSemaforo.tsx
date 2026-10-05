@@ -146,23 +146,18 @@ export function FodmapSemaforo() {
           )}
         </div>
 
-        {/* ── Lista ── */}
+        {/* ── Lista por faixas ── */}
         {resultados.length === 0 ? (
           <p className="c-dica" style={{ marginTop: 20, textAlign: "center" }}>
             Nenhum alimento encontrado com esses filtros.
           </p>
         ) : (
-          <div className="c-fodmap-lista">
-            {resultados.map((a) => (
-              <CartaoFodmap
-                key={a.id}
-                alimento={a}
-                expandido={expandido === a.id}
-                aoExpandir={() => definirExpandido(expandido === a.id ? null : a.id)}
-                fase={fase}
-              />
-            ))}
-          </div>
+          <FaixasPorNivel
+            resultados={resultados}
+            expandido={expandido}
+            aoExpandir={(id) => definirExpandido(expandido === id ? null : id)}
+            fase={fase}
+          />
         )}
 
         {/* ── Legenda ── */}
@@ -202,6 +197,58 @@ export function FodmapSemaforo() {
         </section>
       </div>
     </>
+  );
+}
+
+const NIVEIS_ORDEM: NivelFodmap[] = ["verde", "amarelo", "vermelho"];
+
+function FaixasPorNivel({
+  resultados,
+  expandido,
+  aoExpandir,
+  fase,
+}: {
+  resultados: AlimentoFodmap[];
+  expandido: string | null;
+  aoExpandir: (id: string) => void;
+  fase: FaseFodmap;
+}) {
+  const porNivel = useMemo(() => {
+    const mapa: Record<NivelFodmap, AlimentoFodmap[]> = { verde: [], amarelo: [], vermelho: [] };
+    for (const a of resultados) mapa[a.nivel].push(a);
+    return mapa;
+  }, [resultados]);
+
+  return (
+    <div className="c-fodmap-faixas">
+      {NIVEIS_ORDEM.map((nivel) => {
+        const lista = porNivel[nivel];
+        if (lista.length === 0) return null;
+        return (
+          <section key={nivel} className="c-fodmap-faixa" aria-label={ROTULOS_NIVEL[nivel]}>
+            <h3
+              className="c-fodmap-faixa-titulo"
+              style={{ color: CORES_NIVEL[nivel], borderLeftColor: CORES_NIVEL[nivel] }}
+            >
+              <Sinal cor={CORES_NIVEL[nivel]} grande />
+              {ROTULOS_NIVEL[nivel]}
+              <span className="c-contagem">{lista.length}</span>
+            </h3>
+            <div className="c-fodmap-lista">
+              {lista.map((a) => (
+                <CartaoFodmap
+                  key={a.id}
+                  alimento={a}
+                  expandido={expandido === a.id}
+                  aoExpandir={() => aoExpandir(a.id)}
+                  fase={fase}
+                />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
   );
 }
 

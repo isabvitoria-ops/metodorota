@@ -171,6 +171,7 @@ export function Home() {
             (atalho) =>
               atalho.grupo === grupo.chave &&
               (atalho.rota !== rotas.rastreabilidade || acesso.rastreio) &&
+              (atalho.rota !== rotas.fodmap || acesso.rastreio) &&
               (atalho.rota !== rotas.protocolo || acesso.protocolo) &&
               // Sem treino ativo e sem nenhuma sessão registrada, a porta não
               // existe — em vez de abrir uma evolução sem o que mostrar.
