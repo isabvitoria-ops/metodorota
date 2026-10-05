@@ -2724,17 +2724,23 @@ body:has(.central) {
 .c-refeicao-cabecalho {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
   background: var(--primary-soft);
 }
 
+.c-refeicao-emoji {
+  flex: 0 0 auto;
+  font-size: 22px;
+  line-height: 1;
+}
+
 .c-refeicao-titulo {
+  flex: 1 1 auto;
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 3px;
   min-width: 0;
 }
 
@@ -2750,15 +2756,13 @@ body:has(.central) {
 }
 
 .c-refeicao-horario {
-  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 12px;
-  font-weight: 600;
-  color: var(--primary);
-  background: var(--surface);
-  padding: 2px 9px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--border);
-  letter-spacing: 0.01em;
+  font-weight: 500;
+  color: var(--text-muted);
+  line-height: 1;
 }
 
 .c-refeicao-conversar {
@@ -2766,17 +2770,18 @@ body:has(.central) {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 6px;
+  padding: 8px;
   border-radius: var(--radius-pill);
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--primary);
   cursor: pointer;
-  transition: background var(--transicao), border-color var(--transicao);
+  transition: background var(--transicao), border-color var(--transicao), transform var(--transicao);
 }
 
 .c-refeicao-conversar:active {
   background: var(--primary-soft);
+  transform: scale(0.95);
 }
 
 .c-refeicao-opcoes {
@@ -2788,15 +2793,19 @@ body:has(.central) {
 
 .c-refeicao-opcao {
   flex: 1;
-  padding: 10px 12px;
-  font-size: 13px;
+  padding: 11px 12px;
+  font-size: 13.5px;
   font-weight: 600;
   color: var(--text-muted);
   background: var(--surface-2);
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   cursor: pointer;
   transition: color var(--transicao), border-color var(--transicao), background var(--transicao);
+}
+
+.c-refeicao-opcao:active {
+  background: var(--primary-soft);
 }
 
 .c-refeicao-opcao-ativa {
@@ -2806,11 +2815,11 @@ body:has(.central) {
 }
 
 .c-refeicao-itens {
-  padding: 6px 0;
+  padding: 4px 0;
 }
 
 .c-refeicao-item {
-  padding: 8px 16px;
+  padding: 10px 16px;
 }
 
 .c-refeicao-item + .c-refeicao-item {
@@ -2824,9 +2833,9 @@ body:has(.central) {
 }
 
 .c-refeicao-item-ponto {
-  flex: 0 0 6px;
-  width: 6px;
-  height: 6px;
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--primary);
   margin-top: 7px;
@@ -2845,20 +2854,28 @@ body:has(.central) {
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   font-size: 14px;
+  background: var(--surface-2);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
 }
 
 .c-refeicao-trocas {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
-  margin: 4px 0 0 16px;
+  gap: 5px;
+  margin: 5px 0 0 17px;
   font-size: 12.5px;
   line-height: 1.45;
   color: var(--text-muted);
 }
 
+.c-refeicao-trocas-icone {
+  font-size: 11px;
+  line-height: 1.4;
+}
+
 .c-refeicao-trocas-lista {
-  margin: 4px 0 0 16px;
+  margin: 5px 0 0 17px;
 }
 
 .c-refeicao-trocas-lista > summary {
@@ -2889,10 +2906,13 @@ body:has(.central) {
 .c-refeicao-notas {
   padding: 10px 16px;
   border-top: 1px solid var(--border);
-  background: var(--surface-2);
+  background: var(--accent-soft);
 }
 
 .c-refeicao-notas p {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
   margin: 0;
   font-size: 13.5px;
   line-height: 1.55;
@@ -2901,6 +2921,75 @@ body:has(.central) {
 
 .c-refeicao-notas p + p {
   margin-top: 6px;
+}
+
+.c-refeicao-nota-icone {
+  flex: 0 0 auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Orientações dentro do card */
+.c-orientacoes-card {
+  margin: 0;
+  padding: 8px 0;
+  list-style: none;
+}
+
+.c-orientacoes-card li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 16px;
+  line-height: 1.55;
+}
+
+.c-orientacoes-card li + li {
+  border-top: 1px solid var(--border);
+}
+
+.c-orientacao-check {
+  flex: 0 0 auto;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* Seções de rotina dentro do card */
+.c-rotina-lista {
+  padding: 6px 0;
+}
+
+.c-rotina-sanfona {
+  padding: 12px 16px;
+}
+
+.c-rotina-sanfona + .c-rotina-sanfona {
+  border-top: 1px solid var(--border);
+}
+
+.c-rotina-sanfona > summary {
+  cursor: pointer;
+  font-weight: 600;
+  line-height: 1.35;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.c-rotina-sanfona > summary::-webkit-details-marker {
+  display: none;
+}
+
+.c-rotina-sanfona > summary::after {
+  content: "+";
+  color: var(--primary);
+  font-weight: 400;
+  font-size: 18px;
+}
+
+.c-rotina-sanfona[open] > summary::after {
+  content: "−";
 }
 
 /* ------------------------------------------------------- rastreio alimentar

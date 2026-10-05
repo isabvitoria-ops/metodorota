@@ -13,22 +13,25 @@ import { useNavigate } from "react-router-dom";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { Esqueleto } from "@/central/components/Esqueleto";
 
-/**
- * Protocolo Alimentar — a dieta da paciente.
- *
- * O conteúdo é da nutricionista, inteirinho: ela calcula fora e cola no app.
- * Esta tela não soma, não converte e não opina — mostra o que ela escreveu,
- * com a cara do aplicativo, para a paciente não precisar de um segundo app
- * (que era o pedido: um só).
- *
- * As decisões de tela que importam:
- *
- *   * a substituição fica EMBAIXO do item, discreta, e não numa tabela ao
- *     lado. Numa tela de celular a terceira coluna vira ilegível;
- *   * quando a refeição tem mais de um jeito de fazer, as opções viram
- *     botões. Com uma só, nem rótulo aparece;
- *   * o recado da semana fica em destaque no topo, porque é o que muda.
- */
+const EMOJI_REFEICAO: [RegExp, string][] = [
+  [/caf[eé]\s*(da)?\s*manh[aã]|desjejum/i, "☀️"],
+  [/lanche\s*(da)?\s*manh[aã]/i, "🍎"],
+  [/almo[cç]o/i, "🍽️"],
+  [/lanche\s*(da)?\s*tarde/i, "☕"],
+  [/jant(a|ar)/i, "🌙"],
+  [/ceia/i, "✨"],
+  [/pr[eé][\s-]*treino/i, "💪"],
+  [/p[oó]s[\s-]*treino/i, "🏋️"],
+  [/colac[aã]o|col[aá][çc][aã]o/i, "🧃"],
+];
+
+function emojiDaRefeicao(nome: string): string {
+  for (const [padrao, emoji] of EMOJI_REFEICAO) {
+    if (padrao.test(nome)) return emoji;
+  }
+  return "🥗";
+}
+
 export function Protocolo() {
   const [protocolo, definirProtocolo] = useState<ProtocoloAlimentar | null>(null);
   const [carregando, definirCarregando] = useState(true);
@@ -109,16 +112,22 @@ export function Protocolo() {
             )}
 
             {conteudo.orientacoes.length > 0 && (
-              <section className="c-secao">
-                <h2 className="c-secao-titulo">Orientações gerais</h2>
-                <ul className="c-orientacoes">
+              <div className="c-refeicao-card" style={{ marginTop: 20 }}>
+                <div className="c-refeicao-cabecalho">
+                  <span className="c-refeicao-emoji" aria-hidden="true">📋</span>
+                  <div className="c-refeicao-titulo">
+                    <h2>Orientações gerais</h2>
+                  </div>
+                </div>
+                <ul className="c-orientacoes-card">
                   {conteudo.orientacoes.map((texto, i) => (
                     <li key={i}>
-                      <TextoComLinks texto={texto} />
+                      <span className="c-orientacao-check" aria-hidden="true">✅</span>
+                      <span><TextoComLinks texto={texto} /></span>
                     </li>
                   ))}
                 </ul>
-              </section>
+              </div>
             )}
 
             {conteudo.refeicoes.map((refeicao, i) => (
@@ -131,11 +140,16 @@ export function Protocolo() {
             ))}
 
             {conteudo.secoes.length > 0 && (
-              <section className="c-secao">
-                <h2 className="c-secao-titulo">Orientações de rotina</h2>
-                <div className="c-lista">
+              <div className="c-refeicao-card" style={{ marginTop: 20 }}>
+                <div className="c-refeicao-cabecalho">
+                  <span className="c-refeicao-emoji" aria-hidden="true">💡</span>
+                  <div className="c-refeicao-titulo">
+                    <h2>Orientações de rotina</h2>
+                  </div>
+                </div>
+                <div className="c-rotina-lista">
                   {conteudo.secoes.map((secao, i) => (
-                    <details key={i} className="c-sanfona">
+                    <details key={i} className="c-rotina-sanfona">
                       <summary>{secao.titulo}</summary>
                       {secao.paragrafos.map((p, j) => (
                         <p key={j} className="c-sanfona-texto">
@@ -145,7 +159,7 @@ export function Protocolo() {
                     </details>
                   ))}
                 </div>
-              </section>
+              </div>
             )}
 
             <p className="c-dica" style={{ marginTop: 22 }}>
@@ -186,13 +200,19 @@ function Refeicao({
   const opcao = opcoes[Math.min(escolhida, opcoes.length - 1)];
   if (!opcao) return null;
 
+  const emoji = emojiDaRefeicao(refeicao.nome);
+
   return (
     <div className="c-refeicao-card">
       <div className="c-refeicao-cabecalho">
+        <span className="c-refeicao-emoji" aria-hidden="true">{emoji}</span>
         <div className="c-refeicao-titulo">
           <h2>{refeicao.nome}</h2>
           {refeicao.horario && (
-            <span className="c-refeicao-horario">{refeicao.horario}</span>
+            <span className="c-refeicao-horario">
+              <Icone nome="relogio" tamanho={11} />
+              {refeicao.horario}
+            </span>
           )}
         </div>
         <button
@@ -239,14 +259,14 @@ function Refeicao({
             </div>
             {item.substituicoes.length > 0 && item.substituicoes.length <= 4 && (
               <div className="c-refeicao-trocas">
-                <Icone nome="troca" tamanho={12} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span className="c-refeicao-trocas-icone" aria-hidden="true">🔄</span>
                 <span>{item.substituicoes.join(" · ")}</span>
               </div>
             )}
             {item.substituicoes.length > 4 && (
               <details className="c-refeicao-trocas-lista">
                 <summary>
-                  <Icone nome="troca" tamanho={12} style={{ flexShrink: 0 }} />
+                  <span aria-hidden="true">🔄</span>
                   {item.substituicoes.length} substituições
                 </summary>
                 <ul>
@@ -264,6 +284,7 @@ function Refeicao({
         <div className="c-refeicao-notas">
           {opcao.notas.map((nota, i) => (
             <p key={i}>
+              <span className="c-refeicao-nota-icone" aria-hidden="true">📝</span>
               <TextoComLinks texto={nota} />
             </p>
           ))}
