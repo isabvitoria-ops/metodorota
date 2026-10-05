@@ -6577,3 +6577,186 @@ body:has(.central) {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ── Guias educativos (fibras, sementes, hábitos) ── */
+
+.central .c-guia-intro {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--accent-soft, #e8f0f5);
+  border-radius: var(--radius-card, 14px);
+  padding: 16px 18px;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.central .c-guia-intro p {
+  margin: 0;
+}
+
+.central .c-guia-intro-emoji {
+  font-size: 1.6rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.central .c-guia-card {
+  background: var(--surface-1);
+  border-radius: var(--radius-card, 14px);
+  padding: 20px;
+  margin-top: 16px;
+  box-shadow: var(--sombra-card, 0 1px 4px rgba(0, 0, 0, 0.06));
+}
+
+.central .c-guia-card-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.central .c-guia-card-emoji {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.central .c-guia-card-cabecalho h2 {
+  font-family: var(--fonte-titulo);
+  font-size: 1.05rem;
+  margin: 0;
+  color: var(--text);
+}
+
+.central .c-guia-card-descricao {
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text);
+  margin: 0 0 14px;
+}
+
+.central .c-guia-card-secao {
+  margin-top: 12px;
+}
+
+.central .c-guia-card-secao h3 {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 8px;
+}
+
+.central .c-guia-lista-exemplos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.central .c-guia-lista-exemplos li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+.central .c-guia-lista-check {
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.central .c-guia-card-destaque {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--cor-sucesso-fundo, #e8f5e9);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 14px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.central .c-guia-destaque-icone {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.central .c-guia-card-cuidado {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--cor-atencao-fundo, #fff3e0);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.central .c-guia-cuidado-icone {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.central .c-guia-dicas {
+  background: var(--surface-1);
+  border-radius: var(--radius-card, 14px);
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: var(--sombra-card, 0 1px 4px rgba(0, 0, 0, 0.06));
+}
+
+.central .c-guia-dicas h3 {
+  font-family: var(--fonte-titulo);
+  font-size: 1rem;
+  margin: 0 0 14px;
+  color: var(--text);
+}
+
+.central .c-guia-dica-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.45;
+  padding: 8px 0;
+}
+
+.central .c-guia-dica-item + .c-guia-dica-item {
+  border-top: 1px solid var(--borda-leve, rgba(0,0,0,0.06));
+}
+
+.central .c-guia-dica-emoji {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.central .c-guia-publico {
+  background: var(--accent-soft, #e8f0f5);
+  border-radius: var(--radius-card, 14px);
+  padding: 16px 18px;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.central .c-guia-publico p {
+  margin: 0;
+}

@@ -68,6 +68,13 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Descubra quantos litros de água seu corpo precisa por dia.",
   },
   {
+    rota: rotas.fibras,
+    grupo: "ferramentas",
+    icone: "folha",
+    titulo: "Guia de Fibras",
+    descricao: "Solúvel vs. insolúvel: quando comer cada uma e por quê.",
+  },
+  {
     rota: rotas.fodmap,
     grupo: "ferramentas",
     icone: "folha",
