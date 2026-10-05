@@ -26,7 +26,8 @@
 
 export interface PerguntaPontuavel {
   id: string;
-  tipo: "escala" | "sim_nao" | "numero" | "texto" | "escolha";
+  tipo: "escala" | "sim_nao" | "numero" | "texto" | "escolha"
+    | "emoji" | "estrelas" | "multipla_escolha" | "metrica";
   peso: number;
   invertida: boolean;
   /** Só para 'escolha': os rótulos e os pontos (0–10) de cada opção. */
@@ -35,6 +36,10 @@ export interface PerguntaPontuavel {
   /** A que eixo a pergunta pertence, para a quebra da nota. */
   eixoId?: string | null;
   eixoNome?: string | null;
+  /** Código estável (B01, I05…) para comparação entre versões. */
+  codigo?: string | null;
+  /** Faixas de nota para perguntas numéricas. */
+  notas_por_faixa?: { faixas: { de: number | null; ate: number | null; nota: number }[] } | null;
 }
 
 export interface RespostaCrua {
@@ -97,7 +102,49 @@ export function valorNaEscala(
     return Math.min(Math.max(p, 0), TETO);
   }
 
-  if (pergunta.tipo !== "escala" && pergunta.tipo !== "sim_nao") return null;
+  // Emoji de 5 níveis: pontos definidos em pontosOpcoes (como escolha).
+  if (pergunta.tipo === "emoji") {
+    const opcoes = pergunta.opcoes ?? [];
+    const pontos = pergunta.pontosOpcoes ?? [];
+    if (opcoes.length === 0 || pontos.length === 0) return null;
+    const escolhido = resposta?.texto ?? null;
+    if (escolhido === null || escolhido === "") return null;
+    const i = opcoes.indexOf(escolhido);
+    if (i < 0 || i >= pontos.length) return null;
+    const p = pontos[i];
+    if (p === null || p === undefined || Number.isNaN(p)) return null;
+    return Math.min(Math.max(p, 0), TETO);
+  }
+
+  // Estrelas (1–5): normaliza para 0–10.
+  if (pergunta.tipo === "estrelas") {
+    if (!resposta || resposta.numero === null || Number.isNaN(resposta.numero)) return null;
+    return Math.min(Math.max(((resposta.numero - 1) / 4) * TETO, 0), TETO);
+  }
+
+  // Métrica e texto nunca pontuam.
+  if (pergunta.tipo === "metrica" || pergunta.tipo === "texto") return null;
+
+  // Múltipla escolha: pontua via pontosOpcoes[0] por enquanto;
+  // a lógica completa (gravidade por item) virá na Etapa 4.
+  if (pergunta.tipo === "multipla_escolha") {
+    const pontos = pergunta.pontosOpcoes ?? [];
+    if (pontos.length === 0) return null;
+    const escolhido = resposta?.texto ?? null;
+    if (escolhido === null || escolhido === "") return null;
+    const opcoes = pergunta.opcoes ?? [];
+    const i = opcoes.indexOf(escolhido);
+    if (i >= 0 && i < pontos.length) {
+      const p = pontos[i];
+      if (p !== null && p !== undefined && !Number.isNaN(p)) {
+        return Math.min(Math.max(p, 0), TETO);
+      }
+    }
+    return null;
+  }
+
+  if (pergunta.tipo !== "escala" && pergunta.tipo !== "sim_nao" && pergunta.tipo !== "numero")
+    return null;
   if (!resposta || resposta.numero === null || Number.isNaN(resposta.numero)) return null;
 
   const bruto =

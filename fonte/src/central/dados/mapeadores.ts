@@ -20,6 +20,9 @@ import type {
   ReguaDePergunta,
   TipoDePergunta,
   PeriodicidadeQuestionario,
+  AlertaOpcao,
+  RegraExibicao,
+  NotasPorFaixa,
 } from "@/central/types/questionario";
 
 /**
@@ -42,6 +45,18 @@ const booleano = (v: unknown): boolean => v === true;
 const booleanoOuNulo = (v: unknown): boolean | null =>
   v === null || v === undefined ? null : v === true;
 const lista = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : []);
+
+function paraRegraExibicao(v: unknown): RegraExibicao | null {
+  if (v && typeof v === "object" && "perguntaCodigo" in v && "operador" in v && "valor" in v)
+    return v as RegraExibicao;
+  return null;
+}
+
+function paraNotasPorFaixa(v: unknown): NotasPorFaixa | null {
+  if (v && typeof v === "object" && "faixas" in v && Array.isArray((v as NotasPorFaixa).faixas))
+    return v as NotasPorFaixa;
+  return null;
+}
 
 export function paraUnidade(l: Linha): Unidade {
   return {
@@ -264,6 +279,7 @@ function paraResposta(l: Linha): RespostaEnviada {
     perguntaId: texto(l.perguntaId),
     numero: numeroOuNulo(l.numero),
     texto: textoOuNulo(l.texto),
+    json: l.json ?? null,
   };
 }
 
@@ -279,6 +295,8 @@ function paraReguaSnapshot(v: unknown): ReguaDePergunta[] | null {
     pontosOpcoes: listaDeNumeros(p.pontosOpcoes),
     eixoId: textoOuNulo(p.eixoId),
     eixoNome: textoOuNulo(p.eixoNome),
+    codigo: textoOuNulo(p.codigo),
+    notasPorFaixa: paraNotasPorFaixa(p.notasPorFaixa),
   }));
 }
 
@@ -306,6 +324,16 @@ export function paraQuestionario(l: Linha): Questionario {
       eixoId: textoOuNulo(p.eixoId),
       pontosOpcoes: listaDeNumeros(p.pontosOpcoes),
       respondida: p.respondida === true,
+      codigo: textoOuNulo(p.codigo),
+      cadencia: (p.cadencia === "quinzenal" || p.cadencia === "mensal") ? p.cadencia : "semanal",
+      regraExibicao: paraRegraExibicao(p.regraExibicao),
+      modulo: textoOuNulo(p.modulo),
+      versoes: Array.isArray(p.versoes) ? p.versoes as string[] : null,
+      explicacaoOpcoes: Array.isArray(p.explicacaoOpcoes) ? p.explicacaoOpcoes as (string | null)[] : [],
+      textoAjuda: textoOuNulo(p.textoAjuda),
+      notasPorFaixa: paraNotasPorFaixa(p.notasPorFaixa),
+      alertasOpcoes: Array.isArray(p.alertasOpcoes) ? p.alertasOpcoes as (AlertaOpcao | null)[] : [],
+      ativa: p.ativa !== false,
     })),
   };
 }
@@ -330,7 +358,18 @@ export function paraMeuQuestionario(l: Linha): MeuQuestionario {
       invertida: p.invertida === null || p.invertida === undefined ? null : p.invertida === true,
       pontosOpcoes: listaDeNumeros(p.pontosOpcoes),
       eixoId: textoOuNulo(p.eixoId),
+      codigo: textoOuNulo(p.codigo),
+      cadencia: (p.cadencia === "quinzenal" || p.cadencia === "mensal") ? p.cadencia : "semanal" as const,
+      regraExibicao: paraRegraExibicao(p.regraExibicao),
+      modulo: textoOuNulo(p.modulo),
+      versoes: Array.isArray(p.versoes) ? p.versoes as string[] : null,
+      explicacaoOpcoes: Array.isArray(p.explicacaoOpcoes) ? p.explicacaoOpcoes as (string | null)[] : [],
+      textoAjuda: textoOuNulo(p.textoAjuda),
+      notasPorFaixa: paraNotasPorFaixa(p.notasPorFaixa),
+      alertasOpcoes: Array.isArray(p.alertasOpcoes) ? p.alertasOpcoes as (AlertaOpcao | null)[] : [],
+      ativa: p.ativa !== false,
     })),
+    versao: textoOuNulo(l.versao),
     enviados: (Array.isArray(l.enviados) ? (l.enviados as Linha[]) : []).map((e) => ({
       periodo: texto(e.periodo),
       respondidoEm: texto(e.respondidoEm),
@@ -348,6 +387,7 @@ export function paraQuestionarioDoPaciente(l: Linha): QuestionarioDoPaciente {
     ativo: l.ativo !== false,
     mostraPontuacao: l.mostraPontuacao === true,
     atribuido: l.atribuido === true,
+    versao: textoOuNulo(l.versao),
     perguntas: (Array.isArray(l.perguntas) ? (l.perguntas as Linha[]) : []).map((p) => ({
       id: texto(p.id),
       texto: texto(p.texto),
@@ -357,6 +397,15 @@ export function paraQuestionarioDoPaciente(l: Linha): QuestionarioDoPaciente {
       opcoes: listaDeTextos(p.opcoes),
       eixoId: textoOuNulo(p.eixoId),
       pontosOpcoes: listaDeNumeros(p.pontosOpcoes),
+      codigo: textoOuNulo(p.codigo),
+      cadencia: (p.cadencia === "quinzenal" || p.cadencia === "mensal") ? p.cadencia : undefined,
+      modulo: textoOuNulo(p.modulo),
+      versoes: Array.isArray(p.versoes) ? p.versoes as string[] : undefined,
+      regraExibicao: paraRegraExibicao(p.regraExibicao),
+      explicacaoOpcoes: Array.isArray(p.explicacaoOpcoes) ? p.explicacaoOpcoes as (string | null)[] : undefined,
+      notasPorFaixa: paraNotasPorFaixa(p.notasPorFaixa),
+      alertasOpcoes: Array.isArray(p.alertasOpcoes) ? p.alertasOpcoes as (AlertaOpcao | null)[] : undefined,
+      ativa: p.ativa !== false,
     })),
     envios: (Array.isArray(l.envios) ? (l.envios as Linha[]) : []).map((e) => ({
       id: texto(e.id),
@@ -365,6 +414,15 @@ export function paraQuestionarioDoPaciente(l: Linha): QuestionarioDoPaciente {
       revisado: e.revisado === true,
       respostas: (Array.isArray(e.respostas) ? (e.respostas as Linha[]) : []).map(paraResposta),
       reguaSnapshot: paraReguaSnapshot(e.reguaSnapshot),
+      alertas: Array.isArray(e.alertas) ? (e.alertas as Linha[]).map((a) => ({
+        id: texto(a.id),
+        codigo: texto(a.codigo),
+        nivel: a.nivel === "vermelho" ? "vermelho" as const : "amarelo" as const,
+        perguntaCodigo: textoOuNulo(a.perguntaCodigo),
+        status: (a.status === "visto" || a.status === "contatado" || a.status === "resolvido") ? a.status : "novo" as const,
+        notaNutri: textoOuNulo(a.notaNutri),
+        criadoEm: texto(a.criadoEm),
+      })) : undefined,
     })),
   };
 }

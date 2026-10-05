@@ -6,8 +6,50 @@
  * compartilham um motor só.
  */
 
-export type TipoDePergunta = "escala" | "sim_nao" | "numero" | "texto" | "escolha";
+export type TipoDePergunta =
+  | "escala"
+  | "sim_nao"
+  | "numero"
+  | "texto"
+  | "escolha"
+  | "emoji"
+  | "estrelas"
+  | "multipla_escolha"
+  | "metrica";
+
 export type PeriodicidadeQuestionario = "unica" | "semanal";
+export type CadenciaPergunta = "semanal" | "quinzenal" | "mensal";
+
+/**
+ * Regra de exibição condicional: mostra a pergunta só quando outra pergunta
+ * (identificada por código) teve determinada resposta.
+ */
+export interface RegraExibicao {
+  perguntaCodigo: string;
+  operador: "igual" | "diferente" | "inclui" | "nao_inclui";
+  valor: string;
+}
+
+/**
+ * Faixa de nota para perguntas numéricas (B02, B03, I05…). Cada faixa
+ * mapeia um intervalo de valor para uma nota de −2 a +2.
+ */
+export interface FaixaDeNota {
+  de: number | null;
+  ate: number | null;
+  nota: number;
+}
+
+export interface NotasPorFaixa {
+  relativaAMeta?: string;
+  faixas: FaixaDeNota[];
+}
+
+/** Alerta vinculado a uma opção de resposta. */
+export interface AlertaOpcao {
+  codigo: string;
+  nivel: "vermelho" | "amarelo";
+}
 
 /** Um eixo do check-in (intestino, sono…). Lista reusada nas perguntas. */
 export interface EixoCheckin {
@@ -32,6 +74,26 @@ export interface PerguntaQuestionario {
   pontosOpcoes: number[];
   /** Já respondida por alguém — então apagar não é possível sem perder dado. */
   respondida: boolean;
+  /** Código estável (B01, I05, G07…) para comparação entre versões. */
+  codigo: string | null;
+  /** Cadência da pergunta dentro do check-in semanal. */
+  cadencia: CadenciaPergunta;
+  /** Regra condicional: mostra só se outra pergunta teve determinada resposta. */
+  regraExibicao: RegraExibicao | null;
+  /** Módulo a que pertence: BASE, ESTETICA, INTESTINO, GLP1, ACOMPANHAMENTO. */
+  modulo: string | null;
+  /** Versões que incluem esta pergunta (["V1","V2","V3"]). Null = todas. */
+  versoes: string[] | null;
+  /** Texto "pedir explicação" por opção, alinhado com `opcoes`. Null = sem pedido. */
+  explicacaoOpcoes: (string | null)[];
+  /** Texto de ajuda que aparece sob a pergunta. */
+  textoAjuda: string | null;
+  /** Faixas de nota para perguntas numéricas. */
+  notasPorFaixa: NotasPorFaixa | null;
+  /** Alerta por opção, alinhado com `opcoes`. Null = sem alerta. */
+  alertasOpcoes: (AlertaOpcao | null)[];
+  /** Pergunta ativa ou desativada (soft-delete). */
+  ativa: boolean;
 }
 
 export interface Questionario {
@@ -71,12 +133,23 @@ export interface PerguntaParaResponder {
   invertida?: boolean | null;
   pontosOpcoes?: number[];
   eixoId?: string | null;
+  codigo?: string | null;
+  cadencia?: CadenciaPergunta;
+  regraExibicao?: RegraExibicao | null;
+  modulo?: string | null;
+  versoes?: string[] | null;
+  explicacaoOpcoes?: (string | null)[];
+  textoAjuda?: string | null;
+  notasPorFaixa?: NotasPorFaixa | null;
+  alertasOpcoes?: (AlertaOpcao | null)[];
+  ativa?: boolean;
 }
 
 export interface RespostaEnviada {
   perguntaId: string;
   numero: number | null;
   texto: string | null;
+  json?: unknown | null;
 }
 
 /**
@@ -93,6 +166,8 @@ export interface ReguaDePergunta {
   pontosOpcoes: number[];
   eixoId: string | null;
   eixoNome: string | null;
+  codigo?: string | null;
+  notasPorFaixa?: NotasPorFaixa | null;
 }
 
 export interface EnvioDeQuestionario {
@@ -111,6 +186,8 @@ export interface MeuQuestionario {
   /** A semana (segunda-feira) ou o dia a que a resposta de agora pertence. */
   periodo: string;
   pendente: boolean;
+  /** Versão atribuída à paciente (V1, V2, V3). */
+  versao?: string | null;
   perguntas: PerguntaParaResponder[];
   enviados: EnvioDeQuestionario[];
 }
@@ -123,6 +200,7 @@ export interface QuestionarioDoPaciente {
   ativo: boolean;
   mostraPontuacao: boolean;
   atribuido: boolean;
+  versao?: string | null;
   perguntas: {
     id: string;
     texto: string;
@@ -132,6 +210,15 @@ export interface QuestionarioDoPaciente {
     opcoes: string[];
     eixoId: string | null;
     pontosOpcoes: number[];
+    codigo?: string | null;
+    cadencia?: CadenciaPergunta;
+    modulo?: string | null;
+    versoes?: string[] | null;
+    regraExibicao?: RegraExibicao | null;
+    explicacaoOpcoes?: (string | null)[];
+    notasPorFaixa?: NotasPorFaixa | null;
+    alertasOpcoes?: (AlertaOpcao | null)[];
+    ativa?: boolean;
   }[];
   envios: {
     id: string;
@@ -141,5 +228,49 @@ export interface QuestionarioDoPaciente {
     revisado: boolean;
     respostas: RespostaEnviada[];
     reguaSnapshot?: ReguaDePergunta[] | null;
+    alertas?: AlertaCheckin[];
   }[];
+}
+
+/** Alerta clínico disparado por um envio de check-in. */
+export interface AlertaCheckin {
+  id: string;
+  codigo: string;
+  nivel: "vermelho" | "amarelo";
+  perguntaCodigo: string | null;
+  status: "novo" | "visto" | "contatado" | "resolvido";
+  notaNutri: string | null;
+  criadoEm: string;
+}
+
+/** Configuração de um alerta (limiar editável). */
+export interface AlertaCheckinConfig {
+  codigo: string;
+  nivel: "vermelho" | "amarelo";
+  descricao: string;
+  mensagemPaciente: string;
+  ativo: boolean;
+  limiar: Record<string, unknown> | null;
+}
+
+/** Alerta resumido para a paciente ver após enviar o check-in. */
+export interface AlertaParaPaciente {
+  codigo: string;
+  nivel: "vermelho" | "amarelo";
+  mensagem: string;
+}
+
+/** Alerta pendente no painel da nutricionista. */
+export interface AlertaPendente {
+  id: string;
+  codigo: string;
+  nivel: "vermelho" | "amarelo";
+  pacienteId: string;
+  pacienteNome: string;
+  envioId: string;
+  perguntaCodigo: string | null;
+  status: "novo" | "visto" | "contatado" | "resolvido";
+  notaNutri: string | null;
+  criadoEm: string;
+  descricao: string;
 }

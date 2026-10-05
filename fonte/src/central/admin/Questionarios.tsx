@@ -59,6 +59,16 @@ function perguntaVazia(): PerguntaQuestionario {
     eixoId: null,
     pontosOpcoes: [],
     respondida: false,
+    codigo: null,
+    cadencia: "semanal",
+    regraExibicao: null,
+    modulo: null,
+    versoes: null,
+    explicacaoOpcoes: [],
+    textoAjuda: null,
+    notasPorFaixa: null,
+    alertasOpcoes: [],
+    ativa: true,
   };
 }
 
@@ -135,6 +145,16 @@ export function Questionarios() {
         eixoId: null,
         pontosOpcoes: [],
         respondida: false,
+        codigo: null,
+        cadencia: "semanal" as const,
+        regraExibicao: null,
+        modulo: null,
+        versoes: null,
+        explicacaoOpcoes: [],
+        textoAjuda: null,
+        notasPorFaixa: null,
+        alertasOpcoes: [],
+        ativa: true,
       })),
     });
   }
