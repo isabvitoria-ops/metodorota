@@ -2710,6 +2710,199 @@ body:has(.central) {
   flex: 0 0 92px;
 }
 
+/* ── Protocolo da paciente: cartões de refeição ──────────────────────── */
+
+.c-refeicao-card {
+  margin-top: 20px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.c-refeicao-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--primary-soft);
+}
+
+.c-refeicao-titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.central .c-refeicao-titulo h2 {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--primary-dark);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.c-refeicao-horario {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary);
+  background: var(--surface);
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  letter-spacing: 0.01em;
+}
+
+.c-refeicao-conversar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  cursor: pointer;
+  transition: background var(--transicao), border-color var(--transicao);
+}
+
+.c-refeicao-conversar:active {
+  background: var(--primary-soft);
+}
+
+.c-refeicao-opcoes {
+  display: flex;
+  gap: 0;
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.c-refeicao-opcao {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: color var(--transicao), border-color var(--transicao), background var(--transicao);
+}
+
+.c-refeicao-opcao-ativa {
+  color: var(--primary);
+  background: var(--surface);
+  border-bottom-color: var(--primary);
+}
+
+.c-refeicao-itens {
+  padding: 6px 0;
+}
+
+.c-refeicao-item {
+  padding: 8px 16px;
+}
+
+.c-refeicao-item + .c-refeicao-item {
+  border-top: 1px solid var(--border);
+}
+
+.c-refeicao-item-principal {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.c-refeicao-item-ponto {
+  flex: 0 0 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-top: 7px;
+  align-self: flex-start;
+}
+
+.c-refeicao-item-nome {
+  flex: 1 1 auto;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.c-refeicao-item-qtd {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+}
+
+.c-refeicao-trocas {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 4px 0 0 16px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.c-refeicao-trocas-lista {
+  margin: 4px 0 0 16px;
+}
+
+.c-refeicao-trocas-lista > summary {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  color: var(--primary);
+  list-style: none;
+  font-weight: 500;
+}
+
+.c-refeicao-trocas-lista > summary::-webkit-details-marker {
+  display: none;
+}
+
+.c-refeicao-trocas-lista > ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 3px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.c-refeicao-notas {
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.c-refeicao-notas p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
+.c-refeicao-notas p + p {
+  margin-top: 6px;
+}
+
 /* ------------------------------------------------------- rastreio alimentar
 
    A lista que a paciente vai juntando. Mesma linguagem das outras listas do

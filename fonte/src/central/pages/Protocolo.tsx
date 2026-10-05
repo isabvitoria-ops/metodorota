@@ -187,12 +187,17 @@ function Refeicao({
   if (!opcao) return null;
 
   return (
-    <section className="c-secao">
-      <h2 className="c-secao-titulo">
-        {refeicao.horario ? `${refeicao.horario} · ${refeicao.nome}` : refeicao.nome}
+    <div className="c-refeicao-card">
+      <div className="c-refeicao-cabecalho">
+        <div className="c-refeicao-titulo">
+          <h2>{refeicao.nome}</h2>
+          {refeicao.horario && (
+            <span className="c-refeicao-horario">{refeicao.horario}</span>
+          )}
+        </div>
         <button
           type="button"
-          className="c-chip c-conversar-botao"
+          className="c-refeicao-conversar"
           onClick={aoConversar}
           aria-label={
             naoLidas > 0
@@ -201,19 +206,19 @@ function Refeicao({
           }
         >
           <Icone nome="conversa" tamanho={15} />
-          Conversar
           {naoLidas > 0 && <span className="c-conversar-bolinha">{naoLidas}</span>}
         </button>
-      </h2>
+      </div>
 
       {opcoes.length > 1 && (
-        <div className="c-chips" style={{ marginBottom: 12 }}>
+        <div className="c-refeicao-opcoes" role="tablist" aria-label={`Opções de ${refeicao.nome}`}>
           {opcoes.map((o, i) => (
             <button
               key={`${o.rotulo}-${i}`}
               type="button"
-              className="c-chip"
-              aria-pressed={i === escolhida}
+              role="tab"
+              aria-selected={i === escolhida}
+              className={`c-refeicao-opcao ${i === escolhida ? "c-refeicao-opcao-ativa" : ""}`}
               onClick={() => definirEscolhida(i)}
             >
               {o.rotulo || `Opção ${i + 1}`}
@@ -222,25 +227,28 @@ function Refeicao({
         </div>
       )}
 
-      <div className="c-bloco">
+      <div className="c-refeicao-itens">
         {opcao.itens.map((item, i) => (
-          <div className="c-item-protocolo" key={`${item.alimento}-${i}`}>
-            <div className="c-item-protocolo-linha">
-              <span className="c-item-protocolo-nome">{item.alimento}</span>
+          <div className="c-refeicao-item" key={`${item.alimento}-${i}`}>
+            <div className="c-refeicao-item-principal">
+              <span className="c-refeicao-item-ponto" aria-hidden="true" />
+              <span className="c-refeicao-item-nome">{item.alimento}</span>
               {item.quantidade && (
-                <span className="c-item-protocolo-quantidade">{item.quantidade}</span>
+                <span className="c-refeicao-item-qtd">{item.quantidade}</span>
               )}
             </div>
-            {/* Duas ou três substituições cabem numa linha. Um grupo inteiro
-                ("Frutas", com dezessete) não cabe — vira parede de texto em
-                cima do item e some com a dieta. Aí a lista fecha, e ela abre
-                se quiser. */}
             {item.substituicoes.length > 0 && item.substituicoes.length <= 4 && (
-              <p className="c-item-protocolo-trocas">ou {item.substituicoes.join(" · ")}</p>
+              <div className="c-refeicao-trocas">
+                <Icone nome="troca" tamanho={12} style={{ flexShrink: 0, marginTop: 1 }} />
+                <span>{item.substituicoes.join(" · ")}</span>
+              </div>
             )}
             {item.substituicoes.length > 4 && (
-              <details className="c-trocas-lista">
-                <summary>ou uma destas {item.substituicoes.length} opções</summary>
+              <details className="c-refeicao-trocas-lista">
+                <summary>
+                  <Icone nome="troca" tamanho={12} style={{ flexShrink: 0 }} />
+                  {item.substituicoes.length} substituições
+                </summary>
                 <ul>
                   {item.substituicoes.map((troca, j) => (
                     <li key={j}>{troca}</li>
@@ -252,11 +260,15 @@ function Refeicao({
         ))}
       </div>
 
-      {opcao.notas.map((nota, i) => (
-        <p className="c-nota-protocolo" key={i}>
-          <TextoComLinks texto={nota} />
-        </p>
-      ))}
-    </section>
+      {opcao.notas.length > 0 && (
+        <div className="c-refeicao-notas">
+          {opcao.notas.map((nota, i) => (
+            <p key={i}>
+              <TextoComLinks texto={nota} />
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
