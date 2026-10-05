@@ -34,7 +34,6 @@ export const rotas = {
   fodmap: "/fodmap",
   agua: "/agua",
   fibras: "/fibras",
-  sementes: "/sementes",
   bristol: "/bristol",
   habitos: "/habitos",
   diario: "/diario",

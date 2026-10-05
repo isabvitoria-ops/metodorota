@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { Icone, type NomeIcone } from "@/central/components/Icone";
 import { Marca } from "@/central/components/Marca";
 import { MinhaMetaDeHoje } from "@/central/components/MinhaMetaDeHoje";
-import { OQueMudou } from "@/central/components/OQueMudou";
 import { CheckinPendente } from "@/central/components/CheckinPendente";
 import { BarraBusca } from "@/central/components/BarraBusca";
 import { useState } from "react";
@@ -68,27 +67,6 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Descubra quantos litros de água seu corpo precisa por dia.",
   },
   {
-    rota: rotas.fibras,
-    grupo: "ferramentas",
-    icone: "folha",
-    titulo: "Guia de Fibras",
-    descricao: "Solúvel vs. insolúvel: quando comer cada uma e por quê.",
-  },
-  {
-    rota: rotas.bristol,
-    grupo: "ferramentas",
-    icone: "folha",
-    titulo: "Escala de Bristol",
-    descricao: "Os 7 tipos de fezes e o que cada um diz sobre seu intestino.",
-  },
-  {
-    rota: rotas.sementes,
-    grupo: "ferramentas",
-    icone: "folha",
-    titulo: "Sementes e Pseudo-cereais",
-    descricao: "Nutrientes, porções e como usar cada semente e grão no dia a dia.",
-  },
-  {
     rota: rotas.fodmap,
     grupo: "ferramentas",
     icone: "folha",
@@ -107,7 +85,7 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     grupo: "ferramentas",
     icone: "evolucao",
     titulo: "Hábitos e intestino",
-    descricao: "Sono, estresse, exercício e medicação: o que afeta seu intestino além da comida.",
+    descricao: "Sono, estresse, exercício, medicação, hidratação e fibras: o que afeta seu intestino além da comida.",
   },
   {
     rota: rotas.comerFora,
@@ -185,10 +163,7 @@ export function Home() {
           </div>
         )}
 
-        {/* Antes da meta de hoje: 'o que ja aconteceu' contextualiza 'o
-            que fazer agora'. Invertido, a primeira coisa da tela seria
-            uma tarefa. */}
-        <OQueMudou />
+        <CardDeViagem />
 
         <CheckinPendente />
 
@@ -253,6 +228,30 @@ export function Home() {
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * CTA de viagem na Home.
+ *
+ * Versão estática: mostra um convite para a paciente avisar a nutricionista
+ * sobre viagens futuras. A versão completa (formulário, protocolo
+ * personalizado, toggle por paciente) precisa de tabelas no Supabase.
+ */
+function CardDeViagem() {
+  return (
+    <section className="c-secao">
+      <div className="c-card-viagem">
+        <span className="c-card-viagem-emoji" aria-hidden="true">✈️</span>
+        <div className="c-card-viagem-texto">
+          <strong>Tem alguma viagem programada?</strong>
+          <span>
+            Avise sua nutricionista com antecedência — ela pode preparar
+            orientações especiais para você manter o acompanhamento durante a viagem.
+          </span>
+        </div>
+      </div>
+    </section>
   );
 }
 

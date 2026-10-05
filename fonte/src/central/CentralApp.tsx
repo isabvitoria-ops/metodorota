@@ -10,8 +10,6 @@ import { Desafio } from "./pages/Desafio";
 import { Rastreabilidade } from "./pages/Rastreabilidade";
 import { FodmapSemaforo } from "./pages/FodmapSemaforo";
 import { CalculadoraAgua } from "./pages/CalculadoraAgua";
-import { GuiaFibras } from "./pages/GuiaFibras";
-import { Sementes } from "./pages/Sementes";
 import { Bristol } from "./pages/Bristol";
 import { Habitos } from "./pages/Habitos";
 import { DiarioDeFotosPagina } from "@/central/pages/DiarioDeFotos";
@@ -72,8 +70,7 @@ export function CentralApp() {
           <Route path="rastreabilidade" element={<Rastreabilidade />} />
           <Route path="fodmap" element={<FodmapSemaforo />} />
           <Route path="agua" element={<CalculadoraAgua />} />
-          <Route path="fibras" element={<GuiaFibras />} />
-          <Route path="sementes" element={<Sementes />} />
+          <Route path="fibras" element={<Navigate to={rotas.habitos} replace />} />
           <Route path="bristol" element={<Bristol />} />
           <Route path="habitos" element={<Habitos />} />
           <Route path="diario" element={<DiarioDeFotosPagina />} />

@@ -67,7 +67,7 @@ export function Bristol() {
       <CabecalhoPagina
         titulo="Escala de Bristol"
         descricao="Conheça os 7 tipos de fezes e o que cada um diz sobre seu intestino."
-        voltarPara={rotas.home}
+        voltarPara={rotas.rastreabilidade}
       />
 
       <div className="c-conteudo">
