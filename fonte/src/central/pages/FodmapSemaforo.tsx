@@ -36,6 +36,7 @@ const CATEGORIAS: CategoriaFodmap[] = [
   "proteinas", "oleaginosas", "condimentos", "bebidas",
 ];
 const GRUPOS: GrupoFodmap[] = ["frutanos", "gos", "lactose", "frutose", "sorbitol", "manitol"];
+const NIVEIS_ORDEM: NivelFodmap[] = ["verde", "amarelo", "vermelho"];
 
 export function FodmapSemaforo() {
   const [busca, definirBusca] = useState("");
@@ -43,6 +44,7 @@ export function FodmapSemaforo() {
   const [categoria, definirCategoria] = useState<CategoriaFodmap | null>(null);
   const [grupo, definirGrupo] = useState<GrupoFodmap | null>(null);
   const [expandido, definirExpandido] = useState<string | null>(null);
+  const [nivelAtivo, definirNivelAtivo] = useState<NivelFodmap>("verde");
 
   const catalogo = useMemo(() => alimentosParaFase(CATALOGO_FODMAP, fase), [fase]);
 
@@ -52,6 +54,11 @@ export function FodmapSemaforo() {
   );
 
   const contagem = useMemo(() => contarPorNivel(resultados), [resultados]);
+
+  const resultadosDoNivel = useMemo(
+    () => resultados.filter((a) => a.nivel === nivelAtivo),
+    [resultados, nivelAtivo],
+  );
 
   function limpar() {
     definirBusca("");
@@ -134,30 +141,53 @@ export function FodmapSemaforo() {
           </button>
         )}
 
-        {/* ── Contagem ── */}
-        <div className="c-fodmap-contagem" aria-live="polite">
-          <span>{resultados.length} {resultados.length === 1 ? "alimento" : "alimentos"}</span>
-          {fase !== "eliminacao" && (
-            <span className="c-fodmap-contagem-niveis">
-              <Sinal cor={CORES_NIVEL.verde} /> {contagem.verde}
-              <Sinal cor={CORES_NIVEL.amarelo} /> {contagem.amarelo}
-              <Sinal cor={CORES_NIVEL.vermelho} /> {contagem.vermelho}
-            </span>
-          )}
+        {/* ── Abas por nível ── */}
+        <div className="c-fodmap-abas" role="tablist" aria-label="Nível FODMAP">
+          {NIVEIS_ORDEM.map((n) => {
+            const qtd = contagem[n];
+            if (qtd === 0) return null;
+            return (
+              <button
+                key={n}
+                type="button"
+                role="tab"
+                aria-selected={nivelAtivo === n}
+                className={`c-fodmap-aba ${nivelAtivo === n ? "c-fodmap-aba-ativo" : ""}`}
+                style={{
+                  "--cor-nivel": CORES_NIVEL[n],
+                  "--bg-nivel": BG_NIVEL[n],
+                } as React.CSSProperties}
+                onClick={() => { definirNivelAtivo(n); definirExpandido(null); }}
+              >
+                <Sinal cor={CORES_NIVEL[n]} grande />
+                <span>{ROTULOS_NIVEL[n]}</span>
+                <span className="c-contagem">{qtd}</span>
+              </button>
+            );
+          })}
         </div>
 
-        {/* ── Lista por faixas ── */}
+        {/* ── Lista do nível selecionado ── */}
         {resultados.length === 0 ? (
           <p className="c-dica" style={{ marginTop: 20, textAlign: "center" }}>
             Nenhum alimento encontrado com esses filtros.
           </p>
+        ) : resultadosDoNivel.length === 0 ? (
+          <p className="c-dica" style={{ marginTop: 20, textAlign: "center" }}>
+            Nenhum alimento {ROTULOS_NIVEL[nivelAtivo].toLowerCase()} com esses filtros.
+          </p>
         ) : (
-          <FaixasPorNivel
-            resultados={resultados}
-            expandido={expandido}
-            aoExpandir={(id) => definirExpandido(expandido === id ? null : id)}
-            fase={fase}
-          />
+          <div className="c-fodmap-lista" style={{ marginTop: 12 }} aria-live="polite">
+            {resultadosDoNivel.map((a) => (
+              <CartaoFodmap
+                key={a.id}
+                alimento={a}
+                expandido={expandido === a.id}
+                aoExpandir={() => definirExpandido(expandido === a.id ? null : a.id)}
+                fase={fase}
+              />
+            ))}
+          </div>
         )}
 
         {/* ── Legenda ── */}
@@ -200,57 +230,6 @@ export function FodmapSemaforo() {
   );
 }
 
-const NIVEIS_ORDEM: NivelFodmap[] = ["verde", "amarelo", "vermelho"];
-
-function FaixasPorNivel({
-  resultados,
-  expandido,
-  aoExpandir,
-  fase,
-}: {
-  resultados: AlimentoFodmap[];
-  expandido: string | null;
-  aoExpandir: (id: string) => void;
-  fase: FaseFodmap;
-}) {
-  const porNivel = useMemo(() => {
-    const mapa: Record<NivelFodmap, AlimentoFodmap[]> = { verde: [], amarelo: [], vermelho: [] };
-    for (const a of resultados) mapa[a.nivel].push(a);
-    return mapa;
-  }, [resultados]);
-
-  return (
-    <div className="c-fodmap-faixas">
-      {NIVEIS_ORDEM.map((nivel) => {
-        const lista = porNivel[nivel];
-        if (lista.length === 0) return null;
-        return (
-          <section key={nivel} className="c-fodmap-faixa" aria-label={ROTULOS_NIVEL[nivel]}>
-            <h3
-              className="c-fodmap-faixa-titulo"
-              style={{ color: CORES_NIVEL[nivel], borderLeftColor: CORES_NIVEL[nivel] }}
-            >
-              <Sinal cor={CORES_NIVEL[nivel]} grande />
-              {ROTULOS_NIVEL[nivel]}
-              <span className="c-contagem">{lista.length}</span>
-            </h3>
-            <div className="c-fodmap-lista">
-              {lista.map((a) => (
-                <CartaoFodmap
-                  key={a.id}
-                  alimento={a}
-                  expandido={expandido === a.id}
-                  aoExpandir={() => aoExpandir(a.id)}
-                  fase={fase}
-                />
-              ))}
-            </div>
-          </section>
-        );
-      })}
-    </div>
-  );
-}
 
 function Sinal({ cor, grande }: { cor: string; grande?: boolean }) {
   const tam = grande ? 14 : 10;
