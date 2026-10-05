@@ -33,6 +33,7 @@ const TRACOS: Record<string, string> = {
   acai: "M5 10h14l-1.4 8.2a2 2 0 0 1-2 1.8H8.4a2 2 0 0 1-2-1.8L5 10Zm4-3a3 3 0 1 1 6 0",
   restaurante: "M4 6h16M4 6a8 8 0 0 0 8 8 8 8 0 0 0 8-8M12 14v6m-4 0h8",
   delivery: "M3 16V7h11v9M14 10h4l3 3v3M6.5 20a2 2 0 1 0 0-4 2 2 0 0 0 0 4Zm11 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z",
+  agua: "M12 2C8 8 4 12.5 4 16a8 8 0 0 0 16 0c0-3.5-4-8-8-14Z",
   balanca: "M12 4v16M7 20h10M6 9h12l-2.5 5a3.5 3.5 0 0 1-7 0L6 9Z",
   taca: "M8 3h8l-1 6.5a3 3 0 0 1-6 0L8 3Zm4 9.5V20m-3.5 0h7",
   carrinho: "M3 4h2l2.4 10.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6M9 20h.01M17 20h.01",

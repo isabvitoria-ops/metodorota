@@ -6413,3 +6413,167 @@ body:has(.central) {
 .central .c-fodmap-grupos-info strong {
   color: var(--text);
 }
+
+/* ── Calculadora de Água ── */
+
+.central .c-agua-card {
+  background: var(--surface-1);
+  border-radius: var(--radius-card, 14px);
+  padding: 24px 20px;
+  margin-top: 20px;
+  box-shadow: var(--sombra-card, 0 1px 4px rgba(0, 0, 0, 0.06));
+  text-align: center;
+}
+
+.central .c-agua-emoji {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.central .c-agua-titulo {
+  font-family: var(--fonte-titulo);
+  font-size: 1.15rem;
+  margin: 0 0 4px;
+  color: var(--text);
+}
+
+.central .c-agua-campo {
+  margin-top: 20px;
+  text-align: left;
+}
+
+.central .c-agua-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-soft);
+  margin-bottom: 6px;
+}
+
+.central .c-agua-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1.5px solid var(--borda);
+  border-radius: var(--radius-pill, 20px);
+  font-size: 1.1rem;
+  font-family: inherit;
+  background: var(--surface-2, #f5f0ec);
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.central .c-agua-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.central .c-agua-resultado {
+  margin-top: 24px;
+  animation: c-fadeIn 0.3s ease;
+}
+
+.central .c-agua-destaque {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.central .c-agua-litros {
+  font-family: var(--fonte-titulo);
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.central .c-agua-unidade {
+  font-size: 1rem;
+  color: var(--text-soft);
+  font-weight: 500;
+}
+
+.central .c-agua-detalhes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.central .c-agua-detalhe {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.92rem;
+  color: var(--text);
+}
+
+.central .c-agua-detalhe-icone {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+}
+
+.central .c-agua-dicas {
+  background: var(--surface-1);
+  border-radius: var(--radius-card, 14px);
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: var(--sombra-card, 0 1px 4px rgba(0, 0, 0, 0.06));
+}
+
+.central .c-agua-dicas h3 {
+  font-family: var(--fonte-titulo);
+  font-size: 1rem;
+  margin: 0 0 14px;
+  color: var(--text);
+}
+
+.central .c-agua-dicas ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.central .c-agua-dicas li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.central .c-agua-dica-icone {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+  margin-top: 1px;
+}
+
+.central .c-agua-aviso {
+  background: var(--accent-soft, #e8f0f5);
+  border-radius: var(--radius-card, 14px);
+  padding: 16px 18px;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.central .c-agua-aviso p {
+  margin: 0;
+}
+
+@keyframes c-fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}

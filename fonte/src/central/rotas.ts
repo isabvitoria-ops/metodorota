@@ -32,6 +32,7 @@ export const rotas = {
   desafio: "/desafio",
   rastreabilidade: "/rastreabilidade",
   fodmap: "/fodmap",
+  agua: "/agua",
   diario: "/diario",
   busca: (consulta?: string) => (consulta ? `/busca?q=${encodeURIComponent(consulta)}` : "/busca"),
   diagnostico: "/diagnostico",

@@ -61,6 +61,13 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "O que combinamos, e quanto você já fez.",
   },
   {
+    rota: rotas.agua,
+    grupo: "ferramentas",
+    icone: "agua",
+    titulo: "Calculadora de Água",
+    descricao: "Descubra quantos litros de água seu corpo precisa por dia.",
+  },
+  {
     rota: rotas.fodmap,
     grupo: "ferramentas",
     icone: "folha",
