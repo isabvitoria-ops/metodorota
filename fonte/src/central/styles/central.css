@@ -6854,3 +6854,104 @@ body:has(.central) {
   color: var(--cor-texto-sec);
   margin-top: 2px;
 }
+
+/* ------------------------------------------------------------------
+   Escala de Bristol — ilustrada
+   ------------------------------------------------------------------ */
+
+.central .c-bristol-faixa {
+  display: flex;
+  gap: 6px;
+  margin-top: 20px;
+}
+
+.central .c-bristol-faixa-item {
+  flex: 1;
+  text-align: center;
+  padding: 8px 4px;
+  border-radius: var(--raio);
+  font: 600 0.78rem/1.3 var(--fonte);
+}
+
+.central .c-bristol-faixa-constipacao {
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.central .c-bristol-faixa-normal {
+  background: #f0fdf4;
+  color: #166534;
+}
+
+.central .c-bristol-faixa-diarreia {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+.central .c-bristol-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.central .c-bristol-card {
+  display: flex;
+  gap: 12px;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 14px;
+  animation: c-fadeIn 0.25s ease;
+}
+
+.central .c-bristol-card-numero {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font: 700 1.1rem/1 var(--fonte);
+}
+
+.central .c-bristol-card-corpo {
+  flex: 1;
+  min-width: 0;
+}
+
+.central .c-bristol-card-visual {
+  font: 700 1.3rem/1 monospace;
+  color: var(--cor-texto-sec);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+}
+
+.central .c-bristol-card-descricao {
+  margin: 0;
+  font: 600 0.9rem/1.4 var(--fonte);
+  color: var(--cor-titulo);
+}
+
+.central .c-bristol-card-significado {
+  margin: 4px 0 0;
+  font: 400 0.82rem/1.4 var(--fonte);
+  color: var(--cor-texto-sec);
+}
+
+@media (prefers-color-scheme: dark) {
+  .central .c-bristol-faixa-constipacao {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+  }
+  .central .c-bristol-faixa-normal {
+    background: rgba(34, 197, 94, 0.12);
+    color: #86efac;
+  }
+  .central .c-bristol-faixa-diarreia {
+    background: rgba(249, 115, 22, 0.12);
+    color: #fdba74;
+  }
+}

@@ -754,6 +754,9 @@ function FormularioRegistro({
             </option>
           ))}
         </select>
+        <a href={rotas.bristol} target="_blank" rel="noopener noreferrer" className="c-link" style={{ fontSize: "0.82rem", marginTop: 4, display: "inline-block" }}>
+          Ver a escala ilustrada
+        </a>
       </label>
 
       {/* 7. Observações */}

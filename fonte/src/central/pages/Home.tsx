@@ -75,6 +75,13 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Solúvel vs. insolúvel: quando comer cada uma e por quê.",
   },
   {
+    rota: rotas.bristol,
+    grupo: "ferramentas",
+    icone: "folha",
+    titulo: "Escala de Bristol",
+    descricao: "Os 7 tipos de fezes e o que cada um diz sobre seu intestino.",
+  },
+  {
     rota: rotas.sementes,
     grupo: "ferramentas",
     icone: "folha",
