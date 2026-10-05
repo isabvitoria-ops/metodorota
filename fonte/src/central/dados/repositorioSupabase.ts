@@ -1541,6 +1541,7 @@ export const repositorioSupabase: Repositorio = {
         perguntaId: r.perguntaId,
         numero: r.numero,
         texto: r.texto,
+        json: r.json ?? null,
       })),
     });
     erro("enviar suas respostas", error);

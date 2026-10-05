@@ -5251,6 +5251,25 @@ body:has(.central) {
   font-weight: 600;
 }
 
+.c-passo-opcao-emoji {
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.c-passo-opcao-estrela {
+  font-size: 2rem;
+  min-height: auto;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+}
+.c-passo-opcao-estrela[aria-pressed="true"] {
+  background: transparent;
+  color: var(--primary);
+}
+
 .c-passo-acoes {
   display: grid;
   grid-template-columns: 1fr 2fr;

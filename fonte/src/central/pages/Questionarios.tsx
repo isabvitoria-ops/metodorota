@@ -10,6 +10,7 @@ import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { rotas } from "@/central/rotas";
 import { naoEntendido, numeroDeTexto } from "@/central/utils/numero";
 import { Esqueleto } from "@/central/components/Esqueleto";
+import { perguntasDestaSemana } from "@/central/utils/filtroPerguntasCheckin";
 
 /**
  * Onde a paciente responde o check-in da semana e os questionários.
@@ -271,7 +272,7 @@ function FormularioPassoAPasso({
   aoSair: () => void;
   aoEnviar: () => void;
 }) {
-  const perguntas = questionario.perguntas;
+  const todasPerguntas = questionario.perguntas;
   const jaEnviado = questionario.enviados.find((e) => e.periodo === questionario.periodo);
 
   // Começa com o que ela já respondeu neste período, se respondeu: reabrir
@@ -283,10 +284,13 @@ function FormularioPassoAPasso({
     }
     return inicial;
   });
+  const [explicacoes, definirExplicacoes] = useState<Record<string, string>>({});
   const [indice, definirIndice] = useState(0);
   const [enviando, definirEnviando] = useState(false);
   const [erro, definirErro] = useState<string | null>(null);
   const temporizador = useRef<number | null>(null);
+
+  const perguntas = perguntasDestaSemana(todasPerguntas, questionario.periodo, valores);
 
   useEffect(
     () => () => {
@@ -351,7 +355,7 @@ function FormularioPassoAPasso({
     // Pergunta de número com texto que não é número: antes ia ao banco vazia,
     // sem aviso ("72,5 kg" sumia). Agora a tela para nela e pede de novo.
     const ilegivel = perguntas.findIndex(
-      (p) => p.tipo === "numero" && naoEntendido(valores[p.id] ?? ""),
+      (p) => (p.tipo === "numero" || p.tipo === "metrica") && naoEntendido(valores[p.id] ?? ""),
     );
     if (ilegivel >= 0) {
       definirIndice(ilegivel);
@@ -363,11 +367,14 @@ function FormularioPassoAPasso({
     try {
       const respostas: RespostaEnviada[] = perguntas.map((p) => {
         const bruto = (valores[p.id] ?? "").trim();
-        const numerico = p.tipo === "escala" || p.tipo === "sim_nao" || p.tipo === "numero";
+        const numerico = p.tipo === "escala" || p.tipo === "sim_nao"
+          || p.tipo === "numero" || p.tipo === "estrelas" || p.tipo === "metrica";
+        const explicacao = explicacoes[p.id]?.trim() || null;
         return {
           perguntaId: p.id,
           numero: numerico && bruto !== "" ? numeroDeTexto(bruto) : null,
           texto: numerico ? null : bruto || null,
+          json: explicacao ? { explicacao } : null,
         };
       });
       await repositorio.responderQuestionario(questionario.id, respostas);
@@ -407,6 +414,9 @@ function FormularioPassoAPasso({
           {atual.texto}
           {!atual.obrigatoria && <span className="c-dica"> (opcional)</span>}
         </p>
+        {atual.textoAjuda && (
+          <p className="c-dica" style={{ marginTop: "0.25rem" }}>{atual.textoAjuda}</p>
+        )}
 
         {atual.tipo === "escala" && (
           <>
@@ -450,12 +460,50 @@ function FormularioPassoAPasso({
         )}
 
         {atual.tipo === "escolha" && (
+          <>
+            <div className="c-passo-opcoes">
+              {atual.opcoes.map((o) => (
+                <button
+                  key={o}
+                  type="button"
+                  className="c-passo-opcao"
+                  aria-pressed={valor === o}
+                  onClick={() => tocar(o)}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
+            {(() => {
+              const iEscolhido = atual.opcoes.indexOf(valor ?? "");
+              const pedido = iEscolhido >= 0 ? atual.explicacaoOpcoes?.[iEscolhido] : null;
+              if (!pedido) return null;
+              return (
+                <div style={{ marginTop: "0.75rem" }}>
+                  <label className="c-dica" style={{ display: "block", marginBottom: "0.25rem" }}>
+                    {pedido}
+                  </label>
+                  <textarea
+                    className="c-campo"
+                    rows={2}
+                    value={explicacoes[atual.id] ?? ""}
+                    onChange={(e) =>
+                      definirExplicacoes((ant) => ({ ...ant, [atual.id]: e.target.value }))
+                    }
+                  />
+                </div>
+              );
+            })()}
+          </>
+        )}
+
+        {atual.tipo === "emoji" && (
           <div className="c-passo-opcoes">
             {atual.opcoes.map((o) => (
               <button
                 key={o}
                 type="button"
-                className="c-passo-opcao"
+                className="c-passo-opcao c-passo-opcao-emoji"
                 aria-pressed={valor === o}
                 onClick={() => tocar(o)}
               >
@@ -463,6 +511,63 @@ function FormularioPassoAPasso({
               </button>
             ))}
           </div>
+        )}
+
+        {atual.tipo === "estrelas" && (
+          <div className="c-escala" role="group" aria-label={atual.texto}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <button
+                key={n}
+                type="button"
+                className="c-passo-opcao c-passo-opcao-estrela"
+                aria-pressed={valor === String(n)}
+                onClick={() => tocar(String(n))}
+                aria-label={`${n} estrela${n > 1 ? "s" : ""}`}
+              >
+                {Number(valor ?? 0) >= n ? "★" : "☆"}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {atual.tipo === "multipla_escolha" && (
+          <div className="c-passo-opcoes">
+            {atual.opcoes.map((o) => {
+              const marcados = (valor ?? "").split("\n").filter(Boolean);
+              const marcado = marcados.includes(o);
+              return (
+                <button
+                  key={o}
+                  type="button"
+                  className="c-passo-opcao"
+                  aria-pressed={marcado}
+                  onClick={() => {
+                    const novos = marcado
+                      ? marcados.filter((m) => m !== o)
+                      : [...marcados, o];
+                    escrever(novos.join("\n"));
+                  }}
+                >
+                  <span style={{ marginRight: "0.5rem" }}>{marcado ? "☑" : "☐"}</span>
+                  {o}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {atual.tipo === "metrica" && (
+          <input
+            className="c-campo"
+            type="text"
+            inputMode="decimal"
+            aria-label={atual.texto}
+            value={valor ?? ""}
+            onChange={(e) => escrever(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !ultima) irPara(indice + 1);
+            }}
+          />
         )}
 
         {atual.tipo === "numero" && (
