@@ -103,6 +103,13 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Substitua alimentos mantendo a quantidade adequada.",
   },
   {
+    rota: rotas.habitos,
+    grupo: "ferramentas",
+    icone: "evolucao",
+    titulo: "Hábitos e intestino",
+    descricao: "Sono, estresse, exercício e medicação: o que afeta seu intestino além da comida.",
+  },
+  {
     rota: rotas.comerFora,
     grupo: "ferramentas",
     icone: "comerFora",

@@ -13,6 +13,7 @@ import { CalculadoraAgua } from "./pages/CalculadoraAgua";
 import { GuiaFibras } from "./pages/GuiaFibras";
 import { Sementes } from "./pages/Sementes";
 import { Bristol } from "./pages/Bristol";
+import { Habitos } from "./pages/Habitos";
 import { DiarioDeFotosPagina } from "@/central/pages/DiarioDeFotos";
 import { Protocolo } from "./pages/Protocolo";
 import { Avaliacao } from "./pages/Avaliacao";
@@ -74,6 +75,7 @@ export function CentralApp() {
           <Route path="fibras" element={<GuiaFibras />} />
           <Route path="sementes" element={<Sementes />} />
           <Route path="bristol" element={<Bristol />} />
+          <Route path="habitos" element={<Habitos />} />
           <Route path="diario" element={<DiarioDeFotosPagina />} />
           <Route path="busca" element={<Busca />} />
           <Route path="instalar" element={<InstalarPagina />} />
