@@ -75,6 +75,13 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Solúvel vs. insolúvel: quando comer cada uma e por quê.",
   },
   {
+    rota: rotas.sementes,
+    grupo: "ferramentas",
+    icone: "folha",
+    titulo: "Sementes e Pseudo-cereais",
+    descricao: "Nutrientes, porções e como usar cada semente e grão no dia a dia.",
+  },
+  {
     rota: rotas.fodmap,
     grupo: "ferramentas",
     icone: "folha",

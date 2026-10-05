@@ -11,6 +11,7 @@ import { Rastreabilidade } from "./pages/Rastreabilidade";
 import { FodmapSemaforo } from "./pages/FodmapSemaforo";
 import { CalculadoraAgua } from "./pages/CalculadoraAgua";
 import { GuiaFibras } from "./pages/GuiaFibras";
+import { Sementes } from "./pages/Sementes";
 import { DiarioDeFotosPagina } from "@/central/pages/DiarioDeFotos";
 import { Protocolo } from "./pages/Protocolo";
 import { Avaliacao } from "./pages/Avaliacao";
@@ -70,6 +71,7 @@ export function CentralApp() {
           <Route path="fodmap" element={<FodmapSemaforo />} />
           <Route path="agua" element={<CalculadoraAgua />} />
           <Route path="fibras" element={<GuiaFibras />} />
+          <Route path="sementes" element={<Sementes />} />
           <Route path="diario" element={<DiarioDeFotosPagina />} />
           <Route path="busca" element={<Busca />} />
           <Route path="instalar" element={<InstalarPagina />} />
