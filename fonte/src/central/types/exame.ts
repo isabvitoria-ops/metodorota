@@ -26,3 +26,36 @@ export interface EspacoDosExames {
   bytes: number;
   pacientesComExame: number;
 }
+
+export interface MarcadorExame {
+  id: string;
+  codigo: string;
+  nome: string;
+  valor: number;
+  unidade: string;
+  refMin: number | null;
+  refMax: number | null;
+}
+
+export interface GrupoDeMarcadores {
+  data: string;
+  exameId: string | null;
+  marcadores: MarcadorExame[];
+}
+
+export interface PontoEvolucao {
+  data: string;
+  valor: number;
+  unidade: string;
+  refMin: number | null;
+  refMax: number | null;
+}
+
+export interface MarcadorParaSalvar {
+  codigo: string;
+  nome: string;
+  valor: number;
+  unidade: string;
+  refMin?: number | null;
+  refMax?: number | null;
+}

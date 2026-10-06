@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql
 -- =============================================================================
 
 
@@ -19479,3 +19479,354 @@ begin
 end $$;
 
 commit;
+
+
+-- ###########################################################################
+-- 0070_marcadores_de_exame.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0070 — Marcadores de exame (resultados laboratoriais tipados)
+--
+-- Hoje o exame é uma caixa preta: PDF ou foto. A nutricionista sabe que a
+-- ferritina da paciente caiu, mas o sistema não sabe — não tem como desenhar
+-- um gráfico de evolução nem comparar com a faixa de referência.
+--
+-- O que esta migração faz:
+--
+--   1. Tabela `marcadores_exame` — cada linha é UM resultado (ex.: ferritina
+--      = 45 ng/mL) vinculado a uma data e a uma paciente. O vínculo com a
+--      tabela `exames` é OPCIONAL: se a nutricionista registrou o valor à mão,
+--      não existe arquivo.
+--
+--   2. `registrar_marcadores(p_paciente, p_data, p_marcadores, p_exame_id)`
+--      — grava vários marcadores de uma vez. Cada marcador traz código, valor,
+--      unidade e faixa de referência (min/max). O exame_id é opcional.
+--
+--   3. `marcadores_do_paciente(p_paciente)` — todos os marcadores de uma
+--      paciente, agrupados por data, para a nutricionista.
+--
+--   4. `evolucao_marcador(p_paciente, p_codigo)` — série temporal de um
+--      marcador específico, para desenhar o gráfico de evolução.
+--
+--   5. `apagar_marcadores_da_data(p_paciente, p_data)` — remove todos os
+--      marcadores de uma data (desfaz um registro errado).
+--
+-- Apenas a nutricionista registra e vê marcadores. A paciente não lança
+-- valores — ela manda o PDF, e a nutricionista digita os que importam.
+-- =============================================================================
+
+-- 1. Tabela
+
+create table if not exists marcadores_exame (
+  id uuid primary key default gen_random_uuid(),
+  paciente_id uuid not null references pacientes(id) on delete cascade,
+  exame_id uuid references exames(id) on delete set null,
+  data date not null,
+  codigo text not null,
+  nome text not null,
+  valor numeric not null,
+  unidade text not null default '',
+  ref_min numeric,
+  ref_max numeric,
+  criado_em timestamptz not null default now()
+);
+
+create index if not exists marcadores_por_paciente
+  on marcadores_exame (paciente_id, codigo, data desc);
+
+alter table marcadores_exame enable row level security;
+
+grant select, insert, update, delete on marcadores_exame to authenticated;
+
+drop policy if exists marcadores_admin on marcadores_exame;
+create policy marcadores_admin on marcadores_exame
+  for all using (e_admin()) with check (e_admin());
+
+-- 2. Registrar marcadores (lote)
+
+create or replace function registrar_marcadores(
+  p_paciente uuid,
+  p_data date,
+  p_marcadores jsonb,
+  p_exame_id uuid default null
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_m jsonb;
+  v_n integer := 0;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista registra marcadores.' using errcode = '42501';
+  end if;
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrada.' using errcode = '22023';
+  end if;
+  if p_data is null then
+    raise exception 'A data do exame é obrigatória.' using errcode = '22023';
+  end if;
+  if p_exame_id is not null and not exists (
+    select 1 from exames where id = p_exame_id and paciente_id = p_paciente
+  ) then
+    raise exception 'Exame não pertence a esta paciente.' using errcode = '22023';
+  end if;
+
+  for v_m in select * from jsonb_array_elements(p_marcadores) loop
+    insert into marcadores_exame (
+      paciente_id, exame_id, data, codigo, nome, valor, unidade, ref_min, ref_max
+    ) values (
+      p_paciente,
+      p_exame_id,
+      p_data,
+      v_m->>'codigo',
+      v_m->>'nome',
+      (v_m->>'valor')::numeric,
+      coalesce(v_m->>'unidade', ''),
+      (v_m->>'refMin')::numeric,
+      (v_m->>'refMax')::numeric
+    );
+    v_n := v_n + 1;
+  end loop;
+
+  return v_n;
+end;
+$$;
+
+revoke all on function registrar_marcadores(uuid, date, jsonb, uuid) from anon, public;
+grant execute on function registrar_marcadores(uuid, date, jsonb, uuid) to authenticated;
+
+-- 3. Todos os marcadores de uma paciente, agrupados por data
+
+create or replace function marcadores_do_paciente(p_paciente uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê os marcadores.' using errcode = '42501';
+  end if;
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrada.' using errcode = '22023';
+  end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'data', d.data,
+      'exameId', d.exame_id,
+      'marcadores', d.marcadores)
+    order by d.data desc)
+    from (
+      select m.data, m.exame_id,
+             jsonb_agg(jsonb_build_object(
+               'id', m.id,
+               'codigo', m.codigo,
+               'nome', m.nome,
+               'valor', m.valor,
+               'unidade', m.unidade,
+               'refMin', m.ref_min,
+               'refMax', m.ref_max)
+             order by m.nome) as marcadores
+        from marcadores_exame m
+       where m.paciente_id = p_paciente
+       group by m.data, m.exame_id
+    ) d
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function marcadores_do_paciente(uuid) from anon, public;
+grant execute on function marcadores_do_paciente(uuid) to authenticated;
+
+-- 4. Série temporal de um marcador
+
+create or replace function evolucao_marcador(p_paciente uuid, p_codigo text)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê a evolução.' using errcode = '42501';
+  end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'data', m.data,
+      'valor', m.valor,
+      'unidade', m.unidade,
+      'refMin', m.ref_min,
+      'refMax', m.ref_max)
+    order by m.data)
+    from marcadores_exame m
+    where m.paciente_id = p_paciente and m.codigo = p_codigo
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function evolucao_marcador(uuid, text) from anon, public;
+grant execute on function evolucao_marcador(uuid, text) to authenticated;
+
+-- 5. Apagar marcadores de uma data
+
+create or replace function apagar_marcadores_da_data(
+  p_paciente uuid,
+  p_data date
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_n integer;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista apaga marcadores.' using errcode = '42501';
+  end if;
+
+  delete from marcadores_exame
+   where paciente_id = p_paciente and data = p_data;
+  get diagnostics v_n = row_count;
+
+  if v_n = 0 then
+    raise exception 'Nenhum marcador nesta data.' using errcode = '22023';
+  end if;
+
+  return v_n;
+end;
+$$;
+
+revoke all on function apagar_marcadores_da_data(uuid, date) from anon, public;
+grant execute on function apagar_marcadores_da_data(uuid, date) to authenticated;
+
+-- Conferência
+select column_name from information_schema.columns
+ where table_name = 'marcadores_exame'
+ order by ordinal_position;
+
+
+-- ###########################################################################
+-- 0071_modelos_checkin_especializados.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0071 — Modelos de check-in especializados
+--
+-- O "Feedback Semanal" (52 perguntas) era o único modelo. Agora ele é
+-- desativado e 3 modelos focados tomam o lugar:
+--
+--   1. Estética e Performance (B01-B11, B13, E01-E06) — 18 perguntas
+--   2. Intestino (B01-B03, I01-I11) — 14 perguntas
+--   3. GLP-1 (B01-B03, G01-G12) — 15 perguntas
+--
+-- As perguntas são copiadas do modelo original, mantendo tipo, opções,
+-- pesos, eixos, cadência, alertas e regras de exibição.
+--
+-- Dados históricos do modelo antigo ficam intactos — a desativação impede
+-- apenas novos envios.
+--
+-- NOTA: esta migração foi aplicada manualmente via SQL Editor antes de ser
+-- versionada. O `IF NOT EXISTS` garante idempotência.
+-- =============================================================================
+
+-- Desativar o modelo antigo
+update questionarios
+   set ativo = false
+ where id = 'c0000000-0000-0000-0000-000000000001'
+   and ativo = true;
+
+-- Criar os novos modelos (idempotente)
+insert into questionarios (id, titulo, descricao, periodicidade, ativo)
+values
+  ('c0000000-0000-0000-0000-000000000010',
+   'Estética e Performance',
+   'Base + estética/performance (sem ciclo/texto livre)',
+   'semanal', true),
+  ('c0000000-0000-0000-0000-000000000011',
+   'Intestino',
+   'Base + intestino completo (sem ciclo/texto livre)',
+   'semanal', true),
+  ('c0000000-0000-0000-0000-000000000012',
+   'GLP-1',
+   'Base + perguntas específicas GLP-1 (sem ciclo/texto livre)',
+   'semanal', true)
+on conflict (id) do nothing;
+
+-- Copiar perguntas do modelo original para os novos modelos.
+-- As perguntas já foram inseridas manualmente; este bloco é idempotente.
+do $$
+declare
+  v_src_id uuid := 'c0000000-0000-0000-0000-000000000001';
+  v_codigos_ep text[] := array[
+    'B01','B02','B03','B04','B05','B06','B07','B08','B09','B10','B11','B13',
+    'E01','E02','E03','E04','E05','E06'
+  ];
+  v_codigos_int text[] := array[
+    'B01','B02','B03',
+    'I01','I02','I03','I04','I05','I06','I07','I08','I09','I10','I11'
+  ];
+  v_codigos_glp text[] := array[
+    'B01','B02','B03',
+    'G01','G02','G03','G04','G05','G06','G07','G08','G09','G10','G11','G12'
+  ];
+begin
+  -- Estética e Performance
+  insert into questionario_perguntas (
+    questionario_id, codigo, texto, tipo, opcoes, ordem, ativa, obrigatoria,
+    peso, eixo_id, cadencia, alerta, regra_exibicao
+  )
+  select 'c0000000-0000-0000-0000-000000000010', p.codigo, p.texto, p.tipo,
+         p.opcoes, p.ordem, p.ativa, p.obrigatoria, p.peso, p.eixo_id,
+         p.cadencia, p.alerta, p.regra_exibicao
+    from questionario_perguntas p
+   where p.questionario_id = v_src_id
+     and p.codigo = any(v_codigos_ep)
+  on conflict do nothing;
+
+  -- Intestino
+  insert into questionario_perguntas (
+    questionario_id, codigo, texto, tipo, opcoes, ordem, ativa, obrigatoria,
+    peso, eixo_id, cadencia, alerta, regra_exibicao
+  )
+  select 'c0000000-0000-0000-0000-000000000011', p.codigo, p.texto, p.tipo,
+         p.opcoes, p.ordem, p.ativa, p.obrigatoria, p.peso, p.eixo_id,
+         p.cadencia, p.alerta, p.regra_exibicao
+    from questionario_perguntas p
+   where p.questionario_id = v_src_id
+     and p.codigo = any(v_codigos_int)
+  on conflict do nothing;
+
+  -- GLP-1
+  insert into questionario_perguntas (
+    questionario_id, codigo, texto, tipo, opcoes, ordem, ativa, obrigatoria,
+    peso, eixo_id, cadencia, alerta, regra_exibicao
+  )
+  select 'c0000000-0000-0000-0000-000000000012', p.codigo, p.texto, p.tipo,
+         p.opcoes, p.ordem, p.ativa, p.obrigatoria, p.peso, p.eixo_id,
+         p.cadencia, p.alerta, p.regra_exibicao
+    from questionario_perguntas p
+   where p.questionario_id = v_src_id
+     and p.codigo = any(v_codigos_glp)
+  on conflict do nothing;
+end;
+$$;
+
+-- Conferência
+select q.titulo, count(qp.id) as perguntas
+  from questionarios q
+  left join questionario_perguntas qp on qp.questionario_id = q.id
+ where q.id in (
+   'c0000000-0000-0000-0000-000000000010',
+   'c0000000-0000-0000-0000-000000000011',
+   'c0000000-0000-0000-0000-000000000012'
+ )
+ group by q.titulo;

@@ -37,7 +37,14 @@ import type {
   CheckinPendente,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
-import type { Exame, EspacoDosExames } from "@/central/types/exame";
+import type {
+  Exame,
+  EspacoDosExames,
+  GrupoDeMarcadores,
+  MarcadorExame,
+  MarcadorParaSalvar,
+  PontoEvolucao,
+} from "@/central/types/exame";
 import { caminhoDoExame, porQueNaoServe, tipoPelaExtensao } from "@/central/utils/exames";
 import type {
   FonteDoCerebro,
@@ -1655,6 +1662,70 @@ export const repositorioSupabase: Repositorio = {
   },
 
   // ---------------------------------------------------------------------
+  // Marcadores de exame
+  // ---------------------------------------------------------------------
+
+  async registrarMarcadores(
+    pacienteId: string,
+    data: string,
+    marcadores: MarcadorParaSalvar[],
+    exameId?: string | null,
+  ): Promise<number> {
+    const sb = exigirSupabase();
+    const { data: n, error } = await sb.rpc("registrar_marcadores", {
+      p_paciente: pacienteId,
+      p_data: data,
+      p_marcadores: marcadores.map((m) => ({
+        codigo: m.codigo,
+        nome: m.nome,
+        valor: m.valor,
+        unidade: m.unidade,
+        refMin: m.refMin ?? null,
+        refMax: m.refMax ?? null,
+      })),
+      p_exame_id: exameId ?? null,
+    });
+    erro("registrar os marcadores", error);
+    return numero(n);
+  },
+
+  async marcadoresDoPaciente(pacienteId: string): Promise<GrupoDeMarcadores[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("marcadores_do_paciente", { p_paciente: pacienteId });
+    erro("carregar os marcadores", error);
+    return ((data ?? []) as Linha[]).map((g) => ({
+      data: texto(g.data),
+      exameId: textoOuNulo(g.exameId),
+      marcadores: ((g.marcadores ?? []) as Linha[]).map(paraMarcador),
+    }));
+  },
+
+  async evolucaoMarcador(pacienteId: string, codigo: string): Promise<PontoEvolucao[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("evolucao_marcador", {
+      p_paciente: pacienteId,
+      p_codigo: codigo,
+    });
+    erro("carregar a evolução", error);
+    return ((data ?? []) as Linha[]).map((p) => ({
+      data: texto(p.data),
+      valor: numero(p.valor),
+      unidade: texto(p.unidade),
+      refMin: p.refMin != null ? numero(p.refMin) : null,
+      refMax: p.refMax != null ? numero(p.refMax) : null,
+    }));
+  },
+
+  async apagarMarcadoresDaData(pacienteId: string, data: string): Promise<void> {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("apagar_marcadores_da_data", {
+      p_paciente: pacienteId,
+      p_data: data,
+    });
+    erro("apagar os marcadores", error);
+  },
+
+  // ---------------------------------------------------------------------
   // Fases do método
   // ---------------------------------------------------------------------
 
@@ -2623,6 +2694,18 @@ function paraExame(l: Linha): Exame {
     descricao: textoOuNulo(l.descricao),
     origem: texto(l.origem) === "paciente" ? "paciente" : "nutricionista",
     criadoEm: texto(l.criadoEm),
+  };
+}
+
+function paraMarcador(l: Linha): MarcadorExame {
+  return {
+    id: texto(l.id),
+    codigo: texto(l.codigo),
+    nome: texto(l.nome),
+    valor: numero(l.valor),
+    unidade: texto(l.unidade),
+    refMin: l.refMin != null ? numero(l.refMin) : null,
+    refMax: l.refMax != null ? numero(l.refMax) : null,
   };
 }
 

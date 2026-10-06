@@ -62,7 +62,13 @@ import type {
   CheckinPendente,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
-import type { Exame, EspacoDosExames } from "@/central/types/exame";
+import type {
+  Exame,
+  EspacoDosExames,
+  GrupoDeMarcadores,
+  MarcadorParaSalvar,
+  PontoEvolucao,
+} from "@/central/types/exame";
 import type {
   FonteDoCerebro,
   PendenciasDoCerebro,
@@ -489,6 +495,23 @@ export interface Repositorio {
   apagarExame(id: string): Promise<void>;
 
   espacoDosExames(): Promise<EspacoDosExames>;
+
+  // ---------------------------------------------------------------------
+  // Marcadores de exame
+  // ---------------------------------------------------------------------
+
+  registrarMarcadores(
+    pacienteId: string,
+    data: string,
+    marcadores: MarcadorParaSalvar[],
+    exameId?: string | null,
+  ): Promise<number>;
+
+  marcadoresDoPaciente(pacienteId: string): Promise<GrupoDeMarcadores[]>;
+
+  evolucaoMarcador(pacienteId: string, codigo: string): Promise<PontoEvolucao[]>;
+
+  apagarMarcadoresDaData(pacienteId: string, data: string): Promise<void>;
 
   // ---------------------------------------------------------------------
   // Fases do método

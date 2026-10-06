@@ -24,6 +24,7 @@ import { ConversasDaFicha } from "./ConversasDaFicha";
 import { totalNaoLidas } from "@/central/utils/conversaDaRefeicao";
 import { CheckinDoPaciente } from "@/central/components/CheckinDoPaciente";
 import { Exames } from "@/central/components/Exames";
+import { MarcadoresExame } from "@/central/components/MarcadoresExame";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { AcessosDaPaciente } from "./AcessosDaPaciente";
 import { AbaConsulta } from "./AbaConsulta";
@@ -329,6 +330,7 @@ export function Prontuario() {
 
       <div hidden={aba !== "exames"}>
         <Exames pacienteId={pacienteId} />
+        <MarcadoresExame pacienteId={pacienteId} />
       </div>
 
       <div hidden={aba !== "cerebro"}>

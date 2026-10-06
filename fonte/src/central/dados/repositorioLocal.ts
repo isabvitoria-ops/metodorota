@@ -30,7 +30,7 @@ import type {
   StatusReintroducao,
 } from "@/central/types";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
-import type { Exame, EspacoDosExames } from "@/central/types/exame";
+import type { Exame, EspacoDosExames, GrupoDeMarcadores, PontoEvolucao } from "@/central/types/exame";
 import { caminhoDoExame, porQueNaoServe, tipoPelaExtensao } from "@/central/utils/exames";
 import type {
   PainelFinanceiro,
@@ -1485,6 +1485,15 @@ export const repositorioLocal: Repositorio = {
       pacientesComExame: new Set(todos.map((e) => e.pacienteId)).size,
     };
   },
+
+  // ---------------------------------------------------------------------
+  // Marcadores de exame (demo: stubs)
+  // ---------------------------------------------------------------------
+
+  async registrarMarcadores(): Promise<number> { return 0; },
+  async marcadoresDoPaciente(): Promise<GrupoDeMarcadores[]> { return []; },
+  async evolucaoMarcador(): Promise<PontoEvolucao[]> { return []; },
+  async apagarMarcadoresDaData(): Promise<void> {},
 
   async balancoFinanceiro(meses: number): Promise<Balanco> {
     const quantos = Math.min(Math.max(meses || 6, 1), 36);

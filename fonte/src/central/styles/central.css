@@ -7259,3 +7259,109 @@ body:has(.central) {
     color: #fdba74;
   }
 }
+
+/* ================================================================
+   Marcadores de exame
+   ================================================================ */
+
+.c-marcador-grupo {
+  margin: 12px 0 0;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  overflow: hidden;
+}
+
+.c-marcador-grupo[open] {
+  border-color: var(--cor-primaria-100, var(--cor-borda));
+}
+
+.c-marcador-grupo-titulo {
+  padding: 10px 12px;
+  font: 600 0.85rem/1.3 var(--fonte);
+  color: var(--cor-texto);
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.c-marcador-grupo-titulo::before {
+  content: "\25B6";
+  font-size: 0.6em;
+  color: var(--cor-texto-sec);
+  transition: transform 0.15s;
+}
+
+.c-marcador-grupo[open] > .c-marcador-grupo-titulo::before {
+  transform: rotate(90deg);
+}
+
+.c-marcador-grupo-titulo::-webkit-details-marker {
+  display: none;
+}
+
+.c-grade-marcadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  padding: 8px 12px 12px;
+}
+
+.c-campo-marcador {
+  font-size: 0.82rem;
+}
+
+.c-campo-marcador .c-campo {
+  margin-top: 2px;
+}
+
+.c-marcador-nome {
+  font-weight: 500;
+  font-size: 0.82rem;
+  color: var(--cor-texto);
+}
+
+.c-marcador-unidade {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--cor-texto-sec);
+}
+
+.c-marcadores-lista {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+}
+
+.c-marcador-resultado {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  background: var(--cor-fundo);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.c-marcador-resultado:hover {
+  border-color: var(--cor-primaria);
+}
+
+.c-marcador-resultado-nome {
+  font: 500 0.78rem/1.3 var(--fonte);
+  color: var(--cor-texto-sec);
+}
+
+.c-marcador-resultado-valor {
+  font: 600 1rem/1.2 var(--fonte);
+  font-variant-numeric: tabular-nums;
+}
+
+.c-marcador-resultado-ref {
+  font: 400 0.7rem/1.3 var(--fonte);
+  color: var(--cor-texto-sec);
+  font-variant-numeric: tabular-nums;
+}
