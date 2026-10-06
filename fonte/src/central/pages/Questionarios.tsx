@@ -316,8 +316,8 @@ function TelaDeAlertas({
       {temVermelho && (
         <div className="c-alerta-emergencia">
           <p>Se você estiver passando mal ou precisar de ajuda agora:</p>
-          <p><strong>SAMU:</strong> <span className="c-alerta-fone">192</span></p>
-          <p><strong>CVV (apoio emocional 24h):</strong> <span className="c-alerta-fone">188</span></p>
+          <p><strong>SAMU:</strong> <a href="tel:192" className="c-alerta-fone">192</a></p>
+          <p><strong>CVV (apoio emocional 24h):</strong> <a href="tel:188" className="c-alerta-fone">188</a></p>
         </div>
       )}
       <button

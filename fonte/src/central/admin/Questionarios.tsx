@@ -88,32 +88,50 @@ function PainelDeAlertas({
   aoAtualizar: () => void;
 }) {
   const [aberto, definirAberto] = useState(true);
-  const [salvando, definirSalvando] = useState<string | null>(null);
+  const [salvando, definirSalvando] = useState<Set<string>>(new Set());
   const [notaAberta, definirNotaAberta] = useState<string | null>(null);
   const [textoNota, definirTextoNota] = useState("");
+  const [erro, definirErro] = useState<string | null>(null);
 
   const vermelhos = alertas.filter((a) => a.nivel === "vermelho");
   const amarelos = alertas.filter((a) => a.nivel === "amarelo");
 
+  function marcarSalvando(id: string) {
+    definirSalvando((prev) => new Set(prev).add(id));
+  }
+  function desmarcarSalvando(id: string) {
+    definirSalvando((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
+
   async function mudarStatus(alerta: AlertaPendente, novoStatus: string) {
-    definirSalvando(alerta.id);
+    marcarSalvando(alerta.id);
+    definirErro(null);
     try {
       await repositorio.atualizarAlerta(alerta.id, novoStatus);
       aoAtualizar();
+    } catch {
+      definirErro("Não consegui salvar o status. Tente de novo.");
     } finally {
-      definirSalvando(null);
+      desmarcarSalvando(alerta.id);
     }
   }
 
   async function salvarNota(alerta: AlertaPendente) {
-    definirSalvando(alerta.id);
+    marcarSalvando(alerta.id);
+    definirErro(null);
     try {
-      await repositorio.atualizarAlerta(alerta.id, alerta.status, textoNota || null);
+      await repositorio.atualizarAlerta(alerta.id, alerta.status, textoNota);
       definirNotaAberta(null);
       definirTextoNota("");
       aoAtualizar();
+    } catch {
+      definirErro("Não consegui salvar a nota. Tente de novo.");
     } finally {
-      definirSalvando(null);
+      desmarcarSalvando(alerta.id);
     }
   }
 
@@ -146,6 +164,7 @@ function PainelDeAlertas({
 
       {aberto && (
         <div className="c-painel-alertas-corpo">
+          {erro && <p className="c-erro" role="alert">{erro}</p>}
           {vermelhos.length > 0 && (
             <div className="c-painel-alertas-grupo">
               <p className="c-painel-alertas-grupo-titulo c-painel-alertas-grupo--vermelho">
@@ -155,7 +174,7 @@ function PainelDeAlertas({
                 <CartaoAlerta
                   key={a.id}
                   alerta={a}
-                  salvando={salvando === a.id}
+                  salvando={salvando.has(a.id)}
                   notaAberta={notaAberta === a.id}
                   textoNota={textoNota}
                   aoMudarStatus={mudarStatus}
@@ -176,7 +195,7 @@ function PainelDeAlertas({
                 <CartaoAlerta
                   key={a.id}
                   alerta={a}
-                  salvando={salvando === a.id}
+                  salvando={salvando.has(a.id)}
                   notaAberta={notaAberta === a.id}
                   textoNota={textoNota}
                   aoMudarStatus={mudarStatus}

@@ -125,11 +125,10 @@ begin
 end;
 $$;
 
--- Só admin e a própria paciente (via responder_questionario) usam
+-- Só chamada internamente por responder_questionario (security definer),
+-- não precisa de grant a ninguém.
 revoke all on function disparar_alertas_envio(uuid, uuid, uuid)
-  from anon, public;
-grant execute on function disparar_alertas_envio(uuid, uuid, uuid)
-  to authenticated;
+  from anon, public, authenticated;
 
 -- -----------------------------------------------------------------------------
 -- 2. Atualiza responder_questionario para disparar alertas e retornar resultado
@@ -238,6 +237,7 @@ begin
   return jsonb_build_object('envioId', v_envio, 'alertas', v_alertas);
 end;
 $$;
+revoke all on function responder_questionario(uuid, jsonb) from anon, public;
 grant execute on function responder_questionario(uuid, jsonb) to authenticated;
 
 -- -----------------------------------------------------------------------------
@@ -253,6 +253,10 @@ security definer
 set search_path = public
 as $$
 begin
+  if not e_admin() then
+    raise exception 'Acesso restrito.' using errcode = '42501';
+  end if;
+
   return coalesce((
     select jsonb_agg(jsonb_build_object(
       'codigo', a.codigo,
@@ -262,12 +266,40 @@ begin
       case a.nivel when 'vermelho' then 0 else 1 end,
       a.criado_em)
     from alertas_checkin a
-    join alertas_checkin_config c on c.codigo = a.codigo
+    join alertas_checkin_config c on c.codigo = a.codigo and c.ativo
     where a.envio_id = p_envio
   ), '[]'::jsonb);
 end;
 $$;
 revoke all on function alertas_do_envio(uuid) from anon, public;
 grant execute on function alertas_do_envio(uuid) to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- 4. Corrige atualizar_alerta: permite limpar a nota (empty string)
+-- -----------------------------------------------------------------------------
+
+create or replace function atualizar_alerta(p_alerta uuid, p_status text, p_nota text default null)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista mexe nos alertas.' using errcode = '42501';
+  end if;
+  if p_status not in ('novo', 'visto', 'contatado', 'resolvido') then
+    raise exception 'Status inválido.' using errcode = '22023';
+  end if;
+
+  update alertas_checkin
+     set status = p_status,
+         nota_nutri = p_nota,
+         atualizado_em = now()
+   where id = p_alerta;
+end;
+$$;
+revoke all on function atualizar_alerta(uuid, text, text) from anon, public;
+grant execute on function atualizar_alerta(uuid, text, text) to authenticated;
 
 commit;
