@@ -9,7 +9,6 @@ export function Viagem() {
   const { configuracoes } = useSessao();
   const [destino, definirDestino] = useState("");
   const [ida, definirIda] = useState("");
-  const [volta, definirVolta] = useState("");
   const [obs, definirObs] = useState("");
   const [enviado, definirEnviado] = useState(false);
 
@@ -22,9 +21,8 @@ export function Viagem() {
     const partes = [
       "Oi! Quero avisar sobre uma viagem:",
       `Destino: ${destino.trim()}`,
-      `Ida: ${ida.split("-").reverse().join("/")}`,
+      `Data de ida: ${ida.split("-").reverse().join("/")}`,
     ];
-    if (volta) partes.push(`Volta: ${volta.split("-").reverse().join("/")}`);
     if (obs.trim()) partes.push(`Observações: ${obs.trim()}`);
 
     const texto = encodeURIComponent(partes.join("\n"));
@@ -39,8 +37,8 @@ export function Viagem() {
   if (enviado) {
     return (
       <main className="c-pagina">
-        <div className="c-card-viagem-confirmacao">
-          <span className="c-card-viagem-emoji" aria-hidden="true">✅</span>
+        <div className="c-viagem-confirmacao">
+          <span className="c-viagem-confirmacao-icone" aria-hidden="true">✅</span>
           <h2>Mensagem preparada!</h2>
           <p>
             {whatsapp
@@ -64,9 +62,8 @@ export function Viagem() {
         <h1>Viagem programada</h1>
       </header>
 
-      <p className="c-subtitulo" style={{ marginBottom: 16 }}>
-        Avise sua nutricionista com antecedência para que ela prepare
-        orientações especiais para a viagem.
+      <p className="c-subtitulo" style={{ marginBottom: 20 }}>
+        Avise com antecedência para receber orientações especiais.
       </p>
 
       <form onSubmit={enviar} className="c-form-viagem">
@@ -83,7 +80,7 @@ export function Viagem() {
         </label>
 
         <label className="c-campo">
-          <span className="c-campo-rotulo">Data de ida *</span>
+          <span className="c-campo-rotulo">Quando? *</span>
           <input
             type="date"
             className="c-campo-input"
@@ -94,17 +91,7 @@ export function Viagem() {
         </label>
 
         <label className="c-campo">
-          <span className="c-campo-rotulo">Data de volta</span>
-          <input
-            type="date"
-            className="c-campo-input"
-            value={volta}
-            onChange={(e) => definirVolta(e.target.value)}
-          />
-        </label>
-
-        <label className="c-campo">
-          <span className="c-campo-rotulo">Observações</span>
+          <span className="c-campo-rotulo">Quer contar algo mais?</span>
           <textarea
             className="c-campo-input"
             value={obs}
