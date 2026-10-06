@@ -316,19 +316,22 @@ export function Questionarios() {
   const carregar = useCallback(async () => {
     definirCarregando(true);
     try {
-      const [qs, ps, als] = await Promise.all([
+      const [qs, ps] = await Promise.all([
         repositorio.listarQuestionarios(),
         repositorio.listarPacientes(),
-        repositorio.listarAlertasPendentes(),
       ]);
       definirLista(qs);
       definirPacientes(ps);
-      definirAlertas(als);
       definirErro(null);
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui carregar os questionários.");
     } finally {
       definirCarregando(false);
+    }
+    try {
+      definirAlertas(await repositorio.listarAlertasPendentes());
+    } catch {
+      definirAlertas([]);
     }
   }, []);
 
