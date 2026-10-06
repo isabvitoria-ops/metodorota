@@ -2025,6 +2025,8 @@ export const repositorioLocal: Repositorio = {
     return [];
   },
 
+  async ocultarPerguntasCheckin() {},
+
   async questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]> {
     return guardaQuestionarios.ler().map((q) => ({
       id: q.id,

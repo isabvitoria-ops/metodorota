@@ -1932,6 +1932,20 @@ export const repositorioSupabase: Repositorio = {
     return arr as CheckinPendente[];
   },
 
+  async ocultarPerguntasCheckin(
+    questionarioId: string,
+    pacienteId: string,
+    ocultas: string[],
+  ): Promise<void> {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("ocultar_perguntas_checkin", {
+      p_questionario: questionarioId,
+      p_paciente: pacienteId,
+      p_ocultas: ocultas,
+    });
+    erro("salvar perguntas ocultas", error);
+  },
+
   async questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("questionarios_do_paciente", {

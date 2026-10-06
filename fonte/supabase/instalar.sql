@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql
 -- =============================================================================
 
 
@@ -19132,5 +19132,350 @@ $$;
 
 revoke all on function checkin_pendentes_da_semana() from anon, public;
 grant execute on function checkin_pendentes_da_semana() to authenticated;
+
+commit;
+
+
+-- ###########################################################################
+-- 0068_perguntas_ocultas_por_paciente.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0068 — Perguntas ocultas por paciente
+--
+-- Cada paciente pode ter perguntas específicas desligadas, mesmo dentro da
+-- mesma versão. Exemplo: B12 (ciclo menstrual) desligado para quem não
+-- menstrua. A nutricionista escolhe isso no prontuário, pergunta por pergunta.
+--
+-- O que esta migração faz:
+--
+--   1. Coluna `perguntas_ocultas text[]` em `questionario_pacientes` — lista
+--      de códigos de perguntas que NÃO aparecem para aquela paciente.
+--
+--   2. `meus_questionarios()` filtrada: além de ativa + versão, agora exclui
+--      as perguntas cujo código está em `perguntas_ocultas`.
+--
+--   3. `questionarios_do_paciente()` devolve `perguntas_ocultas` para a
+--      nutricionista montar os toggles no prontuário.
+--
+--   4. Função `ocultar_perguntas_checkin()` — grava a lista de códigos
+--      ocultos para uma paciente num questionário.
+-- =============================================================================
+
+-- 1. Coluna nova
+alter table questionario_pacientes
+  add column if not exists perguntas_ocultas text[] not null default '{}';
+
+-- 2. meus_questionarios() — agora filtra perguntas_ocultas
+
+create or replace function meus_questionarios()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente uuid;
+  v_semana date;
+begin
+  v_paciente := meu_paciente_id();
+  if v_paciente is null or not tem_acesso() then
+    return '[]'::jsonb;
+  end if;
+
+  v_semana := semana_de(hoje_sp());
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', q.id, 'titulo', q.titulo, 'descricao', q.descricao,
+      'periodicidade', q.periodicidade,
+      'mostraPontuacao', q.mostra_pontuacao,
+      'periodo', case when q.periodicidade = 'semanal' then v_semana else hoje_sp() end,
+      'pendente', not exists (
+        select 1 from questionario_envios e
+         where e.questionario_id = q.id and e.paciente_id = v_paciente
+           and (q.periodicidade <> 'semanal' or e.periodo = v_semana)),
+      'versao', a.versao,
+      'perguntas', coalesce((
+        select jsonb_agg(jsonb_build_object(
+          'id', p.id, 'texto', p.texto, 'tipo', p.tipo,
+          'obrigatoria', p.obrigatoria, 'opcoes', p.opcoes,
+          'codigo', p.codigo, 'cadencia', p.cadencia,
+          'regraExibicao', p.regra_exibicao,
+          'modulo', p.modulo, 'versoes', p.versoes,
+          'explicacaoOpcoes', p.explicacao_opcoes,
+          'textoAjuda', p.texto_ajuda,
+          'notasPorFaixa', p.notas_por_faixa,
+          'alertasOpcoes', p.alertas_opcoes,
+          'ativa', p.ativa,
+          'peso', case when q.mostra_pontuacao then p.peso else null end,
+          'invertida', case when q.mostra_pontuacao then p.invertida else null end,
+          'pontosOpcoes', case when q.mostra_pontuacao then p.pontos_opcoes else '[]'::jsonb end,
+          'eixoId', case when q.mostra_pontuacao then p.eixo_id else null end)
+        order by p.ordem)
+        from questionario_perguntas p
+        where p.questionario_id = q.id
+          and p.ativa
+          and (a.versao is null or p.versoes is null
+               or p.versoes @> jsonb_build_array(a.versao))
+          and (a.perguntas_ocultas = '{}' or p.codigo is null
+               or not (p.codigo = any(a.perguntas_ocultas)))
+      ), '[]'::jsonb),
+      'enviados', coalesce((
+        select jsonb_agg(jsonb_build_object(
+          'periodo', e.periodo, 'respondidoEm', e.respondido_em,
+          'reguaSnapshot', case when q.mostra_pontuacao then e.regua_snapshot else null end,
+          'respostas', coalesce((
+            select jsonb_agg(jsonb_build_object(
+              'perguntaId', r.pergunta_id,
+              'numero', r.valor_numero, 'texto', r.valor_texto,
+              'json', r.valor_json))
+            from questionario_respostas r where r.envio_id = e.id
+          ), '[]'::jsonb))
+        order by e.periodo desc)
+        from questionario_envios e
+        where e.questionario_id = q.id and e.paciente_id = v_paciente
+      ), '[]'::jsonb))
+    order by q.periodicidade, q.titulo)
+    from questionarios q
+    join questionario_pacientes a
+      on a.questionario_id = q.id and a.paciente_id = v_paciente
+    where q.ativo
+  ), '[]'::jsonb);
+end;
+$$;
+grant execute on function meus_questionarios() to authenticated;
+
+-- 3. questionarios_do_paciente() — devolve perguntas_ocultas
+
+create or replace function questionarios_do_paciente(p_paciente uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê as respostas.' using errcode = '42501';
+  end if;
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrada.' using errcode = '22023';
+  end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', q.id, 'titulo', q.titulo, 'periodicidade', q.periodicidade,
+      'ativo', q.ativo, 'mostraPontuacao', q.mostra_pontuacao,
+      'atribuido', exists (
+        select 1 from questionario_pacientes a
+         where a.questionario_id = q.id and a.paciente_id = p_paciente),
+      'versao', (
+        select a.versao from questionario_pacientes a
+         where a.questionario_id = q.id and a.paciente_id = p_paciente),
+      'perguntasOcultas', coalesce((
+        select a.perguntas_ocultas from questionario_pacientes a
+         where a.questionario_id = q.id and a.paciente_id = p_paciente), '{}'),
+      'perguntas', coalesce((
+        select jsonb_agg(jsonb_build_object(
+          'id', p.id, 'texto', p.texto, 'tipo', p.tipo,
+          'peso', p.peso, 'invertida', p.invertida, 'opcoes', p.opcoes,
+          'eixoId', p.eixo_id, 'pontosOpcoes', p.pontos_opcoes,
+          'codigo', p.codigo, 'cadencia', p.cadencia,
+          'modulo', p.modulo, 'versoes', p.versoes,
+          'regraExibicao', p.regra_exibicao,
+          'explicacaoOpcoes', p.explicacao_opcoes,
+          'notasPorFaixa', p.notas_por_faixa,
+          'alertasOpcoes', p.alertas_opcoes,
+          'ativa', p.ativa)
+        order by p.ordem)
+        from questionario_perguntas p where p.questionario_id = q.id
+      ), '[]'::jsonb),
+      'envios', coalesce((
+        select jsonb_agg(jsonb_build_object(
+          'id', e.id, 'periodo', e.periodo, 'respondidoEm', e.respondido_em,
+          'revisado', e.revisado_em is not null,
+          'reguaSnapshot', e.regua_snapshot,
+          'respostas', coalesce((
+            select jsonb_agg(jsonb_build_object(
+              'perguntaId', r.pergunta_id,
+              'numero', r.valor_numero, 'texto', r.valor_texto,
+              'json', r.valor_json))
+            from questionario_respostas r where r.envio_id = e.id
+          ), '[]'::jsonb),
+          'alertas', coalesce((
+            select jsonb_agg(jsonb_build_object(
+              'id', al.id, 'codigo', al.codigo, 'nivel', al.nivel,
+              'perguntaCodigo', al.pergunta_codigo,
+              'status', al.status, 'notaNutri', al.nota_nutri,
+              'criadoEm', al.criado_em))
+            from alertas_checkin al where al.envio_id = e.id
+          ), '[]'::jsonb))
+        order by e.periodo desc)
+        from questionario_envios e
+        where e.questionario_id = q.id and e.paciente_id = p_paciente
+      ), '[]'::jsonb))
+    order by q.periodicidade, q.titulo)
+    from questionarios q
+    where exists (
+        select 1 from questionario_pacientes a
+         where a.questionario_id = q.id and a.paciente_id = p_paciente)
+       or exists (
+        select 1 from questionario_envios e
+         where e.questionario_id = q.id and e.paciente_id = p_paciente)
+  ), '[]'::jsonb);
+end;
+$$;
+revoke all on function questionarios_do_paciente(uuid) from anon, public;
+grant execute on function questionarios_do_paciente(uuid) to authenticated;
+
+-- 4. Função para gravar perguntas ocultas
+
+create or replace function ocultar_perguntas_checkin(
+  p_questionario uuid,
+  p_paciente uuid,
+  p_ocultas text[]
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista personaliza as perguntas.' using errcode = '42501';
+  end if;
+
+  update questionario_pacientes
+     set perguntas_ocultas = coalesce(p_ocultas, '{}')
+   where questionario_id = p_questionario
+     and paciente_id = p_paciente;
+
+  if not found then
+    raise exception 'Paciente não está atribuída a este questionário.' using errcode = '22023';
+  end if;
+end;
+$$;
+revoke all on function ocultar_perguntas_checkin(uuid, uuid, text[]) from anon, public;
+grant execute on function ocultar_perguntas_checkin(uuid, uuid, text[]) to authenticated;
+
+-- Conferência
+select column_name from information_schema.columns
+ where table_name = 'questionario_pacientes'
+   and column_name = 'perguntas_ocultas';
+
+
+-- ###########################################################################
+-- 0069_reduzir_perguntas_por_versao.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0069 — Reduzir perguntas por versao
+--
+-- Contagem anterior: V1=25, V2=38, V3=49.  Depois desta migracao: V1=19,
+-- V2=24, V3=24.
+--
+-- Criterios:
+--   - Perguntas redundantes desativadas (ex.: B04 qualidade sono + B03 horas
+--     sono -> so horas).
+--   - Modulos fora do foco removidos daquela versao (ex.: estetica sai de V2
+--     e V3; intestino detalhado sai de V3 porque o modulo GLP-1 ja cobre).
+--   - Perguntas condicionais e periodicas (quinzenal, mensal) preservadas
+--     quando relevantes — elas nao aparecem toda semana.
+--   - Perguntas de seguranca (alertas) nunca removidas.
+--   - Dados historicos intactos: perguntas desativadas ficam com ativa=false
+--     e as respostas antigas permanecem.
+--
+-- Resumo por versao:
+--
+--   V1 (Estetica / Comum) — 19 perguntas:
+--     BASE: B01 B02 B03 B05 B06 B07 B08 B09(q) B10(q) B11 B12 B14
+--     ESTETICA: E01 E03 E04 E06(m)
+--     INTESTINO: I01 I02
+--     ACOMPANHAMENTO: P01(m)
+--
+--   V2 (Intestinal) — 24 perguntas:
+--     BASE: B01 B02 B03 B05 B07 B08 B11 B12 B14
+--     INTESTINO: I01 I02 I03 I04 I05(cond) I07(cond) I08(cond) I09 I10
+--                I11 I12 I14 I15 I16(cond)
+--     ACOMPANHAMENTO: P01(m)
+--
+--   V3 (GLP-1 / Ozempic / Mounjaro) — 24 perguntas:
+--     BASE: B01 B02 B07 B08 B11 B12 B14
+--     INTESTINO: I01 I02 I11
+--     GLP-1: G01 G02 G03 G04(cond) G05 G06 G07 G08 G09(cond) G10
+--            G11(q) G12(q) G13 G14(q)
+-- =============================================================================
+
+begin;
+
+-- 1. Desativar perguntas que nao pertencem mais a nenhuma versao
+update questionario_perguntas
+   set ativa = false
+ where questionario_id = 'c0000000-0000-0000-0000-000000000001'
+   and codigo in ('B04','B13','E02','E05','I06','I13','P02');
+
+-- 2. Ajustar versoes das perguntas que permanecem ativas
+
+-- B03, B05: remover V3 (sono e disposicao menos centrais para GLP-1)
+update questionario_perguntas
+   set versoes = '["V1","V2"]'::jsonb
+ where questionario_id = 'c0000000-0000-0000-0000-000000000001'
+   and codigo in ('B03','B05');
+
+-- B06: somente V1 (pular refeicoes nao e foco intestinal nem GLP-1)
+-- B09: somente V1 (vegetais, quinzenal, foco estetico)
+-- B10: somente V1 (alcool, quinzenal, foco estetico)
+-- E01, E03, E04: somente V1 (modulo estetica inteiro)
+-- E06: somente V1 (cintura, mensal, foco estetico)
+update questionario_perguntas
+   set versoes = '["V1"]'::jsonb
+ where questionario_id = 'c0000000-0000-0000-0000-000000000001'
+   and codigo in ('B06','B09','B10','E01','E03','E04','E06');
+
+-- I03: somente V2 (desconforto abdominal: porteira para I05-I08)
+update questionario_perguntas
+   set versoes = '["V2"]'::jsonb
+ where questionario_id = 'c0000000-0000-0000-0000-000000000001'
+   and codigo = 'I03';
+
+-- I04, I05, I07, I09, I12, I14, I15: somente V2
+-- (intestino detalhado nao precisa em V3 porque o modulo GLP-1 cobre)
+update questionario_perguntas
+   set versoes = '["V2"]'::jsonb
+ where questionario_id = 'c0000000-0000-0000-0000-000000000001'
+   and codigo in ('I04','I05','I07','I09','I12','I14','I15');
+
+-- P01: somente V1 e V2 (avaliacao mensal, V3 ja tem muita pergunta)
+update questionario_perguntas
+   set versoes = '["V1","V2"]'::jsonb
+ where questionario_id = 'c0000000-0000-0000-0000-000000000001'
+   and codigo = 'P01';
+
+-- 3. Conferencia
+do $$
+declare
+  v1 integer; v2 integer; v3 integer;
+begin
+  select count(*) into v1
+    from questionario_perguntas
+   where questionario_id = 'c0000000-0000-0000-0000-000000000001'
+     and ativa and versoes @> '"V1"'::jsonb;
+  select count(*) into v2
+    from questionario_perguntas
+   where questionario_id = 'c0000000-0000-0000-0000-000000000001'
+     and ativa and versoes @> '"V2"'::jsonb;
+  select count(*) into v3
+    from questionario_perguntas
+   where questionario_id = 'c0000000-0000-0000-0000-000000000001'
+     and ativa and versoes @> '"V3"'::jsonb;
+
+  if v1 <> 19 then raise exception 'V1 deveria ter 19, tem %', v1; end if;
+  if v2 <> 24 then raise exception 'V2 deveria ter 24, tem %', v2; end if;
+  if v3 <> 24 then raise exception 'V3 deveria ter 24, tem %', v3; end if;
+
+  raise notice 'Reducao OK: V1=%, V2=%, V3=%', v1, v2, v3;
+end $$;
 
 commit;

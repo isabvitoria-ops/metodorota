@@ -388,6 +388,7 @@ export function paraQuestionarioDoPaciente(l: Linha): QuestionarioDoPaciente {
     mostraPontuacao: l.mostraPontuacao === true,
     atribuido: l.atribuido === true,
     versao: textoOuNulo(l.versao),
+    perguntasOcultas: Array.isArray(l.perguntasOcultas) ? l.perguntasOcultas as string[] : [],
     perguntas: (Array.isArray(l.perguntas) ? (l.perguntas as Linha[]) : []).map((p) => ({
       id: texto(p.id),
       texto: texto(p.texto),

@@ -447,6 +447,13 @@ export interface Repositorio {
   /** Pacientes que ainda não responderam o check-in semanal desta semana. */
   listarCheckinPendentes(): Promise<CheckinPendente[]>;
 
+  /** Grava quais perguntas ficam ocultas para uma paciente num questionário. */
+  ocultarPerguntasCheckin(
+    questionarioId: string,
+    pacienteId: string,
+    ocultas: string[],
+  ): Promise<void>;
+
   // ---------------------------------------------------------------------
   // Exames
   // ---------------------------------------------------------------------

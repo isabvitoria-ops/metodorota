@@ -61,8 +61,14 @@ export function CheckinDoPaciente({ pacienteId }: { pacienteId: string }) {
       <ModelosDaPaciente
         pacienteId={pacienteId}
         lista={lista}
-        aoMudar={(id, atribuido) =>
-          definirLista((atual) => atual.map((q) => (q.id === id ? { ...q, atribuido } : q)))
+        aoMudar={(id, atribuido, ocultas) =>
+          definirLista((atual) =>
+            atual.map((q) =>
+              q.id === id
+                ? { ...q, atribuido, ...(ocultas !== undefined ? { perguntasOcultas: ocultas } : {}) }
+                : q,
+            ),
+          )
         }
       />
       {/* Sem resposta nenhuma as tabelas somem: uma tabela vazia dizendo
@@ -89,11 +95,12 @@ function ModelosDaPaciente({
 }: {
   pacienteId: string;
   lista: QuestionarioDoPaciente[];
-  aoMudar: (id: string, atribuido: boolean) => void;
+  aoMudar: (id: string, atribuido: boolean, ocultas?: string[]) => void;
 }) {
   const [aviso, definirAviso] = useState<string | null>(null);
   const [erro, definirErro] = useState<string | null>(null);
   const [ocupado, definirOcupado] = useState<string | null>(null);
+  const [expandido, definirExpandido] = useState<string | null>(null);
   const visiveis = lista.filter((q) => q.ativo || q.atribuido);
 
   async function alternar(q: QuestionarioDoPaciente) {
@@ -103,6 +110,7 @@ function ModelosDaPaciente({
       // O estado GRAVADO, não o que o clique pediu.
       const estado = await repositorio.definirQuestionarioDoPaciente(q.id, pacienteId, !q.atribuido);
       aoMudar(q.id, estado);
+      if (!estado) definirExpandido(null);
       definirAviso(estado ? `“${q.titulo}” liberado para ela.` : `“${q.titulo}” desligado para ela.`);
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui mudar.");
@@ -110,6 +118,27 @@ function ModelosDaPaciente({
       definirOcupado(null);
     }
   }
+
+  async function alternarPergunta(q: QuestionarioDoPaciente, codigo: string) {
+    const ocultas = q.perguntasOcultas ?? [];
+    const novas = ocultas.includes(codigo)
+      ? ocultas.filter((c) => c !== codigo)
+      : [...ocultas, codigo];
+    definirOcupado(q.id);
+    definirErro(null);
+    try {
+      await repositorio.ocultarPerguntasCheckin(q.id, pacienteId, novas);
+      aoMudar(q.id, q.atribuido, novas);
+      definirAviso(null);
+    } catch (e) {
+      definirErro(e instanceof Error ? e.message : "Erro ao salvar.");
+    } finally {
+      definirOcupado(null);
+    }
+  }
+
+  const perguntasComCodigo = (q: QuestionarioDoPaciente) =>
+    q.perguntas.filter((p) => p.codigo && p.ativa !== false);
 
   return (
     <section className="c-secao">
@@ -125,24 +154,75 @@ function ModelosDaPaciente({
             Marque o modelo que ela responde. Vale na hora. Para criar ou mudar um modelo,{" "}
             <Link to={rotas.adminQuestionarios}>vá em Check-in</Link>.
           </p>
-          {visiveis.map((q) => (
-            <label key={q.id} className="c-acesso-linha">
-              <input
-                type="checkbox"
-                checked={q.atribuido}
-                disabled={ocupado === q.id}
-                onChange={() => void alternar(q)}
-              />
-              <span>
-                {q.titulo}
-                <span className="c-dica" style={{ display: "block", margin: 0 }}>
-                  {q.periodicidade === "semanal" ? "Toda semana" : "Uma vez só"} ·{" "}
-                  {q.perguntas.length} {q.perguntas.length === 1 ? "pergunta" : "perguntas"}
-                  {!q.ativo && " · modelo desligado"}
-                </span>
-              </span>
-            </label>
-          ))}
+          {visiveis.map((q) => {
+            const comCodigo = perguntasComCodigo(q);
+            const ocultas = q.perguntasOcultas ?? [];
+            const aberto = expandido === q.id;
+            return (
+              <Fragment key={q.id}>
+                <label className="c-acesso-linha">
+                  <input
+                    type="checkbox"
+                    checked={q.atribuido}
+                    disabled={ocupado === q.id}
+                    onChange={() => void alternar(q)}
+                  />
+                  <span>
+                    {q.titulo}
+                    <span className="c-dica" style={{ display: "block", margin: 0 }}>
+                      {q.periodicidade === "semanal" ? "Toda semana" : "Uma vez só"} ·{" "}
+                      {q.perguntas.length} {q.perguntas.length === 1 ? "pergunta" : "perguntas"}
+                      {ocultas.length > 0 && ` · ${ocultas.length} oculta${ocultas.length > 1 ? "s" : ""}`}
+                      {!q.ativo && " · modelo desligado"}
+                    </span>
+                  </span>
+                </label>
+                {q.atribuido && comCodigo.length > 0 && (
+                  <div style={{ marginLeft: "1.75rem", marginBottom: "0.5rem" }}>
+                    <button
+                      type="button"
+                      className="c-botao-texto"
+                      onClick={() => definirExpandido(aberto ? null : q.id)}
+                    >
+                      {aberto ? "Fechar perguntas" : "Personalizar perguntas"}
+                    </button>
+                    {aberto && (
+                      <div style={{ marginTop: "0.5rem" }}>
+                        <p className="c-dica" style={{ margin: "0 0 0.5rem" }}>
+                          Desmarque as perguntas que esta paciente não precisa responder.
+                        </p>
+                        {comCodigo.map((p) => {
+                          const oculta = ocultas.includes(p.codigo!);
+                          return (
+                            <label
+                              key={p.codigo}
+                              className="c-acesso-linha"
+                              style={{ fontSize: "0.875rem" }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={!oculta}
+                                disabled={ocupado === q.id}
+                                onChange={() => void alternarPergunta(q, p.codigo!)}
+                              />
+                              <span>
+                                <strong>{p.codigo}</strong> {p.texto}
+                                {p.modulo && (
+                                  <span className="c-dica" style={{ display: "inline", marginLeft: "0.25rem" }}>
+                                    ({p.modulo})
+                                  </span>
+                                )}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Fragment>
+            );
+          })}
         </>
       )}
       {(aviso || erro) && (

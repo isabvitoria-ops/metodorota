@@ -201,6 +201,7 @@ export interface QuestionarioDoPaciente {
   mostraPontuacao: boolean;
   atribuido: boolean;
   versao?: string | null;
+  perguntasOcultas?: string[];
   perguntas: {
     id: string;
     texto: string;
