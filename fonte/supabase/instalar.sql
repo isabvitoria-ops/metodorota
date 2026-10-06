@@ -18906,7 +18906,11 @@ grant execute on function disparar_alertas_envio(uuid, uuid, uuid)
 -- 2. Atualiza responder_questionario para disparar alertas e retornar resultado
 -- -----------------------------------------------------------------------------
 
--- A função passa a retornar JSONB com {envioId, alertas} em vez de só uuid
+-- A função passa a retornar JSONB com {envioId, alertas} em vez de só uuid.
+-- PostgreSQL não permite trocar o tipo de retorno com create or replace,
+-- então é preciso dropar antes de recriar.
+drop function if exists responder_questionario(uuid, jsonb);
+
 create or replace function responder_questionario(p_questionario uuid, p_respostas jsonb)
 returns jsonb
 language plpgsql
