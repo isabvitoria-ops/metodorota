@@ -58,6 +58,7 @@ import type {
   QuestionarioDoPaciente,
   EixoCheckin,
   AlertaParaPaciente,
+  AlertaPendente,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type { Exame, EspacoDosExames } from "@/central/types/exame";
@@ -438,6 +439,9 @@ export interface Repositorio {
    * criaria expectativa de resposta que o aplicativo não promete.
    */
   marcarRevisado(envioId: string, revisado: boolean): Promise<boolean>;
+
+  listarAlertasPendentes(): Promise<AlertaPendente[]>;
+  atualizarAlerta(alertaId: string, status: string, nota?: string | null): Promise<void>;
 
   // ---------------------------------------------------------------------
   // Exames

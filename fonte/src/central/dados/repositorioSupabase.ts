@@ -33,6 +33,7 @@ import type {
   RespostaEnviada,
   QuestionarioDoPaciente,
   EixoCheckin,
+  AlertaPendente,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type { Exame, EspacoDosExames } from "@/central/types/exame";
@@ -1902,6 +1903,24 @@ export const repositorioSupabase: Repositorio = {
     });
     erro("marcar como revisado", error);
     return data === true;
+  },
+
+  async listarAlertasPendentes(): Promise<AlertaPendente[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("listar_alertas_pendentes");
+    erro("carregar os alertas", error);
+    const arr = Array.isArray(data) ? data : (data as AlertaPendente[] | null) ?? [];
+    return arr as AlertaPendente[];
+  },
+
+  async atualizarAlerta(alertaId: string, status: string, nota?: string | null): Promise<void> {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("atualizar_alerta", {
+      p_alerta: alertaId,
+      p_status: status,
+      p_nota: nota ?? null,
+    });
+    erro("atualizar o alerta", error);
   },
 
   async questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]> {

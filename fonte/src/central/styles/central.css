@@ -2067,6 +2067,23 @@ body:has(.central) {
   padding: 0 16px;
 }
 
+.c-botao-texto {
+  border: none;
+  background: none;
+  padding: 4px 8px;
+  color: var(--primary);
+  font: inherit;
+  font-size: 0.84rem;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.c-botao-texto:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .c-link {
   border: 0;
   background: none;
@@ -5438,6 +5455,169 @@ body:has(.central) {
 }
 :root[data-theme="dark"] .c-alerta-card--vermelho .c-alerta-card-indicador { color: #f87171; }
 :root[data-theme="dark"] .c-alerta-card--amarelo .c-alerta-card-indicador { color: #fbbf24; }
+
+/* --- Painel de alertas (admin) --- */
+
+.c-painel-alertas {
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.c-painel-alertas-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--danger-soft);
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  color: var(--danger);
+}
+
+.c-painel-alertas-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.c-painel-alertas-indicador {
+  font-size: 1.1rem;
+}
+
+.c-painel-alertas-contagem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.c-painel-alertas-seta {
+  font-size: 0.7rem;
+}
+
+.c-painel-alertas-corpo {
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.c-painel-alertas-grupo-titulo {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 8px;
+}
+
+.c-painel-alertas-grupo--vermelho { color: var(--danger); }
+.c-painel-alertas-grupo--amarelo { color: var(--warning); }
+
+.c-cartao-alerta {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-left: 3px solid transparent;
+}
+
+.c-cartao-alerta--vermelho {
+  border-left-color: var(--danger);
+  background: #fef2f2;
+}
+
+.c-cartao-alerta--amarelo {
+  border-left-color: var(--warning);
+  background: #fffbeb;
+}
+
+.c-cartao-alerta-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.c-cartao-alerta-paciente {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.c-cartao-alerta-data {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.c-cartao-alerta-descricao {
+  font-size: 0.88rem;
+  margin: 0 0 8px;
+  color: var(--text-secondary);
+}
+
+.c-cartao-alerta-acoes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.c-cartao-alerta-select {
+  width: auto;
+  height: 34px;
+  padding: 0 28px 0 10px;
+  font-size: 0.82rem;
+  background-position: calc(100% - 12px) 14px, calc(100% - 8px) 14px;
+  background-size: 5px 5px, 5px 5px;
+}
+
+.c-cartao-alerta-nota {
+  margin-top: 8px;
+}
+
+.c-cartao-alerta-nota textarea {
+  width: 100%;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .c-cartao-alerta--vermelho {
+    background: rgba(220, 38, 38, 0.08);
+  }
+  :root:not([data-theme="light"]) .c-cartao-alerta--amarelo {
+    background: rgba(217, 119, 6, 0.08);
+  }
+  :root:not([data-theme="light"]) .c-painel-alertas-cabecalho {
+    background: rgba(143, 64, 52, 0.15);
+  }
+}
+
+:root[data-theme="dark"] .c-cartao-alerta--vermelho {
+  background: rgba(220, 38, 38, 0.08);
+}
+:root[data-theme="dark"] .c-cartao-alerta--amarelo {
+  background: rgba(217, 119, 6, 0.08);
+}
+:root[data-theme="dark"] .c-painel-alertas-cabecalho {
+  background: rgba(143, 64, 52, 0.15);
+}
 
 .c-envio {
   border: 1px solid var(--border);

@@ -6,6 +6,7 @@ import type {
   PeriodicidadeQuestionario,
   TipoDePergunta,
   EixoCheckin,
+  AlertaPendente,
 } from "@/central/types/questionario";
 import { repositorio } from "@/central/dados/repositorio";
 import { Campo, Selecao, Texto, AreaTexto } from "@/central/admin/componentes/Campos";
@@ -72,6 +73,218 @@ function perguntaVazia(): PerguntaQuestionario {
   };
 }
 
+const STATUS_ALERTA: { valor: string; rotulo: string }[] = [
+  { valor: "novo", rotulo: "Novo" },
+  { valor: "visto", rotulo: "Visto" },
+  { valor: "contatado", rotulo: "Contatado" },
+  { valor: "resolvido", rotulo: "Resolvido" },
+];
+
+function PainelDeAlertas({
+  alertas,
+  aoAtualizar,
+}: {
+  alertas: AlertaPendente[];
+  aoAtualizar: () => void;
+}) {
+  const [aberto, definirAberto] = useState(true);
+  const [salvando, definirSalvando] = useState<string | null>(null);
+  const [notaAberta, definirNotaAberta] = useState<string | null>(null);
+  const [textoNota, definirTextoNota] = useState("");
+
+  const vermelhos = alertas.filter((a) => a.nivel === "vermelho");
+  const amarelos = alertas.filter((a) => a.nivel === "amarelo");
+
+  async function mudarStatus(alerta: AlertaPendente, novoStatus: string) {
+    definirSalvando(alerta.id);
+    try {
+      await repositorio.atualizarAlerta(alerta.id, novoStatus);
+      aoAtualizar();
+    } finally {
+      definirSalvando(null);
+    }
+  }
+
+  async function salvarNota(alerta: AlertaPendente) {
+    definirSalvando(alerta.id);
+    try {
+      await repositorio.atualizarAlerta(alerta.id, alerta.status, textoNota || null);
+      definirNotaAberta(null);
+      definirTextoNota("");
+      aoAtualizar();
+    } finally {
+      definirSalvando(null);
+    }
+  }
+
+  function abrirNota(alerta: AlertaPendente) {
+    definirNotaAberta(alerta.id);
+    definirTextoNota(alerta.notaNutri ?? "");
+  }
+
+  return (
+    <div className="c-painel-alertas">
+      <button
+        type="button"
+        className="c-painel-alertas-cabecalho"
+        onClick={() => definirAberto(!aberto)}
+        aria-expanded={aberto}
+      >
+        <span className="c-painel-alertas-titulo">
+          <span className="c-painel-alertas-indicador" aria-hidden="true">
+            {vermelhos.length > 0 ? "⚠" : "●"}
+          </span>
+          Alertas clínicos
+          <span className="c-painel-alertas-contagem">
+            {alertas.length}
+          </span>
+        </span>
+        <span className="c-painel-alertas-seta" aria-hidden="true">
+          {aberto ? "▲" : "▼"}
+        </span>
+      </button>
+
+      {aberto && (
+        <div className="c-painel-alertas-corpo">
+          {vermelhos.length > 0 && (
+            <div className="c-painel-alertas-grupo">
+              <p className="c-painel-alertas-grupo-titulo c-painel-alertas-grupo--vermelho">
+                Urgentes ({vermelhos.length})
+              </p>
+              {vermelhos.map((a) => (
+                <CartaoAlerta
+                  key={a.id}
+                  alerta={a}
+                  salvando={salvando === a.id}
+                  notaAberta={notaAberta === a.id}
+                  textoNota={textoNota}
+                  aoMudarStatus={mudarStatus}
+                  aoAbrirNota={abrirNota}
+                  aoMudarTextoNota={definirTextoNota}
+                  aoSalvarNota={salvarNota}
+                  aoFecharNota={() => definirNotaAberta(null)}
+                />
+              ))}
+            </div>
+          )}
+          {amarelos.length > 0 && (
+            <div className="c-painel-alertas-grupo">
+              <p className="c-painel-alertas-grupo-titulo c-painel-alertas-grupo--amarelo">
+                Atenção ({amarelos.length})
+              </p>
+              {amarelos.map((a) => (
+                <CartaoAlerta
+                  key={a.id}
+                  alerta={a}
+                  salvando={salvando === a.id}
+                  notaAberta={notaAberta === a.id}
+                  textoNota={textoNota}
+                  aoMudarStatus={mudarStatus}
+                  aoAbrirNota={abrirNota}
+                  aoMudarTextoNota={definirTextoNota}
+                  aoSalvarNota={salvarNota}
+                  aoFecharNota={() => definirNotaAberta(null)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CartaoAlerta({
+  alerta,
+  salvando,
+  notaAberta,
+  textoNota,
+  aoMudarStatus,
+  aoAbrirNota,
+  aoMudarTextoNota,
+  aoSalvarNota,
+  aoFecharNota,
+}: {
+  alerta: AlertaPendente;
+  salvando: boolean;
+  notaAberta: boolean;
+  textoNota: string;
+  aoMudarStatus: (a: AlertaPendente, s: string) => void;
+  aoAbrirNota: (a: AlertaPendente) => void;
+  aoMudarTextoNota: (t: string) => void;
+  aoSalvarNota: (a: AlertaPendente) => void;
+  aoFecharNota: () => void;
+}) {
+  const dataFormatada = alerta.criadoEm
+    ? new Date(alerta.criadoEm).toLocaleDateString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "";
+
+  return (
+    <div className={`c-cartao-alerta c-cartao-alerta--${alerta.nivel}`}>
+      <div className="c-cartao-alerta-topo">
+        <span className="c-cartao-alerta-paciente">{alerta.pacienteNome}</span>
+        <span className="c-cartao-alerta-data">{dataFormatada}</span>
+      </div>
+      <p className="c-cartao-alerta-descricao">{alerta.descricao}</p>
+      <div className="c-cartao-alerta-acoes">
+        <select
+          className="c-select c-cartao-alerta-select"
+          value={alerta.status}
+          disabled={salvando}
+          onChange={(e) => aoMudarStatus(alerta, e.target.value)}
+        >
+          {STATUS_ALERTA.map((s) => (
+            <option key={s.valor} value={s.valor}>
+              {s.rotulo}
+            </option>
+          ))}
+        </select>
+        <button
+          type="button"
+          className="c-botao-texto"
+          onClick={() => (notaAberta ? aoFecharNota() : aoAbrirNota(alerta))}
+          disabled={salvando}
+        >
+          {alerta.notaNutri ? "Editar nota" : "Anotar"}
+        </button>
+      </div>
+      {notaAberta && (
+        <div className="c-cartao-alerta-nota">
+          <textarea
+            className="c-input"
+            rows={2}
+            value={textoNota}
+            onChange={(e) => aoMudarTextoNota(e.target.value)}
+            placeholder="Anotação sobre o alerta..."
+          />
+          <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+            <button
+              type="button"
+              className="c-botao c-botao-pequeno"
+              disabled={salvando}
+              onClick={() => aoSalvarNota(alerta)}
+            >
+              Salvar
+            </button>
+            <button
+              type="button"
+              className="c-botao-texto"
+              onClick={aoFecharNota}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Questionarios() {
   const [lista, definirLista] = useState<Questionario[]>([]);
   const [pacientes, definirPacientes] = useState<Paciente[]>([]);
@@ -79,16 +292,19 @@ export function Questionarios() {
   const [escolhendoModelo, definirEscolhendoModelo] = useState(false);
   const [carregando, definirCarregando] = useState(true);
   const [erro, definirErro] = useState<string | null>(null);
+  const [alertas, definirAlertas] = useState<AlertaPendente[]>([]);
 
   const carregar = useCallback(async () => {
     definirCarregando(true);
     try {
-      const [qs, ps] = await Promise.all([
+      const [qs, ps, als] = await Promise.all([
         repositorio.listarQuestionarios(),
         repositorio.listarPacientes(),
+        repositorio.listarAlertasPendentes(),
       ]);
       definirLista(qs);
       definirPacientes(ps);
+      definirAlertas(als);
       definirErro(null);
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui carregar os questionários.");
@@ -234,6 +450,10 @@ export function Questionarios() {
         marque o nome dela — ou marque no prontuário dela. Para um parecido mas diferente,
         abra e toque em <strong>Duplicar</strong>.
       </p>
+
+      {alertas.length > 0 && (
+        <PainelDeAlertas alertas={alertas} aoAtualizar={carregar} />
+      )}
 
       {erro && (
         <div className="c-aviso c-aviso-erro" role="status">

@@ -2015,6 +2015,12 @@ export const repositorioLocal: Repositorio = {
     return revisado;
   },
 
+  async listarAlertasPendentes() {
+    return [];
+  },
+
+  async atualizarAlerta() {},
+
   async questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]> {
     return guardaQuestionarios.ler().map((q) => ({
       id: q.id,
