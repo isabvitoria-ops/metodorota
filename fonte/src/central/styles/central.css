@@ -5256,6 +5256,9 @@ body:has(.central) {
 }
 
 .c-passo {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - 120px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   margin-top: 8px;
 }
 
@@ -5276,12 +5279,10 @@ body:has(.central) {
   margin-top: 10px;
 }
 
-/* A pergunta ganha espaço: é a única coisa na tela, e a altura mínima
-   impede os botões de pularem de lugar entre uma pergunta curta e uma de
-   texto — o dedo que ia em "Próxima" não pode cair em outra coisa. */
 .c-passo-pergunta {
+  flex: 1;
   margin-top: 26px;
-  min-height: 220px;
+  min-height: 180px;
 }
 
 .c-passo-pergunta .c-pergunta-texto {
@@ -5346,6 +5347,9 @@ body:has(.central) {
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+  padding-bottom: 8px;
 }
 
 .c-alertas-tela {
@@ -6608,7 +6612,7 @@ body:has(.central) {
 .central .c-instalar-abas { display: flex; flex-wrap: wrap; gap: 8px; }
 .central .c-chip-ativo { background: var(--primary); color: #fff; border-color: var(--primary); }
 .central .c-passos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
-.central .c-passo { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; }
+.central .c-passos > .c-passo { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; }
 .central .c-passo-numero {
   width: 30px; height: 30px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-dark);
   display: grid; place-items: center; font-weight: 700; font-size: 15px;

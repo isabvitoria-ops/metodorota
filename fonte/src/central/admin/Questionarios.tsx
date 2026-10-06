@@ -397,6 +397,7 @@ export function Questionarios() {
   const [erro, definirErro] = useState<string | null>(null);
   const [alertas, definirAlertas] = useState<AlertaPendente[]>([]);
   const [pendentes, definirPendentes] = useState<CheckinPendente[]>([]);
+  const [mostrarArquivados, definirMostrarArquivados] = useState(false);
 
   const carregar = useCallback(async () => {
     definirCarregando(true);
@@ -598,7 +599,7 @@ export function Questionarios() {
       )}
 
       <div className="c-lista" style={{ marginTop: 16 }}>
-        {lista.map((q) => (
+        {lista.filter((q) => q.ativo).map((q) => (
           <button
             key={q.id}
             type="button"
@@ -612,21 +613,56 @@ export function Questionarios() {
                 {q.perguntas.length}{" "}
                 {q.perguntas.length === 1 ? "pergunta" : "perguntas"} · {q.pacientes}{" "}
                 {q.pacientes === 1 ? "paciente" : "pacientes"} ·{" "}
-                {/* Zero respostas diz "nenhuma resposta", e não "0": ela está
-                    lendo uma lista, não um relatório. */}
                 {q.respostas === 0
                   ? "nenhuma resposta"
                   : `${q.respostas} ${q.respostas === 1 ? "resposta" : "respostas"}`}
               </span>
             </span>
-            {!q.ativo && (
-              <span className="c-lista-item-direita">
-                <span className="c-selo ocasional">desligado</span>
-              </span>
-            )}
           </button>
         ))}
       </div>
+      {(() => {
+        const arquivados = lista.filter((q) => !q.ativo);
+        if (arquivados.length === 0) return null;
+        return (
+          <>
+            <button
+              type="button"
+              className="c-chip"
+              style={{ marginTop: 12 }}
+              onClick={() => definirMostrarArquivados((v) => !v)}
+            >
+              {mostrarArquivados ? "Esconder arquivados" : `${arquivados.length} arquivado${arquivados.length > 1 ? "s" : ""}`}
+            </button>
+            {mostrarArquivados && (
+              <div className="c-lista" style={{ marginTop: 8, opacity: 0.7 }}>
+                {arquivados.map((q) => (
+                  <button
+                    key={q.id}
+                    type="button"
+                    className="c-lista-item c-meta-clicavel"
+                    onClick={() => definirEditando(q)}
+                  >
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span className="c-lista-item-nome">{q.titulo}</span>
+                      <span className="c-lista-item-apoio">
+                        {q.periodicidade === "semanal" ? "Check-in semanal" : "Vez única"} ·{" "}
+                        {q.perguntas.length}{" "}
+                        {q.perguntas.length === 1 ? "pergunta" : "perguntas"} ·{" "}
+                        {q.respostas}{" "}
+                        {q.respostas === 1 ? "resposta" : "respostas"}
+                      </span>
+                    </span>
+                    <span className="c-lista-item-direita">
+                      <span className="c-selo ocasional">desligado</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        );
+      })()}
     </>
   );
 }
