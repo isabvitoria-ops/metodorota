@@ -36,6 +36,7 @@ export const rotas = {
   fibras: "/fibras",
   bristol: "/bristol",
   habitos: "/habitos",
+  viagem: "/viagem",
   diario: "/diario",
   busca: (consulta?: string) => (consulta ? `/busca?q=${encodeURIComponent(consulta)}` : "/busca"),
   diagnostico: "/diagnostico",

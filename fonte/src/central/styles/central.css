@@ -1640,6 +1640,57 @@ body:has(.central) {
   color: var(--cor-texto-sec);
 }
 
+.central .c-card-viagem--clicavel {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.central .c-card-viagem--clicavel:hover,
+.central .c-card-viagem--clicavel:focus-visible {
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.central .c-card-viagem--clicavel > .c-icone {
+  flex-shrink: 0;
+  align-self: center;
+  color: var(--cor-texto-sec);
+}
+
+/* Formulário de viagem */
+.central .c-form-viagem {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.central .c-card-viagem-confirmacao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding: 32px 16px;
+}
+
+.central .c-card-viagem-confirmacao .c-card-viagem-emoji {
+  font-size: 2.5rem;
+}
+
+.central .c-card-viagem-confirmacao h2 {
+  font: 600 1.2rem/1.3 var(--fonte);
+  color: var(--cor-titulo);
+  margin: 0;
+}
+
+.central .c-card-viagem-confirmacao p {
+  font: 400 0.9rem/1.5 var(--fonte);
+  color: var(--cor-texto-sec);
+  margin: 0;
+}
+
 /* ---------------------------------------------------------------- logos */
 
 .c-logo {

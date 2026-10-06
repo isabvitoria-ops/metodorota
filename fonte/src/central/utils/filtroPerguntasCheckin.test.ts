@@ -130,7 +130,7 @@ test("filtra ativa=false", () => {
   const lista = [p("1"), p("2", { ativa: false })];
   const resultado = perguntasDestaSemana(lista, "2026-10-05", {});
   assert.equal(resultado.length, 1);
-  assert.equal(resultado[0].id, "1");
+  assert.equal(resultado[0]!.id, "1");
 });
 
 test("filtra por cadência quinzenal", () => {
@@ -141,7 +141,7 @@ test("filtra por cadência quinzenal", () => {
     assert.equal(resultado.length, 2);
   } else {
     assert.equal(resultado.length, 1);
-    assert.equal(resultado[0].id, "1");
+    assert.equal(resultado[0]!.id, "1");
   }
 });
 

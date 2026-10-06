@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Icone, type NomeIcone } from "@/central/components/Icone";
 import { Marca } from "@/central/components/Marca";
 import { MinhaMetaDeHoje } from "@/central/components/MinhaMetaDeHoje";
@@ -149,8 +149,6 @@ export function Home() {
           </button>
         )}
 
-        {configuracoes.lema && <p className="c-lema">{configuracoes.lema}</p>}
-
         {vencendo && (
           <div className="c-aviso" role="status">
             <Icone nome="relogio" tamanho={19} />
@@ -232,25 +230,22 @@ export function Home() {
 }
 
 /**
- * CTA de viagem na Home.
- *
- * Versão estática: mostra um convite para a paciente avisar a nutricionista
- * sobre viagens futuras. A versão completa (formulário, protocolo
- * personalizado, toggle por paciente) precisa de tabelas no Supabase.
+ * CTA de viagem na Home — leva para o formulário de aviso de viagem.
  */
 function CardDeViagem() {
   return (
     <section className="c-secao">
-      <div className="c-card-viagem">
+      <Link to={rotas.viagem} className="c-card-viagem c-card-viagem--clicavel">
         <span className="c-card-viagem-emoji" aria-hidden="true">✈️</span>
         <div className="c-card-viagem-texto">
           <strong>Tem alguma viagem programada?</strong>
           <span>
-            Avise sua nutricionista com antecedência — ela pode preparar
-            orientações especiais para você manter o acompanhamento durante a viagem.
+            Toque aqui para avisar sua nutricionista e receber orientações
+            especiais para a viagem.
           </span>
         </div>
-      </div>
+        <Icone nome="seta" tamanho={18} />
+      </Link>
     </section>
   );
 }
