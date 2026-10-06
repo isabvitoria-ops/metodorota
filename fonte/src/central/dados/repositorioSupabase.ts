@@ -34,6 +34,7 @@ import type {
   QuestionarioDoPaciente,
   EixoCheckin,
   AlertaPendente,
+  CheckinPendente,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type { Exame, EspacoDosExames } from "@/central/types/exame";
@@ -1921,6 +1922,14 @@ export const repositorioSupabase: Repositorio = {
       p_nota: nota ?? null,
     });
     erro("atualizar o alerta", error);
+  },
+
+  async listarCheckinPendentes(): Promise<CheckinPendente[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("checkin_pendentes_da_semana");
+    erro("carregar os check-ins pendentes", error);
+    const arr = Array.isArray(data) ? data : [];
+    return arr as CheckinPendente[];
   },
 
   async questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]> {

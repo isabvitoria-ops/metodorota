@@ -147,6 +147,32 @@ export function linkDoWhatsapp(telefone: string | null, mensagem: string): strin
   return `https://wa.me/${comPais}?text=${encodeURIComponent(mensagem)}`;
 }
 
+/**
+ * Lembrete de check-in — mesmo tom do aviso de cobrança.
+ *
+ * Não é cobrança financeira: é "oi, seu check-in da semana tá esperando".
+ * Mas o tom é o mesmo: sistema falando, sem o nome dela, gentil.
+ */
+export function mensagemDeCheckin(
+  nome: string,
+  questionarioTitulo: string,
+  nomeCentral: string,
+): string {
+  const central = nomeCentral.trim() || "Central do Paciente";
+  const primeiroNome = nome.trim().split(/\s+/)[0] || nome;
+  return [
+    `🔔 *Lembrete — ${central}*`,
+    "",
+    `Olá, ${primeiroNome}!`,
+    "",
+    `Seu check-in *${questionarioTitulo}* desta semana ainda está em aberto.`,
+    "",
+    "São só alguns minutinhos — e faz diferença no seu acompanhamento.",
+    "",
+    "_Mensagem gerada automaticamente pelo sistema._",
+  ].join("\n");
+}
+
 /* -------------------------------------------------------------------------
    O livro-caixa
    ------------------------------------------------------------------------- */

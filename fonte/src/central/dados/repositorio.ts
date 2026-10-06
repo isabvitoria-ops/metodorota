@@ -59,6 +59,7 @@ import type {
   EixoCheckin,
   AlertaParaPaciente,
   AlertaPendente,
+  CheckinPendente,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type { Exame, EspacoDosExames } from "@/central/types/exame";
@@ -442,6 +443,9 @@ export interface Repositorio {
 
   listarAlertasPendentes(): Promise<AlertaPendente[]>;
   atualizarAlerta(alertaId: string, status: string, nota?: string | null): Promise<void>;
+
+  /** Pacientes que ainda não responderam o check-in semanal desta semana. */
+  listarCheckinPendentes(): Promise<CheckinPendente[]>;
 
   // ---------------------------------------------------------------------
   // Exames

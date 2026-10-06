@@ -260,6 +260,16 @@ export interface AlertaParaPaciente {
   mensagem: string;
 }
 
+/** Paciente que ainda não respondeu o check-in da semana. */
+export interface CheckinPendente {
+  pacienteId: string;
+  nome: string;
+  telefone: string | null;
+  email: string | null;
+  questionarioId: string;
+  questionarioTitulo: string;
+}
+
 /** Alerta pendente no painel da nutricionista. */
 export interface AlertaPendente {
   id: string;

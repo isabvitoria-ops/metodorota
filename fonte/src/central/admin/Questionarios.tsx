@@ -7,6 +7,7 @@ import type {
   TipoDePergunta,
   EixoCheckin,
   AlertaPendente,
+  CheckinPendente,
 } from "@/central/types/questionario";
 import { repositorio } from "@/central/dados/repositorio";
 import { Campo, Selecao, Texto, AreaTexto } from "@/central/admin/componentes/Campos";
@@ -14,6 +15,8 @@ import { alternar, todas, moverRecolhidas, removerRecolhida } from "@/central/ut
 import { numeroDeTexto } from "@/central/utils/numero";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { MODELOS_ANAMNESE, type ModeloDeAnamnese } from "@/central/dados/sementes/anamnese";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { linkDoWhatsapp, mensagemDeCheckin } from "@/central/utils/cobranca";
 
 /**
  * Questionários e check-in semanal — área da nutricionista.
@@ -79,6 +82,86 @@ const STATUS_ALERTA: { valor: string; rotulo: string }[] = [
   { valor: "contatado", rotulo: "Contatado" },
   { valor: "resolvido", rotulo: "Resolvido" },
 ];
+
+function PainelDePendentes({
+  pendentes,
+  nomeCentral,
+}: {
+  pendentes: CheckinPendente[];
+  nomeCentral: string;
+}) {
+  const [aberto, definirAberto] = useState(true);
+
+  const porQuestionario = pendentes.reduce<Record<string, { titulo: string; pacientes: CheckinPendente[] }>>(
+    (acc, p) => {
+      if (!acc[p.questionarioId]) {
+        acc[p.questionarioId] = { titulo: p.questionarioTitulo, pacientes: [] };
+      }
+      acc[p.questionarioId]!.pacientes.push(p);
+      return acc;
+    },
+    {},
+  );
+
+  return (
+    <div className="c-painel-alertas" style={{ marginBottom: 16 }}>
+      <button
+        type="button"
+        className="c-painel-alertas-cabecalho"
+        onClick={() => definirAberto(!aberto)}
+        aria-expanded={aberto}
+      >
+        <span className="c-painel-alertas-titulo">
+          <span className="c-painel-alertas-indicador" aria-hidden="true">📋</span>
+          Pendentes da semana
+          <span className="c-painel-alertas-contagem">{pendentes.length}</span>
+        </span>
+        <span className="c-painel-alertas-seta" aria-hidden="true">
+          {aberto ? "▲" : "▼"}
+        </span>
+      </button>
+
+      {aberto && (
+        <div className="c-painel-alertas-corpo">
+          {Object.entries(porQuestionario).map(([qId, grupo]) => (
+            <div key={qId} className="c-painel-alertas-grupo">
+              <p className="c-painel-alertas-grupo-titulo">
+                {grupo.titulo} — {grupo.pacientes.length}{" "}
+                {grupo.pacientes.length === 1 ? "pendente" : "pendentes"}
+              </p>
+              {grupo.pacientes.map((p) => {
+                const msg = mensagemDeCheckin(p.nome, grupo.titulo, nomeCentral);
+                const whats = linkDoWhatsapp(p.telefone, msg);
+                return (
+                  <div key={p.pacienteId + p.questionarioId} className="c-cartao-alerta" style={{ gap: 8 }}>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <strong>{p.nome}</strong>
+                      {!p.telefone && (
+                        <span className="c-dica" style={{ marginLeft: 8 }}>sem telefone</span>
+                      )}
+                    </span>
+                    {whats ? (
+                      <a
+                        href={whats}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="c-chip c-chip-cobrar"
+                      >
+                        Lembrar
+                      </a>
+                    ) : (
+                      <span className="c-dica">sem WhatsApp</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function PainelDeAlertas({
   alertas,
@@ -305,6 +388,7 @@ function CartaoAlerta({
 }
 
 export function Questionarios() {
+  const { configuracoes } = useSessao();
   const [lista, definirLista] = useState<Questionario[]>([]);
   const [pacientes, definirPacientes] = useState<Paciente[]>([]);
   const [editando, definirEditando] = useState<Questionario | null>(null);
@@ -312,6 +396,7 @@ export function Questionarios() {
   const [carregando, definirCarregando] = useState(true);
   const [erro, definirErro] = useState<string | null>(null);
   const [alertas, definirAlertas] = useState<AlertaPendente[]>([]);
+  const [pendentes, definirPendentes] = useState<CheckinPendente[]>([]);
 
   const carregar = useCallback(async () => {
     definirCarregando(true);
@@ -332,6 +417,11 @@ export function Questionarios() {
       definirAlertas(await repositorio.listarAlertasPendentes());
     } catch {
       definirAlertas([]);
+    }
+    try {
+      definirPendentes(await repositorio.listarCheckinPendentes());
+    } catch {
+      definirPendentes([]);
     }
   }, []);
 
@@ -475,6 +565,13 @@ export function Questionarios() {
 
       {alertas.length > 0 && (
         <PainelDeAlertas alertas={alertas} aoAtualizar={carregar} />
+      )}
+
+      {pendentes.length > 0 && (
+        <PainelDePendentes
+          pendentes={pendentes}
+          nomeCentral={configuracoes?.nomeCentral ?? ""}
+        />
       )}
 
       {erro && (

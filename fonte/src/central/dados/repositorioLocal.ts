@@ -2021,6 +2021,10 @@ export const repositorioLocal: Repositorio = {
 
   async atualizarAlerta() {},
 
+  async listarCheckinPendentes() {
+    return [];
+  },
+
   async questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]> {
     return guardaQuestionarios.ler().map((q) => ({
       id: q.id,
