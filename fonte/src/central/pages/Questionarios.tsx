@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type {
+  AlertaParaPaciente,
   EnvioDeQuestionario,
   MeuQuestionario,
   PerguntaParaResponder,
@@ -42,6 +43,7 @@ export function Questionarios() {
   const [aba, definirAba] = useState<"pendentes" | "historico">("pendentes");
   const [respondendo, definirRespondendo] = useState<string | null>(null);
   const [aviso, definirAviso] = useState<string | null>(null);
+  const [alertas, definirAlertas] = useState<AlertaParaPaciente[]>([]);
 
   const carregar = useCallback(async () => {
     definirCarregando(true);
@@ -60,6 +62,25 @@ export function Questionarios() {
   }, [carregar]);
 
   const aberto = lista.find((q) => q.id === respondendo);
+
+  if (aberto && alertas.length > 0) {
+    return (
+      <>
+        <CabecalhoPagina titulo={aberto.titulo} voltarPara={rotas.home} />
+        <div className="c-conteudo">
+          <TelaDeAlertas
+            alertas={alertas}
+            aoFechar={() => {
+              definirAlertas([]);
+              definirRespondendo(null);
+              definirAviso("Respostas de \"" + aberto.titulo + "\" enviadas.");
+            }}
+          />
+        </div>
+      </>
+    );
+  }
+
   if (aberto) {
     return (
       <>
@@ -69,11 +90,13 @@ export function Questionarios() {
             key={aberto.id}
             questionario={aberto}
             aoSair={() => definirRespondendo(null)}
-            aoEnviar={() => {
-              definirRespondendo(null);
-              // Confirmação, e não elogio: ela precisa saber que chegou, não
-              // ouvir que foi bem.
-              definirAviso(`Respostas de “${aberto.titulo}” enviadas.`);
+            aoEnviar={(a) => {
+              if (a.length > 0) {
+                definirAlertas(a);
+              } else {
+                definirRespondendo(null);
+                definirAviso(`Respostas de "${aberto.titulo}" enviadas.`);
+              }
               void carregar();
             }}
           />
@@ -255,6 +278,60 @@ function preenchida(valor: string | undefined): boolean {
   return (valor ?? "").trim() !== "";
 }
 
+function TelaDeAlertas({
+  alertas,
+  aoFechar,
+}: {
+  alertas: AlertaParaPaciente[];
+  aoFechar: () => void;
+}) {
+  const temVermelho = alertas.some((a) => a.nivel === "vermelho");
+
+  return (
+    <div className="c-alertas-tela">
+      <div className="c-alertas-icone" aria-hidden="true">
+        {temVermelho ? "⚠" : "📋"}
+      </div>
+      <h2 className="c-alertas-titulo">
+        {temVermelho ? "Atenção: mensagem importante" : "Respostas enviadas"}
+      </h2>
+      <p className="c-alertas-subtitulo">
+        {temVermelho
+          ? "Suas respostas foram enviadas. A sua nutricionista será notificada, mas leia os avisos abaixo com atenção."
+          : "Suas respostas foram enviadas. Sua nutricionista deixou estes lembretes para você:"}
+      </p>
+      <div className="c-alertas-lista">
+        {alertas.map((a, i) => (
+          <div
+            key={`${a.codigo}-${i}`}
+            className={`c-alerta-card c-alerta-card--${a.nivel}`}
+          >
+            <span className="c-alerta-card-indicador" aria-hidden="true">
+              {a.nivel === "vermelho" ? "●" : "●"}
+            </span>
+            <p className="c-alerta-card-mensagem">{a.mensagem}</p>
+          </div>
+        ))}
+      </div>
+      {temVermelho && (
+        <div className="c-alerta-emergencia">
+          <p>Se você estiver passando mal ou precisar de ajuda agora:</p>
+          <p><strong>SAMU:</strong> <span className="c-alerta-fone">192</span></p>
+          <p><strong>CVV (apoio emocional 24h):</strong> <span className="c-alerta-fone">188</span></p>
+        </div>
+      )}
+      <button
+        type="button"
+        className="c-botao"
+        onClick={aoFechar}
+        style={{ marginTop: "1.5rem" }}
+      >
+        Entendi
+      </button>
+    </div>
+  );
+}
+
 /**
  * Uma pergunta por tela.
  *
@@ -270,7 +347,7 @@ function FormularioPassoAPasso({
 }: {
   questionario: MeuQuestionario;
   aoSair: () => void;
-  aoEnviar: () => void;
+  aoEnviar: (alertas: AlertaParaPaciente[]) => void;
 }) {
   const todasPerguntas = questionario.perguntas;
   const jaEnviado = questionario.enviados.find((e) => e.periodo === questionario.periodo);
@@ -377,8 +454,8 @@ function FormularioPassoAPasso({
           json: explicacao ? { explicacao } : null,
         };
       });
-      await repositorio.responderQuestionario(questionario.id, respostas);
-      aoEnviar();
+      const alertasRecebidos = await repositorio.responderQuestionario(questionario.id, respostas);
+      aoEnviar(alertasRecebidos);
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui enviar.");
     } finally {

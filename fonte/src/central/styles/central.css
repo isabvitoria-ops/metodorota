@@ -5331,6 +5331,114 @@ body:has(.central) {
   gap: 10px;
 }
 
+.c-alertas-tela {
+  text-align: center;
+  padding: 2rem 0;
+}
+.c-alertas-icone {
+  font-size: 2.5rem;
+  line-height: 1;
+  margin-bottom: 0.75rem;
+}
+.c-alertas-titulo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+.c-alertas-subtitulo {
+  color: var(--text-secondary);
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+}
+.c-alertas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+.c-alerta-card {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+}
+.c-alerta-card--vermelho {
+  background: #fef2f2;
+  border-color: #f5c6c6;
+  color: #6f2f26;
+}
+.c-alerta-card--amarelo {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #78560a;
+}
+.c-alerta-card-indicador {
+  flex: none;
+  font-size: 0.6rem;
+  margin-top: 5px;
+}
+.c-alerta-card--vermelho .c-alerta-card-indicador { color: #dc2626; }
+.c-alerta-card--amarelo .c-alerta-card-indicador { color: #d97706; }
+.c-alerta-card-mensagem {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+.c-alerta-emergencia {
+  margin-top: 1.25rem;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: #fef2f2;
+  border: 1px solid #f5c6c6;
+  text-align: left;
+}
+.c-alerta-emergencia p { margin: 0 0 6px; font-size: 0.95rem; }
+.c-alerta-emergencia p:last-child { margin-bottom: 0; }
+.c-alerta-fone {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .c-alerta-card--vermelho {
+    background: rgba(220, 38, 38, 0.12);
+    border-color: rgba(220, 38, 38, 0.3);
+    color: #fca5a5;
+  }
+  :root:not([data-theme="light"]) .c-alerta-card--amarelo {
+    background: rgba(217, 119, 6, 0.12);
+    border-color: rgba(217, 119, 6, 0.3);
+    color: #fde68a;
+  }
+  :root:not([data-theme="light"]) .c-alerta-emergencia {
+    background: rgba(220, 38, 38, 0.12);
+    border-color: rgba(220, 38, 38, 0.3);
+    color: #fca5a5;
+  }
+  :root:not([data-theme="light"]) .c-alerta-card--vermelho .c-alerta-card-indicador { color: #f87171; }
+  :root:not([data-theme="light"]) .c-alerta-card--amarelo .c-alerta-card-indicador { color: #fbbf24; }
+}
+:root[data-theme="dark"] .c-alerta-card--vermelho {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #fca5a5;
+}
+:root[data-theme="dark"] .c-alerta-card--amarelo {
+  background: rgba(217, 119, 6, 0.12);
+  border-color: rgba(217, 119, 6, 0.3);
+  color: #fde68a;
+}
+:root[data-theme="dark"] .c-alerta-emergencia {
+  background: rgba(220, 38, 38, 0.12);
+  border-color: rgba(220, 38, 38, 0.3);
+  color: #fca5a5;
+}
+:root[data-theme="dark"] .c-alerta-card--vermelho .c-alerta-card-indicador { color: #f87171; }
+:root[data-theme="dark"] .c-alerta-card--amarelo .c-alerta-card-indicador { color: #fbbf24; }
+
 .c-envio {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);

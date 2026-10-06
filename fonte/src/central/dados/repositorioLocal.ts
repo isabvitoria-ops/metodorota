@@ -1387,7 +1387,7 @@ export const repositorioLocal: Repositorio = {
 
   async responderQuestionario(questionarioId: string, respostas: RespostaEnviada[]) {
     const q = guardaQuestionarios.ler().find((x) => x.id === questionarioId);
-    if (!q) return;
+    if (!q) return [];
     // O PERÍODO É CALCULADO AQUI, e não recebido — igual ao banco.
     const periodo = q.periodicidade === "semanal" ? segundaDaSemana(hojeLocal()) : hojeLocal();
     const atuais = guardaEnviosQuest.ler();
@@ -1408,7 +1408,7 @@ export const repositorioLocal: Repositorio = {
             : e,
         ),
       );
-      return;
+      return [];
     }
     guardaEnviosQuest.escrever([
       ...atuais,
@@ -1421,6 +1421,7 @@ export const repositorioLocal: Repositorio = {
         respostas,
       },
     ]);
+    return [];
   },
 
   // ---------------------------------------------------------------------

@@ -1535,7 +1535,7 @@ export const repositorioSupabase: Repositorio = {
 
   async responderQuestionario(questionarioId: string, respostas: RespostaEnviada[]) {
     const sb = exigirSupabase();
-    const { error } = await sb.rpc("responder_questionario", {
+    const { data, error } = await sb.rpc("responder_questionario", {
       p_questionario: questionarioId,
       p_respostas: respostas.map((r) => ({
         perguntaId: r.perguntaId,
@@ -1545,6 +1545,12 @@ export const repositorioSupabase: Repositorio = {
       })),
     });
     erro("enviar suas respostas", error);
+    const resultado = data as { alertas?: { codigo: string; nivel: string; mensagem: string }[] } | null;
+    return (resultado?.alertas ?? []).map((a) => ({
+      codigo: a.codigo,
+      nivel: a.nivel as "vermelho" | "amarelo",
+      mensagem: a.mensagem,
+    }));
   },
 
   // ---------------------------------------------------------------------

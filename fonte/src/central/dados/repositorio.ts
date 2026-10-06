@@ -57,6 +57,7 @@ import type {
   RespostaEnviada,
   QuestionarioDoPaciente,
   EixoCheckin,
+  AlertaParaPaciente,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type { Exame, EspacoDosExames } from "@/central/types/exame";
@@ -428,7 +429,7 @@ export interface Repositorio {
    * é o banco, a partir da data de hoje. Mandar o período daqui deixaria
    * reescrever semana passada.
    */
-  responderQuestionario(questionarioId: string, respostas: RespostaEnviada[]): Promise<void>;
+  responderQuestionario(questionarioId: string, respostas: RespostaEnviada[]): Promise<AlertaParaPaciente[]>;
 
   /**
    * Marca um check-in como lido. Devolve o estado GRAVADO.
