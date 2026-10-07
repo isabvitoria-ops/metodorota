@@ -5047,6 +5047,211 @@ body:has(.central) {
 }
 
 /* -----------------------------------------------------------------------
+   Check-in: cards por semana
+   ----------------------------------------------------------------------- */
+
+.c-checkin-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.c-checkin-card {
+  border: 1px solid var(--borda, #e6e6e0);
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: var(--carta, #fff);
+}
+
+.c-checkin-card-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.c-checkin-card-data {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--tinta-forte);
+}
+
+.c-checkin-revisado-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--tinta-fraca, #6b6b6b);
+  cursor: pointer;
+}
+.c-checkin-revisado-label input {
+  width: 18px;
+  height: 18px;
+}
+
+/* Score geral */
+.c-checkin-score { margin-bottom: 10px; }
+.c-checkin-score-cabecalho {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.c-checkin-score-numero {
+  font-size: 1.3rem;
+  color: var(--primary);
+}
+.c-checkin-score-variacao {
+  font-size: 0.8rem;
+  color: var(--tinta-fraca, #6b6b6b);
+}
+
+/* Barra de progresso */
+.c-checkin-barra {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--borda, #e6e6e0);
+  overflow: hidden;
+}
+.c-checkin-barra-mini { height: 5px; }
+.c-checkin-barra-preencher {
+  height: 100%;
+  border-radius: 4px;
+}
+.c-checkin-barra-preencher.nota-critica { background: #dc4c4c; }
+.c-checkin-barra-preencher.nota-baixa   { background: #e09340; }
+.c-checkin-barra-preencher.nota-media   { background: #c9b535; }
+.c-checkin-barra-preencher.nota-alta    { background: #5da85d; }
+.c-checkin-barra-preencher.nota-otima   { background: #3d903d; }
+
+/* Eixos */
+.c-checkin-eixos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--borda, #e6e6e0);
+}
+.c-checkin-eixo-linha {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.c-checkin-eixo-rotulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.8rem;
+}
+.c-checkin-eixo-rotulo span { color: var(--tinta-fraca, #6b6b6b); }
+.c-checkin-eixo-rotulo strong {
+  color: var(--tinta-forte);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+/* Botão de expandir */
+.c-checkin-expandir {
+  font-size: 0.85rem;
+  padding: 6px 0;
+}
+
+/* Respostas individuais */
+.c-checkin-respostas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--borda, #e6e6e0);
+  margin-top: 4px;
+}
+.c-checkin-qa {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.c-checkin-qa-vazia { opacity: 0.45; }
+
+.c-checkin-qa-topo {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.c-carinha-mini {
+  font-size: 0.9rem;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.c-carinha-mini.nivel-muito-baixo { background: #fdecec; }
+.c-carinha-mini.nivel-baixo       { background: #fdf0e3; }
+.c-carinha-mini.nivel-medio       { background: #fbf7e2; }
+.c-carinha-mini.nivel-alto        { background: #eef6ec; }
+.c-carinha-mini.nivel-muito-alto  { background: #e4f1e6; }
+
+.c-checkin-qa-pergunta {
+  font-size: 0.8rem;
+  color: var(--tinta-fraca, #6b6b6b);
+  line-height: 1.35;
+}
+.c-checkin-qa-codigo {
+  font-weight: 600;
+  color: var(--tinta-forte);
+  margin-right: 4px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.c-checkin-qa-valor {
+  font-size: 0.9rem;
+  color: var(--tinta-forte);
+  font-weight: 500;
+  margin-left: 28px;
+}
+.c-checkin-qa-livre .c-checkin-qa-valor { margin-left: 0; }
+.c-checkin-qa-texto-livre {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--tinta, #333);
+}
+
+/* Texto livre resumido (card fechado) */
+.c-checkin-textos {
+  padding-top: 8px;
+  border-top: 1px solid var(--borda, #e6e6e0);
+}
+.c-checkin-texto-item {
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+  color: var(--tinta, #333);
+  line-height: 1.4;
+}
+
+/* Dark mode para cards */
+@media (prefers-color-scheme: dark) {
+  .c-carinha-mini.nivel-muito-baixo { background: #4a2a2a; }
+  .c-carinha-mini.nivel-baixo       { background: #4a3a26; }
+  .c-carinha-mini.nivel-medio       { background: #45412a; }
+  .c-carinha-mini.nivel-alto        { background: #2b3d2c; }
+  .c-carinha-mini.nivel-muito-alto  { background: #24402a; }
+
+  .c-checkin-barra-preencher.nota-critica { background: #c04040; }
+  .c-checkin-barra-preencher.nota-baixa   { background: #c07830; }
+  .c-checkin-barra-preencher.nota-media   { background: #a89828; }
+  .c-checkin-barra-preencher.nota-alta    { background: #4a8a4a; }
+  .c-checkin-barra-preencher.nota-otima   { background: #307830; }
+}
+
+/* -----------------------------------------------------------------------
    Exames
    ----------------------------------------------------------------------- */
 

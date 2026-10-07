@@ -49,7 +49,7 @@ export function GraficoDaPergunta({ questionario }: { questionario: Questionario
   if (!pergunta || questionario.envios.length < 2) return null;
 
   const serie = serieDaPergunta(
-    { id: pergunta.id, tipo: pergunta.tipo, peso: pergunta.peso, invertida: pergunta.invertida },
+    { id: pergunta.id, tipo: pergunta.tipo, peso: pergunta.peso, invertida: pergunta.invertida, opcoes: pergunta.opcoes, pontosOpcoes: pergunta.pontosOpcoes },
     questionario.envios,
   );
   const trechos = trechosDaLinha(serie);

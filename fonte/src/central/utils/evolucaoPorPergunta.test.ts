@@ -66,8 +66,15 @@ test("o resumo conta as semanas respondidas e acha as pontas com valor", () => {
   assert.equal(resumo.ultimo?.valor, 8);
 });
 
-test("texto e número livre não viram gráfico", () => {
+test("texto e métrica não viram gráfico; tipos pontuáveis sim", () => {
   assert.equal(temGrafico({ tipo: "texto" }), false);
-  assert.equal(temGrafico({ tipo: "numero" }), false);
+  assert.equal(temGrafico({ tipo: "metrica" }), false);
   assert.equal(temGrafico({ tipo: "sim_nao" }), true);
+  assert.equal(temGrafico({ tipo: "escala" }), true);
+  assert.equal(temGrafico({ tipo: "numero" }), true);
+  assert.equal(temGrafico({ tipo: "estrelas" }), true);
+  assert.equal(temGrafico({ tipo: "emoji", pontosOpcoes: [0, 2, 5, 8, 10] }), true);
+  assert.equal(temGrafico({ tipo: "emoji" }), false);
+  assert.equal(temGrafico({ tipo: "escolha", pontosOpcoes: [0, 5, 10] }), true);
+  assert.equal(temGrafico({ tipo: "escolha" }), false);
 });

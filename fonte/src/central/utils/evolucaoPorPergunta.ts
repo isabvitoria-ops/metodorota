@@ -23,9 +23,11 @@ export interface PontoDaPergunta {
   valor: number | null;
 }
 
-/** Só estas viram gráfico: são as que têm carinha. */
-export function temGrafico(p: { tipo: PerguntaPontuavel["tipo"] }): boolean {
-  return p.tipo === "escala" || p.tipo === "sim_nao";
+/** Tipos que viram gráfico: todos os que produzem nota em valorNaEscala. */
+export function temGrafico(p: { tipo: PerguntaPontuavel["tipo"]; pontosOpcoes?: number[] }): boolean {
+  if (p.tipo === "escala" || p.tipo === "sim_nao" || p.tipo === "estrelas" || p.tipo === "numero") return true;
+  if ((p.tipo === "emoji" || p.tipo === "escolha" || p.tipo === "multipla_escolha") && (p.pontosOpcoes?.length ?? 0) > 0) return true;
+  return false;
 }
 
 /** Da mais antiga para a mais nova — que é como gráfico se lê. */

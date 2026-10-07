@@ -10,21 +10,20 @@ import { GraficoDaPergunta } from "./GraficoDaPergunta";
 /**
  * O histórico longitudinal de check-in, no prontuário.
  *
- * O DESENHO VEIO DA REFERÊNCIA QUE ELA MANDOU: uma linha por semana, uma
- * coluna por pergunta, carinha em vez de número, e a pontuação com a
- * variação ao lado. Cinco semanas de rostos se leem de relance; cinco
- * semanas de "7, 6, 8, 4, 9" exigem parar e comparar.
+ * CARD POR SEMANA em vez de tabela, porque os modelos novos (Estética,
+ * Intestino, GLP-1) usam emoji, escolha e número — tipos que não cabiam
+ * em colunas de uma tabela rasa. Cada card mostra:
+ *   1. Score geral com barra colorida + variação
+ *   2. Quebra por eixo sempre visível (sono, digestão…)
+ *   3. "Ver respostas" expande todas as perguntas com a resposta exata
+ *   4. Texto livre da paciente embaixo
  *
  * A CARINHA MOSTRA O VALOR JÁ INVERTIDO. Em "quanta dor", 2 é semana boa e
- * aparece como rosto contente — senão a coluna de dor ficaria vermelha
- * justamente na melhor semana da paciente.
+ * aparece como rosto contente.
  *
- * NENHUM VEREDITO. A tabela mostra "75%" e "+25", nunca "melhorou". A
- * pontuação é resumo de respostas, não julgamento clínico — quem sabe se
- * +25 era o esperado para aquela paciente naquela semana é quem lê.
+ * NENHUM VEREDITO. O card mostra "75%" e "+25", nunca "melhorou".
  *
- * AS MAIS NOVAS EM CIMA, porque a pergunta ao abrir o prontuário é "como
- * foi a última semana", e não "como começou o acompanhamento".
+ * AS MAIS NOVAS EM CIMA.
  */
 function diaCurto(iso: string): string {
   const [ano, mes, dia] = iso.split("-");
@@ -71,8 +70,6 @@ export function CheckinDoPaciente({ pacienteId }: { pacienteId: string }) {
           )
         }
       />
-      {/* Sem resposta nenhuma as tabelas somem: uma tabela vazia dizendo
-          "nenhum check-in" ocuparia o prontuário para informar o óbvio. */}
       {comResposta.map((q) => (
         <TabelaDoQuestionario key={q.id} questionario={q} />
       ))}
@@ -107,11 +104,10 @@ function ModelosDaPaciente({
     definirOcupado(q.id);
     definirErro(null);
     try {
-      // O estado GRAVADO, não o que o clique pediu.
       const estado = await repositorio.definirQuestionarioDoPaciente(q.id, pacienteId, !q.atribuido);
       aoMudar(q.id, estado);
       if (!estado) definirExpandido(null);
-      definirAviso(estado ? `“${q.titulo}” liberado para ela.` : `“${q.titulo}” desligado para ela.`);
+      definirAviso(estado ? `"${q.titulo}" liberado para ela.` : `"${q.titulo}" desligado para ela.`);
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui mudar.");
     } finally {
@@ -234,23 +230,58 @@ function ModelosDaPaciente({
   );
 }
 
+/* -----------------------------------------------------------------------
+   Helpers da visualização
+   ----------------------------------------------------------------------- */
+
+function respostaTexto(
+  tipo: string,
+  r: { numero: number | null; texto: string | null } | undefined,
+): string {
+  if (!r) return "—";
+  switch (tipo) {
+    case "escala":
+      return r.numero !== null ? `${r.numero}/10` : "—";
+    case "sim_nao":
+      return r.numero !== null ? (r.numero > 0 ? "Sim" : "Não") : "—";
+    case "emoji":
+    case "escolha":
+    case "multipla_escolha":
+      return r.texto || "—";
+    case "numero":
+    case "metrica":
+      return r.numero !== null ? String(r.numero) : "—";
+    case "estrelas": {
+      if (r.numero === null) return "—";
+      const n = Math.max(0, Math.min(Math.round(r.numero), 5));
+      return "★".repeat(n) + "☆".repeat(5 - n);
+    }
+    case "texto":
+      return r.texto || "—";
+    default:
+      return "—";
+  }
+}
+
+function classeDaNota(nota: number): string {
+  if (nota <= 20) return "nota-critica";
+  if (nota <= 40) return "nota-baixa";
+  if (nota <= 60) return "nota-media";
+  if (nota <= 80) return "nota-alta";
+  return "nota-otima";
+}
+
+/* -----------------------------------------------------------------------
+   Card por semana
+   ----------------------------------------------------------------------- */
+
 function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPaciente }) {
   const [revisados, definirRevisados] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(questionario.envios.map((e) => [e.id, e.revisado])),
   );
   const [erro, definirErro] = useState<string | null>(null);
-  // Qual envio está com a quebra por eixo aberta (clicando no score).
-  const [eixoAberto, definirEixoAberto] = useState<string | null>(null);
+  const [expandido, definirExpandido] = useState<string | null>(null);
 
-  // Só as perguntas que viram coluna. Texto livre não cabe numa célula —
-  // vai embaixo, inteiro, que é onde costuma estar a informação mais útil.
-  const colunas = questionario.perguntas.filter(
-    (p) => p.tipo === "escala" || p.tipo === "sim_nao",
-  );
-  const abertas = questionario.perguntas.filter((p) => p.tipo === "texto");
-
-  // Da mais antiga para a mais nova, para calcular a variação; a tabela é
-  // desenhada ao contrário.
   const cronologica = [...questionario.envios].sort((a, b) =>
     a.periodo.localeCompare(b.periodo),
   );
@@ -268,10 +299,15 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
   const linhas = [...cronologica].reverse();
   const semanal = questionario.periodicidade === "semanal";
 
+  const perguntasVisiveis = questionario.perguntas.filter(
+    (p) => p.tipo !== "texto" && p.ativa !== false,
+  );
+  const perguntasTexto = questionario.perguntas.filter(
+    (p) => p.tipo === "texto" && p.ativa !== false,
+  );
+
   async function alternarRevisado(envioId: string) {
     const novo = !revisados[envioId];
-    // Otimista, e depois corrigido pelo estado GRAVADO: a marca é um clique
-    // de leitura, e esperar a rede para pintar a caixa emperraria a tela.
     definirRevisados({ ...revisados, [envioId]: novo });
     try {
       const estado = await repositorio.marcarRevisado(envioId, novo);
@@ -285,13 +321,9 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
   return (
     <section className="c-secao">
       <h2 className="c-secao-titulo">{questionario.titulo}</h2>
-      <p className="c-dica" style={{ marginTop: 0 }}>
-        {semanal ? "Uma linha por semana." : "Uma linha por resposta."} As carinhas já
-        consideram as perguntas invertidas — em “dores”, rosto contente quer dizer pouca dor.
-      </p>
 
       {!questionario.atribuido && (
-        <p className="c-dica">
+        <p className="c-dica" style={{ marginTop: 0 }}>
           Este questionário não está mais atribuído a ela. O histórico continua aqui.
         </p>
       )}
@@ -302,144 +334,160 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
         </div>
       )}
 
-      {/* A rolagem fica NA TABELA, e não na página: no celular, uma tabela de
-          seis colunas não cabe, e deixar a página inteira rolar de lado
-          quebraria todo o resto da tela junto. */}
-      <div className="c-rolagem-tabela">
-        <table className="c-tabela-checkin">
-          <thead>
-            <tr>
-              <th scope="col">Data</th>
-              {colunas.map((p) => (
-                <th scope="col" key={p.id}>
-                  {p.texto}
-                </th>
-              ))}
-              <th scope="col">Score</th>
-              <th scope="col">Revisado</th>
-            </tr>
-          </thead>
-          <tbody>
-            {linhas.map((envio) => {
-              const porId = new Map(envio.respostas.map((r) => [r.perguntaId, r]));
-              const nota = notas.get(envio.id) ?? null;
-              const variacao = variacoes.get(envio.id) ?? null;
-              const quebra = pontuacaoPorEixo(questionario.perguntas, envio).filter(
-                (e) => e.nota !== null,
-              );
-              // Só vale abrir quando há mais de um eixo: com um só, a quebra
-              // repetiria o total.
-              const temQuebra = quebra.length > 1;
-              const aberto = eixoAberto === envio.id;
-              return (
-                <Fragment key={envio.id}>
-                <tr>
-                  <th scope="row">{diaCurto(envio.periodo)}</th>
-                  {colunas.map((p) => {
+      <div className="c-checkin-cards">
+        {linhas.map((envio) => {
+          const nota = notas.get(envio.id) ?? null;
+          const variacao = variacoes.get(envio.id) ?? null;
+          const eixos = pontuacaoPorEixo(questionario.perguntas, envio).filter(
+            (e) => e.nota !== null,
+          );
+          const aberto = expandido === envio.id;
+          const porId = new Map(envio.respostas.map((r) => [r.perguntaId, r]));
+          const respondidas = envio.respostas.filter(
+            (r) => r.numero !== null || (r.texto ?? "") !== "",
+          ).length;
+          const total = perguntasVisiveis.length + perguntasTexto.length;
+
+          const textos = perguntasTexto
+            .map((p) => ({ p, texto: (porId.get(p.id)?.texto ?? "").trim() }))
+            .filter((x) => x.texto !== "");
+
+          return (
+            <div key={envio.id} className="c-checkin-card">
+              <div className="c-checkin-card-cabecalho">
+                <span className="c-checkin-card-data">
+                  {semanal ? `Sem. ${diaCurto(envio.periodo)}` : diaCurto(envio.periodo)}
+                </span>
+                <label className="c-checkin-revisado-label">
+                  <input
+                    type="checkbox"
+                    checked={revisados[envio.id] ?? false}
+                    onChange={() => void alternarRevisado(envio.id)}
+                  />
+                  <span>Revisado</span>
+                </label>
+              </div>
+
+              {nota !== null && (
+                <div className="c-checkin-score">
+                  <div className="c-checkin-score-cabecalho">
+                    <strong className="c-checkin-score-numero">{nota}%</strong>
+                    {variacao !== null && (
+                      <span className="c-checkin-score-variacao">
+                        {setaDaVariacao(variacao)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="c-checkin-barra">
+                    <div
+                      className={`c-checkin-barra-preencher ${classeDaNota(nota)}`}
+                      style={{ width: `${nota}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {eixos.length > 1 && (
+                <div className="c-checkin-eixos">
+                  {eixos.map((e) => (
+                    <div key={e.eixoId ?? "sem"} className="c-checkin-eixo-linha">
+                      <div className="c-checkin-eixo-rotulo">
+                        <span>{e.eixoNome}</span>
+                        <strong>{e.nota}%</strong>
+                      </div>
+                      <div className="c-checkin-barra c-checkin-barra-mini">
+                        <div
+                          className={`c-checkin-barra-preencher ${classeDaNota(e.nota!)}`}
+                          style={{ width: `${e.nota}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="c-botao-texto c-checkin-expandir"
+                onClick={() => definirExpandido(aberto ? null : envio.id)}
+                aria-expanded={aberto}
+              >
+                {aberto
+                  ? "▾ Fechar respostas"
+                  : `▸ Respostas (${respondidas} de ${total})`}
+              </button>
+
+              {aberto && (
+                <div className="c-checkin-respostas">
+                  {perguntasVisiveis.map((p) => {
+                    const r = porId.get(p.id);
+                    const texto = respostaTexto(p.tipo, r);
                     const valor = valorNaEscala(
-                      { id: p.id, tipo: p.tipo, peso: p.peso || 1, invertida: p.invertida },
-                      porId.get(p.id),
+                      {
+                        id: p.id, tipo: p.tipo, peso: p.peso || 1,
+                        invertida: p.invertida, opcoes: p.opcoes,
+                        pontosOpcoes: p.pontosOpcoes,
+                      },
+                      r ? { perguntaId: r.perguntaId, numero: r.numero, texto: r.texto } : undefined,
                     );
                     const carinha = carinhaDe(valor);
+                    const semResposta = texto === "—";
                     return (
-                      <td key={p.id} className="c-celula-carinha">
-                        {carinha ? (
-                          <span
-                            className={`c-carinha nivel-${carinha.nivel}`}
-                            title={`${p.texto}: ${carinha.descricao}`}
-                          >
-                            <span aria-hidden="true">{carinha.rosto}</span>
-                            <span className="c-so-leitor">{carinha.descricao}</span>
+                      <div
+                        key={p.id}
+                        className={`c-checkin-qa${semResposta ? " c-checkin-qa-vazia" : ""}`}
+                      >
+                        <div className="c-checkin-qa-topo">
+                          {carinha && (
+                            <span
+                              className={`c-carinha-mini nivel-${carinha.nivel}`}
+                              title={carinha.descricao}
+                            >
+                              {carinha.rosto}
+                            </span>
+                          )}
+                          <span className="c-checkin-qa-pergunta">
+                            {p.codigo && (
+                              <span className="c-checkin-qa-codigo">{p.codigo}</span>
+                            )}
+                            {p.texto}
                           </span>
-                        ) : (
-                          // Não respondeu não é carinha triste: é ausência.
-                          <span className="c-sem-resposta" title="não respondeu">
-                            <span aria-hidden="true">—</span>
-                            <span className="c-so-leitor">não respondeu</span>
-                          </span>
-                        )}
-                      </td>
+                        </div>
+                        <div className="c-checkin-qa-valor">{texto}</div>
+                      </div>
                     );
                   })}
-                  <td className="c-celula-score">
-                    {nota === null ? (
-                      <span className="c-sem-resposta">—</span>
-                    ) : temQuebra ? (
-                      <button
-                        type="button"
-                        className="c-link"
-                        aria-expanded={aberto}
-                        title="Ver a nota por eixo"
-                        onClick={() => definirEixoAberto(aberto ? null : envio.id)}
-                      >
-                        <strong>{nota}%</strong>
-                        <span className="c-variacao">{setaDaVariacao(variacao)}</span>
-                        <span aria-hidden="true"> {aberto ? "▾" : "▸"}</span>
-                      </button>
-                    ) : (
-                      <>
-                        <strong>{nota}%</strong>
-                        <span className="c-variacao">{setaDaVariacao(variacao)}</span>
-                      </>
-                    )}
-                  </td>
-                  <td className="c-celula-revisado">
-                    <label className="c-so-leitor" htmlFor={`rev-${envio.id}`}>
-                      Marcar a semana de {diaCurto(envio.periodo)} como revisada
-                    </label>
-                    <input
-                      id={`rev-${envio.id}`}
-                      type="checkbox"
-                      checked={revisados[envio.id] ?? false}
-                      onChange={() => void alternarRevisado(envio.id)}
-                    />
-                  </td>
-                </tr>
-                {aberto && temQuebra && (
-                  <tr className="c-linha-eixos">
-                    <td colSpan={colunas.length + 3}>
-                      <div className="c-eixos-quebra">
-                        {quebra.map((e) => (
-                          <span key={e.eixoId ?? "sem"} className="c-eixo-nota">
-                            <span className="c-eixo-nome">{e.eixoNome}</span>
-                            <strong>{e.nota}%</strong>
-                          </span>
-                        ))}
+                  {textos.map(({ p, texto }) => (
+                    <div key={p.id} className="c-checkin-qa c-checkin-qa-livre">
+                      <div className="c-checkin-qa-pergunta">
+                        {p.codigo && (
+                          <span className="c-checkin-qa-codigo">{p.codigo}</span>
+                        )}
+                        {p.texto}
                       </div>
-                    </td>
-                  </tr>
-                )}
-                </Fragment>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                      <div className="c-checkin-qa-valor c-checkin-qa-texto-livre">
+                        &ldquo;{texto}&rdquo;
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-      <GraficoDaPergunta questionario={questionario} />
-
-      {/* O que ela escreveu, inteiro e sem resumo. Geralmente é a informação
-          mais útil da semana, e é a que nenhuma nota captura. */}
-      {abertas.length > 0 &&
-        linhas.map((envio) => {
-          const porId = new Map(envio.respostas.map((r) => [r.perguntaId, r]));
-          const ditos = abertas
-            .map((p) => ({ p, texto: porId.get(p.id)?.texto ?? "" }))
-            .filter((x) => x.texto.trim() !== "");
-          if (ditos.length === 0) return null;
-          return (
-            <div className="c-evento" key={envio.id}>
-              <p className="c-lista-item-nome">
-                {semanal ? `Semana de ${diaCurto(envio.periodo)}` : diaCurto(envio.periodo)}
-              </p>
-              {ditos.map(({ p, texto }) => (
-                <p className="c-dica" key={p.id}>
-                  <strong>{p.texto}</strong> {texto}
-                </p>
-              ))}
+              {!aberto && textos.length > 0 && (
+                <div className="c-checkin-textos">
+                  {textos.map(({ p, texto }) => (
+                    <p key={p.id} className="c-checkin-texto-item">
+                      <strong>{p.texto}</strong> {texto}
+                    </p>
+                  ))}
+                </div>
+              )}
             </div>
           );
         })}
+      </div>
+
+      <GraficoDaPergunta questionario={questionario} />
     </section>
   );
 }
