@@ -3,27 +3,15 @@ import type { QuestionarioDoPaciente } from "@/central/types/questionario";
 import { Link } from "react-router-dom";
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
-import { valorNaEscala, pontuacaoDoEnvio, pontuacaoPorEixo } from "@/central/utils/pontuacaoQuestionario";
-import { carinhaDe, setaDaVariacao } from "@/central/utils/carinhaDaResposta";
+import { pontuacaoDoEnvio, pontuacaoPorEixo } from "@/central/utils/pontuacaoQuestionario";
+import { setaDaVariacao } from "@/central/utils/carinhaDaResposta";
 import { GraficoDaPergunta } from "./GraficoDaPergunta";
 
 /**
- * O histórico longitudinal de check-in, no prontuário.
- *
- * CARD POR SEMANA em vez de tabela, porque os modelos novos (Estética,
- * Intestino, GLP-1) usam emoji, escolha e número — tipos que não cabiam
- * em colunas de uma tabela rasa. Cada card mostra:
- *   1. Score geral com barra colorida + variação
- *   2. Quebra por eixo sempre visível (sono, digestão…)
- *   3. "Ver respostas" expande todas as perguntas com a resposta exata
- *   4. Texto livre da paciente embaixo
- *
- * A CARINHA MOSTRA O VALOR JÁ INVERTIDO. Em "quanta dor", 2 é semana boa e
- * aparece como rosto contente.
- *
- * NENHUM VEREDITO. O card mostra "75%" e "+25", nunca "melhorou".
- *
- * AS MAIS NOVAS EM CIMA.
+ * Tabela de check-in no estilo DietSystem: uma coluna por pergunta, uma
+ * linha por data. A resposta aparece direto na célula, sem precisar
+ * expandir. Clicar na célula abre um popup com pergunta e resposta
+ * inteiras. AS MAIS NOVAS EM CIMA.
  */
 function diaCurto(iso: string): string {
   const [ano, mes, dia] = iso.split("-");
@@ -272,7 +260,7 @@ function classeDaNota(nota: number): string {
 }
 
 /* -----------------------------------------------------------------------
-   Card por semana
+   Tabela por semana (estilo DietSystem)
    ----------------------------------------------------------------------- */
 
 function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPaciente }) {
@@ -280,7 +268,12 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
     Object.fromEntries(questionario.envios.map((e) => [e.id, e.revisado])),
   );
   const [erro, definirErro] = useState<string | null>(null);
-  const [expandido, definirExpandido] = useState<string | null>(null);
+  const [filtro, definirFiltro] = useState<"todas" | "pendentes" | "revisadas">("todas");
+  const [detalhe, definirDetalhe] = useState<
+    | { tipo: "celula"; pergunta: string; resposta: string }
+    | { tipo: "nota"; nota: number; variacao: number | null; eixos: { nome: string; nota: number }[] }
+    | null
+  >(null);
 
   const cronologica = [...questionario.envios].sort((a, b) =>
     a.periodo.localeCompare(b.periodo),
@@ -296,15 +289,16 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
     if (nota !== null) anterior = nota;
   }
 
-  const linhas = [...cronologica].reverse();
-  const semanal = questionario.periodicidade === "semanal";
+  const colunas = questionario.perguntas.filter((p) => p.ativa !== false);
+  const temNota = cronologica.some((e) => (notas.get(e.id) ?? null) !== null);
 
-  const perguntasVisiveis = questionario.perguntas.filter(
-    (p) => p.tipo !== "texto" && p.ativa !== false,
-  );
-  const perguntasTexto = questionario.perguntas.filter(
-    (p) => p.tipo === "texto" && p.ativa !== false,
-  );
+  const todasLinhas = [...cronologica].reverse();
+  const linhas = todasLinhas.filter((e) => {
+    if (filtro === "pendentes") return !(revisados[e.id] ?? false);
+    if (filtro === "revisadas") return revisados[e.id] ?? false;
+    return true;
+  });
+  const pendentes = todasLinhas.filter((e) => !(revisados[e.id] ?? false)).length;
 
   async function alternarRevisado(envioId: string) {
     const novo = !revisados[envioId];
@@ -318,9 +312,46 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
     }
   }
 
+  async function revisarTudo() {
+    const ids = todasLinhas.filter((e) => !(revisados[e.id] ?? false)).map((e) => e.id);
+    if (ids.length === 0) return;
+    const novos = { ...revisados };
+    for (const id of ids) novos[id] = true;
+    definirRevisados(novos);
+    try {
+      for (const id of ids) await repositorio.marcarRevisado(id, true);
+    } catch (e) {
+      definirErro(e instanceof Error ? e.message : "Não consegui marcar todas.");
+    }
+  }
+
   return (
     <section className="c-secao">
-      <h2 className="c-secao-titulo">{questionario.titulo}</h2>
+      <div className="c-checkin-topo">
+        <h2 className="c-secao-titulo" style={{ margin: 0 }}>{questionario.titulo}</h2>
+        <div className="c-checkin-filtros">
+          {(["todas", "pendentes", "revisadas"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              className="c-checkin-filtro"
+              aria-pressed={filtro === f}
+              onClick={() => definirFiltro(f)}
+            >
+              {f === "todas" ? "Todas" : f === "pendentes" ? "Pendentes" : "Revisadas"}
+            </button>
+          ))}
+          {pendentes > 0 && (
+            <button
+              type="button"
+              className="c-checkin-revisar-tudo"
+              onClick={() => void revisarTudo()}
+            >
+              ✓ Revisar tudo
+            </button>
+          )}
+        </div>
+      </div>
 
       {!questionario.atribuido && (
         <p className="c-dica" style={{ marginTop: 0 }}>
@@ -334,158 +365,140 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
         </div>
       )}
 
-      <div className="c-checkin-cards">
-        {linhas.map((envio) => {
-          const nota = notas.get(envio.id) ?? null;
-          const variacao = variacoes.get(envio.id) ?? null;
-          const eixos = pontuacaoPorEixo(questionario.perguntas, envio).filter(
-            (e) => e.nota !== null,
-          );
-          const aberto = expandido === envio.id;
-          const porId = new Map(envio.respostas.map((r) => [r.perguntaId, r]));
-          const respondidas = envio.respostas.filter(
-            (r) => r.numero !== null || (r.texto ?? "") !== "",
-          ).length;
-          const total = perguntasVisiveis.length + perguntasTexto.length;
+      {linhas.length === 0 ? (
+        <p className="c-dica">
+          {filtro === "pendentes"
+            ? "Nenhuma resposta pendente."
+            : filtro === "revisadas"
+              ? "Nenhuma resposta revisada."
+              : "Nenhuma resposta enviada."}
+        </p>
+      ) : (
+        <div className="c-checkin-scroll">
+          <table className="c-checkin-tabela">
+            <thead>
+              <tr>
+                <th className="c-checkin-th-fixo">Data</th>
+                {temNota && <th className="c-checkin-th-nota">Nota</th>}
+                {colunas.map((p) => (
+                  <th key={p.id} title={p.texto}>{p.texto}</th>
+                ))}
+                <th className="c-checkin-th-rev">Revisado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {linhas.map((envio) => {
+                const nota = notas.get(envio.id) ?? null;
+                const variacao = variacoes.get(envio.id) ?? null;
+                const porId = new Map(envio.respostas.map((r) => [r.perguntaId, r]));
+                const eixos = pontuacaoPorEixo(questionario.perguntas, envio)
+                  .filter((e) => e.nota !== null)
+                  .map((e) => ({ nome: e.eixoNome, nota: e.nota! }));
 
-          const textos = perguntasTexto
-            .map((p) => ({ p, texto: (porId.get(p.id)?.texto ?? "").trim() }))
-            .filter((x) => x.texto !== "");
-
-          return (
-            <div key={envio.id} className="c-checkin-card">
-              <div className="c-checkin-card-cabecalho">
-                <span className="c-checkin-card-data">
-                  {semanal ? `Sem. ${diaCurto(envio.periodo)}` : diaCurto(envio.periodo)}
-                </span>
-                <label className="c-checkin-revisado-label">
-                  <input
-                    type="checkbox"
-                    checked={revisados[envio.id] ?? false}
-                    onChange={() => void alternarRevisado(envio.id)}
-                  />
-                  <span>Revisado</span>
-                </label>
-              </div>
-
-              {nota !== null && (
-                <div className="c-checkin-score">
-                  <div className="c-checkin-score-cabecalho">
-                    <strong className="c-checkin-score-numero">{nota}%</strong>
-                    {variacao !== null && (
-                      <span className="c-checkin-score-variacao">
-                        {setaDaVariacao(variacao)}
-                      </span>
+                return (
+                  <tr key={envio.id}>
+                    <td className="c-checkin-td-fixo">{diaCurto(envio.periodo)}</td>
+                    {temNota && (
+                      <td
+                        className={`c-checkin-td-nota${nota !== null ? ` ${classeDaNota(nota)}` : ""}`}
+                        onClick={() =>
+                          nota !== null &&
+                          definirDetalhe({ tipo: "nota", nota, variacao, eixos })
+                        }
+                      >
+                        {nota !== null && (
+                          <>
+                            <strong>{nota}%</strong>
+                            {variacao !== null && (
+                              <span className="c-checkin-variacao">
+                                {setaDaVariacao(variacao)}
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </td>
                     )}
-                  </div>
-                  <div className="c-checkin-barra">
-                    <div
-                      className={`c-checkin-barra-preencher ${classeDaNota(nota)}`}
-                      style={{ width: `${nota}%` }}
-                    />
-                  </div>
-                </div>
-              )}
+                    {colunas.map((p) => {
+                      const r = porId.get(p.id);
+                      const texto = respostaTexto(p.tipo, r);
+                      const vazio = texto === "—";
+                      return (
+                        <td
+                          key={p.id}
+                          className={`c-checkin-td${vazio ? " c-checkin-td-vazia" : ""}`}
+                          title={vazio ? undefined : texto}
+                          onClick={() =>
+                            !vazio &&
+                            definirDetalhe({ tipo: "celula", pergunta: p.texto, resposta: texto })
+                          }
+                        >
+                          {vazio ? "" : texto}
+                        </td>
+                      );
+                    })}
+                    <td className="c-checkin-td-rev">
+                      <input
+                        type="checkbox"
+                        checked={revisados[envio.id] ?? false}
+                        onChange={() => void alternarRevisado(envio.id)}
+                      />
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-              {eixos.length > 1 && (
-                <div className="c-checkin-eixos">
-                  {eixos.map((e) => (
-                    <div key={e.eixoId ?? "sem"} className="c-checkin-eixo-linha">
-                      <div className="c-checkin-eixo-rotulo">
-                        <span>{e.eixoNome}</span>
+      {detalhe && (
+        <div className="c-checkin-popup-fundo" onClick={() => definirDetalhe(null)}>
+          <div
+            className="c-checkin-popup"
+            role="dialog"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {detalhe.tipo === "celula" ? (
+              <>
+                <p className="c-checkin-popup-rotulo">Pergunta</p>
+                <p className="c-checkin-popup-titulo">{detalhe.pergunta}</p>
+                <p className="c-checkin-popup-rotulo">Resposta</p>
+                <p className="c-checkin-popup-valor">{detalhe.resposta}</p>
+              </>
+            ) : (
+              <>
+                <p className="c-checkin-popup-rotulo">Nota geral</p>
+                <p className="c-checkin-popup-titulo">
+                  {detalhe.nota}%
+                  {detalhe.variacao !== null && (
+                    <span className="c-checkin-variacao" style={{ marginLeft: 8 }}>
+                      {setaDaVariacao(detalhe.variacao)}
+                    </span>
+                  )}
+                </p>
+                {detalhe.eixos.length > 0 && (
+                  <>
+                    <p className="c-checkin-popup-rotulo">Por eixo</p>
+                    {detalhe.eixos.map((e) => (
+                      <div key={e.nome} className="c-checkin-popup-eixo">
+                        <span>{e.nome}</span>
                         <strong>{e.nota}%</strong>
                       </div>
-                      <div className="c-checkin-barra c-checkin-barra-mini">
-                        <div
-                          className={`c-checkin-barra-preencher ${classeDaNota(e.nota!)}`}
-                          style={{ width: `${e.nota}%` }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <button
-                type="button"
-                className="c-botao-texto c-checkin-expandir"
-                onClick={() => definirExpandido(aberto ? null : envio.id)}
-                aria-expanded={aberto}
-              >
-                {aberto
-                  ? "▾ Fechar respostas"
-                  : `▸ Respostas (${respondidas} de ${total})`}
-              </button>
-
-              {aberto && (
-                <div className="c-checkin-respostas">
-                  {perguntasVisiveis.map((p) => {
-                    const r = porId.get(p.id);
-                    const texto = respostaTexto(p.tipo, r);
-                    const valor = valorNaEscala(
-                      {
-                        id: p.id, tipo: p.tipo, peso: p.peso || 1,
-                        invertida: p.invertida, opcoes: p.opcoes,
-                        pontosOpcoes: p.pontosOpcoes,
-                      },
-                      r ? { perguntaId: r.perguntaId, numero: r.numero, texto: r.texto } : undefined,
-                    );
-                    const carinha = carinhaDe(valor);
-                    const semResposta = texto === "—";
-                    return (
-                      <div
-                        key={p.id}
-                        className={`c-checkin-qa${semResposta ? " c-checkin-qa-vazia" : ""}`}
-                      >
-                        <div className="c-checkin-qa-topo">
-                          {carinha && (
-                            <span
-                              className={`c-carinha-mini nivel-${carinha.nivel}`}
-                              title={carinha.descricao}
-                            >
-                              {carinha.rosto}
-                            </span>
-                          )}
-                          <span className="c-checkin-qa-pergunta">
-                            {p.codigo && (
-                              <span className="c-checkin-qa-codigo">{p.codigo}</span>
-                            )}
-                            {p.texto}
-                          </span>
-                        </div>
-                        <div className="c-checkin-qa-valor">{texto}</div>
-                      </div>
-                    );
-                  })}
-                  {textos.map(({ p, texto }) => (
-                    <div key={p.id} className="c-checkin-qa c-checkin-qa-livre">
-                      <div className="c-checkin-qa-pergunta">
-                        {p.codigo && (
-                          <span className="c-checkin-qa-codigo">{p.codigo}</span>
-                        )}
-                        {p.texto}
-                      </div>
-                      <div className="c-checkin-qa-valor c-checkin-qa-texto-livre">
-                        &ldquo;{texto}&rdquo;
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {!aberto && textos.length > 0 && (
-                <div className="c-checkin-textos">
-                  {textos.map(({ p, texto }) => (
-                    <p key={p.id} className="c-checkin-texto-item">
-                      <strong>{p.texto}</strong> {texto}
-                    </p>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                    ))}
+                  </>
+                )}
+              </>
+            )}
+            <button
+              type="button"
+              className="c-checkin-popup-fechar"
+              onClick={() => definirDetalhe(null)}
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
 
       <GraficoDaPergunta questionario={questionario} />
     </section>
