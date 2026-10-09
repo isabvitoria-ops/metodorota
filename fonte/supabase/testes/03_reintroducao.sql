@@ -849,16 +849,26 @@ select teste('ligado por ela é marcado como ligado depois',
        -> 'itens') i
     where i ->> 'nome' = 'Abacate / avocado') = 'false');
 
-select teste('ligar ao alimento que a paciente já tem é recusado, com nome e tudo',
-  estado_de($$
-    select ligar_item_ao_mapa(
-      (select id from reintroducao_itens where nome_livre = 'Abacate com mel'), 'abacate')
-  $$) = '23505');
+-- Ligar ao alimento que a paciente já tem agora FUNDE: os registros migram
+-- para o item que já existia, e o digitado à mão é apagado. (0072)
+select ligar_item_ao_mapa(
+  (select id from reintroducao_itens where nome_livre = 'Abacate com mel'), 'abacate');
+
+select teste('após fundir, o item digitado à mão sumiu',
+  (select count(*) from reintroducao_itens where nome_livre = 'Abacate com mel') = 0);
+
+select teste('o item do Mapa continua existindo com o nome do Mapa',
+  (select count(*) from jsonb_array_elements(
+     reintroducao_do_paciente((select id from pacientes where email = 'r-ana@paciente.test'))
+       -> 'itens') i
+    where i ->> 'nome' = 'Abacate / avocado') = 1);
 
 select teste('alimento que não está no Mapa é recusado',
   estado_de($$
     select ligar_item_ao_mapa(
-      (select id from reintroducao_itens where nome_livre = 'Abacate com mel'),
+      (select id from reintroducao_itens
+        where paciente_id = (select id from pacientes where email = 'r-ana@paciente.test')
+          and alimento_id = 'abacate'),
       'nao-existe-no-mapa')
   $$) = 'P0002');
 
@@ -880,6 +890,15 @@ select teste('alimento do Mapa continua com o nome do Mapa',
     where i ->> 'nome' = 'Abacate / avocado') = 1);
 commit;
 
+-- Precisa de um item livre para testar que a paciente não liga.
+-- "Abacate com mel" foi fundido acima, então criamos outro.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+select adicionar_item_livre_reintroducao(
+  (select id from pacientes where email = 'r-ana@paciente.test'), 'Granola caseira');
+commit;
+
 -- E a paciente não liga nada ao Mapa.
 begin;
 set local role authenticated;
@@ -887,12 +906,12 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1
 select teste('a paciente NÃO liga alimento ao Mapa',
   estado_de($$
     select ligar_item_ao_mapa(
-      (select id from reintroducao_itens where nome_livre = 'Abacate com mel'), 'abacate')
+      (select id from reintroducao_itens where nome_livre = 'Granola caseira'), 'manga')
   $$) = '42501');
 select teste('nem desliga',
   estado_de($$
     select desligar_item_do_mapa(
-      (select id from reintroducao_itens where nome_livre = 'Abacate com mel'))
+      (select id from reintroducao_itens where nome_livre = 'Granola caseira'))
   $$) = '42501');
 commit;
 

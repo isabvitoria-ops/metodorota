@@ -452,7 +452,7 @@ function ModalMarcacao({
   }
 
   return (
-    <Modal titulo={`Marcação de “${item.nome}”`} aoFechar={aoFechar}>
+    <Modal titulo={`Marcação de "${item.nome}"`} aoFechar={aoFechar}>
       <p className="c-dica" style={{ marginTop: 0 }}>
         Para o que nenhuma tabela traz — produto de marca, receita de casa. O que você marcar
         aqui entra no painel de padrões e na tabela que {item.nome ? "a paciente" : "ela"} recebe
@@ -484,7 +484,7 @@ function ModalMarcacao({
 
       <p className="c-dica">
         Só média, alta e muito alta entram — é a régua do seu material, que responde o que o
-        alimento tem de alto. “Não marcar” nos três significa que você olhou e não há marcador.
+        alimento tem de alto. "Não marcar" nos três significa que você olhou e não há marcador.
       </p>
 
       <div className="c-modal-acoes">
@@ -546,7 +546,7 @@ function ModalLigarAoMapa({
   const achados = buscarNoMapa(material, busca).slice(0, 40);
 
   return (
-    <Modal titulo={`Ligar “${item.nome}” ao Mapa`} aoFechar={aoFechar}>
+    <Modal titulo={`Ligar "${item.nome}" ao Mapa`} aoFechar={aoFechar}>
       <p className="c-dica" style={{ marginTop: 0 }}>
         Escolha o alimento do Mapa que corresponde a este. Ele passa a trazer a marcação de
         oxalato, histamina e lectina — e o nome que {item.nome.toLowerCase()} tem na lista
@@ -559,34 +559,36 @@ function ModalLigarAoMapa({
 
       {achados.length === 0 ? (
         <p className="c-contagem">
-          Nenhum alimento do Mapa com essas palavras. Tente uma só — “búfala”, “queijo”,
-          “porco” — ou apague a busca para ver o Mapa inteiro.
+          Nenhum alimento do Mapa com essas palavras. Tente uma só — "búfala", "queijo",
+          "porco" — ou apague a busca para ver o Mapa inteiro.
         </p>
       ) : (
         <div className="c-chips" style={{ marginTop: 4 }}>
           {achados.map((a) => {
-            const ocupado = jaNaLista.includes(a.id);
+            const jaTemOutro = jaNaLista.includes(a.id);
             return (
               <button
                 key={a.id}
                 type="button"
                 className="c-chip"
                 aria-pressed={escolhido === a.id}
-                disabled={ocupado}
-                title={
-                  ocupado
-                    ? "Esta paciente já tem este alimento na lista, vindo do Mapa."
-                    : undefined
-                }
                 onClick={() => definirEscolhido(a.id)}
               >
                 {a.nome}
                 {a.semanaSugerida ? ` · etapa ${a.semanaSugerida}` : ""}
-                {ocupado ? " · já na lista" : ""}
+                {jaTemOutro ? " · já na lista" : ""}
               </button>
             );
           })}
         </div>
+      )}
+
+      {escolhido && jaNaLista.includes(escolhido) && (
+        <p className="c-nota-protocolo" style={{ marginTop: 8 }}>
+          Esta paciente já tem este alimento na lista. Ao ligar, os registros
+          de "{item.nome}" vão para o que já existe e os dois
+          viram um só — nenhum registro se perde.
+        </p>
       )}
 
       <div className="c-modal-acoes">
@@ -982,7 +984,7 @@ function LinhaDoTempo({ dados }: { dados: ReturnType<typeof useReintroducao>["da
                       </p>
                     )}
                     {r.bristol != null && <p className="c-dica">Bristol tipo {r.bristol}</p>}
-                    {r.observacao && <p className="c-dica">“{r.observacao}”</p>}
+                    {r.observacao && <p className="c-dica">"{r.observacao}"</p>}
                     {/* Na tela da paciente a marcação só aparece com sintoma,
                         e continua assim. Aqui não: esconder de quem tem
                         formação que o alimento é alto em histamina não
@@ -1060,8 +1062,8 @@ function ListaDaPaciente({
           errado: um monta a lista do que ela AINDA vai testar, o outro
           transcreve o que ela JÁ testou. */}
       <p className="c-dica" style={{ marginTop: -4, marginBottom: 10 }}>
-        “Adicionar alimentos” monta a lista do que ela ainda vai testar. “Adicionar com
-        sintoma” é para o que ela já testou fora do aplicativo: entra o alimento e o que
+        "Adicionar alimentos" monta a lista do que ela ainda vai testar. "Adicionar com
+        sintoma" é para o que ela já testou fora do aplicativo: entra o alimento e o que
         ela sentiu, na data em que aconteceu.
       </p>
 
@@ -1072,7 +1074,7 @@ function ListaDaPaciente({
           {semLigacao.length === 1
             ? "1 alimento desta lista foi digitado à mão"
             : `${semLigacao.length} alimentos desta lista foram digitados à mão`}{" "}
-          e por isso não tem marcação de oxalato, histamina ou lectina. Use “Ligar ao Mapa”
+          e por isso não tem marcação de oxalato, histamina ou lectina. Use "Ligar ao Mapa"
           em cada um para trazer a marcação — o nome que a paciente conhece não muda.
         </p>
       )}
@@ -1116,7 +1118,7 @@ function ListaDaPaciente({
                       </span>
                     )
                   )}
-                  {item.notaNutri && <span className="c-acao-descricao">“{item.notaNutri}”</span>}
+                  {item.notaNutri && <span className="c-acao-descricao">"{item.notaNutri}"</span>}
                 </span>
                 <span className={`c-selo ${seloDoTom(info.tom)}`}>{info.rotulo}</span>
               </div>
