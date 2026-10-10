@@ -37,6 +37,7 @@ import {
   valoresDeMedidas,
 } from "@/central/utils/medidasCorporais";
 import { hojeSaoPaulo, dataBonita as diaBonito } from "@/central/utils/situacao";
+import { reduzirFoto } from "@/central/utils/reduzirFoto";
 
 /**
  * Protocolo alimentar — área da nutricionista.
@@ -418,6 +419,7 @@ function EditorDoProtocolo({
           key={iRefeicao}
           refeicao={refeicao}
           grupos={grupos}
+          pacienteId={paciente.id}
           primeira={iRefeicao === 0}
           ultima={iRefeicao === conteudo.refeicoes.length - 1}
           recolhida={recolhidas.has(iRefeicao)}
@@ -615,6 +617,7 @@ function EditorDoProtocolo({
 function BlocoDaRefeicao({
   refeicao,
   grupos,
+  pacienteId,
   primeira,
   ultima,
   recolhida,
@@ -625,6 +628,7 @@ function BlocoDaRefeicao({
 }: {
   refeicao: RefeicaoProtocolo;
   grupos: GrupoDoProtocolo[];
+  pacienteId: string;
   primeira: boolean;
   ultima: boolean;
   recolhida: boolean;
@@ -741,11 +745,11 @@ function BlocoDaRefeicao({
                     placeholder="3 fatias - 75g"
                   />
                 </Campo>
-                <Campo rotulo="Substituições" dica="Uma por linha. Pode não ter nenhuma.">
+                <Campo rotulo="Substituicoes" dica="Uma por linha. Pode nao ter nenhuma.">
                   <AreaDeLinhas
                     valor={item.substituicoes}
                     linhas={2}
-                    placeholder={"Tapioca - 70g\nPão francês - 1 unidade"}
+                    placeholder={"Tapioca - 70g\nPao frances - 1 unidade"}
                     aoMudar={(lista) =>
                       trocarOpcao(iOpcao, {
                         ...opcao,
@@ -756,7 +760,33 @@ function BlocoDaRefeicao({
                     }
                   />
                 </Campo>
+                <Campo rotulo="Link do produto" dica="Cole a URL de compra ou referencia. Fica clicavel para a paciente.">
+                  <Texto
+                    valor={item.link ?? ""}
+                    aoMudar={(v) =>
+                      trocarOpcao(iOpcao, {
+                        ...opcao,
+                        itens: opcao.itens.map((x, j) =>
+                          j === iItem ? { ...x, link: v || undefined } : x,
+                        ),
+                      })
+                    }
+                    placeholder="https://..."
+                  />
+                </Campo>
               </div>
+              <FotoDoItem
+                item={item}
+                pacienteId={pacienteId}
+                aoMudar={(imagem) =>
+                  trocarOpcao(iOpcao, {
+                    ...opcao,
+                    itens: opcao.itens.map((x, j) =>
+                      j === iItem ? { ...x, imagem: imagem || undefined } : x,
+                    ),
+                  })
+                }
+              />
               <button
                 type="button"
                 className="c-link"
@@ -847,6 +877,95 @@ function BlocoDaRefeicao({
 
 function itemVazio(): ItemProtocolo {
   return { alimento: "", quantidade: "", substituicoes: [] };
+}
+
+function ehUrlExterna(v: string): boolean {
+  return /^https?:\/\//.test(v);
+}
+
+function FotoDoItem({
+  item,
+  pacienteId,
+  aoMudar,
+}: {
+  item: ItemProtocolo;
+  pacienteId: string;
+  aoMudar: (imagem: string | undefined) => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [enviando, definirEnviando] = useState(false);
+  const [erro, definirErro] = useState<string | null>(null);
+  const [preview, definirPreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!item.imagem) { definirPreview(null); return; }
+    if (ehUrlExterna(item.imagem)) { definirPreview(item.imagem); return; }
+    let ativo = true;
+    repositorio
+      .enderecoFotoProtocolo(item.imagem)
+      .then((url) => ativo && definirPreview(url))
+      .catch(() => ativo && definirPreview(null));
+    return () => { ativo = false; };
+  }, [item.imagem]);
+
+  async function enviar(arquivo: File) {
+    definirErro(null);
+    definirEnviando(true);
+    try {
+      const reduzida = await reduzirFoto(arquivo, 800, 0.85);
+      const caminho = await repositorio.enviarFotoDoProtocolo(pacienteId, reduzida);
+      aoMudar(caminho);
+    } catch (e) {
+      definirErro(e instanceof Error ? e.message : "Nao consegui enviar a foto.");
+    } finally {
+      definirEnviando(false);
+      if (ref.current) ref.current.value = "";
+    }
+  }
+
+  async function remover() {
+    if (!item.imagem) return;
+    if (!ehUrlExterna(item.imagem)) {
+      try { await repositorio.apagarFotoDoProtocolo(item.imagem); } catch { /* melhor esforco */ }
+    }
+    aoMudar(undefined);
+  }
+
+  return (
+    <div className="c-foto-item">
+      {preview && (
+        <div className="c-foto-item-preview">
+          <img src={preview} alt={item.alimento || "Foto do produto"} />
+          <button type="button" className="c-link" onClick={() => void remover()}>
+            Remover foto
+          </button>
+        </div>
+      )}
+      {!item.imagem && (
+        <div className="c-foto-item-acoes">
+          <button
+            type="button"
+            className="c-botao c-botao-secundario c-botao-pequeno"
+            disabled={enviando}
+            onClick={() => ref.current?.click()}
+          >
+            {enviando ? "Enviando..." : "Enviar foto"}
+          </button>
+          <input
+            ref={ref}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void enviar(f);
+            }}
+          />
+        </div>
+      )}
+      {erro && <p className="c-campo-erro">{erro}</p>}
+    </div>
+  );
 }
 
 /**

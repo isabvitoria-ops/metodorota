@@ -92,7 +92,14 @@ export function DocumentoProtocolo({
                 <tbody>
                   {opcao.itens.map((item, k) => (
                     <tr key={k}>
-                      <th scope="row">{item.alimento}</th>
+                      <th scope="row">
+                        {item.alimento}
+                        {item.link && (
+                          <span className="doc-item-link">
+                            {" "}— <a href={item.link} target="_blank" rel="noreferrer noopener">{item.link}</a>
+                          </span>
+                        )}
+                      </th>
                       <td className="doc-data">{item.quantidade}</td>
                       <td>
                         {item.substituicoes.length > 0 ? item.substituicoes.join(" · ") : "—"}

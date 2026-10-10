@@ -2782,6 +2782,14 @@ body:has(.central) {
   flex: 0 0 auto;
 }
 
+.c-foto-item { margin-top: 4px; }
+.c-foto-item-preview { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 4px; }
+.c-foto-item-preview img {
+  max-width: 120px; max-height: 90px; border-radius: var(--radius, 6px);
+  object-fit: cover; border: 1px solid var(--border);
+}
+.c-foto-item-acoes { display: flex; gap: 8px; align-items: center; }
+
 /* Grupo de alimentos dentro da refeição: dezessete frutas não cabem numa
    linha de "ou". Fecha, e a paciente abre se quiser trocar. */
 .c-trocas-lista {
@@ -3008,6 +3016,26 @@ body:has(.central) {
   font-size: 13px;
   line-height: 1.45;
   color: var(--text-muted);
+}
+
+.c-refeicao-foto {
+  margin: 6px 0 0 17px;
+}
+.c-refeicao-foto img {
+  max-width: 160px;
+  max-height: 120px;
+  border-radius: var(--radius, 6px);
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+.c-refeicao-link {
+  margin: 4px 0 0 17px;
+  font-size: 13px;
+}
+.c-refeicao-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .c-refeicao-notas {
@@ -3774,6 +3802,12 @@ body:has(.central) {
   .doc-tabela-protocolo th:nth-child(3),
   .doc-tabela-protocolo td:nth-child(3) {
     width: 48%;
+  }
+
+  .doc-item-link {
+    font-weight: normal;
+    font-size: 11px;
+    word-break: break-all;
   }
 
   /* ---- avaliação ---- */

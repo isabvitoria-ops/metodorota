@@ -981,6 +981,32 @@ export const repositorioSupabase: Repositorio = {
     erro("restaurar a versão", error);
   },
 
+  async enviarFotoDoProtocolo(pacienteId: string, foto: Blob): Promise<string> {
+    const sb = exigirSupabase();
+    const ext = foto.type === "image/png" ? "png" : "jpg";
+    const caminho = `${pacienteId}/${crypto.randomUUID()}.${ext}`;
+    const { error: erroEnvio } = await sb.storage.from("protocolo-fotos").upload(caminho, foto, {
+      contentType: foto.type || "image/jpeg",
+      upsert: false,
+    });
+    erro("enviar a foto", erroEnvio);
+    return caminho;
+  },
+
+  async enderecoFotoProtocolo(caminho: string): Promise<string> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.storage.from("protocolo-fotos").createSignedUrl(caminho, 3600);
+    erro("abrir a foto", error);
+    if (!data?.signedUrl) throw new Error("Nao consegui abrir esta foto.");
+    return data.signedUrl;
+  },
+
+  async apagarFotoDoProtocolo(caminho: string): Promise<void> {
+    const sb = exigirSupabase();
+    const { error } = await sb.storage.from("protocolo-fotos").remove([caminho]);
+    erro("apagar a foto", error);
+  },
+
   async listarGruposProtocolo(): Promise<GrupoDoProtocolo[]> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("listar_grupos_protocolo");

@@ -1027,6 +1027,18 @@ export const repositorioLocal: Repositorio = {
     throw new Error("Restaurar versão precisa do banco. Configure o Supabase.");
   },
 
+  async enviarFotoDoProtocolo(): Promise<string> {
+    throw new Error("Enviar foto precisa do banco. Configure o Supabase.");
+  },
+
+  async enderecoFotoProtocolo(): Promise<string> {
+    throw new Error("Abrir foto precisa do banco. Configure o Supabase.");
+  },
+
+  async apagarFotoDoProtocolo(): Promise<void> {
+    throw new Error("Apagar foto precisa do banco. Configure o Supabase.");
+  },
+
   // Na demonstração os grupos vêm prontos, para a tela ter o que mostrar.
   async listarGruposProtocolo() {
     return GRUPOS_DEMO;
