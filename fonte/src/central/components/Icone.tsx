@@ -51,6 +51,7 @@ const TRACOS: Record<string, string> = {
   feito: "m5 12.5 4.5 4.5L19 7.5",
   // Coração só de contorno (a curtida).
   coracao: "M12 20.5s-7.5-4.5-9.3-9.3A5.2 5.2 0 0 1 12 6.6a5.2 5.2 0 0 1 9.3 4.6C19.5 16 12 20.5 12 20.5Z",
+  link: "M10 14a3.5 3.5 0 0 0 5 0l3-3a3.54 3.54 0 0 0-5-5l-.5.5M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.54 3.54 0 0 0 5 5l.5-.5",
 };
 
 export type NomeIcone = keyof typeof TRACOS | string;

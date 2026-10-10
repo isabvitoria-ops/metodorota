@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import type { Protocolo as ProtocoloAlimentar, RefeicaoProtocolo } from "@/central/types/protocolo";
+import type { ItemProtocolo, Protocolo as ProtocoloAlimentar, RefeicaoProtocolo } from "@/central/types/protocolo";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { ConversaDaRefeicao } from "@/central/components/ConversaDaRefeicao";
@@ -257,6 +257,14 @@ function Refeicao({
                 <span className="c-refeicao-item-qtd">{item.quantidade}</span>
               )}
             </div>
+            {item.imagem && <FotoInline item={item} />}
+            {item.link && (
+              <div className="c-refeicao-link">
+                <a href={item.link} target="_blank" rel="noreferrer noopener" className="c-link-externo">
+                  <Icone nome="link" tamanho={12} /> Ver produto
+                </a>
+              </div>
+            )}
             {item.substituicoes.length > 0 && item.substituicoes.length <= 4 && (
               <div className="c-refeicao-trocas">
                 <span className="c-refeicao-trocas-icone" aria-hidden="true">🔄</span>
@@ -267,7 +275,7 @@ function Refeicao({
               <details className="c-refeicao-trocas-lista">
                 <summary>
                   <span aria-hidden="true">🔄</span>
-                  {item.substituicoes.length} substituições
+                  {item.substituicoes.length} substituicoes
                 </summary>
                 <ul>
                   {item.substituicoes.map((troca, j) => (
@@ -290,6 +298,32 @@ function Refeicao({
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function FotoInline({ item }: { item: ItemProtocolo }) {
+  const [url, definirUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!item.imagem) return;
+    if (/^https?:\/\//.test(item.imagem)) {
+      definirUrl(item.imagem);
+      return;
+    }
+    let ativo = true;
+    repositorio
+      .enderecoFotoProtocolo(item.imagem)
+      .then((u) => ativo && definirUrl(u))
+      .catch(() => ativo && definirUrl(null));
+    return () => { ativo = false; };
+  }, [item.imagem]);
+
+  if (!url) return null;
+
+  return (
+    <div className="c-refeicao-foto">
+      <img src={url} alt={item.alimento} loading="lazy" />
     </div>
   );
 }

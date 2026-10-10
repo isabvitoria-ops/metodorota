@@ -18,6 +18,10 @@ export interface ItemProtocolo {
   quantidade: string;
   /** "Tapioca - 70g", "Pão francês - 1,5 unidade", … */
   substituicoes: string[];
+  /** Link do produto — fica clicavel para a paciente. */
+  link?: string;
+  /** Caminho no balde `protocolo-fotos`, ou URL externa. */
+  imagem?: string;
 }
 
 /**

@@ -303,6 +303,13 @@ export interface Repositorio {
   /** Traz uma versão antiga de volta como rascunho, para ela conferir. */
   restaurarProtocolo(protocoloId: string): Promise<void>;
 
+  /** Envia uma foto de produto para o balde do protocolo. Devolve o caminho. */
+  enviarFotoDoProtocolo(pacienteId: string, foto: Blob): Promise<string>;
+  /** Endereço assinado (1 h) para exibir a foto do protocolo. */
+  enderecoFotoProtocolo(caminho: string): Promise<string>;
+  /** Apaga uma foto do balde do protocolo. */
+  apagarFotoDoProtocolo(caminho: string): Promise<void>;
+
   /** Os grupos de alimentos dela — "Frutas", "Carboidratos do almoço". */
   listarGruposProtocolo(): Promise<GrupoDoProtocolo[]>;
   salvarGrupoProtocolo(
