@@ -49,7 +49,7 @@ export function FichaPaciente({
   const [ocupado, definirOcupado] = useState(false);
 
   useEffect(() => {
-    void historico(paciente.id).then(definirEventos);
+    void historico(paciente.id).then(definirEventos).catch(() => {});
   }, [historico, paciente.id]);
 
   const suspenso = paciente.status === "suspenso";

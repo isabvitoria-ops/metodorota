@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { rotas } from "@/central/rotas";
+import { numeroDeTexto } from "@/central/utils/numero";
 
 const ML_POR_KG = 40;
 
@@ -15,7 +16,7 @@ function garrafas(ml: number): number {
 export function CalculadoraAgua() {
   const [peso, definirPeso] = useState("");
 
-  const pesoNum = parseFloat(peso.replace(",", "."));
+  const pesoNum = numeroDeTexto(peso) ?? 0;
   const valido = pesoNum > 0 && pesoNum <= 300;
   const totalMl = valido ? Math.round(pesoNum * ML_POR_KG) : 0;
   const totalL = valido ? (totalMl / 1000).toFixed(1) : "0";

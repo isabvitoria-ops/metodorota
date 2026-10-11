@@ -11,6 +11,7 @@ import type {
 } from "@/central/types";
 import { repositorio } from "@/central/dados/repositorio";
 import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
+import { numeroDeTexto } from "@/central/utils/numero";
 import { SeloNeutro } from "@/central/components/Selo";
 import { Campo, Selecao, Texto, AreaTexto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
@@ -652,13 +653,13 @@ function LancarPontos({ desafio, desafios }: { desafio: DesafioAdmin; desafios: 
             <button
               type="button"
               className="c-botao c-botao-secundario c-botao-pequeno"
-              disabled={ocupado || travado || !pontos.trim() || !motivo.trim() || Number(pontos) === 0}
+              disabled={ocupado || travado || !pontos.trim() || !motivo.trim() || !numeroDeTexto(pontos)}
               onClick={() =>
                 void executar(
                   () =>
                     repositorio.ajustarPontos(
                       escolhida.id,
-                      Number(pontos),
+                      numeroDeTexto(pontos) ?? 0,
                       motivo.trim(),
                       alvo.id,
                     ),

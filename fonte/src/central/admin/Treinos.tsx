@@ -426,7 +426,7 @@ function EditorDoPlano({
                 definirExercicios([{ ...EXERCICIO_VAZIO }]);
                 definirEstado("Treino apagado. As sessões que ela registrou continuam lá.");
                 aoMudar();
-              });
+              }).catch(() => definirEstado("Erro ao apagar o treino."));
             }}
           >
             Apagar este treino

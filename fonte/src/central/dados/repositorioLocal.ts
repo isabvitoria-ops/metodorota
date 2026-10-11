@@ -241,7 +241,7 @@ function pacienteDemoId(): string {
   return primeira?.id ?? "demo-paciente";
 }
 
-const hojeLocal = (): string => new Date().toISOString().slice(0, 10);
+const hojeLocal = (): string => hojeSaoPaulo();
 
 /**
  * A segunda-feira da semana de um dia.

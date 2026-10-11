@@ -1,6 +1,7 @@
 import type { CardioSessao, SessaoDeTreino } from "@/central/types/treino";
 import { melhorSerie, volumeDaSessao } from "./progressaoTreino";
 import { segundaDaSemana } from "./metasSemanais";
+import { hojeSaoPaulo } from "./situacao";
 
 /**
  * As séries que viram gráfico, e a frequência.
@@ -85,7 +86,7 @@ export function frequenciaPorSemana(
   treinos: SessaoDeTreino[],
   cardio: CardioSessao[],
   quantasSemanas = 8,
-  hoje = new Date().toISOString().slice(0, 10),
+  hoje = hojeSaoPaulo(),
 ): SemanaDeFrequencia[] {
   const diasPorSemana = new Map<string, Set<string>>();
   for (const t of treinos) {
