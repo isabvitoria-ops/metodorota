@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { CheckIn, CheckInRascunho, Estado } from "@/types";
 import { checkinService } from "@/services";
-import { paraISODate } from "@/utils/datas";
 import { useCheckinHojeStore } from "@/store/checkinHojeStore";
+import { hojeSaoPaulo } from "@/central/utils/situacao";
 import { useAsync } from "./useAsync";
 
 /**
@@ -12,7 +12,7 @@ import { useAsync } from "./useAsync";
  * outras (ver nota na store).
  */
 export function useCheckin(pacienteId: string) {
-  const hojeISO = paraISODate(new Date());
+  const hojeISO = hojeSaoPaulo();
   const [estadoServidor, recarregarServidor] = useAsync(() => checkinService.buscarCheckinDoDia(pacienteId, hojeISO), [pacienteId, hojeISO]);
   const [salvando, setSalvando] = useState(false);
   const valorNaStore = useCheckinHojeStore((s) => s.porPaciente[pacienteId]);

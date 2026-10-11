@@ -1,11 +1,11 @@
 import { useCallback } from "react";
 import type { AdesaoId } from "@/types";
 import { diarioService } from "@/services";
-import { paraISODate } from "@/utils/datas";
+import { hojeSaoPaulo } from "@/central/utils/situacao";
 import { useAsync } from "./useAsync";
 
 export function useDiario(pacienteId: string) {
-  const hojeISO = paraISODate(new Date());
+  const hojeISO = hojeSaoPaulo();
   const [estado, recarregar] = useAsync(() => diarioService.listarRegistrosDoDia(pacienteId, hojeISO), [pacienteId, hojeISO]);
 
   const registrar = useCallback(

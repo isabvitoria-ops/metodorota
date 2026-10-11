@@ -462,15 +462,19 @@ function ModalNovoPaciente({ planos, aoFechar }: { planos: Plano[]; aoFechar: ()
       observacoes: observacoes.trim() || null,
       condicao: condicaoFinal,
     };
-    const paciente = await criar(dados);
-    if (!paciente) {
-      definirErro(usePacientes.getState().erro ?? "Não foi possível cadastrar.");
+    try {
+      const paciente = await criar(dados);
+      if (!paciente) {
+        definirErro(usePacientes.getState().erro ?? "Não foi possível cadastrar.");
+        return;
+      }
+      if (enviarConvite) await convidar(paciente.id, dados.email);
+      aoFechar();
+    } catch {
+      definirErro("Não foi possível cadastrar. Tente de novo.");
+    } finally {
       definirSalvando(false);
-      return;
     }
-    if (enviarConvite) await convidar(paciente.id, dados.email);
-    definirSalvando(false);
-    aoFechar();
   }
 
   return (

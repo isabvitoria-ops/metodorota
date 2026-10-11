@@ -4,7 +4,8 @@ import { Btn } from "@/components/ui/Button";
 import { Card, Eyebrow } from "@/components/ui/Card";
 import { POSES_FOTO } from "@/constants/evolucao";
 import { AVISO_FOTOS_PRIVACIDADE } from "@/constants/textos";
-import { formatarDataCurta, paraISODate } from "@/utils/datas";
+import { formatarDataCurta } from "@/utils/datas";
+import { hojeSaoPaulo } from "@/central/utils/situacao";
 import { useSessoesFoto } from "@/hooks/useEvolucao";
 import { useToast } from "@/hooks/useToast";
 import type { PoseFoto, SessaoFoto } from "@/types";
@@ -35,7 +36,7 @@ export function Fotos({ pacienteId, nutricionistaId, onFechar }: { pacienteId: s
     poseSelecionadas.forEach((p) => {
       path[p] = `fotos-evolucao/${pacienteId}/${Date.now()}/${p}.jpg`;
     });
-    await salvar(paraISODate(new Date()), path);
+    await salvar(hojeSaoPaulo(), path);
     setPoseSelecionadas(null);
     avisar("Fotos salvas. Só você e sua nutri têm acesso.");
   };

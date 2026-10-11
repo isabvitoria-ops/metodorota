@@ -562,20 +562,25 @@ function FormularioRegistro({
       return definirAviso("Escolha o alimento.");
     }
     definirSalvando(true);
-    const deuCerto = await aoSalvar({
-      itemId: registro ? registro.itemId : escolhendoNome ? null : itemId,
-      nomeNovo: registro || !escolhendoNome ? null : nomeNovo.trim(),
-      data,
-      horario: horario || null,
-      quantidade: quantidade.trim() || null,
-      preparo: preparo.trim() || null,
-      sintomas: teveSintoma ? (sintomas.length > 0 ? sintomas : ["outros"]) : ["nenhum"],
-      intensidade: teveSintoma ? intensidade : 0,
-      bristol: bristol === "" ? null : Number(bristol),
-      observacao: observacao.trim() || null,
-    });
-    definirSalvando(false);
-    if (!deuCerto) definirAviso("Não consegui salvar. Tente de novo.");
+    try {
+      const deuCerto = await aoSalvar({
+        itemId: registro ? registro.itemId : escolhendoNome ? null : itemId,
+        nomeNovo: registro || !escolhendoNome ? null : nomeNovo.trim(),
+        data,
+        horario: horario || null,
+        quantidade: quantidade.trim() || null,
+        preparo: preparo.trim() || null,
+        sintomas: teveSintoma ? (sintomas.length > 0 ? sintomas : ["outros"]) : ["nenhum"],
+        intensidade: teveSintoma ? intensidade : 0,
+        bristol: bristol === "" ? null : Number(bristol),
+        observacao: observacao.trim() || null,
+      });
+      if (!deuCerto) definirAviso("Não consegui salvar. Tente de novo.");
+    } catch {
+      definirAviso("Não consegui salvar. Tente de novo.");
+    } finally {
+      definirSalvando(false);
+    }
   }
 
   return (

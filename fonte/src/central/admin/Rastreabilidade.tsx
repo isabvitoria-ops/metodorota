@@ -729,6 +729,8 @@ function ModalRetroativo({
       definirLancados((atual) => [...atual, rotulo]);
       if (continuar) limparParaOProximo();
       else aoFechar();
+    }).catch(() => {
+      definirSalvando(false);
     });
   }
 
