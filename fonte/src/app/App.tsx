@@ -9,6 +9,7 @@ import { DefinirSenha } from "@/central/autenticacao/DefinirSenha";
 import { RecuperarSenha } from "@/central/autenticacao/RecuperarSenha";
 import { SemAcesso } from "@/central/autenticacao/SemAcesso";
 import { Diagnostico } from "@/central/pages/Diagnostico";
+import { AvisoOffline } from "@/central/components/AvisoOffline";
 import { PREFIXO_ANTIGO, rotas } from "@/central/rotas";
 
 // Cada área baixa só o que precisa: quem é paciente nunca carrega o pacote
@@ -62,6 +63,7 @@ export function App() {
   return (
     <Roteador basename={PREFIXO}>
       <ProvedorSessao>
+        <AvisoOffline />
         <Suspense fallback={<Carregando />}>
           <Routes>
             <Route path={rotas.entrar} element={<Entrar />} />

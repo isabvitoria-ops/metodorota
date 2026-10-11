@@ -4,6 +4,7 @@ import { MODO_DEMONSTRACAO, supabase } from "@/central/supabase/cliente";
 import { repositorio } from "@/central/dados/repositorio";
 import { hidratar } from "@/central/dados/catalogo";
 import { invalidarIndice } from "@/central/dados/indiceBusca";
+import { salvarAcessoNoCache, lerAcessoDoCache, lerCatalogoDoCache } from "@/central/dados/cacheOffline";
 import { CONFIGURACOES_PADRAO } from "@/central/dados/mapeadores";
 import { urlDaRota } from "@/central/utils/enderecos";
 import { useFavoritos } from "@/central/hooks/useFavoritos";
@@ -118,6 +119,7 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
       }
 
       definirAcesso(atual);
+      if (!MODO_DEMONSTRACAO) void salvarAcessoNoCache(atual);
 
       // O catálogo é carregado sempre: quem não tem acesso recebe listas
       // vazias do banco (é a política agindo), e a tela de "acesso
@@ -144,7 +146,22 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
         useFavoritos.getState().limpar();
       }
     } catch {
-      definirAcesso(MODO_DEMONSTRACAO ? ACESSO_DEMONSTRACAO : ACESSO_VAZIO);
+      if (!MODO_DEMONSTRACAO && !navigator.onLine) {
+        const acessoSalvo = await lerAcessoDoCache();
+        if (acessoSalvo) {
+          definirAcesso(acessoSalvo);
+          const catalogoSalvo = await lerCatalogoDoCache();
+          if (catalogoSalvo) {
+            hidratar(catalogoSalvo);
+            invalidarIndice();
+            definirConfiguracoes(catalogoSalvo.configuracoes);
+          }
+        } else {
+          definirAcesso(ACESSO_VAZIO);
+        }
+      } else {
+        definirAcesso(MODO_DEMONSTRACAO ? ACESSO_DEMONSTRACAO : ACESSO_VAZIO);
+      }
     } finally {
       definirCarregando(false);
       definirPronto(true);

@@ -116,6 +116,11 @@ import {
   type Linha,
 } from "./mapeadores";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
+import {
+  salvarCatalogoNoCache, lerCatalogoDoCache,
+  salvarPacientesNoCache, lerPacientesDoCache,
+  salvarProtocolosNoCache, lerProtocolosDoCache,
+} from "./cacheOffline";
 
 /**
  * A implementação de produção.
@@ -134,37 +139,46 @@ function erro(contexto: string, e: { message: string } | null): void {
 
 export const repositorioSupabase: Repositorio = {
   async carregarCatalogo(): Promise<DadosCatalogo> {
-    const sb = exigirSupabase();
+    try {
+      const sb = exigirSupabase();
 
-    const [unidades, grupos, alimentos, equivalencias, conteudos, configuracoes] = await Promise.all([
-      sb.from("unidades").select("*").eq("ativo", true).order("ordem"),
-      sb.from("grupos_alimentares").select("*").eq("ativo", true).order("ordem"),
-      sb.from("alimentos").select("*").order("nome"),
-      sb.from("equivalencias").select("*"),
-      sb.from("conteudos").select("*").order("ordem"),
-      sb.from("configuracoes").select("*"),
-    ]);
+      const [unidades, grupos, alimentos, equivalencias, conteudos, configuracoes] = await Promise.all([
+        sb.from("unidades").select("*").eq("ativo", true).order("ordem"),
+        sb.from("grupos_alimentares").select("*").eq("ativo", true).order("ordem"),
+        sb.from("alimentos").select("*").order("nome"),
+        sb.from("equivalencias").select("*"),
+        sb.from("conteudos").select("*").order("ordem"),
+        sb.from("configuracoes").select("*"),
+      ]);
 
-    erro("unidades", unidades.error);
-    erro("grupos", grupos.error);
-    erro("alimentos", alimentos.error);
-    erro("equivalências", equivalencias.error);
-    erro("conteúdos", conteudos.error);
-    erro("configurações", configuracoes.error);
+      erro("unidades", unidades.error);
+      erro("grupos", grupos.error);
+      erro("alimentos", alimentos.error);
+      erro("equivalências", equivalencias.error);
+      erro("conteúdos", conteudos.error);
+      erro("configurações", configuracoes.error);
 
-    const linhasConteudo = conteudos.data ?? [];
+      const linhasConteudo = conteudos.data ?? [];
 
-    return {
-      unidades: (unidades.data ?? []).map(paraUnidade),
-      grupos: (grupos.data ?? []).map(paraGrupo),
-      alimentos: (alimentos.data ?? []).map(paraAlimento),
-      equivalencias: (equivalencias.data ?? []).map(paraEquivalencia),
-      categoriasComerFora: linhasConteudo
-        .filter((l) => l.tipo === "comer_fora")
-        .map(paraCategoriaComerFora),
-      guias: linhasConteudo.filter((l) => l.tipo === "guia").map(paraGuia),
-      configuracoes: paraConfiguracoes(configuracoes.data ?? []),
-    };
+      const dados: DadosCatalogo = {
+        unidades: (unidades.data ?? []).map(paraUnidade),
+        grupos: (grupos.data ?? []).map(paraGrupo),
+        alimentos: (alimentos.data ?? []).map(paraAlimento),
+        equivalencias: (equivalencias.data ?? []).map(paraEquivalencia),
+        categoriasComerFora: linhasConteudo
+          .filter((l) => l.tipo === "comer_fora")
+          .map(paraCategoriaComerFora),
+        guias: linhasConteudo.filter((l) => l.tipo === "guia").map(paraGuia),
+        configuracoes: paraConfiguracoes(configuracoes.data ?? []),
+      };
+
+      void salvarCatalogoNoCache(dados);
+      return dados;
+    } catch (e) {
+      const cache = await lerCatalogoDoCache();
+      if (cache) return cache;
+      throw e;
+    }
   },
 
   async listarFavoritos(): Promise<Favorito[]> {
@@ -219,10 +233,18 @@ export const repositorioSupabase: Repositorio = {
   },
 
   async listarPacientes(): Promise<Paciente[]> {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.from("pacientes_visao").select("*").order("nome");
-    erro("pacientes", error);
-    return (data ?? []).map(paraPaciente);
+    try {
+      const sb = exigirSupabase();
+      const { data, error } = await sb.from("pacientes_visao").select("*").order("nome");
+      erro("pacientes", error);
+      const lista = (data ?? []).map(paraPaciente);
+      void salvarPacientesNoCache(lista);
+      return lista;
+    } catch (e) {
+      const cache = await lerPacientesDoCache();
+      if (cache) return cache;
+      throw e;
+    }
   },
 
   async criarPaciente(dados: NovoPaciente): Promise<Paciente> {
@@ -908,16 +930,24 @@ export const repositorioSupabase: Repositorio = {
   },
 
   async protocolosDasPacientes(): Promise<ResumoProtocolo[]> {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("protocolos_das_pacientes");
-    erro("carregar os protocolos", error);
-    return ((data ?? []) as Linha[]).map((linha) => ({
-      pacienteId: texto(linha.pacienteId),
-      nome: texto(linha.nome),
-      situacao: linha.situacao === "publicado" ? "publicado" : "sem",
-      temRascunho: linha.temRascunho === true,
-      publicadoEm: textoOuNulo(linha.publicadoEm),
-    }));
+    try {
+      const sb = exigirSupabase();
+      const { data, error } = await sb.rpc("protocolos_das_pacientes");
+      erro("carregar os protocolos", error);
+      const lista = ((data ?? []) as Linha[]).map((linha) => ({
+        pacienteId: texto(linha.pacienteId),
+        nome: texto(linha.nome),
+        situacao: (linha.situacao === "publicado" ? "publicado" : "sem") as "publicado" | "sem",
+        temRascunho: linha.temRascunho === true,
+        publicadoEm: textoOuNulo(linha.publicadoEm),
+      }));
+      void salvarProtocolosNoCache(lista);
+      return lista;
+    } catch (e) {
+      const cache = await lerProtocolosDoCache();
+      if (cache) return cache;
+      throw e;
+    }
   },
 
   async protocoloDoPaciente(pacienteId: string): Promise<FichaProtocolo> {

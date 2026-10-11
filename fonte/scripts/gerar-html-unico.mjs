@@ -136,7 +136,14 @@ const pagina = `<!doctype html>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module">${js}</script>
+    <script type="module">${js}</script>${
+      paraPages
+        ? `
+    <script>
+      if("serviceWorker"in navigator){navigator.serviceWorker.register("${BASE_PAGES}sw.js").catch(function(){})}
+    </script>`
+        : ""
+    }
   </body>
 </html>
 `;
@@ -181,6 +188,16 @@ if (paraPages) {
     ],
   };
   writeFileSync(path.join(destino, "manifest.webmanifest"), JSON.stringify(manifesto, null, 2) + "\n");
+
+  // Service Worker: cacheia o index.html para que o app abra sem internet.
+  // A versão no nome do cache garante que uma publicação nova invalida o
+  // cache antigo sem a paciente precisar limpar nada.
+  const sw = `var CACHE="marvia-${versao.replace(/[^0-9]/g, "")}";
+self.addEventListener("install",function(e){e.waitUntil(caches.open(CACHE).then(function(c){return c.addAll(["${BASE_PAGES}","${BASE_PAGES}index.html"])}));self.skipWaiting()});
+self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(function(n){return Promise.all(n.filter(function(k){return k!==CACHE}).map(function(k){return caches.delete(k)}))}));self.clients.claim()});
+self.addEventListener("fetch",function(e){var u=new URL(e.request.url);if(u.hostname.indexOf("supabase")!==-1)return;if(e.request.mode==="navigate"){e.respondWith(fetch(e.request).then(function(r){var c=r.clone();caches.open(CACHE).then(function(ca){ca.put(e.request,c)});return r}).catch(function(){return caches.match("${BASE_PAGES}index.html").then(function(r){return r||new Response("Offline",{status:503})})}));return}if(u.pathname.indexOf("${BASE_PAGES}")===0){e.respondWith(caches.match(e.request).then(function(r){if(r)return r;return fetch(e.request).then(function(re){var c=re.clone();caches.open(CACHE).then(function(ca){ca.put(e.request,c)});return re})}));return}});
+`;
+  writeFileSync(path.join(destino, "sw.js"), sw);
 }
 
 const mb = (pagina.length / 1024 / 1024).toFixed(2);
