@@ -2120,6 +2120,20 @@ body:has(.central) {
   color: #2c4c3b;
 }
 
+.c-aviso-offline {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding: 8px 16px;
+  background: var(--warning-soft);
+  border-bottom: 1px solid rgba(168, 124, 40, 0.22);
+  color: #7a5b1a;
+  font-size: 13px;
+  text-align: center;
+}
+
 .c-carregando {
   min-height: 100dvh;
   display: grid;
