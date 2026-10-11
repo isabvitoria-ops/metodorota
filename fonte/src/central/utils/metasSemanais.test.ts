@@ -12,7 +12,7 @@ import {
 } from "./metasSemanais";
 
 function treino(data: string): SessaoDeTreino {
-  return { id: data, data, treinoId: null, observacao: null, series: [] };
+  return { id: data, data, treinoId: null, observacao: null, duracaoMin: null, series: [] };
 }
 function cardio(data: string, minutos: number | null): CardioSessao {
   return {

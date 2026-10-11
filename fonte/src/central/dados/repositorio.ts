@@ -366,6 +366,7 @@ export interface Repositorio {
     data: string,
     observacao: string,
     series: SerieParaSalvar[],
+    duracaoMin?: number | null,
   ): Promise<void>;
   excluirSessaoTreino(id: string): Promise<void>;
 

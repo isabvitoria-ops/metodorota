@@ -2497,6 +2497,7 @@ const TREINO_DEMO: Treino = {
       repeticoesMin: 8,
       repeticoesMax: 10,
       observacao: null,
+      videoUrl: null,
     },
     {
       id: "ex-leg",
@@ -2506,10 +2507,9 @@ const TREINO_DEMO: Treino = {
       repeticoesMin: 10,
       repeticoesMax: 12,
       observacao: null,
+      videoUrl: null,
     },
     {
-      // Exercício sem carga: a coluna de carga fica em travessão, não em
-      // zero — e a evolução dele é por repetição.
       id: "ex-prancha",
       nome: "Prancha",
       ordem: 2,
@@ -2517,6 +2517,7 @@ const TREINO_DEMO: Treino = {
       repeticoesMin: null,
       repeticoesMax: null,
       observacao: "Segundos, não repetições.",
+      videoUrl: null,
     },
   ],
 };
@@ -2544,6 +2545,7 @@ const SESSOES_DEMO: SessaoDeTreino[] = (() => {
         data: diasAtras(dia),
         treinoId: "treino-demo",
         observacao: null,
+        duracaoMin: 40 + i * 5,
         series: [
           {
             id: `s-${i}-1`,

@@ -1167,6 +1167,7 @@ export const repositorioSupabase: Repositorio = {
     data: string,
     observacao: string,
     series: SerieParaSalvar[],
+    duracaoMin?: number | null,
   ) {
     const sb = exigirSupabase();
     const { error } = await sb.rpc("registrar_sessao_treino", {
@@ -1175,6 +1176,7 @@ export const repositorioSupabase: Repositorio = {
       p_treino: treinoId,
       p_data: data,
       p_observacao: observacao,
+      p_duracao_min: duracaoMin ?? null,
       // Número de verdade, não o texto digitado: o banco não lê "22,5" e
       // derrubava o treino inteiro por causa de uma vírgula.
       p_series: series.map((s) => ({
@@ -2674,6 +2676,7 @@ function lerTreino(linha: Linha): Treino {
       repeticoesMin: numeroOuNulo(e.repeticoesMin),
       repeticoesMax: numeroOuNulo(e.repeticoesMax),
       observacao: textoOuNulo(e.observacao),
+      videoUrl: textoOuNulo(e.videoUrl),
     })),
   };
 }
@@ -2684,6 +2687,7 @@ function lerSessao(linha: Linha): SessaoDeTreino {
     data: texto(linha.data),
     treinoId: textoOuNulo(linha.treinoId),
     observacao: textoOuNulo(linha.observacao),
+    duracaoMin: numeroOuNulo(linha.duracaoMin),
     series: ((linha.series ?? []) as Linha[]).map((s, i) => ({
       id: texto(s.id),
       exercicioId: textoOuNulo(s.exercicioId),

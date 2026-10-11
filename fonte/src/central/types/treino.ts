@@ -23,6 +23,7 @@ export interface ExercicioPlanejado {
   repeticoesMin: number | null;
   repeticoesMax: number | null;
   observacao: string | null;
+  videoUrl: string | null;
 }
 
 /**
@@ -87,6 +88,7 @@ export interface SessaoDeTreino {
   data: string;
   treinoId: string | null;
   observacao: string | null;
+  duracaoMin: number | null;
   series: SerieDaSessao[];
 }
 
@@ -97,6 +99,7 @@ export interface ExercicioParaSalvar {
   repeticoesMin: string;
   repeticoesMax: string;
   observacao: string;
+  videoUrl: string;
 }
 
 export interface SerieParaSalvar {

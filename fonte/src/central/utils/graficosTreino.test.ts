@@ -21,7 +21,7 @@ function serie(nome: string, numero: number, carga: number | null, reps: number 
 }
 
 function sessao(data: string, series: SerieDaSessao[]): SessaoDeTreino {
-  return { id: data, data, treinoId: null, observacao: null, series };
+  return { id: data, data, treinoId: null, observacao: null, duracaoMin: null, series };
 }
 
 function cardio(data: string, minutos: number | null): CardioSessao {

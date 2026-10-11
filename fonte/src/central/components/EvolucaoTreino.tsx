@@ -124,6 +124,8 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
         aoMudar={carregar}
       />
 
+      {sessoes.length > 0 && <ResumoSessoes sessoes={sessoes} />}
+
       {sessoes.length === 0 ? (
         <div className="c-bloco" style={{ marginTop: 14 }}>
           <p className="c-item-protocolo-nome">Nenhum treino registrado ainda</p>
@@ -209,6 +211,16 @@ function PlanoDoTreino({ treino, aoRegistrar }: { treino: Treino; aoRegistrar: (
               <span className="c-item-protocolo-quantidade">{faixaEmTexto(e)}</span>
             </div>
             {e.observacao && <p className="c-item-protocolo-trocas">{e.observacao}</p>}
+            {e.videoUrl && (
+              <a
+                href={e.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="c-link-video"
+              >
+                ▶ Ver demonstração
+              </a>
+            )}
           </div>
         ))}
       </div>
@@ -234,6 +246,35 @@ function faixaEmTexto(e: {
 
 function numero(v: number | null): string {
   return v === null ? "—" : v.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+}
+
+function ResumoSessoes({ sessoes }: { sessoes: SessaoDeTreino[] }) {
+  const ultimas = [...sessoes]
+    .sort((a, b) => b.data.localeCompare(a.data))
+    .slice(0, 5);
+
+  const algumaDuracao = ultimas.some((s) => s.duracaoMin !== null);
+  if (!algumaDuracao) return null;
+
+  return (
+    <section className="c-secao">
+      <h2 className="c-secao-titulo">Últimos treinos</h2>
+      <div className="c-bloco">
+        {ultimas.map((s) => (
+          <div className="c-item-protocolo" key={s.id}>
+            <div className="c-item-protocolo-linha">
+              <span className="c-item-protocolo-nome">{dataBonita(s.data)}</span>
+              <span className="c-item-protocolo-quantidade">
+                {s.duracaoMin !== null ? `${s.duracaoMin} min` : ""}
+                {s.series.length > 0 ? ` · ${s.series.length} séries` : ""}
+              </span>
+            </div>
+            {s.observacao && <p className="c-item-protocolo-trocas">{s.observacao}</p>}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 /**
@@ -337,13 +378,12 @@ function HistoricoDoExercicio({
 }
 
 /**
- * O formulário de registro: uma linha por série, com carga e repetições.
+ * O formulário de registro, um card por exercício.
  *
- * Nasce com as séries que a profissional programou — três séries
- * programadas viram três linhas em branco. Digitar do zero toda vez seria
- * trabalho que o plano já resolveu; e a paciente pode acrescentar ou tirar
- * linha, porque o que ela FEZ pode não ser o que estava programado, e é o
- * que ela fez que vale aqui.
+ * Cada exercício do plano vira um card com as séries programadas já
+ * abertas. A paciente preenche carga e repetições dentro do card, e pode
+ * acrescentar ou tirar série — o que ela FEZ pode não ser o que estava
+ * programado.
  */
 function RegistrarSessao({
   treino,
@@ -354,11 +394,10 @@ function RegistrarSessao({
   aoFechar: () => void;
   aoSalvar: () => Promise<void>;
 }) {
-  // Horário de Brasília, não o UTC: das 21h à meia-noite o UTC já é amanhã,
-  // e o banco recusava o treino como "data futura".
   const hoje = hojeSaoPaulo();
   const [data, definirData] = useState(hoje);
   const [observacao, definirObservacao] = useState("");
+  const [duracao, definirDuracao] = useState("");
   const [series, definirSeries] = useState<SerieParaSalvar[]>(() => seriesIniciais(treino));
   const [salvando, definirSalvando] = useState(false);
   const [aviso, definirAviso] = useState<string | null>(null);
@@ -369,16 +408,29 @@ function RegistrarSessao({
     );
   };
 
+  const adicionarSerie = (exercicioId: string | null, exercicioNome: string) => {
+    const doExercicio = series.filter((s) => s.exercicioNome === exercicioNome);
+    let pos = series.length;
+    for (let k = series.length - 1; k >= 0; k--) {
+      if (series[k]!.exercicioNome === exercicioNome) { pos = k + 1; break; }
+    }
+    definirSeries((antes) => [
+      ...antes.slice(0, pos),
+      { exercicioId, exercicioNome, numero: doExercicio.length + 1, carga: "", repeticoes: "", observacao: "" },
+      ...antes.slice(pos),
+    ]);
+  };
+
+  const tirarSerie = (i: number) => {
+    definirSeries((antes) => antes.filter((_, j) => j !== i));
+  };
+
   const salvar = async () => {
-    // Série sem repetição não é série feita. Mandando tudo, uma linha em
-    // branco viraria "0 repetições" no histórico dela.
     const feitas = series.filter((s) => s.repeticoes.trim() !== "");
     if (feitas.length === 0) {
       definirAviso("Preencha as repetições de pelo menos uma série.");
       return;
     }
-    // Conferido aqui, com o nome do exercício, em vez de deixar o banco
-    // recusar o treino inteiro com uma mensagem técnica.
     for (const s of feitas) {
       const qual = `${s.exercicioNome}, série ${s.numero || ""}`.replace(/, série $/, "");
       if (naoEntendido(s.carga)) {
@@ -391,6 +443,11 @@ function RegistrarSessao({
         return;
       }
     }
+    const duracaoNum = duracao.trim() ? numeroDeTexto(duracao) : null;
+    if (duracao.trim() && (duracaoNum === null || duracaoNum <= 0)) {
+      definirAviso("A duração precisa ser um número positivo, como 45.");
+      return;
+    }
     definirSalvando(true);
     definirAviso(null);
     try {
@@ -401,6 +458,7 @@ function RegistrarSessao({
         data,
         observacao,
         feitas.map((s, i) => ({ ...s, numero: i + 1 })),
+        duracaoNum ? Math.round(duracaoNum) : null,
       );
       await aoSalvar();
     } catch (e) {
@@ -409,61 +467,105 @@ function RegistrarSessao({
     }
   };
 
+  const exerciciosAgrupados = agruparPorExercicio(series);
+
   return (
     <section className="c-secao c-registrar-treino">
       <h2 className="c-secao-titulo">Registrar treino</h2>
+
+      <div className="c-bloco">
+        <div className="c-duas-colunas">
+          <label className="c-campo">
+            <span>Data</span>
+            <input
+              type="date"
+              value={data}
+              max={hoje}
+              onChange={(e) => definirData(e.target.value)}
+            />
+          </label>
+          <label className="c-campo">
+            <span>Duração (min)</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={duracao}
+              placeholder="—"
+              onChange={(e) => definirDuracao(e.target.value)}
+            />
+          </label>
+        </div>
+      </div>
+
+      {exerciciosAgrupados.map((grupo) => {
+        const exercicioPlano = treino.exercicios.find((e) => e.nome === grupo.nome);
+        return (
+          <div className="c-bloco c-card-exercicio" key={grupo.nome}>
+            <div className="c-card-exercicio-topo">
+              <strong>{grupo.nome}</strong>
+              {exercicioPlano && (
+                <span className="c-card-exercicio-faixa">{faixaEmTexto(exercicioPlano)}</span>
+              )}
+            </div>
+            {exercicioPlano?.videoUrl && (
+              <a
+                href={exercicioPlano.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="c-link-video"
+              >
+                ▶ Ver demonstração
+              </a>
+            )}
+            {grupo.series.map((s) => (
+              <div className="c-serie-linha" key={s.indiceGlobal}>
+                <span className="c-serie-numero">{s.numeroDentro}</span>
+                <label className="c-serie-campo">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={s.serie.carga}
+                    placeholder="kg"
+                    aria-label={`${grupo.nome}, série ${s.numeroDentro}, carga`}
+                    onChange={(e) => mudar(s.indiceGlobal, "carga", e.target.value)}
+                  />
+                </label>
+                <span className="c-serie-x" aria-hidden="true">×</span>
+                <label className="c-serie-campo">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={s.serie.repeticoes}
+                    placeholder="reps"
+                    aria-label={`${grupo.nome}, série ${s.numeroDentro}, repetições`}
+                    onChange={(e) => mudar(s.indiceGlobal, "repeticoes", e.target.value)}
+                  />
+                </label>
+                {grupo.series.length > 1 && (
+                  <button
+                    type="button"
+                    className="c-serie-tirar"
+                    aria-label={`Tirar série ${s.numeroDentro}`}
+                    onClick={() => tirarSerie(s.indiceGlobal)}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              className="c-botao-texto"
+              onClick={() => adicionarSerie(grupo.series[0]?.serie.exercicioId ?? null, grupo.nome)}
+            >
+              + série
+            </button>
+          </div>
+        );
+      })}
+
       <div className="c-bloco">
         <label className="c-campo">
-          <span>Data</span>
-          {/* `max` de hoje: o banco recusa data futura, e é melhor o
-              calendário nem oferecer do que a mensagem de erro depois. */}
-          <input
-            type="date"
-            value={data}
-            max={hoje}
-            onChange={(e) => definirData(e.target.value)}
-          />
-        </label>
-
-        <div className="c-tabela-rolagem" style={{ marginTop: 10 }}>
-          <table className="c-tabela-medidas c-tabela-registro">
-            <thead>
-              <tr>
-                <th scope="col">Exercício</th>
-                <th scope="col">Série</th>
-                <th scope="col">Carga (kg)</th>
-                <th scope="col">Repetições</th>
-              </tr>
-            </thead>
-            <tbody>
-              {series.map((s, i) => (
-                <tr key={`${s.exercicioNome}-${i}`}>
-                  <th scope="row">{s.exercicioNome}</th>
-                  <td>{i + 1 - series.findIndex((x) => x.exercicioNome === s.exercicioNome)}</td>
-                  <td>
-                    <input
-                      type="text"
-                      inputMode="decimal"
-                      value={s.carga}
-                      placeholder="—"
-                      onChange={(e) => mudar(i, "carga", e.target.value)}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      value={s.repeticoes}
-                      onChange={(e) => mudar(i, "repeticoes", e.target.value)}
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <label className="c-campo" style={{ marginTop: 10 }}>
           <span>Alguma observação? (opcional)</span>
           <textarea
             rows={2}
@@ -471,24 +573,45 @@ function RegistrarSessao({
             onChange={(e) => definirObservacao(e.target.value)}
           />
         </label>
+      </div>
 
-        {aviso && (
-          <div className="c-aviso c-aviso-erro" role="alert">
-            <span>{aviso}</span>
-          </div>
-        )}
-
-        <div className="c-linha-botoes-treino">
-          <button type="button" className="c-botao" disabled={salvando} onClick={() => void salvar()}>
-            {salvando ? "Registrando…" : "Registrar"}
-          </button>
-          <button type="button" className="c-botao c-botao-secundario" onClick={aoFechar}>
-            Cancelar
-          </button>
+      {aviso && (
+        <div className="c-aviso c-aviso-erro" role="alert">
+          <span>{aviso}</span>
         </div>
+      )}
+
+      <div className="c-linha-botoes-treino">
+        <button type="button" className="c-botao" disabled={salvando} onClick={() => void salvar()}>
+          {salvando ? "Registrando…" : "Registrar"}
+        </button>
+        <button type="button" className="c-botao c-botao-secundario" onClick={aoFechar}>
+          Cancelar
+        </button>
       </div>
     </section>
   );
+}
+
+interface GrupoDeExercicio {
+  nome: string;
+  series: { serie: SerieParaSalvar; indiceGlobal: number; numeroDentro: number }[];
+}
+
+function agruparPorExercicio(series: SerieParaSalvar[]): GrupoDeExercicio[] {
+  const grupos: GrupoDeExercicio[] = [];
+  const mapa = new Map<string, GrupoDeExercicio>();
+  for (let i = 0; i < series.length; i++) {
+    const s = series[i]!;
+    let grupo = mapa.get(s.exercicioNome);
+    if (!grupo) {
+      grupo = { nome: s.exercicioNome, series: [] };
+      mapa.set(s.exercicioNome, grupo);
+      grupos.push(grupo);
+    }
+    grupo.series.push({ serie: s, indiceGlobal: i, numeroDentro: grupo.series.length + 1 });
+  }
+  return grupos;
 }
 
 function seriesIniciais(treino: Treino): SerieParaSalvar[] {

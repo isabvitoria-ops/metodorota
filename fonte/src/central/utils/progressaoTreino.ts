@@ -279,3 +279,22 @@ export function evolucaoDoExercicio(
 export function volumeDaSessao(series: SerieRealizada[]): number {
   return series.reduce((total, s) => total + (s.carga ?? 0) * (s.repeticoes ?? 0), 0);
 }
+
+/**
+ * Um treino "que conta": ≥ 20 minutos E pelo menos metade das séries
+ * planejadas preenchidas.
+ *
+ * Não é julgamento — é o critério que separa "treinou de verdade" de
+ * "passou na academia e fez um exercício". A meta semanal usa isso
+ * para contar. Sem duração registrada, conta como treino (a paciente
+ * não é obrigada a preencher duração).
+ */
+export function treinoQueConta(
+  sessao: { duracaoMin: number | null; series: { repeticoes: number | null }[] },
+  seriesPlanejadas: number,
+): boolean {
+  if (sessao.duracaoMin !== null && sessao.duracaoMin < 20) return false;
+  if (seriesPlanejadas <= 0) return true;
+  const seriesFeitas = sessao.series.filter((s) => (s.repeticoes ?? 0) > 0).length;
+  return seriesFeitas >= seriesPlanejadas / 2;
+}

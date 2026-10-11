@@ -31,6 +31,7 @@ const EXERCICIO_VAZIO: ExercicioParaSalvar = {
   repeticoesMin: "",
   repeticoesMax: "",
   observacao: "",
+  videoUrl: "",
 };
 
 export function MeuTreino({
@@ -206,6 +207,7 @@ function Editor({
           repeticoesMin: e.repeticoesMin === null ? "" : String(e.repeticoesMin),
           repeticoesMax: e.repeticoesMax === null ? "" : String(e.repeticoesMax),
           observacao: e.observacao ?? "",
+          videoUrl: e.videoUrl ?? "",
         }))
       : [{ ...EXERCICIO_VAZIO }],
   );
@@ -334,6 +336,16 @@ function Editor({
               value={e.observacao}
               placeholder="Sem descer demais."
               onChange={(ev) => mudar(i, "observacao", ev.target.value)}
+            />
+          </label>
+
+          <label className="c-campo">
+            <span>Vídeo de demonstração (opcional)</span>
+            <input
+              type="url"
+              value={e.videoUrl}
+              placeholder="https://youtube.com/watch?v=..."
+              onChange={(ev) => mudar(i, "videoUrl", ev.target.value)}
             />
           </label>
         </div>

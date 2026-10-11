@@ -248,6 +248,7 @@ const EXERCICIO_VAZIO: ExercicioParaSalvar = {
   repeticoesMin: "",
   repeticoesMax: "",
   observacao: "",
+  videoUrl: "",
 };
 
 function EditorDoPlano({
@@ -383,6 +384,10 @@ function EditorDoPlano({
           <Campo rotulo="Observação (opcional)">
             <Texto valor={e.observacao} aoMudar={(v) => mudar(i, "observacao", v)} />
           </Campo>
+
+          <Campo rotulo="Vídeo de demonstração (opcional)" dica="Link de YouTube mostrando o exercício.">
+            <Texto valor={e.videoUrl} aoMudar={(v) => mudar(i, "videoUrl", v)} placeholder="https://youtube.com/watch?v=..." />
+          </Campo>
         </div>
       ))}
 
@@ -440,6 +445,7 @@ function deTreino(t: Treino): ExercicioParaSalvar[] {
     repeticoesMin: texto(e.repeticoesMin),
     repeticoesMax: texto(e.repeticoesMax),
     observacao: e.observacao ?? "",
+    videoUrl: e.videoUrl ?? "",
   }));
 }
 
