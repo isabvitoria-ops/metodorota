@@ -11,6 +11,22 @@
  * ou monta treino. O aplicativo registra, compara e mostra.
  */
 
+/**
+ * Um bloco de séries dentro de um exercício.
+ *
+ * Um agachamento pode ter: Warm up (1×12-15), Feeder (2×2-5),
+ * Working (3×6-8). Cada bloco é uma faixa com tipo, número de séries
+ * e range de repetições. Quando o array é vazio ou ausente, valem os
+ * campos legados (seriesPlanejadas / repeticoesMin / repeticoesMax).
+ */
+export interface FaixaPlanejada {
+  tipo: string;
+  series: number;
+  repMin: number | null;
+  repMax: number | null;
+  metodo: string | null;
+}
+
 export interface ExercicioPlanejado {
   id: string;
   nome: string;
@@ -24,6 +40,7 @@ export interface ExercicioPlanejado {
   repeticoesMax: number | null;
   observacao: string | null;
   videoUrl: string | null;
+  faixas: FaixaPlanejada[];
 }
 
 /**
@@ -92,6 +109,14 @@ export interface SessaoDeTreino {
   series: SerieDaSessao[];
 }
 
+export interface FaixaParaSalvar {
+  tipo: string;
+  series: string;
+  repMin: string;
+  repMax: string;
+  metodo: string;
+}
+
 /** O que vai para `salvar_treino`. Campos de texto: é o que a tela tem. */
 export interface ExercicioParaSalvar {
   nome: string;
@@ -100,6 +125,7 @@ export interface ExercicioParaSalvar {
   repeticoesMax: string;
   observacao: string;
   videoUrl: string;
+  faixas: FaixaParaSalvar[];
 }
 
 export interface SerieParaSalvar {

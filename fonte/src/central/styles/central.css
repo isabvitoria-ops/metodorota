@@ -4527,6 +4527,39 @@ body:has(.central) {
   margin-bottom: 0;
 }
 
+.c-faixa-bloco {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  margin-top: 6px;
+  background: var(--surface);
+}
+.c-faixa-bloco .c-bloco-topo,
+.c-faixa-bloco .c-faixa-topo {
+  margin-bottom: 6px;
+}
+.c-faixa-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.c-faixas-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+.c-faixa-tag {
+  display: inline-block;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--muted);
+  color: var(--fg);
+}
+
 
 /* =============================================================================
    A LISTA DE ACOMPANHAMENTO

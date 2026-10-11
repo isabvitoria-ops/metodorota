@@ -3,6 +3,7 @@ import type { Paciente } from "@/central/types";
 import type {
   CardioSessao,
   ExercicioParaSalvar,
+  FaixaParaSalvar,
   MetaSemanal,
   SessaoDeTreino,
   TipoDeMeta,
@@ -242,6 +243,14 @@ function InterruptorDaAba({
   );
 }
 
+const FAIXA_VAZIA: FaixaParaSalvar = {
+  tipo: "",
+  series: "",
+  repMin: "",
+  repMax: "",
+  metodo: "",
+};
+
 const EXERCICIO_VAZIO: ExercicioParaSalvar = {
   nome: "",
   seriesPlanejadas: "",
@@ -249,6 +258,7 @@ const EXERCICIO_VAZIO: ExercicioParaSalvar = {
   repeticoesMax: "",
   observacao: "",
   videoUrl: "",
+  faixas: [],
 };
 
 function EditorDoPlano({
@@ -274,6 +284,27 @@ function EditorDoPlano({
 
   const mudar = (i: number, campo: keyof ExercicioParaSalvar, valor: string) =>
     definirExercicios((antes) => antes.map((e, j) => (i === j ? { ...e, [campo]: valor } : e)));
+
+  const mudarFaixa = (exI: number, fxI: number, campo: keyof FaixaParaSalvar, valor: string) =>
+    definirExercicios((antes) =>
+      antes.map((e, j) =>
+        j === exI
+          ? { ...e, faixas: e.faixas.map((f, k) => (k === fxI ? { ...f, [campo]: valor } : f)) }
+          : e,
+      ),
+    );
+
+  const adicionarFaixa = (exI: number) =>
+    definirExercicios((antes) =>
+      antes.map((e, j) => (j === exI ? { ...e, faixas: [...e.faixas, { ...FAIXA_VAZIA }] } : e)),
+    );
+
+  const tirarFaixa = (exI: number, fxI: number) =>
+    definirExercicios((antes) =>
+      antes.map((e, j) =>
+        j === exI ? { ...e, faixas: e.faixas.filter((_, k) => k !== fxI) } : e,
+      ),
+    );
 
   const salvar = async () => {
     // Exercício sem nome não vira exercício: é o que sobra de uma linha em
@@ -388,6 +419,51 @@ function EditorDoPlano({
           <Campo rotulo="Vídeo de demonstração (opcional)" dica="Link de YouTube mostrando o exercício.">
             <Texto valor={e.videoUrl} aoMudar={(v) => mudar(i, "videoUrl", v)} placeholder="https://youtube.com/watch?v=..." />
           </Campo>
+
+          {e.faixas.length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              <p className="c-dica" style={{ fontSize: 12, marginBottom: 4 }}>Faixas de série</p>
+              {e.faixas.map((f, fi) => (
+                <div className="c-faixa-bloco" key={fi}>
+                  <div className="c-bloco-topo">
+                    <strong style={{ fontSize: 13 }}>{f.tipo || `Faixa ${fi + 1}`}</strong>
+                    <button
+                      type="button"
+                      className="c-botao c-botao-pequeno c-botao-perigo"
+                      onClick={() => tirarFaixa(i, fi)}
+                    >
+                      Tirar
+                    </button>
+                  </div>
+                  <div className="c-linha-medidas">
+                    <Campo rotulo="Tipo">
+                      <Texto valor={f.tipo} aoMudar={(v) => mudarFaixa(i, fi, "tipo", v)} placeholder="Working" />
+                    </Campo>
+                    <Campo rotulo="Séries">
+                      <Texto valor={f.series} aoMudar={(v) => mudarFaixa(i, fi, "series", v)} />
+                    </Campo>
+                    <Campo rotulo="Rep. de">
+                      <Texto valor={f.repMin} aoMudar={(v) => mudarFaixa(i, fi, "repMin", v)} />
+                    </Campo>
+                    <Campo rotulo="até">
+                      <Texto valor={f.repMax} aoMudar={(v) => mudarFaixa(i, fi, "repMax", v)} />
+                    </Campo>
+                  </div>
+                  <Campo rotulo="Método (opcional)">
+                    <Texto valor={f.metodo} aoMudar={(v) => mudarFaixa(i, fi, "metodo", v)} placeholder="FALHA, drop set…" />
+                  </Campo>
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            className="c-botao-texto"
+            style={{ marginTop: 4 }}
+            onClick={() => adicionarFaixa(i)}
+          >
+            + faixa de série
+          </button>
         </div>
       ))}
 
@@ -446,6 +522,13 @@ function deTreino(t: Treino): ExercicioParaSalvar[] {
     repeticoesMax: texto(e.repeticoesMax),
     observacao: e.observacao ?? "",
     videoUrl: e.videoUrl ?? "",
+    faixas: (e.faixas ?? []).map((f) => ({
+      tipo: f.tipo,
+      series: texto(f.series),
+      repMin: texto(f.repMin),
+      repMax: texto(f.repMax),
+      metodo: f.metodo ?? "",
+    })),
   }));
 }
 

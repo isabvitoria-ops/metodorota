@@ -2677,6 +2677,13 @@ function lerTreino(linha: Linha): Treino {
       repeticoesMax: numeroOuNulo(e.repeticoesMax),
       observacao: textoOuNulo(e.observacao),
       videoUrl: textoOuNulo(e.videoUrl),
+      faixas: (Array.isArray(e.faixas) ? e.faixas : []).map((f: Linha) => ({
+        tipo: texto(f.tipo),
+        series: numeroOuNulo(f.series) ?? 0,
+        repMin: numeroOuNulo(f.repMin),
+        repMax: numeroOuNulo(f.repMax),
+        metodo: textoOuNulo(f.metodo),
+      })),
     })),
   };
 }

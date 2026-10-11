@@ -2498,6 +2498,7 @@ const TREINO_DEMO: Treino = {
       repeticoesMax: 10,
       observacao: null,
       videoUrl: null,
+      faixas: [],
     },
     {
       id: "ex-leg",
@@ -2508,6 +2509,7 @@ const TREINO_DEMO: Treino = {
       repeticoesMax: 12,
       observacao: null,
       videoUrl: null,
+      faixas: [],
     },
     {
       id: "ex-prancha",
@@ -2518,6 +2520,7 @@ const TREINO_DEMO: Treino = {
       repeticoesMax: null,
       observacao: "Segundos, não repetições.",
       videoUrl: null,
+      faixas: [],
     },
   ],
 };

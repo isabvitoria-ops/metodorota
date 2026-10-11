@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from "react";
 import type {
   CardioSessao,
+  ExercicioPlanejado,
   MetaSemanal,
   PermissaoDeTreino,
   SerieParaSalvar,
@@ -208,8 +209,17 @@ function PlanoDoTreino({ treino, aoRegistrar }: { treino: Treino; aoRegistrar: (
           <div className="c-item-protocolo" key={e.id}>
             <div className="c-item-protocolo-linha">
               <span className="c-item-protocolo-nome">{e.nome}</span>
-              <span className="c-item-protocolo-quantidade">{faixaEmTexto(e)}</span>
+              {(!e.faixas || e.faixas.length === 0) && (
+                <span className="c-item-protocolo-quantidade">{faixaEmTexto(e)}</span>
+              )}
             </div>
+            {e.faixas && e.faixas.length > 0 && (
+              <div className="c-faixas-lista">
+                {e.faixas.map((f, fi) => (
+                  <span key={fi} className="c-faixa-tag">{faixaUnicaEmTexto(f)}</span>
+                ))}
+              </div>
+            )}
             {e.observacao && <p className="c-item-protocolo-trocas">{e.observacao}</p>}
             {e.videoUrl && (
               <a
@@ -231,11 +241,29 @@ function PlanoDoTreino({ treino, aoRegistrar }: { treino: Treino; aoRegistrar: (
   );
 }
 
-function faixaEmTexto(e: {
-  seriesPlanejadas: number | null;
-  repeticoesMin: number | null;
-  repeticoesMax: number | null;
+function faixaUnicaEmTexto(f: {
+  series: number;
+  repMin: number | null;
+  repMax: number | null;
+  tipo?: string;
+  metodo?: string | null;
 }): string {
+  const partes: string[] = [];
+  if (f.tipo) partes.push(f.tipo);
+  const rep =
+    f.repMin && f.repMax ? `${f.repMin}–${f.repMax}`
+    : f.repMax ? `até ${f.repMax}`
+    : f.repMin ? `${f.repMin}+`
+    : null;
+  partes.push(rep ? `${f.series}×${rep}` : `${f.series} séries`);
+  if (f.metodo) partes.push(f.metodo);
+  return partes.join(" ");
+}
+
+function faixaEmTexto(e: ExercicioPlanejado): string {
+  if (e.faixas && e.faixas.length > 0) {
+    return e.faixas.map(faixaUnicaEmTexto).join(", ");
+  }
   const partes: string[] = [];
   if (e.seriesPlanejadas) partes.push(`${e.seriesPlanejadas} séries`);
   if (e.repeticoesMin && e.repeticoesMax) partes.push(`${e.repeticoesMin}–${e.repeticoesMax} rep.`);
@@ -617,7 +645,13 @@ function agruparPorExercicio(series: SerieParaSalvar[]): GrupoDeExercicio[] {
 function seriesIniciais(treino: Treino): SerieParaSalvar[] {
   const saida: SerieParaSalvar[] = [];
   for (const e of treino.exercicios) {
-    const quantas = Math.min(Math.max(e.seriesPlanejadas ?? 1, 1), 10);
+    let total: number;
+    if (e.faixas && e.faixas.length > 0) {
+      total = e.faixas.reduce((acc, f) => acc + Math.max(f.series, 1), 0);
+    } else {
+      total = e.seriesPlanejadas ?? 1;
+    }
+    const quantas = Math.min(Math.max(total, 1), 20);
     for (let i = 0; i < quantas; i += 1) {
       saida.push({
         exercicioId: e.id,

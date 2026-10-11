@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type {
   ExercicioParaSalvar,
+  FaixaParaSalvar,
   PermissaoDeTreino,
   Treino,
 } from "@/central/types/treino";
@@ -25,6 +26,14 @@ import { repositorio } from "@/central/dados/repositorio";
  *     de verdade é do banco (`salvar_treino`); o que está aqui é só a
  *     cortesia de não oferecer um botão que não funcionaria.
  */
+const FAIXA_VAZIA: FaixaParaSalvar = {
+  tipo: "",
+  series: "",
+  repMin: "",
+  repMax: "",
+  metodo: "",
+};
+
 const EXERCICIO_VAZIO: ExercicioParaSalvar = {
   nome: "",
   seriesPlanejadas: "",
@@ -32,6 +41,7 @@ const EXERCICIO_VAZIO: ExercicioParaSalvar = {
   repeticoesMax: "",
   observacao: "",
   videoUrl: "",
+  faixas: [],
 };
 
 export function MeuTreino({
@@ -208,6 +218,13 @@ function Editor({
           repeticoesMax: e.repeticoesMax === null ? "" : String(e.repeticoesMax),
           observacao: e.observacao ?? "",
           videoUrl: e.videoUrl ?? "",
+          faixas: (e.faixas ?? []).map((f) => ({
+            tipo: f.tipo,
+            series: f.series === null ? "" : String(f.series),
+            repMin: f.repMin === null ? "" : String(f.repMin),
+            repMax: f.repMax === null ? "" : String(f.repMax),
+            metodo: f.metodo ?? "",
+          })),
         }))
       : [{ ...EXERCICIO_VAZIO }],
   );
@@ -216,6 +233,27 @@ function Editor({
 
   const mudar = (i: number, campo: keyof ExercicioParaSalvar, valor: string) =>
     definirExercicios((antes) => antes.map((e, j) => (i === j ? { ...e, [campo]: valor } : e)));
+
+  const mudarFaixa = (exI: number, fxI: number, campo: keyof FaixaParaSalvar, valor: string) =>
+    definirExercicios((antes) =>
+      antes.map((e, j) =>
+        j === exI
+          ? { ...e, faixas: e.faixas.map((f, k) => (k === fxI ? { ...f, [campo]: valor } : f)) }
+          : e,
+      ),
+    );
+
+  const adicionarFaixa = (exI: number) =>
+    definirExercicios((antes) =>
+      antes.map((e, j) => (j === exI ? { ...e, faixas: [...e.faixas, { ...FAIXA_VAZIA }] } : e)),
+    );
+
+  const tirarFaixa = (exI: number, fxI: number) =>
+    definirExercicios((antes) =>
+      antes.map((e, j) =>
+        j === exI ? { ...e, faixas: e.faixas.filter((_, k) => k !== fxI) } : e,
+      ),
+    );
 
   async function salvar() {
     // Linha em branco não vira exercício — viraria um exercício sem nome na
@@ -348,6 +386,58 @@ function Editor({
               onChange={(ev) => mudar(i, "videoUrl", ev.target.value)}
             />
           </label>
+
+          {e.faixas.length > 0 && (
+            <div style={{ marginTop: 8 }}>
+              <span className="c-dica" style={{ fontSize: 12 }}>Faixas de série</span>
+              {e.faixas.map((f, fi) => (
+                <div className="c-faixa-bloco" key={fi}>
+                  <div className="c-faixa-topo">
+                    <span className="c-dica" style={{ fontSize: 12 }}>{f.tipo || `Faixa ${fi + 1}`}</span>
+                    <button
+                      type="button"
+                      className="c-botao c-botao-pequeno c-botao-secundario"
+                      onClick={() => tirarFaixa(i, fi)}
+                    >
+                      Tirar
+                    </button>
+                  </div>
+                  <div className="c-duas-colunas">
+                    <label className="c-campo">
+                      <span>Tipo</span>
+                      <input type="text" value={f.tipo} placeholder="Working" onChange={(ev) => mudarFaixa(i, fi, "tipo", ev.target.value)} />
+                    </label>
+                    <label className="c-campo">
+                      <span>Séries</span>
+                      <input type="text" inputMode="numeric" value={f.series} placeholder="3" onChange={(ev) => mudarFaixa(i, fi, "series", ev.target.value)} />
+                    </label>
+                  </div>
+                  <div className="c-duas-colunas">
+                    <label className="c-campo">
+                      <span>Rep. de</span>
+                      <input type="text" inputMode="numeric" value={f.repMin} placeholder="—" onChange={(ev) => mudarFaixa(i, fi, "repMin", ev.target.value)} />
+                    </label>
+                    <label className="c-campo">
+                      <span>Rep. até</span>
+                      <input type="text" inputMode="numeric" value={f.repMax} placeholder="—" onChange={(ev) => mudarFaixa(i, fi, "repMax", ev.target.value)} />
+                    </label>
+                  </div>
+                  <label className="c-campo">
+                    <span>Método</span>
+                    <input type="text" value={f.metodo} placeholder="FALHA, drop set…" onChange={(ev) => mudarFaixa(i, fi, "metodo", ev.target.value)} />
+                  </label>
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            className="c-botao-texto"
+            style={{ marginTop: 4 }}
+            onClick={() => adicionarFaixa(i)}
+          >
+            + faixa de série
+          </button>
         </div>
       ))}
 
