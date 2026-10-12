@@ -119,7 +119,7 @@ begin
     update treinos set ativo = false where paciente_id = v_pac and id <> v_tid and ativo;
   end if;
   perform _st_inserir_ex(v_tid, p_exercicios);
-  return '{}'::jsonb;
+  return jsonb_build_object('id', v_tid);
 end;
 $$;
 

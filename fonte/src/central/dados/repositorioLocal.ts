@@ -1155,7 +1155,7 @@ export const repositorioLocal: Repositorio = {
     throw new Error("Liberar a área de treino precisa do banco. Configure o Supabase.");
   },
 
-  async salvarTreino() {
+  async salvarTreino(): Promise<string> {
     throw new Error("Salvar treino precisa do banco. Configure o Supabase.");
   },
 

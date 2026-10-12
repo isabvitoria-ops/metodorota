@@ -317,7 +317,8 @@ function EditorDoPlano({
     definirSalvando(true);
     definirErro(null);
     try {
-      await repositorio.salvarTreino(id, paciente.id, nome, observacao, true, limpos);
+      const novoId = await repositorio.salvarTreino(id, paciente.id, nome, observacao, true, limpos);
+      definirId(novoId);
       definirEstado("Treino salvo e ativo. Ela já vê na tela dela.");
       aoMudar();
     } catch (e) {

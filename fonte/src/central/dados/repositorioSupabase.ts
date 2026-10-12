@@ -1252,9 +1252,9 @@ export const repositorioSupabase: Repositorio = {
     observacao: string,
     ativo: boolean,
     exercicios: ExercicioParaSalvar[],
-  ) {
+  ): Promise<string> {
     const sb = exigirSupabase();
-    const { error } = await sb.rpc("salvar_treino", {
+    const { data, error } = await sb.rpc("salvar_treino", {
       p_id: id,
       p_paciente: pacienteId,
       p_nome: nome,
@@ -1263,6 +1263,7 @@ export const repositorioSupabase: Repositorio = {
       p_exercicios: exercicios,
     });
     erro("salvar o treino", error);
+    return (data as Linha)?.id as string ?? id ?? "";
   },
 
   async excluirTreino(id: string) {

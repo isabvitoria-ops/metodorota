@@ -684,7 +684,7 @@ export interface Repositorio {
     observacao: string,
     ativo: boolean,
     exercicios: ExercicioParaSalvar[],
-  ): Promise<void>;
+  ): Promise<string>;
   excluirTreino(id: string): Promise<void>;
 
   // --------------------------------------------- panorama e consultas
