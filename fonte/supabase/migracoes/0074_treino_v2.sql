@@ -91,7 +91,7 @@ declare
   v_ex       jsonb;
   v_ordem    int := 0;
 begin
-  if tem_papel('admin') then
+  if e_admin() then
     v_paciente := p_paciente;
     v_origem   := 'nutricionista';
   else
@@ -170,13 +170,13 @@ as $$
 declare
   v_paciente uuid;
 begin
-  if p_paciente is not null and tem_papel('admin') then
+  if p_paciente is not null and e_admin() then
     v_paciente := p_paciente;
   else
     v_paciente := meu_paciente_id();
   end if;
   if v_paciente is null then return '[]'::jsonb; end if;
-  if not tem_papel('admin') then
+  if not e_admin() then
     if not treino_liberado(v_paciente) then return '[]'::jsonb; end if;
   end if;
 
@@ -232,7 +232,7 @@ begin
     raise exception 'Data futura não é permitida.';
   end if;
 
-  if tem_papel('admin') then
+  if e_admin() then
     v_paciente := p_paciente;
   else
     v_paciente := meu_paciente_id();
@@ -285,7 +285,7 @@ returns jsonb
 language plpgsql security definer stable
 as $$
 begin
-  if not tem_papel('admin') then
+  if not e_admin() then
     raise exception 'Sem permissão.';
   end if;
 

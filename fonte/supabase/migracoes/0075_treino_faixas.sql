@@ -97,7 +97,7 @@ language plpgsql security definer
 as $$
 declare v_pac uuid; v_ori text; v_tid uuid;
 begin
-  if tem_papel('admin') then v_pac := p_paciente; v_ori := 'nutricionista';
+  if e_admin() then v_pac := p_paciente; v_ori := 'nutricionista';
   else
     v_pac := meu_paciente_id();
     if v_pac is null then raise exception 'Sem cadastro de paciente.'; end if;
@@ -129,7 +129,7 @@ returns jsonb
 language plpgsql security definer stable
 as $$
 begin
-  if not tem_papel('admin') then
+  if not e_admin() then
     raise exception 'Sem permissão.';
   end if;
 
