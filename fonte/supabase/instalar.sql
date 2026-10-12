@@ -20329,12 +20329,12 @@ begin
 
   select * into v_treino from treinos
     where paciente_id = v_paciente and ativo
-    order by created_at desc limit 1;
+    order by criado_em desc limit 1;
 
   if v_treino is null then
     select * into v_treino from treinos
       where paciente_id = v_paciente and origem = 'paciente'
-      order by created_at desc limit 1;
+      order by criado_em desc limit 1;
   end if;
 
   if v_treino is null then return null; end if;
@@ -20463,7 +20463,7 @@ begin
           from treino_exercicios e where e.treino_id = t.id
         ), '[]'::jsonb)
       )
-      order by t.ativo desc, t.created_at desc
+      order by t.ativo desc, t.criado_em desc
     )
     from treinos t where t.paciente_id = p_paciente
   ), '[]'::jsonb);
