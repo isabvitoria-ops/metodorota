@@ -18,11 +18,11 @@ export function AbaAlimentos() {
     if (q.trim()) {
       alimentoService.buscar(q, 40).then((r) => {
         if (ativo) setResultados(r.map((x) => x.alimento));
-      });
+      }).catch(() => {});
     } else {
       alimentoService.listarPorGrupo(grupo).then((r) => {
         if (ativo) setResultados(r.slice(0, 200));
-      });
+      }).catch(() => {});
     }
     return () => {
       ativo = false;
@@ -34,7 +34,7 @@ export function AbaAlimentos() {
       const todos = porGrupo.flat();
       const liberadosSet = new Set(paciente.alimentosLiberadosCodigoTaco);
       setLiberadosDetalhes(todos.filter((a) => liberadosSet.has(a.codigoTaco)));
-    });
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paciente.alimentosLiberadosCodigoTaco.join(",")]);
 

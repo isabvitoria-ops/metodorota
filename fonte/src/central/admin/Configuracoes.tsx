@@ -5,6 +5,7 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { Campo, Texto } from "./componentes/Campos";
 import { BaixarBackup } from "@/central/components/BaixarBackup";
 import { versaoLegivel } from "@/central/utils/versaoDoSite";
+import { numeroDeTexto } from "@/central/utils/numero";
 import type { Cupom } from "@/central/types";
 import { TermoELgpd } from "./TermoELgpd";
 
@@ -50,7 +51,7 @@ export function ConfiguracoesAdmin() {
         comerForaIntroducao: comerFora.trim(),
         whatsapp: numeroLimpo,
         nomeNutricionista: nomeNutricionista.trim(),
-        alertaVencimentoDias: Math.max(1, Number(alerta) || 15),
+        alertaVencimentoDias: Math.max(1, numeroDeTexto(alerta) ?? 15),
         chavePix: chavePix.trim(),
         // Linha pela metade (só marca ou só código) não serve para comprar:
         // some ao salvar, em vez de aparecer quebrada para a paciente.

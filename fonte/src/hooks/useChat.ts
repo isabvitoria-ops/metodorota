@@ -58,7 +58,7 @@ export function useNaoLidasChatInicial(pacienteId: string) {
     let ativo = true;
     chatService.buscarConversaDoPaciente(pacienteId).then((c) => {
       if (ativo && c) definirNaoLidasChat(c.naoLidasParaPaciente);
-    });
+    }).catch(() => {});
     return () => {
       ativo = false;
     };

@@ -156,7 +156,7 @@ function ModalCategoria({
       resumo: resumo.trim() || null,
       icone: icone.trim() || "restaurante",
       logo,
-      ordem: Number(ordem) || 99,
+      ordem: numeroDeTexto(ordem) ?? 99,
       status: status === "publicado" ? "publicado" : "em-preparacao",
       introducao: introducao.trim() || null,
       decisoes,

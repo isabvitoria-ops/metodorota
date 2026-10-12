@@ -1,5 +1,6 @@
 import type { EstabelecimentoComerFora, NivelEscolha, OpcaoComerFora } from "@/central/types";
 import { gerarIdentificador } from "@/central/hooks/useCatalogo";
+import { numeroDeTexto } from "@/central/utils/numero";
 import { AreaTexto, Campo, Selecao, Texto, linhasDeLista, listaDeLinhas } from "./Campos";
 import { CampoLogo } from "./CampoLogo";
 
@@ -101,7 +102,7 @@ export function EditorEstabelecimentos({
             <Campo rotulo="Ordem">
               <Texto
                 valor={String(casa.ordem)}
-                aoMudar={(v) => alterar(iCasa, { ordem: Number(v) || 0 })}
+                aoMudar={(v) => alterar(iCasa, { ordem: numeroDeTexto(v) ?? 0 })}
               />
             </Campo>
           </div>

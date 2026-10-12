@@ -1,9 +1,5 @@
 import { DIAS_SEMANA_ABREV } from "@/constants/textos";
 
-export function hoje(): Date {
-  return new Date();
-}
-
 export function dataMenos(dias: number, base: Date = new Date()): Date {
   const x = new Date(base);
   x.setDate(x.getDate() - dias);

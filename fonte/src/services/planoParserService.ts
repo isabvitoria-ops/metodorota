@@ -22,8 +22,8 @@ function resolverItem(escrito: string, quantidadeTexto: string): PlanoRascunhoIt
   const achados = buscarAlimentos(TACO, escrito, 5);
   const forte = achados.length > 0 && achados[0]!.pontos >= tokensDe(escrito).length * 1.6;
 
-  const quantidadeMatch = quantidadeTexto.match(/^([\d.]+)\s*(.*)$/);
-  const valor = quantidadeMatch ? parseFloat(quantidadeMatch[1]!) : 1;
+  const quantidadeMatch = quantidadeTexto.match(/^([\d.,]+)\s*(.*)$/);
+  const valor = quantidadeMatch ? parseFloat(quantidadeMatch[1]!.replace(",", ".")) : 1;
   const unidade = quantidadeMatch ? quantidadeMatch[2]!.trim() : quantidadeTexto;
 
   return {

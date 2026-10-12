@@ -22,7 +22,7 @@ export function AbaEquivalencias() {
       const lista = todos.filter((a) => liberadosSet.has(a.codigoTaco));
       setLiberados(lista);
       setDeCodigo((atual) => atual ?? lista[0]?.codigoTaco ?? null);
-    });
+    }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paciente.alimentosLiberadosCodigoTaco.join(",")]);
 

@@ -114,7 +114,7 @@ export function Diagnostico() {
           bom: null,
         },
       ]);
-    });
+    }).catch(() => {});
 
     return () => {
       vivo = false;

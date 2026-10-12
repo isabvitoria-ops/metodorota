@@ -10,7 +10,7 @@ export function PainelBase() {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    alimentoService.contarTotal().then(setTotal);
+    alimentoService.contarTotal().then(setTotal).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -18,11 +18,11 @@ export function PainelBase() {
     if (q.trim()) {
       alimentoService.buscar(q, 30).then((r) => {
         if (ativo) setResultados(r.map((x) => x.alimento));
-      });
+      }).catch(() => {});
     } else {
       alimentoService.listarPorGrupo("carb").then((r) => {
         if (ativo) setResultados(r.slice(0, 30));
-      });
+      }).catch(() => {});
     }
     return () => {
       ativo = false;

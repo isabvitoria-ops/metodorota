@@ -513,7 +513,7 @@ function ValorDaPaciente({
       aoErrar(`Não entendi o valor "${quanto}". Escreva como 150,00.`);
       return;
     }
-    const d = diaVenc.trim() === "" ? null : Number(diaVenc);
+    const d = diaVenc.trim() === "" ? null : numeroDeTexto(diaVenc);
     if (d !== null && (!Number.isInteger(d) || d < 1 || d > 28)) {
       aoErrar("O dia do vencimento vai de 1 a 28.");
       return;
