@@ -48,6 +48,7 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
   const [permissao, definirPermissao] = useState<PermissaoDeTreino | null>(null);
   const [carregando, definirCarregando] = useState(true);
   const [registrando, definirRegistrando] = useState<Treino | null>(null);
+  const [treinoAberto, definirTreinoAberto] = useState<string | null>(null);
 
   const daNutri = Boolean(pacienteId);
 
@@ -85,6 +86,7 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
 
   const treino = treinos.length > 0 ? treinos[0]! : null;
   const exercicios = nomesDeExercicioMulti(treinos, sessoes);
+  const aberto = treinos.find((t) => t.id === treinoAberto) ?? null;
 
   return (
     <>
@@ -92,9 +94,23 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
 
       <ComoVoceEvolui />
 
-      {!daNutri && treinos.length > 0 && treinos.map((t) => (
-        <PlanoDoTreino key={t.id} treino={t} aoRegistrar={() => definirRegistrando(t)} />
-      ))}
+      {!daNutri && treinos.length > 1 && !aberto && (
+        <ListaDeTreinos treinos={treinos} aoEscolher={definirTreinoAberto} />
+      )}
+
+      {!daNutri && treinos.length === 1 && (
+        <PlanoDoTreino treino={treinos[0]!} aoRegistrar={() => definirRegistrando(treinos[0]!)} />
+      )}
+
+      {!daNutri && aberto && (
+        <>
+          <PlanoDoTreino
+            treino={aberto}
+            aoRegistrar={() => definirRegistrando(aberto)}
+            aoVoltar={treinos.length > 1 ? () => definirTreinoAberto(null) : undefined}
+          />
+        </>
+      )}
 
       {!daNutri && <MeuTreino treino={treino} permissao={permissao} aoMudar={carregar} />}
 
@@ -191,9 +207,52 @@ function ComoVoceEvolui() {
   );
 }
 
-function PlanoDoTreino({ treino, aoRegistrar }: { treino: Treino; aoRegistrar: () => void }) {
+function ListaDeTreinos({
+  treinos,
+  aoEscolher,
+}: {
+  treinos: Treino[];
+  aoEscolher: (id: string) => void;
+}) {
   return (
     <section className="c-secao">
+      <h2 className="c-secao-titulo">Seus treinos</h2>
+      <div className="c-lista-treinos">
+        {treinos.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className="c-card-treino"
+            onClick={() => aoEscolher(t.id)}
+          >
+            <span className="c-card-treino-rotulo">{t.rotulo ?? t.nome}</span>
+            {t.rotulo && <span className="c-card-treino-nome">{t.nome}</span>}
+            <span className="c-card-treino-qtd">
+              {t.exercicios.length} exercício{t.exercicios.length !== 1 ? "s" : ""}
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PlanoDoTreino({
+  treino,
+  aoRegistrar,
+  aoVoltar,
+}: {
+  treino: Treino;
+  aoRegistrar: () => void;
+  aoVoltar?: () => void;
+}) {
+  return (
+    <section className="c-secao">
+      {aoVoltar && (
+        <button type="button" className="c-voltar-treinos" onClick={aoVoltar}>
+          ← Todos os treinos
+        </button>
+      )}
       {treino.rotulo && <p className="c-secao-rotulo">{treino.rotulo}</p>}
       <h2 className="c-secao-titulo">{treino.nome}</h2>
       {treino.observacao && <p className="c-dica">{treino.observacao}</p>}
