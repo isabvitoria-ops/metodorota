@@ -353,6 +353,14 @@ body:has(.central) {
   margin-top: 28px;
 }
 
+.c-secao-rotulo {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--text-main);
+  margin: 0 0 2px;
+}
+
 .c-secao-titulo,
 .central h2.c-secao-titulo,
 .central h3.c-secao-titulo {

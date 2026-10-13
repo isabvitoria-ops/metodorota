@@ -345,6 +345,9 @@ export interface Repositorio {
   /** O treino ativo da paciente, com os exercícios. Nulo se não há. */
   meuTreino(): Promise<Treino | null>;
 
+  /** Todos os treinos ativos da paciente (splits). */
+  meusTreinos(): Promise<Treino[]>;
+
   /**
    * Se a paciente pode escrever o treino dela agora.
    *
@@ -684,6 +687,7 @@ export interface Repositorio {
     observacao: string,
     ativo: boolean,
     exercicios: ExercicioParaSalvar[],
+    rotulo?: string | null,
   ): Promise<string>;
   excluirTreino(id: string): Promise<void>;
 

@@ -274,6 +274,7 @@ function EditorDoPlano({
 
   const [id, definirId] = useState<string | null>(ativo?.id ?? null);
   const [nome, definirNome] = useState(ativo?.nome ?? "Treino A");
+  const [rotulo, definirRotulo] = useState(ativo?.rotulo ?? "");
   const [observacao, definirObservacao] = useState(ativo?.observacao ?? "");
   const [exercicios, definirExercicios] = useState<ExercicioParaSalvar[]>(() =>
     ativo ? deTreino(ativo) : [{ ...EXERCICIO_VAZIO }],
@@ -317,7 +318,7 @@ function EditorDoPlano({
     definirSalvando(true);
     definirErro(null);
     try {
-      const novoId = await repositorio.salvarTreino(id, paciente.id, nome, observacao, true, limpos);
+      const novoId = await repositorio.salvarTreino(id, paciente.id, nome, observacao, true, limpos, rotulo || null);
       definirId(novoId);
       definirEstado("Treino salvo e ativo. Ela já vê na tela dela.");
       aoMudar();
@@ -332,6 +333,7 @@ function EditorDoPlano({
     const t = treinos.find((x) => x.id === novoId);
     definirId(t?.id ?? null);
     definirNome(t?.nome ?? "Treino novo");
+    definirRotulo(t?.rotulo ?? "");
     definirObservacao(t?.observacao ?? "");
     definirExercicios(t ? deTreino(t) : [{ ...EXERCICIO_VAZIO }]);
     definirEstado(null);
@@ -347,11 +349,7 @@ function EditorDoPlano({
             opcoes={[
               ...treinos.map((t) => ({
                 valor: t.id,
-                // De quem é o treino vai no rótulo, e não só numa nota
-                // embaixo: a lista é onde ela escolhe qual abrir, e escolher
-                // sem saber que aquele foi escrito pela paciente é editar o
-                // texto de outra pessoa achando que é o seu.
-                rotulo: `${t.nome}${t.ativo ? " — ativo" : ""}${
+                rotulo: `${t.rotulo ? `${t.rotulo} — ` : ""}${t.nome}${t.ativo ? " ✓" : ""}${
                   t.origem === "paciente" ? " · escrito pela paciente" : ""
                 }`,
               })),
@@ -369,7 +367,11 @@ function EditorDoPlano({
       )}
 
       <Campo rotulo="Nome do treino">
-        <Texto valor={nome} aoMudar={definirNome} placeholder="Treino A — inferiores" />
+        <Texto valor={nome} aoMudar={definirNome} placeholder="Quadríceps e glúteo" />
+      </Campo>
+
+      <Campo rotulo="Rótulo (opcional)" dica="Dia da semana ou letra do split: Segunda, Treino A…">
+        <Texto valor={rotulo} aoMudar={definirRotulo} placeholder="Segunda" />
       </Campo>
 
       <Campo rotulo="Observação (opcional)" dica="Aparece no topo da tela dela.">

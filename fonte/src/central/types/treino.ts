@@ -55,8 +55,9 @@ export type OrigemDoTreino = "nutricionista" | "paciente";
 export interface Treino {
   id: string;
   nome: string;
+  /** Rótulo livre: "Segunda", "Treino A", o que a nutri quiser. */
+  rotulo: string | null;
   observacao: string | null;
-  /** Só um treino fica ativo por paciente. É o que ela vê para registrar. */
   ativo: boolean;
   origem: OrigemDoTreino;
   /**

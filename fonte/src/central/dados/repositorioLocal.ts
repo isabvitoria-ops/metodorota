@@ -1091,6 +1091,10 @@ export const repositorioLocal: Repositorio = {
     return TREINO_DEMO;
   },
 
+  async meusTreinos() {
+    return TREINO_DEMO ? [TREINO_DEMO] : [];
+  },
+
   /**
    * Na demonstração existe um plano ATIVO da nutricionista — e por isso a
    * resposta aqui é "não pode", com o motivo certo.
@@ -2484,6 +2488,7 @@ const METAS_ACOMPANHAMENTO_DEMO: Meta[] = [
 const TREINO_DEMO: Treino = {
   id: "treino-demo",
   nome: "Treino A — inferiores",
+  rotulo: null,
   observacao: "Aquecer 5 minutos antes.",
   ativo: true,
   origem: "nutricionista",

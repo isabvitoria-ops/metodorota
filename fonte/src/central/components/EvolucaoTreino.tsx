@@ -41,32 +41,27 @@ import { Esqueleto } from "@/central/components/Esqueleto";
  * sessões seguidas.
  */
 export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
-  const [treino, definirTreino] = useState<Treino | null>(null);
+  const [treinos, definirTreinos] = useState<Treino[]>([]);
   const [sessoes, definirSessoes] = useState<SessaoDeTreino[]>([]);
   const [cardio, definirCardio] = useState<CardioSessao[]>([]);
   const [metas, definirMetas] = useState<MetaSemanal[]>([]);
   const [permissao, definirPermissao] = useState<PermissaoDeTreino | null>(null);
   const [carregando, definirCarregando] = useState(true);
-  const [registrando, definirRegistrando] = useState(false);
+  const [registrando, definirRegistrando] = useState<Treino | null>(null);
 
   const daNutri = Boolean(pacienteId);
 
   const carregar = useMemo(
     () => async () => {
-      // As quatro juntas: quatro idas ao banco em série deixariam a tela
-      // montando aos pedaços no celular dela.
-      const [t, s, c, m, p] = await Promise.all([
-        daNutri ? Promise.resolve(null) : repositorio.meuTreino(),
+      const [ts, s, c, m, p] = await Promise.all([
+        daNutri ? Promise.resolve([]) : repositorio.meusTreinos(),
         repositorio.sessoesDeTreino(pacienteId ?? null),
         repositorio.sessoesDeCardio(pacienteId ?? null),
         repositorio.metasSemanais(pacienteId ?? null),
-        // Na tela da nutricionista não se pergunta: a permissão é sobre a
-        // paciente escrever o treino DELA, e ali quem está olhando é outra
-        // pessoa. Perguntar traria a resposta da conta errada.
         daNutri ? Promise.resolve(null) : repositorio.possoEscreverTreino(),
       ]);
       if (!daNutri) {
-        definirTreino(t);
+        definirTreinos(ts);
         definirPermissao(p);
       }
       definirSessoes(s);
@@ -88,32 +83,27 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
 
   if (carregando) return <Esqueleto />;
 
-  const exercicios = nomesDeExercicio(treino, sessoes);
+  const treino = treinos.length > 0 ? treinos[0]! : null;
+  const exercicios = nomesDeExercicioMulti(treinos, sessoes);
 
   return (
     <>
-      {/* O painel primeiro: é a resposta de "como está a minha semana", que
-          é o que ela abre a tela para saber. O card educativo vem depois —
-          ele ensina, mas não é notícia. */}
       <PainelDaSemana metas={metas} treinos={sessoes} cardio={cardio} />
 
       <ComoVoceEvolui />
 
-      {!daNutri && treino && (
-        <PlanoDoTreino treino={treino} aoRegistrar={() => definirRegistrando(true)} />
-      )}
+      {!daNutri && treinos.length > 0 && treinos.map((t) => (
+        <PlanoDoTreino key={t.id} treino={t} aoRegistrar={() => definirRegistrando(t)} />
+      ))}
 
-      {/* Depois do plano, não antes: quem já tem treino abre a tela para ver
-          o treino, e não para editá-lo. Quem não tem cai direto no convite
-          de escrever, porque aí não há plano nenhum acima. */}
       {!daNutri && <MeuTreino treino={treino} permissao={permissao} aoMudar={carregar} />}
 
-      {registrando && treino && (
+      {registrando && (
         <RegistrarSessao
-          treino={treino}
-          aoFechar={() => definirRegistrando(false)}
+          treino={registrando}
+          aoFechar={() => definirRegistrando(null)}
           aoSalvar={async () => {
-            definirRegistrando(false);
+            definirRegistrando(null);
             await carregar();
           }}
         />
@@ -142,7 +132,7 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
             key={nome}
             nome={nome}
             sessoes={sessoes}
-            treino={treino}
+            treinos={treinos}
           />
         ))
       )}
@@ -157,13 +147,15 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
  * mas a paciente já fez continua tendo histórico, e some da lista seria
  * perder meses de registro da tela.
  */
-function nomesDeExercicio(treino: Treino | null, sessoes: SessaoDeTreino[]): string[] {
+function nomesDeExercicioMulti(treinos: Treino[], sessoes: SessaoDeTreino[]): string[] {
   const vistos = new Set<string>();
   const saida: string[] = [];
-  for (const e of treino?.exercicios ?? []) {
-    if (vistos.has(e.nome)) continue;
-    vistos.add(e.nome);
-    saida.push(e.nome);
+  for (const t of treinos) {
+    for (const e of t.exercicios) {
+      if (vistos.has(e.nome)) continue;
+      vistos.add(e.nome);
+      saida.push(e.nome);
+    }
   }
   for (const s of sessoes) {
     for (const serie of s.series) {
@@ -202,6 +194,7 @@ function ComoVoceEvolui() {
 function PlanoDoTreino({ treino, aoRegistrar }: { treino: Treino; aoRegistrar: () => void }) {
   return (
     <section className="c-secao">
+      {treino.rotulo && <p className="c-secao-rotulo">{treino.rotulo}</p>}
       <h2 className="c-secao-titulo">{treino.nome}</h2>
       {treino.observacao && <p className="c-dica">{treino.observacao}</p>}
       <div className="c-bloco">
@@ -315,11 +308,11 @@ function ResumoSessoes({ sessoes }: { sessoes: SessaoDeTreino[] }) {
 function HistoricoDoExercicio({
   nome,
   sessoes,
-  treino,
+  treinos,
 }: {
   nome: string;
   sessoes: SessaoDeTreino[];
-  treino: Treino | null;
+  treinos: Treino[];
 }) {
   const doExercicio: SessaoDoExercicio[] = sessoes
     .map((s) => ({
@@ -332,7 +325,11 @@ function HistoricoDoExercicio({
 
   if (doExercicio.length === 0) return null;
 
-  const faixa = treino?.exercicios.find((e) => e.nome === nome) ?? null;
+  let faixa: ExercicioPlanejado | null = null;
+  for (const t of treinos) {
+    faixa = t.exercicios.find((e) => e.nome === nome) ?? null;
+    if (faixa) break;
+  }
   const linhas = evolucaoDoExercicio(doExercicio, faixa);
   const recordes = recordesDe(doExercicio);
   // Da mais nova para a mais antiga na tela: o último treino é o que ela

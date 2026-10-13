@@ -1132,6 +1132,13 @@ export const repositorioSupabase: Repositorio = {
     return data ? lerTreino(data as Linha) : null;
   },
 
+  async meusTreinos(): Promise<Treino[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("meus_treinos");
+    erro("carregar seus treinos", error);
+    return ((data ?? []) as Linha[]).map(lerTreino);
+  },
+
   async possoEscreverTreino(): Promise<PermissaoDeTreino> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("posso_escrever_treino");
@@ -1252,6 +1259,7 @@ export const repositorioSupabase: Repositorio = {
     observacao: string,
     ativo: boolean,
     exercicios: ExercicioParaSalvar[],
+    rotulo?: string | null,
   ): Promise<string> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("salvar_treino", {
@@ -1261,6 +1269,7 @@ export const repositorioSupabase: Repositorio = {
       p_observacao: observacao,
       p_ativo: ativo,
       p_exercicios: exercicios,
+      p_rotulo: rotulo ?? null,
     });
     erro("salvar o treino", error);
     return (data as Linha)?.id as string ?? id ?? "";
@@ -2663,6 +2672,7 @@ function lerTreino(linha: Linha): Treino {
   return {
     id: texto(linha.id),
     nome: texto(linha.nome),
+    rotulo: textoOuNulo(linha.rotulo),
     observacao: textoOuNulo(linha.observacao),
     ativo: linha.ativo === true,
     // Sem `origem` na resposta — a lista da nutricionista antes da 0032 —
