@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql
 -- =============================================================================
 
 
@@ -20778,5 +20778,268 @@ $$;
 
 revoke all on function pacientes_para_lembrete_retorno(integer) from anon, public;
 grant execute on function pacientes_para_lembrete_retorno(integer) to authenticated;
+
+commit;
+
+
+-- ###########################################################################
+-- 0078_hidratacao.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0078 — Rastreio de hidratação com meta personalizada.
+--
+-- A nutricionista define a meta diária (em mL) por paciente. O padrão
+-- sugerido é peso × 50 mL/kg, mas ela ajusta.
+--
+-- O paciente registra cada copo ao longo do dia. O app mostra o
+-- progresso e o histórico.
+-- =============================================================================
+
+begin;
+
+-- ---------------------------------------------------------------------------
+-- 1. Meta de hidratação por paciente
+-- ---------------------------------------------------------------------------
+
+create table if not exists hidratacao_metas (
+  paciente_id uuid primary key references pacientes(id) on delete cascade,
+  meta_ml     integer not null check (meta_ml > 0 and meta_ml <= 10000),
+  atualizado_em timestamptz not null default now()
+);
+
+alter table hidratacao_metas enable row level security;
+
+create policy "admin_le_metas_hidratacao"
+  on hidratacao_metas for select using (e_admin());
+create policy "admin_grava_metas_hidratacao"
+  on hidratacao_metas for all using (e_admin());
+create policy "paciente_le_propria_meta"
+  on hidratacao_metas for select
+  using (paciente_id = (select id from pacientes where perfil_id = auth.uid()));
+
+-- ---------------------------------------------------------------------------
+-- 2. Registros diários
+-- ---------------------------------------------------------------------------
+
+create table if not exists hidratacao_registros (
+  id          uuid primary key default gen_random_uuid(),
+  paciente_id uuid not null references pacientes(id) on delete cascade,
+  data        date not null default hoje_sp(),
+  ml          integer not null check (ml > 0 and ml <= 5000),
+  tipo        text not null default 'agua'
+                check (tipo in ('agua', 'cha', 'suco', 'outro')),
+  criado_em   timestamptz not null default now()
+);
+
+create index hidratacao_por_paciente_data
+  on hidratacao_registros (paciente_id, data desc);
+
+alter table hidratacao_registros enable row level security;
+
+create policy "admin_le_registros_hidratacao"
+  on hidratacao_registros for select using (e_admin());
+create policy "paciente_le_proprios_registros"
+  on hidratacao_registros for select
+  using (paciente_id = (select id from pacientes where perfil_id = auth.uid()));
+create policy "paciente_insere_registro"
+  on hidratacao_registros for insert
+  with check (
+    paciente_id = (select id from pacientes where perfil_id = auth.uid())
+    and tem_acesso()
+  );
+create policy "paciente_apaga_proprio_registro"
+  on hidratacao_registros for delete
+  using (paciente_id = (select id from pacientes where perfil_id = auth.uid()));
+
+-- ---------------------------------------------------------------------------
+-- 3. Admin: definir meta
+-- ---------------------------------------------------------------------------
+
+create or replace function definir_meta_hidratacao(
+  p_paciente_id uuid,
+  p_meta_ml     integer
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Acesso restrito.' using errcode = '42501';
+  end if;
+  insert into hidratacao_metas (paciente_id, meta_ml, atualizado_em)
+  values (p_paciente_id, p_meta_ml, now())
+  on conflict (paciente_id)
+  do update set meta_ml = excluded.meta_ml, atualizado_em = now();
+end;
+$$;
+
+revoke all on function definir_meta_hidratacao(uuid, integer) from anon, public;
+grant execute on function definir_meta_hidratacao(uuid, integer) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 4. Admin: ver hidratação de um paciente (últimos N dias)
+-- ---------------------------------------------------------------------------
+
+create or replace function hidratacao_do_paciente(
+  p_paciente_id uuid,
+  p_dias        integer default 30
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Acesso restrito.' using errcode = '42501';
+  end if;
+
+  return jsonb_build_object(
+    'metaMl', (select meta_ml from hidratacao_metas where paciente_id = p_paciente_id),
+    'dias', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'data',    d.data,
+        'totalMl', d.total
+      ) order by d.data desc)
+      from (
+        select r.data, sum(r.ml)::integer as total
+        from hidratacao_registros r
+        where r.paciente_id = p_paciente_id
+          and r.data >= hoje_sp() - p_dias
+        group by r.data
+      ) d
+    ), '[]'::jsonb)
+  );
+end;
+$$;
+
+revoke all on function hidratacao_do_paciente(uuid, integer) from anon, public;
+grant execute on function hidratacao_do_paciente(uuid, integer) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 5. Paciente: registrar ingestão
+-- ---------------------------------------------------------------------------
+
+create or replace function registrar_hidratacao(
+  p_ml   integer,
+  p_tipo text default 'agua'
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente_id uuid;
+  v_registro_id uuid;
+begin
+  select id into v_paciente_id
+    from pacientes
+   where perfil_id = auth.uid()
+   limit 1;
+
+  if v_paciente_id is null then
+    raise exception 'Paciente não encontrado.' using errcode = 'P0002';
+  end if;
+
+  if not tem_acesso() then
+    raise exception 'Acesso expirado.' using errcode = '42501';
+  end if;
+
+  insert into hidratacao_registros (paciente_id, data, ml, tipo)
+  values (v_paciente_id, hoje_sp(), p_ml, p_tipo)
+  returning id into v_registro_id;
+
+  return jsonb_build_object('id', v_registro_id);
+end;
+$$;
+
+revoke all on function registrar_hidratacao(integer, text) from anon, public;
+grant execute on function registrar_hidratacao(integer, text) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 6. Paciente: desfazer registro
+-- ---------------------------------------------------------------------------
+
+create or replace function desfazer_hidratacao(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente_id uuid;
+begin
+  select id into v_paciente_id
+    from pacientes where perfil_id = auth.uid() limit 1;
+
+  delete from hidratacao_registros
+   where id = p_id
+     and paciente_id = v_paciente_id
+     and data = hoje_sp();
+end;
+$$;
+
+revoke all on function desfazer_hidratacao(uuid) from anon, public;
+grant execute on function desfazer_hidratacao(uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 7. Paciente: minha hidratação de hoje + meta + histórico recente
+-- ---------------------------------------------------------------------------
+
+create or replace function minha_hidratacao()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente_id uuid;
+begin
+  select id into v_paciente_id
+    from pacientes where perfil_id = auth.uid() limit 1;
+
+  if v_paciente_id is null then
+    return null;
+  end if;
+
+  return jsonb_build_object(
+    'metaMl', (select meta_ml from hidratacao_metas where paciente_id = v_paciente_id),
+    'hoje', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', r.id,
+        'ml', r.ml,
+        'tipo', r.tipo,
+        'criadoEm', r.criado_em
+      ) order by r.criado_em desc)
+      from hidratacao_registros r
+      where r.paciente_id = v_paciente_id
+        and r.data = hoje_sp()
+    ), '[]'::jsonb),
+    'historico', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'data', d.data,
+        'totalMl', d.total
+      ) order by d.data desc)
+      from (
+        select r.data, sum(r.ml)::integer as total
+        from hidratacao_registros r
+        where r.paciente_id = v_paciente_id
+          and r.data >= hoje_sp() - 30
+          and r.data < hoje_sp()
+        group by r.data
+      ) d
+    ), '[]'::jsonb)
+  );
+end;
+$$;
+
+revoke all on function minha_hidratacao() from anon, public;
+grant execute on function minha_hidratacao() to authenticated;
 
 commit;

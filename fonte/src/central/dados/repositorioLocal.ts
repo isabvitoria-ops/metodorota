@@ -2257,6 +2257,18 @@ export const repositorioLocal: Repositorio = {
   async atenderPedidoLgpd() {
     /* nada a fazer na demonstração */
   },
+
+  async registrarHidratacao() {
+    return { id: crypto.randomUUID() };
+  },
+  async desfazerHidratacao() {},
+  async minhaHidratacao() {
+    return { metaMl: null, hoje: [], historico: [] };
+  },
+  async definirMetaHidratacao() {},
+  async hidratacaoDoPaciente() {
+    return { metaMl: null, dias: [] };
+  },
 };
 
 /**

@@ -7868,3 +7868,193 @@ body:has(.central) {
   color: var(--cor-texto-sec);
   font-variant-numeric: tabular-nums;
 }
+
+/* ---- Hidratação ---- */
+
+.central .c-hidrata-progresso {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin: 20px auto 8px;
+}
+
+.central .c-hidrata-anel {
+  width: 100%;
+  height: 100%;
+}
+
+.central .c-hidrata-centro {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.central .c-hidrata-total {
+  font: 700 1.8rem/1 var(--font-display);
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.central .c-hidrata-unidade {
+  font: 500 0.85rem/1.2 var(--font);
+  color: var(--text-muted);
+}
+
+.central .c-hidrata-meta {
+  font: 400 0.75rem/1.2 var(--font);
+  color: var(--text-subtle);
+  margin-top: 2px;
+}
+
+.central .c-hidrata-pct {
+  text-align: center;
+  font: 600 0.95rem/1.3 var(--font);
+  color: var(--primary);
+  margin: 4px 0 16px;
+}
+
+.central .c-hidrata-tipos {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 16px 0 12px;
+}
+
+.central .c-hidrata-copos {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 8px 0 20px;
+}
+
+.central .c-hidrata-copo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-campo);
+  border-radius: 12px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  min-width: 68px;
+}
+
+.central .c-hidrata-copo:hover:not(:disabled) {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+}
+
+.central .c-hidrata-copo:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.central .c-hidrata-copo-emoji {
+  font-size: 1.4rem;
+}
+
+.central .c-hidrata-copo-ml {
+  font: 600 0.8rem/1.2 var(--font);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.central .c-hidrata-registros {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.central .c-hidrata-registro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-radius: 8px;
+}
+
+.central .c-hidrata-registro-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font: 400 0.9rem/1.3 var(--font);
+  font-variant-numeric: tabular-nums;
+}
+
+.central .c-hidrata-registro-tipo {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.central .c-hidrata-registro-hora {
+  color: var(--text-subtle);
+  font-size: 0.78rem;
+}
+
+.central .c-hidrata-desfazer {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-subtle);
+  font-size: 1rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.central .c-hidrata-desfazer:hover {
+  color: var(--danger);
+  background: var(--danger-soft, #fef2f2);
+}
+
+.central .c-hidrata-historico {
+  display: flex;
+  gap: 4px;
+  align-items: flex-end;
+  height: 100px;
+  overflow-x: auto;
+  padding: 8px 0;
+}
+
+.central .c-hidrata-dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 32px;
+  flex: 1;
+}
+
+.central .c-hidrata-barra {
+  width: 100%;
+  max-width: 24px;
+  background: var(--primary-soft);
+  border-radius: 4px 4px 0 0;
+  min-height: 4px;
+  transition: height 0.3s ease;
+}
+
+.central .c-hidrata-dia-label {
+  font: 400 0.65rem/1 var(--font);
+  color: var(--text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.central .c-hidrata-tabela {
+  overflow-x: auto;
+}
+
+.central .c-hidrata-tabela .c-tabela {
+  font-variant-numeric: tabular-nums;
+}

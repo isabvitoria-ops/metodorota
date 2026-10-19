@@ -95,6 +95,7 @@ import type {
 } from "@/central/types/protocolo";
 import { CONTEUDO_VAZIO } from "@/central/types/protocolo";
 import { semanaDoDesafio, situacaoDoDesafio, totalDeSemanas } from "@/central/utils/desafio";
+import type { MinhaHidratacao, RegistroHidratacao, DiaHidratacao } from "@/central/types/hidratacao";
 import { exigirSupabase } from "@/central/supabase/cliente";
 import { numeroDeTexto } from "@/central/utils/numero";
 import { urlDaRota } from "@/central/utils/enderecos";
@@ -2548,6 +2549,55 @@ export const repositorioSupabase: Repositorio = {
     const sb = exigirSupabase();
     const { error } = await sb.rpc("atender_pedido_lgpd", { p_pedido: id });
     erro("marcar o pedido como atendido", error);
+  },
+
+  async registrarHidratacao(ml: number, tipo = "agua") {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("registrar_hidratacao", { p_ml: ml, p_tipo: tipo });
+    erro("registrar hidratação", error);
+    const d = (data ?? {}) as { id?: string };
+    return { id: texto(d.id ?? "") };
+  },
+
+  async desfazerHidratacao(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("desfazer_hidratacao", { p_id: id });
+    erro("desfazer hidratação", error);
+  },
+
+  async minhaHidratacao(): Promise<MinhaHidratacao> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("minha_hidratacao");
+    erro("carregar hidratação", error);
+    const d = (data ?? {}) as { metaMl?: number | null; hoje?: unknown[]; historico?: unknown[] };
+    return {
+      metaMl: typeof d.metaMl === "number" ? d.metaMl : null,
+      hoje: Array.isArray(d.hoje) ? (d.hoje as RegistroHidratacao[]) : [],
+      historico: Array.isArray(d.historico) ? (d.historico as DiaHidratacao[]) : [],
+    };
+  },
+
+  async definirMetaHidratacao(pacienteId: string, metaMl: number) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("definir_meta_hidratacao", {
+      p_paciente_id: pacienteId,
+      p_meta_ml: metaMl,
+    });
+    erro("definir meta de hidratação", error);
+  },
+
+  async hidratacaoDoPaciente(pacienteId: string, dias = 30) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("hidratacao_do_paciente", {
+      p_paciente_id: pacienteId,
+      p_dias: dias,
+    });
+    erro("carregar hidratação do paciente", error);
+    const d = (data ?? {}) as { metaMl?: number | null; dias?: unknown[] };
+    return {
+      metaMl: typeof d.metaMl === "number" ? d.metaMl : null,
+      dias: Array.isArray(d.dias) ? (d.dias as { data: string; totalMl: number }[]) : [],
+    };
   },
 };
 
