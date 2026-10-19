@@ -105,11 +105,11 @@ export function Hidratacao() {
             {/* Progresso circular */}
             <div className="c-hidrata-progresso">
               <svg viewBox="0 0 120 120" className="c-hidrata-anel">
-                <circle cx="60" cy="60" r="52" fill="none" stroke="var(--cor-borda)" strokeWidth="10" />
+                <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border)" strokeWidth="10" />
                 <circle
                   cx="60" cy="60" r="52"
                   fill="none"
-                  stroke="var(--cor-primaria)"
+                  stroke="var(--primary)"
                   strokeWidth="10"
                   strokeLinecap="round"
                   strokeDasharray={`${2 * Math.PI * 52}`}
