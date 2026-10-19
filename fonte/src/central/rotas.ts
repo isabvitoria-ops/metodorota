@@ -33,6 +33,7 @@ export const rotas = {
   rastreabilidade: "/rastreabilidade",
   fodmap: "/fodmap",
   agua: "/agua",
+  hidratacao: "/hidratacao",
   fibras: "/fibras",
   bristol: "/bristol",
   habitos: "/habitos",
