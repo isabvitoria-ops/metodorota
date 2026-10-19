@@ -8,6 +8,8 @@ import type {
   EixoCheckin,
   AlertaPendente,
   CheckinPendente,
+  CheckinRespondido,
+  PacienteLembreteRetorno,
 } from "@/central/types/questionario";
 import { repositorio } from "@/central/dados/repositorio";
 import { Campo, Selecao, Texto, AreaTexto } from "@/central/admin/componentes/Campos";
@@ -16,7 +18,9 @@ import { numeroDeTexto } from "@/central/utils/numero";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { MODELOS_ANAMNESE, type ModeloDeAnamnese } from "@/central/dados/sementes/anamnese";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
-import { linkDoWhatsapp, mensagemDeCheckin } from "@/central/utils/cobranca";
+import { linkDoWhatsapp, mensagemDeCheckin, mensagemDeRetorno } from "@/central/utils/cobranca";
+import { rotas } from "@/central/rotas";
+import { Link } from "react-router-dom";
 
 /**
  * Questionários e check-in semanal — área da nutricionista.
@@ -157,6 +161,146 @@ function PainelDePendentes({
               })}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PainelDeRespondidos({
+  respondidos,
+}: {
+  respondidos: CheckinRespondido[];
+}) {
+  const [aberto, definirAberto] = useState(true);
+
+  const porQuestionario = respondidos.reduce<Record<string, { titulo: string; envios: CheckinRespondido[] }>>(
+    (acc, r) => {
+      if (!acc[r.questionarioId]) {
+        acc[r.questionarioId] = { titulo: r.questionarioTitulo, envios: [] };
+      }
+      acc[r.questionarioId]!.envios.push(r);
+      return acc;
+    },
+    {},
+  );
+
+  return (
+    <div className="c-painel-alertas" style={{ marginBottom: 16 }}>
+      <button
+        type="button"
+        className="c-painel-alertas-cabecalho"
+        onClick={() => definirAberto(!aberto)}
+        aria-expanded={aberto}
+      >
+        <span className="c-painel-alertas-titulo">
+          <span className="c-painel-alertas-indicador" aria-hidden="true">{"✅"}</span>
+          Respondidos — aguardando revisão
+          <span className="c-painel-alertas-contagem">{respondidos.length}</span>
+        </span>
+        <span className="c-painel-alertas-seta" aria-hidden="true">
+          {aberto ? "▲" : "▼"}
+        </span>
+      </button>
+
+      {aberto && (
+        <div className="c-painel-alertas-corpo">
+          {Object.entries(porQuestionario).map(([qId, grupo]) => (
+            <div key={qId} className="c-painel-alertas-grupo">
+              <p className="c-painel-alertas-grupo-titulo">
+                {grupo.titulo} — {grupo.envios.length}{" "}
+                {grupo.envios.length === 1 ? "resposta" : "respostas"}
+              </p>
+              {grupo.envios.map((r) => {
+                const dataFormatada = r.respondidoEm
+                  ? new Date(r.respondidoEm).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "";
+                return (
+                  <div key={r.envioId} className="c-cartao-alerta" style={{ gap: 8 }}>
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <strong>{r.nome}</strong>
+                      {dataFormatada && (
+                        <span className="c-dica" style={{ marginLeft: 8 }}>{dataFormatada}</span>
+                      )}
+                    </span>
+                    <Link
+                      to={rotas.adminProntuario(r.pacienteId)}
+                      className="c-chip c-chip-cobrar"
+                    >
+                      Ver prontuário
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PainelDeLembretesRetorno({
+  lembretes,
+}: {
+  lembretes: PacienteLembreteRetorno[];
+}) {
+  const [aberto, definirAberto] = useState(true);
+
+  return (
+    <div className="c-painel-alertas" style={{ marginBottom: 16 }}>
+      <button
+        type="button"
+        className="c-painel-alertas-cabecalho"
+        onClick={() => definirAberto(!aberto)}
+        aria-expanded={aberto}
+      >
+        <span className="c-painel-alertas-titulo">
+          <span className="c-painel-alertas-indicador" aria-hidden="true">{"\u{1F4C5}"}</span>
+          Lembrete de retorno
+          <span className="c-painel-alertas-contagem">{lembretes.length}</span>
+        </span>
+        <span className="c-painel-alertas-seta" aria-hidden="true">
+          {aberto ? "▲" : "▼"}
+        </span>
+      </button>
+
+      {aberto && (
+        <div className="c-painel-alertas-corpo">
+          {lembretes.map((l) => {
+            const msg = mensagemDeRetorno(l.nome);
+            const whats = linkDoWhatsapp(l.telefone, msg);
+            const dataFormatada = l.ultimaConsulta
+              ? new Date(`${l.ultimaConsulta}T00:00:00`).toLocaleDateString("pt-BR")
+              : "";
+            return (
+              <div key={l.pacienteId} className="c-cartao-alerta" style={{ gap: 8 }}>
+                <span style={{ flex: 1, minWidth: 0 }}>
+                  <strong>{l.nome}</strong>
+                  <span className="c-dica" style={{ marginLeft: 8 }}>
+                    {l.diasDesde} dias — última consulta {dataFormatada}
+                  </span>
+                </span>
+                {whats ? (
+                  <a
+                    href={whats}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="c-chip c-chip-cobrar"
+                  >
+                    Lembrar
+                  </a>
+                ) : (
+                  <span className="c-dica">sem telefone</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -397,6 +541,8 @@ export function Questionarios() {
   const [erro, definirErro] = useState<string | null>(null);
   const [alertas, definirAlertas] = useState<AlertaPendente[]>([]);
   const [pendentes, definirPendentes] = useState<CheckinPendente[]>([]);
+  const [respondidos, definirRespondidos] = useState<CheckinRespondido[]>([]);
+  const [lembretes, definirLembretes] = useState<PacienteLembreteRetorno[]>([]);
   const [mostrarArquivados, definirMostrarArquivados] = useState(false);
 
   const carregar = useCallback(async () => {
@@ -423,6 +569,16 @@ export function Questionarios() {
       definirPendentes(await repositorio.listarCheckinPendentes());
     } catch {
       definirPendentes([]);
+    }
+    try {
+      definirRespondidos(await repositorio.listarCheckinRespondidos());
+    } catch {
+      definirRespondidos([]);
+    }
+    try {
+      definirLembretes(await repositorio.listarLembretesRetorno());
+    } catch {
+      definirLembretes([]);
     }
   }, []);
 
@@ -568,11 +724,19 @@ export function Questionarios() {
         <PainelDeAlertas alertas={alertas} aoAtualizar={carregar} />
       )}
 
+      {respondidos.length > 0 && (
+        <PainelDeRespondidos respondidos={respondidos} />
+      )}
+
       {pendentes.length > 0 && (
         <PainelDePendentes
           pendentes={pendentes}
           nomeCentral={configuracoes?.nomeCentral ?? ""}
         />
+      )}
+
+      {lembretes.length > 0 && (
+        <PainelDeLembretesRetorno lembretes={lembretes} />
       )}
 
       {erro && (

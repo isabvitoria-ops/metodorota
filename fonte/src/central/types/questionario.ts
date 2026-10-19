@@ -271,6 +271,27 @@ export interface CheckinPendente {
   questionarioTitulo: string;
 }
 
+/** Resposta de check-in que a nutricionista ainda não revisou. */
+export interface CheckinRespondido {
+  envioId: string;
+  pacienteId: string;
+  nome: string;
+  questionarioId: string;
+  questionarioTitulo: string;
+  periodo: string;
+  respondidoEm: string;
+}
+
+/** Paciente cuja última consulta concluída foi há muitos dias. */
+export interface PacienteLembreteRetorno {
+  pacienteId: string;
+  nome: string;
+  telefone: string | null;
+  email: string | null;
+  ultimaConsulta: string;
+  diasDesde: number;
+}
+
 /** Alerta pendente no painel da nutricionista. */
 export interface AlertaPendente {
   id: string;

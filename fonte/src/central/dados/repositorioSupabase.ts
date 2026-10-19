@@ -35,6 +35,8 @@ import type {
   EixoCheckin,
   AlertaPendente,
   CheckinPendente,
+  CheckinRespondido,
+  PacienteLembreteRetorno,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type {
@@ -2069,6 +2071,22 @@ export const repositorioSupabase: Repositorio = {
     erro("carregar os check-ins pendentes", error);
     const arr = Array.isArray(data) ? data : [];
     return arr as CheckinPendente[];
+  },
+
+  async listarCheckinRespondidos(): Promise<CheckinRespondido[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("checkin_respondidos_nao_revisados");
+    erro("carregar os check-ins respondidos", error);
+    const arr = Array.isArray(data) ? data : [];
+    return arr as CheckinRespondido[];
+  },
+
+  async listarLembretesRetorno(dias = 50): Promise<PacienteLembreteRetorno[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("pacientes_para_lembrete_retorno", { p_dias: dias });
+    erro("carregar lembretes de retorno", error);
+    const arr = Array.isArray(data) ? data : [];
+    return arr as PacienteLembreteRetorno[];
   },
 
   async ocultarPerguntasCheckin(

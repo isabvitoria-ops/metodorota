@@ -2050,6 +2050,14 @@ export const repositorioLocal: Repositorio = {
     return [];
   },
 
+  async listarCheckinRespondidos() {
+    return [];
+  },
+
+  async listarLembretesRetorno() {
+    return [];
+  },
+
   async ocultarPerguntasCheckin() {},
 
   async questionariosDoPaciente(pacienteId: string): Promise<QuestionarioDoPaciente[]> {

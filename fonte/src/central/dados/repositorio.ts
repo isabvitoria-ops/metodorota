@@ -60,6 +60,8 @@ import type {
   AlertaParaPaciente,
   AlertaPendente,
   CheckinPendente,
+  CheckinRespondido,
+  PacienteLembreteRetorno,
 } from "@/central/types/questionario";
 import type { Fase, MudancaDeFase, MinhaFase } from "@/central/types/fase";
 import type {
@@ -463,6 +465,12 @@ export interface Repositorio {
 
   /** Pacientes que ainda não responderam o check-in semanal desta semana. */
   listarCheckinPendentes(): Promise<CheckinPendente[]>;
+
+  /** Check-ins respondidos mas que a nutricionista ainda não revisou. */
+  listarCheckinRespondidos(): Promise<CheckinRespondido[]>;
+
+  /** Pacientes cuja última consulta concluída foi há >= dias dias. */
+  listarLembretesRetorno(dias?: number): Promise<PacienteLembreteRetorno[]>;
 
   /** Grava quais perguntas ficam ocultas para uma paciente num questionário. */
   ocultarPerguntasCheckin(

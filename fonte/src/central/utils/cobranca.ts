@@ -109,6 +109,27 @@ export function mensagemDeCobranca(cobranca: Cobranca, opcoes: OpcoesDaMensagem)
   return linhas.join("\n");
 }
 
+/**
+ * Lembrete de retorno — paciente sem consulta há muitos dias.
+ *
+ * O tom é pessoal, como se ela mesma tivesse escrito (e é isso: a
+ * mensagem vai no WhatsApp dela). Os asteriscos são negrito do WhatsApp.
+ */
+export function mensagemDeRetorno(nome: string): string {
+  const primeiroNome = nome.trim().split(/\s+/)[0] || nome;
+  return [
+    "\u{1F49A} *Que tal retomarmos?*",
+    "",
+    `Olá, *${primeiroNome}*,`,
+    "",
+    "Faz algum tempo desde a nossa última consulta. Gostaria de convidar você a retomar seu acompanhamento nutricional.",
+    "",
+    "Podemos encaixar um horário conforme sua disponibilidade — basta entrar em contato que organizo tudo para você.",
+    "",
+    "Fico no aguardo!",
+  ].join("\n");
+}
+
 /** O assunto do e-mail — também com cara de sistema. */
 export function assuntoDaCobranca(cobranca: Cobranca, nomeCentral: string): string {
   const central = nomeCentral.trim() || "Central do Paciente";
