@@ -98,6 +98,7 @@ import type {
   TarefaParaAplicar,
 } from "@/central/types/conduta";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
+import type { MinhaHidratacao, HidratacaoDoPaciente, TipoLiquido } from "@/central/types/hidratacao";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
 import { repositorioSupabase } from "./repositorioSupabase";
@@ -243,7 +244,7 @@ export interface Repositorio {
    * histórico entra sem pedir que a paciente redigite semanas de diário.
    */
   /**
-   * Aponta um alimento digitado à mão para um do Mapa, sem renomeá-lo.
+   * Aponta um alimento digitado à mão para um do Mapa, sem renomá-lo.
    *
    * É o que devolve oxalato, histamina e lectina a uma lista montada à mão.
    */
@@ -899,6 +900,21 @@ export interface Repositorio {
   atenderPedidoLgpd(id: string): Promise<void>;
   /** Marca que a paciente já viu as boas-vindas (uma vez só, para sempre). */
   concluirBoasVindas(): Promise<void>;
+
+  // ---------------------------------------------------------------------
+  // Hidratação (0078)
+  // ---------------------------------------------------------------------
+
+  /** A paciente registra um copo. */
+  registrarHidratacao(ml: number, tipo?: TipoLiquido): Promise<{ id: string }>;
+  /** A paciente desfaz um registro de hoje. */
+  desfazerHidratacao(id: string): Promise<void>;
+  /** Tudo que a tela da paciente mostra: meta, hoje e últimos 30 dias. */
+  minhaHidratacao(): Promise<MinhaHidratacao>;
+  /** Admin: define a meta diária (em mL) de uma paciente. */
+  definirMetaHidratacao(pacienteId: string, metaMl: number): Promise<void>;
+  /** Admin: hidratação de uma paciente nos últimos N dias. */
+  hidratacaoDoPaciente(pacienteId: string, dias?: number): Promise<HidratacaoDoPaciente>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

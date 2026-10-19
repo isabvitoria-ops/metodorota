@@ -33,6 +33,7 @@ import { SeloSituacao } from "@/central/components/Selo";
 import { dataBonita } from "@/central/utils/situacao";
 import { AreaTexto, Campo, Selecao, Texto } from "@/central/admin/componentes/Campos";
 import { Esqueleto } from "@/central/components/Esqueleto";
+import { HidratacaoDoProntuario } from "./HidratacaoDoProntuario";
 
 /**
  * O prontuário: tudo de uma paciente, em ordem cronológica.
@@ -310,6 +311,8 @@ export function Prontuario() {
             </p>
           )
         )}
+
+        <HidratacaoDoProntuario pacienteId={pacienteId} pesoAtual={paciente.pesoAtual} />
       </div>
 
       <div hidden={aba !== "condutas"}>

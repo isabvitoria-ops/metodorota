@@ -60,6 +60,13 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "O que combinamos, e quanto você já fez.",
   },
   {
+    rota: rotas.hidratacao,
+    grupo: "acompanhamento",
+    icone: "agua",
+    titulo: "Hidratação",
+    descricao: "Registre o que bebeu e acompanhe sua meta diária.",
+  },
+  {
     rota: rotas.agua,
     grupo: "ferramentas",
     icone: "agua",
@@ -145,7 +152,7 @@ export function Home() {
         {consulta.trim().length > 0 && (
           <button type="button" className="c-chip" style={{ marginTop: 12 }} onClick={() => navegar(rotas.busca(consulta))}>
             <Icone nome="busca" tamanho={14} />
-            Buscar por “{consulta.trim()}”
+            Buscar por "{consulta.trim()}"
           </button>
         )}
 
