@@ -99,6 +99,7 @@ import type {
 } from "@/central/types/conduta";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { MinhaHidratacao, HidratacaoDoPaciente, TipoLiquido } from "@/central/types/hidratacao";
+import type { RestricaoAlimentar, TipoRestricao, GravidadeRestricao } from "@/central/types/restricao";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
 import { repositorioSupabase } from "./repositorioSupabase";
@@ -915,6 +916,15 @@ export interface Repositorio {
   definirMetaHidratacao(pacienteId: string, metaMl: number): Promise<void>;
   /** Admin: hidratação de uma paciente nos últimos N dias. */
   hidratacaoDoPaciente(pacienteId: string, dias?: number): Promise<HidratacaoDoPaciente>;
+
+  // ---------------------------------------------------------------------
+  // Restrições alimentares (0079)
+  // ---------------------------------------------------------------------
+
+  salvarRestricao(pacienteId: string, id: string | null, tipo: TipoRestricao, alimento: string, gravidade: GravidadeRestricao, notas: string | null): Promise<{ id: string }>;
+  excluirRestricao(id: string): Promise<void>;
+  restricoesDoPaciente(pacienteId: string): Promise<RestricaoAlimentar[]>;
+  minhasRestricoes(): Promise<RestricaoAlimentar[]>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

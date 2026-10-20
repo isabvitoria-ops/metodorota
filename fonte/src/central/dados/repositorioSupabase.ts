@@ -96,6 +96,7 @@ import type {
 import { CONTEUDO_VAZIO } from "@/central/types/protocolo";
 import { semanaDoDesafio, situacaoDoDesafio, totalDeSemanas } from "@/central/utils/desafio";
 import type { MinhaHidratacao, RegistroHidratacao, DiaHidratacao } from "@/central/types/hidratacao";
+import type { RestricaoAlimentar } from "@/central/types/restricao";
 import { exigirSupabase } from "@/central/supabase/cliente";
 import { numeroDeTexto } from "@/central/utils/numero";
 import { urlDaRota } from "@/central/utils/enderecos";
@@ -2598,6 +2599,42 @@ export const repositorioSupabase: Repositorio = {
       metaMl: typeof d.metaMl === "number" ? d.metaMl : null,
       dias: Array.isArray(d.dias) ? (d.dias as { data: string; totalMl: number }[]) : [],
     };
+  },
+
+  // -- Restrições alimentares (0079) --
+
+  async salvarRestricao(pacienteId: string, id: string | null, tipo: string, alimento: string, gravidade: string, notas: string | null) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("salvar_restricao", {
+      p_paciente_id: pacienteId,
+      p_id: id,
+      p_tipo: tipo,
+      p_alimento: alimento,
+      p_gravidade: gravidade,
+      p_notas: notas,
+    });
+    erro("salvar restrição", error);
+    return (data ?? { id: id ?? "" }) as { id: string };
+  },
+
+  async excluirRestricao(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("excluir_restricao", { p_id: id });
+    erro("excluir restrição", error);
+  },
+
+  async restricoesDoPaciente(pacienteId: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("restricoes_do_paciente", { p_paciente_id: pacienteId });
+    erro("carregar restrições do paciente", error);
+    return (Array.isArray(data) ? data : []) as RestricaoAlimentar[];
+  },
+
+  async minhasRestricoes() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("minhas_restricoes");
+    erro("carregar minhas restrições", error);
+    return (Array.isArray(data) ? data : []) as RestricaoAlimentar[];
   },
 };
 

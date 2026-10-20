@@ -2269,6 +2269,17 @@ export const repositorioLocal: Repositorio = {
   async hidratacaoDoPaciente() {
     return { metaMl: null, dias: [] };
   },
+
+  async salvarRestricao() {
+    return { id: crypto.randomUUID() };
+  },
+  async excluirRestricao() {},
+  async restricoesDoPaciente() {
+    return [];
+  },
+  async minhasRestricoes() {
+    return [];
+  },
 };
 
 /**

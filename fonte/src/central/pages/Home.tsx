@@ -67,6 +67,13 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Registre o que bebeu e acompanhe sua meta diária.",
   },
   {
+    rota: rotas.restricoes,
+    grupo: "acompanhamento",
+    icone: "alerta",
+    titulo: "Minhas restrições",
+    descricao: "Alergias, intolerâncias e cuidados com a sua alimentação.",
+  },
+  {
     rota: rotas.agua,
     grupo: "ferramentas",
     icone: "agua",

@@ -8058,3 +8058,61 @@ body:has(.central) {
 .central .c-hidrata-tabela .c-tabela {
   font-variant-numeric: tabular-nums;
 }
+
+/* ------------------------------------------------------------------ */
+/* Restrições alimentares (0079)                                      */
+/* ------------------------------------------------------------------ */
+
+.central .c-restricao-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.central .c-restricao-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.central .c-restricao-selo {
+  display: inline-block;
+  font: 600 0.7rem/1 var(--font);
+  padding: 2px 8px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.central .c-restricao-selo-grave {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.central .c-restricao-selo-moderada {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.central .c-restricao-selo-leve {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.central .c-restricao-tipo {
+  font: 400 0.75rem/1 var(--font);
+  color: var(--text-muted);
+}
+
+.central .c-restricao-form {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

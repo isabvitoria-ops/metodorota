@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql
 -- =============================================================================
 
 
@@ -21041,5 +21041,200 @@ $$;
 
 revoke all on function minha_hidratacao() from anon, public;
 grant execute on function minha_hidratacao() to authenticated;
+
+commit;
+
+
+-- ###########################################################################
+-- 0079_restricoes_alimentares.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0079 — Restrições alimentares com alertas inteligentes.
+--
+-- A nutricionista registra alergias, intolerâncias, sensibilidades e
+-- preferências de cada paciente. A paciente vê a lista no app.
+-- O protocolo e as trocas podem cruzar essas restrições depois.
+-- =============================================================================
+
+begin;
+
+-- ---------------------------------------------------------------------------
+-- 1. Tabela de restrições
+-- ---------------------------------------------------------------------------
+
+create table if not exists restricoes_alimentares (
+  id            uuid primary key default gen_random_uuid(),
+  paciente_id   uuid not null references pacientes(id) on delete cascade,
+  tipo          text not null check (tipo in ('alergia', 'intolerancia', 'sensibilidade', 'preferencia')),
+  alimento      text not null,
+  gravidade     text not null default 'moderada'
+                  check (gravidade in ('leve', 'moderada', 'grave')),
+  notas         text,
+  criado_em     timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+
+create index restricoes_por_paciente
+  on restricoes_alimentares (paciente_id);
+
+alter table restricoes_alimentares enable row level security;
+
+create policy "admin_le_restricoes"
+  on restricoes_alimentares for select using (e_admin());
+create policy "admin_grava_restricoes"
+  on restricoes_alimentares for all using (e_admin());
+create policy "paciente_le_proprias_restricoes"
+  on restricoes_alimentares for select
+  using (paciente_id = (select id from pacientes where perfil_id = auth.uid()));
+
+-- ---------------------------------------------------------------------------
+-- 2. Admin: salvar restrição (insert ou update)
+-- ---------------------------------------------------------------------------
+
+create or replace function salvar_restricao(
+  p_paciente_id uuid,
+  p_id          uuid,
+  p_tipo        text,
+  p_alimento    text,
+  p_gravidade   text,
+  p_notas       text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_id uuid;
+begin
+  if not e_admin() then
+    raise exception 'Acesso restrito.' using errcode = '42501';
+  end if;
+
+  if p_id is null then
+    insert into restricoes_alimentares (paciente_id, tipo, alimento, gravidade, notas)
+    values (p_paciente_id, p_tipo, p_alimento, p_gravidade, p_notas)
+    returning id into v_id;
+  else
+    update restricoes_alimentares
+    set tipo = p_tipo,
+        alimento = p_alimento,
+        gravidade = p_gravidade,
+        notas = p_notas,
+        atualizado_em = now()
+    where id = p_id and paciente_id = p_paciente_id;
+    v_id := p_id;
+  end if;
+
+  return jsonb_build_object('id', v_id);
+end;
+$$;
+
+revoke all on function salvar_restricao(uuid, uuid, text, text, text, text) from anon, public;
+grant execute on function salvar_restricao(uuid, uuid, text, text, text, text) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 3. Admin: excluir restrição
+-- ---------------------------------------------------------------------------
+
+create or replace function excluir_restricao(p_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Acesso restrito.' using errcode = '42501';
+  end if;
+
+  delete from restricoes_alimentares where id = p_id;
+end;
+$$;
+
+revoke all on function excluir_restricao(uuid) from anon, public;
+grant execute on function excluir_restricao(uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 4. Admin: restrições de um paciente
+-- ---------------------------------------------------------------------------
+
+create or replace function restricoes_do_paciente(p_paciente_id uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Acesso restrito.' using errcode = '42501';
+  end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id',           r.id,
+      'tipo',         r.tipo,
+      'alimento',     r.alimento,
+      'gravidade',    r.gravidade,
+      'notas',        r.notas,
+      'criadoEm',     r.criado_em,
+      'atualizadoEm', r.atualizado_em
+    ) order by
+      case r.gravidade when 'grave' then 1 when 'moderada' then 2 else 3 end,
+      r.alimento
+    )
+    from restricoes_alimentares r
+    where r.paciente_id = p_paciente_id
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function restricoes_do_paciente(uuid) from anon, public;
+grant execute on function restricoes_do_paciente(uuid) to authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 5. Paciente: minhas restrições
+-- ---------------------------------------------------------------------------
+
+create or replace function minhas_restricoes()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente_id uuid;
+begin
+  select id into v_paciente_id
+    from pacientes where perfil_id = auth.uid() limit 1;
+
+  if v_paciente_id is null then
+    return '[]'::jsonb;
+  end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id',           r.id,
+      'tipo',         r.tipo,
+      'alimento',     r.alimento,
+      'gravidade',    r.gravidade,
+      'notas',        r.notas,
+      'criadoEm',     r.criado_em,
+      'atualizadoEm', r.atualizado_em
+    ) order by
+      case r.gravidade when 'grave' then 1 when 'moderada' then 2 else 3 end,
+      r.alimento
+    )
+    from restricoes_alimentares r
+    where r.paciente_id = v_paciente_id
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function minhas_restricoes() from anon, public;
+grant execute on function minhas_restricoes() to authenticated;
 
 commit;
