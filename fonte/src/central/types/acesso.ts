@@ -107,6 +107,18 @@ export interface Acesso {
    * ensina nada e ainda sugere que algo se perdeu.
    */
   metas: boolean;
+  /**
+   * Se as restrições alimentares estão ligadas para esta paciente.
+   *
+   * Nem toda paciente tem restrição; desligado, a porta não aparece.
+   */
+  restricoes: boolean;
+  /**
+   * Se o Semáforo FODMAP está ligado para esta paciente.
+   *
+   * O FODMAP é para quem faz rastreio intestinal, não para todo mundo.
+   */
+  fodmap: boolean;
 }
 
 export interface Configuracoes {

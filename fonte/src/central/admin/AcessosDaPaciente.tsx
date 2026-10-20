@@ -22,6 +22,8 @@ interface Acessos {
   rastreio: boolean;
   treino: boolean;
   desafio: boolean;
+  restricoes: boolean;
+  fodmap: boolean;
   protocolo: boolean;
   avaliacao: boolean;
   metas: boolean;
@@ -53,15 +55,15 @@ export function AcessosDaPaciente({ pacienteId }: { pacienteId: string }) {
     ) : null;
   }
 
-  async function alternar(qual: "treino" | "desafio", valor: boolean) {
+  async function alternar(qual: "treino" | "desafio" | "restricoes" | "fodmap", valor: boolean) {
     definirOcupado(qual);
     definirErro(null);
     try {
-      // O que volta é o estado GRAVADO, não o que o clique pediu.
-      const gravado =
-        qual === "treino"
-          ? await repositorio.definirTreinoDoPaciente(pacienteId, valor)
-          : await repositorio.definirDesafioDoPaciente(pacienteId, valor);
+      let gravado: boolean;
+      if (qual === "treino") gravado = await repositorio.definirTreinoDoPaciente(pacienteId, valor);
+      else if (qual === "desafio") gravado = await repositorio.definirDesafioDoPaciente(pacienteId, valor);
+      else if (qual === "restricoes") gravado = await repositorio.definirRestricoesDoPaciente(pacienteId, valor);
+      else gravado = await repositorio.definirFodmapDoPaciente(pacienteId, valor);
       definirAcessos((antes) => (antes ? { ...antes, [qual]: gravado } : antes));
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui mudar.");
@@ -97,6 +99,30 @@ export function AcessosDaPaciente({ pacienteId }: { pacienteId: string }) {
               : "O desafio some da tela dela, sem aviso de que ficou de fora."
           }
           aoMudar={() => void alternar("desafio", !acessos.desafio)}
+        />
+
+        <Interruptor
+          nome="Restrições"
+          ligado={acessos.restricoes}
+          ocupado={ocupado === "restricoes"}
+          apoio={
+            acessos.restricoes
+              ? "Ela vê as restrições que você cadastrou no prontuário."
+              : "A aba de restrições não aparece para ela."
+          }
+          aoMudar={() => void alternar("restricoes", !acessos.restricoes)}
+        />
+
+        <Interruptor
+          nome="Semáforo FODMAP"
+          ligado={acessos.fodmap}
+          ocupado={ocupado === "fodmap"}
+          apoio={
+            acessos.fodmap
+              ? "Ela acessa o semáforo de FODMAP com porções seguras."
+              : "O semáforo FODMAP não aparece para ela."
+          }
+          aoMudar={() => void alternar("fodmap", !acessos.fodmap)}
         />
 
         {/* Rastreio continua sendo ligado na tela de Rastreabilidade, junto

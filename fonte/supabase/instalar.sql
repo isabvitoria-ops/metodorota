@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql
 -- =============================================================================
 
 
@@ -21238,3 +21238,216 @@ revoke all on function minhas_restricoes() from anon, public;
 grant execute on function minhas_restricoes() to authenticated;
 
 commit;
+
+
+-- ###########################################################################
+-- 0080_interruptores_restricoes_fodmap.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0080: interruptores de Restrições e FODMAP
+--
+-- "Não é todo paciente que precisa ver as restrições" — e o FODMAP é a mesma
+-- história. Ambos nascem DESLIGADOS: quem não tem restrição cadastrada não
+-- precisa de uma tela vazia, e o FODMAP é para quem faz rastreio intestinal,
+-- não para todo mundo.
+--
+-- O padrão é o mesmo do treino (0033) e do desafio (0038): coluna boolean
+-- na tabela `pacientes`, uma função de leitura (nutricionista + própria),
+-- uma de toggle (nutricionista), e as funções de consulta e interruptor
+-- atualizadas para incluir os novos campos.
+-- =============================================================================
+
+-- 1) Colunas novas
+alter table pacientes
+  add column if not exists restricoes_liberado boolean not null default false;
+
+alter table pacientes
+  add column if not exists fodmap_liberado boolean not null default false;
+
+-- 2) Leitura: quem tem restrições liberadas
+create or replace function restricoes_liberado(p_paciente uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select case
+    when p_paciente is null then false
+    when e_admin() or p_paciente = meu_paciente_id() then
+      coalesce((select p.restricoes_liberado from pacientes p where p.id = p_paciente), false)
+    else false
+  end;
+$$;
+
+revoke all on function restricoes_liberado(uuid) from anon, public;
+grant execute on function restricoes_liberado(uuid) to authenticated;
+
+-- 3) Leitura: quem tem FODMAP liberado
+create or replace function fodmap_liberado(p_paciente uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select case
+    when p_paciente is null then false
+    when e_admin() or p_paciente = meu_paciente_id() then
+      coalesce((select p.fodmap_liberado from pacientes p where p.id = p_paciente), false)
+    else false
+  end;
+$$;
+
+revoke all on function fodmap_liberado(uuid) from anon, public;
+grant execute on function fodmap_liberado(uuid) to authenticated;
+
+-- 4) Toggle: a nutricionista liga e desliga restrições
+create or replace function definir_restricoes_do_paciente(p_paciente uuid, p_ativo boolean)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista libera as restrições.' using errcode = '42501';
+  end if;
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrada.' using errcode = '22023';
+  end if;
+
+  update pacientes set restricoes_liberado = coalesce(p_ativo, false) where id = p_paciente;
+
+  return (select restricoes_liberado from pacientes where id = p_paciente);
+end;
+$$;
+
+revoke all on function definir_restricoes_do_paciente(uuid, boolean) from anon, public;
+grant execute on function definir_restricoes_do_paciente(uuid, boolean) to authenticated;
+
+-- 5) Toggle: a nutricionista liga e desliga o FODMAP
+create or replace function definir_fodmap_do_paciente(p_paciente uuid, p_ativo boolean)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista libera o FODMAP.' using errcode = '42501';
+  end if;
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrada.' using errcode = '22023';
+  end if;
+
+  update pacientes set fodmap_liberado = coalesce(p_ativo, false) where id = p_paciente;
+
+  return (select fodmap_liberado from pacientes where id = p_paciente);
+end;
+$$;
+
+revoke all on function definir_fodmap_do_paciente(uuid, boolean) from anon, public;
+grant execute on function definir_fodmap_do_paciente(uuid, boolean) to authenticated;
+
+-- 6) meu_acesso() ganha `restricoes` e `fodmap`
+create or replace function meu_acesso()
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select jsonb_build_object(
+    'autenticado', auth.uid() is not null,
+    'perfilId', auth.uid(),
+    'papel', coalesce((select papel from perfis where id = auth.uid()), 'paciente'),
+    'nome', (select coalesce(pa.nome, pe.nome) from perfis pe
+             left join pacientes pa on pa.perfil_id = pe.id where pe.id = auth.uid()),
+    'email', (select email::text from perfis where id = auth.uid()),
+    'temAcesso', tem_acesso() or e_admin(),
+    'situacao', coalesce(
+      (select situacao_paciente(p.status, p.perfil_id, p.data_inicio, p.data_fim)
+         from pacientes p where p.perfil_id = auth.uid()),
+      case when e_admin() then 'admin' else 'sem_cadastro' end
+    ),
+    'dataInicio', (select data_inicio from pacientes where perfil_id = auth.uid()),
+    'dataFim', (select data_fim from pacientes where perfil_id = auth.uid()),
+    'diasRestantes', (select data_fim - hoje_sp() from pacientes where perfil_id = auth.uid()),
+    'plano', (select pl.nome from pacientes p join planos pl on pl.id = p.plano_id
+               where p.perfil_id = auth.uid()),
+    'rastreio', e_admin() or coalesce(rastreio_ativo(meu_paciente_id()), false),
+    'protocolo', e_admin() or tenho_protocolo(),
+    'avaliacao', e_admin() or tenho_avaliacao(),
+    'treino', e_admin() or tenho_treino(),
+    'metas', e_admin() or tenho_metas(),
+    'desafio', e_admin() or coalesce(desafio_liberado(meu_paciente_id()), true),
+    'restricoes', e_admin() or coalesce(restricoes_liberado(meu_paciente_id()), false),
+    'fodmap', e_admin() or coalesce(fodmap_liberado(meu_paciente_id()), false)
+  );
+$$;
+
+grant execute on function meu_acesso() to authenticated;
+
+-- 7) acessos_do_paciente() ganha restrições e FODMAP
+create or replace function acessos_do_paciente(p_paciente uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê os acessos.' using errcode = '42501';
+  end if;
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrada.' using errcode = '22023';
+  end if;
+
+  return jsonb_build_object(
+    'rastreio', coalesce(rastreio_ativo(p_paciente), false),
+    'treino', coalesce(treino_liberado(p_paciente), false),
+    'desafio', coalesce(desafio_liberado(p_paciente), true),
+    'restricoes', coalesce(restricoes_liberado(p_paciente), false),
+    'fodmap', coalesce(fodmap_liberado(p_paciente), false),
+    -- Estado, não interruptor: existe porque ela publicou conteúdo.
+    'protocolo', exists (
+      select 1 from protocolos where paciente_id = p_paciente and situacao = 'publicado'),
+    'avaliacao', exists (
+      select 1 from avaliacoes_fisicas where paciente_id = p_paciente and publicada),
+    'metas', exists (
+      select 1 from metas where paciente_id = p_paciente
+        and status in ('ativa', 'pausada', 'concluida'))
+  );
+end;
+$$;
+
+revoke all on function acessos_do_paciente(uuid) from anon, public;
+grant execute on function acessos_do_paciente(uuid) to authenticated;
+
+-- 8) minhas_restricoes() agora respeita o interruptor
+create or replace function minhas_restricoes()
+returns setof restricoes_alimentares
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente uuid;
+begin
+  v_paciente := meu_paciente_id();
+  if v_paciente is null then return; end if;
+  if not restricoes_liberado(v_paciente) then return; end if;
+
+  return query
+    select * from restricoes_alimentares
+    where paciente_id = v_paciente
+    order by criado_em;
+end;
+$$;
+
+revoke all on function minhas_restricoes() from anon, public;
+grant execute on function minhas_restricoes() to authenticated;

@@ -1230,6 +1230,8 @@ export const repositorioSupabase: Repositorio = {
       // O desafio nasce LIGADO: na dúvida, o estado que não muda nada para
       // quem já estava participando.
       desafio: l.desafio !== false,
+      restricoes: l.restricoes === true,
+      fodmap: l.fodmap === true,
       protocolo: l.protocolo === true,
       avaliacao: l.avaliacao === true,
       metas: l.metas === true,
@@ -1253,6 +1255,26 @@ export const repositorioSupabase: Repositorio = {
       p_ativo: ativo,
     });
     erro("liberar a área de treino", error);
+    return data === true;
+  },
+
+  async definirRestricoesDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("definir_restricoes_do_paciente", {
+      p_paciente: pacienteId,
+      p_ativo: ativo,
+    });
+    erro("liberar as restrições", error);
+    return data === true;
+  },
+
+  async definirFodmapDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("definir_fodmap_do_paciente", {
+      p_paciente: pacienteId,
+      p_ativo: ativo,
+    });
+    erro("liberar o FODMAP", error);
     return data === true;
   },
 

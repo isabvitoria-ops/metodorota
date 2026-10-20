@@ -74,13 +74,6 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Alergias, intolerâncias e cuidados com a sua alimentação.",
   },
   {
-    rota: rotas.agua,
-    grupo: "ferramentas",
-    icone: "agua",
-    titulo: "Calculadora de Água",
-    descricao: "Descubra quantos litros de água seu corpo precisa por dia.",
-  },
-  {
     rota: rotas.fodmap,
     grupo: "ferramentas",
     icone: "folha",
@@ -193,7 +186,8 @@ export function Home() {
             (atalho) =>
               atalho.grupo === grupo.chave &&
               (atalho.rota !== rotas.rastreabilidade || acesso.rastreio) &&
-              (atalho.rota !== rotas.fodmap || acesso.rastreio) &&
+              (atalho.rota !== rotas.fodmap || acesso.fodmap) &&
+              (atalho.rota !== rotas.restricoes || acesso.restricoes) &&
               (atalho.rota !== rotas.protocolo || acesso.protocolo) &&
               // Sem treino ativo e sem nenhuma sessão registrada, a porta não
               // existe — em vez de abrir uma evolução sem o que mostrar.

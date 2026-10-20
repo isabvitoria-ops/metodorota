@@ -1145,6 +1145,8 @@ export const repositorioLocal: Repositorio = {
       rastreio: true,
       treino: true,
       desafio: true,
+      restricoes: true,
+      fodmap: true,
       protocolo: true,
       avaliacao: false,
       metas: true,
@@ -1157,6 +1159,14 @@ export const repositorioLocal: Repositorio = {
 
   async definirTreinoDoPaciente() {
     throw new Error("Liberar a área de treino precisa do banco. Configure o Supabase.");
+  },
+
+  async definirRestricoesDoPaciente() {
+    throw new Error("Liberar as restrições precisa do banco. Configure o Supabase.");
+  },
+
+  async definirFodmapDoPaciente() {
+    throw new Error("Liberar o FODMAP precisa do banco. Configure o Supabase.");
   },
 
   async salvarTreino(): Promise<string> {

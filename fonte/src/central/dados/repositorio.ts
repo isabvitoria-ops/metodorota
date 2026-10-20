@@ -391,12 +391,16 @@ export interface Repositorio {
     rastreio: boolean;
     treino: boolean;
     desafio: boolean;
+    restricoes: boolean;
+    fodmap: boolean;
     protocolo: boolean;
     avaliacao: boolean;
     metas: boolean;
   }>;
   definirDesafioDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean>;
   definirTreinoDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean>;
+  definirRestricoesDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean>;
+  definirFodmapDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean>;
 
   // ---------------------------------------------------------------------
   // Questionários e check-in semanal
