@@ -94,7 +94,7 @@ const HABITOS: Habito[] = [
       "Confundir sede com fome",
     ],
     dicas: [
-      "Use a Calculadora de Água do app para saber sua meta diária.",
+      "Use a aba Hidratação do app para registrar e acompanhar sua meta diária.",
       "Tenha uma garrafa visível — o que você vê, você lembra.",
       "Frutas e vegetais também hidratam (melancia, pepino, alface).",
       "Café e chá contam, mas água pura continua sendo a principal.",
