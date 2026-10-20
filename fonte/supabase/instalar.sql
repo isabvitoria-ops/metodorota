@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql
 -- =============================================================================
 
 
@@ -21464,3 +21464,282 @@ $$;
 
 revoke all on function minhas_restricoes() from anon, public;
 grant execute on function minhas_restricoes() to authenticated;
+
+
+-- ###########################################################################
+-- 0081_corrige_minhas_restricoes.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0081 — Corrige minhas_restricoes(): recoloca atualizadoEm no retorno.
+--
+-- A migração 0080 substituiu minhas_restricoes() para adicionar o
+-- interruptor de restrições, mas esqueceu de incluir atualizadoEm no
+-- jsonb_build_object. O tipo TypeScript espera esse campo.
+-- =============================================================================
+
+create or replace function minhas_restricoes()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente_id uuid;
+begin
+  select id into v_paciente_id
+  from pacientes where perfil_id = auth.uid();
+
+  if v_paciente_id is null then return '[]'::jsonb; end if;
+  if not restricoes_liberado(v_paciente_id) then return '[]'::jsonb; end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', r.id,
+      'tipo', r.tipo,
+      'alimento', r.alimento,
+      'gravidade', r.gravidade,
+      'notas', r.notas,
+      'criadoEm', r.criado_em,
+      'atualizadoEm', r.atualizado_em
+    ) order by
+      case r.gravidade when 'grave' then 1 when 'moderada' then 2 else 3 end,
+      r.alimento
+    )
+    from restricoes_alimentares r
+    where r.paciente_id = v_paciente_id
+  ), '[]'::jsonb);
+end;
+$$;
+
+
+-- ###########################################################################
+-- 0082_fotos_evolucao.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- CENTRAL DO PACIENTE — 0081: Fotos evolutivas com comparativo visual
+--
+-- A paciente registra fotos de poses padronizadas (frente, perfil, costas,
+-- abdômen) ao longo do acompanhamento. A nutricionista e a própria paciente
+-- visualizam as fotos e comparam antes/depois com um slider.
+--
+-- Estrutura:
+--   · fotos_evolucao: cada linha é uma foto numa pose em uma sessão.
+--   · Sessão = (paciente_id, data) — não precisa de tabela separada.
+--   · Bucket "fotos-evolucao" com RLS; pastas por paciente.
+-- =============================================================================
+
+-- 1) Tipo de pose (enum evita valores inventados)
+do $$ begin
+  if not exists (select 1 from pg_type where typname = 'pose_foto') then
+    create type pose_foto as enum ('frente', 'lado', 'costas', 'abdomen');
+  end if;
+end $$;
+
+-- 2) Tabela
+create table if not exists fotos_evolucao (
+  id uuid primary key default gen_random_uuid(),
+  paciente_id uuid not null references pacientes(id) on delete cascade,
+  data date not null default (now() at time zone 'America/Sao_Paulo')::date,
+  pose pose_foto not null,
+  caminho text not null,
+  criado_em timestamptz not null default now(),
+
+  constraint fotos_evolucao_unica unique (paciente_id, data, pose)
+);
+
+create index if not exists idx_fotos_evolucao_paciente
+  on fotos_evolucao (paciente_id, data desc);
+
+-- 3) RLS
+alter table fotos_evolucao enable row level security;
+
+create policy "paciente_ve_suas_fotos" on fotos_evolucao
+  for select to authenticated
+  using (paciente_id = meu_paciente_id() or e_admin());
+
+create policy "admin_gerencia_fotos" on fotos_evolucao
+  for all to authenticated
+  using (e_admin())
+  with check (e_admin());
+
+-- 4) Bucket de storage (idempotente)
+insert into storage.buckets (id, name, public)
+values ('fotos-evolucao', 'fotos-evolucao', false)
+on conflict (id) do nothing;
+
+-- Storage policies
+create policy "evolucao_upload" on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'fotos-evolucao'
+    and (
+      e_admin()
+      or (storage.foldername(name))[1] = meu_paciente_id()::text
+    )
+  );
+
+create policy "evolucao_select" on storage.objects
+  for select to authenticated
+  using (
+    bucket_id = 'fotos-evolucao'
+    and (
+      e_admin()
+      or (storage.foldername(name))[1] = meu_paciente_id()::text
+    )
+  );
+
+create policy "evolucao_delete" on storage.objects
+  for delete to authenticated
+  using (
+    bucket_id = 'fotos-evolucao'
+    and e_admin()
+  );
+
+-- 5) A paciente descobre sua pasta
+create or replace function minha_pasta_de_evolucao()
+returns text
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select id::text from pacientes where perfil_id = auth.uid();
+$$;
+
+revoke all on function minha_pasta_de_evolucao() from anon, public;
+grant execute on function minha_pasta_de_evolucao() to authenticated;
+
+-- 6) Registrar foto (paciente ou admin)
+create or replace function registrar_foto_evolucao(
+  p_caminho text,
+  p_pose pose_foto,
+  p_data date default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente uuid;
+  v_data date;
+  v_id uuid;
+begin
+  if e_admin() then
+    v_paciente := (
+      select id from pacientes
+      where id::text = split_part(p_caminho, '/', 1)
+    );
+  else
+    v_paciente := meu_paciente_id();
+  end if;
+
+  if v_paciente is null then
+    raise exception 'Paciente não encontrada.' using errcode = '22023';
+  end if;
+
+  v_data := coalesce(p_data, (now() at time zone 'America/Sao_Paulo')::date);
+
+  insert into fotos_evolucao (paciente_id, data, pose, caminho)
+  values (v_paciente, v_data, p_pose, p_caminho)
+  on conflict (paciente_id, data, pose)
+  do update set caminho = excluded.caminho, criado_em = now()
+  returning id into v_id;
+
+  return v_id;
+end;
+$$;
+
+revoke all on function registrar_foto_evolucao(text, pose_foto, date) from anon, public;
+grant execute on function registrar_foto_evolucao(text, pose_foto, date) to authenticated;
+
+-- 7) Minhas fotos evolutivas (paciente)
+create or replace function minhas_fotos_evolucao()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente uuid;
+begin
+  v_paciente := meu_paciente_id();
+  if v_paciente is null then return '[]'::jsonb; end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', f.id,
+      'data', f.data,
+      'pose', f.pose,
+      'caminho', f.caminho,
+      'criadoEm', f.criado_em
+    ) order by f.data desc, f.pose)
+    from fotos_evolucao f
+    where f.paciente_id = v_paciente
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function minhas_fotos_evolucao() from anon, public;
+grant execute on function minhas_fotos_evolucao() to authenticated;
+
+-- 8) Fotos evolutivas de uma paciente (admin)
+create or replace function fotos_evolucao_do_paciente(p_paciente uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Acesso negado.' using errcode = '42501';
+  end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'id', f.id,
+      'data', f.data,
+      'pose', f.pose,
+      'caminho', f.caminho,
+      'criadoEm', f.criado_em
+    ) order by f.data desc, f.pose)
+    from fotos_evolucao f
+    where f.paciente_id = p_paciente
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function fotos_evolucao_do_paciente(uuid) from anon, public;
+grant execute on function fotos_evolucao_do_paciente(uuid) to authenticated;
+
+-- 9) Apagar foto (admin)
+create or replace function apagar_foto_evolucao(p_id uuid)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_caminho text;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista apaga fotos evolutivas.' using errcode = '42501';
+  end if;
+
+  delete from fotos_evolucao where id = p_id returning caminho into v_caminho;
+
+  if v_caminho is null then
+    raise exception 'Foto não encontrada.' using errcode = '22023';
+  end if;
+
+  return v_caminho;
+end;
+$$;
+
+revoke all on function apagar_foto_evolucao(uuid) from anon, public;
+grant execute on function apagar_foto_evolucao(uuid) to authenticated;

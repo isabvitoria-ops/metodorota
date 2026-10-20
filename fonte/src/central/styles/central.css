@@ -8116,3 +8116,155 @@ body:has(.central) {
   flex-direction: column;
   gap: 10px;
 }
+
+/* ── Fotos evolutivas ────────────────────────────────────── */
+
+.central .c-evo-poses {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.central .c-evo-pose-botao {
+  display: inline-flex;
+}
+
+.central .c-evo-galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.central .c-evo-thumb {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-2);
+  aspect-ratio: 3 / 4;
+}
+
+.central .c-evo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.central .c-evo-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--border);
+}
+
+.central .c-evo-thumb-rotulo {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 4px 6px;
+  font: 600 0.7rem/1.2 var(--font);
+  color: #fff;
+  background: linear-gradient(transparent, rgba(0,0,0,.55));
+  text-align: center;
+}
+
+.central .c-evo-thumb-apagar {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.5);
+  color: #fff;
+  font-size: 14px;
+  line-height: 22px;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.central .c-evo-comparador-controles {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.central .c-evo-slider {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  max-width: 400px;
+  margin: 12px auto 0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-2);
+  touch-action: none;
+  user-select: none;
+}
+
+.central .c-evo-slider-imagem {
+  position: absolute;
+  inset: 0;
+}
+
+.central .c-evo-slider-imagem img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+}
+
+.central .c-evo-slider-antes {
+  z-index: 2;
+}
+
+.central .c-evo-slider-depois {
+  z-index: 1;
+}
+
+.central .c-evo-slider-range {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: col-resize;
+  margin: 0;
+}
+
+.central .c-evo-slider-divisor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #fff;
+  z-index: 3;
+  pointer-events: none;
+  transform: translateX(-50%);
+  box-shadow: 0 0 4px rgba(0,0,0,.4);
+}
+
+.central .c-evo-slider-rotulo {
+  position: absolute;
+  bottom: 8px;
+  z-index: 3;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font: 600 0.7rem/1.4 var(--font);
+  color: #fff;
+  background: rgba(0,0,0,.5);
+  pointer-events: none;
+}
+
+.central .c-evo-slider-rotulo-antes {
+  left: 8px;
+}
+
+.central .c-evo-slider-rotulo-depois {
+  right: 8px;
+}

@@ -35,6 +35,7 @@ export const rotas = {
   agua: "/agua",
   hidratacao: "/hidratacao",
   restricoes: "/restricoes",
+  evolucaoFotos: "/fotos-evolucao",
   fibras: "/fibras",
   bristol: "/bristol",
   habitos: "/habitos",

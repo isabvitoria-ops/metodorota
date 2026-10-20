@@ -100,6 +100,7 @@ import type {
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { MinhaHidratacao, HidratacaoDoPaciente, TipoLiquido } from "@/central/types/hidratacao";
 import type { RestricaoAlimentar, TipoRestricao, GravidadeRestricao } from "@/central/types/restricao";
+import type { FotoEvolucao, PoseEvolucao } from "@/central/types/fotoEvolucao";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
 import { repositorioSupabase } from "./repositorioSupabase";
@@ -929,6 +930,21 @@ export interface Repositorio {
   excluirRestricao(id: string): Promise<void>;
   restricoesDoPaciente(pacienteId: string): Promise<RestricaoAlimentar[]>;
   minhasRestricoes(): Promise<RestricaoAlimentar[]>;
+
+  // ---------------------------------------------------------------------
+  // Fotos evolutivas (0081)
+  // ---------------------------------------------------------------------
+
+  /** Envia uma foto de evolução (reduzida no cliente). */
+  enviarFotoEvolucao(foto: Blob, pose: PoseEvolucao, data?: string): Promise<{ id: string }>;
+  /** Minhas sessões de fotos evolutivas. */
+  minhasFotosEvolucao(): Promise<FotoEvolucao[]>;
+  /** Admin: fotos evolutivas de uma paciente. */
+  fotosEvolucaoDoPaciente(pacienteId: string): Promise<FotoEvolucao[]>;
+  /** URL assinada para exibir uma foto evolutiva. */
+  enderecoDaFotoEvolucao(caminho: string): Promise<string>;
+  /** Admin: apaga uma foto evolutiva. */
+  apagarFotoEvolucao(id: string): Promise<void>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

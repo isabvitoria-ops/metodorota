@@ -35,6 +35,7 @@ import { AreaTexto, Campo, Selecao, Texto } from "@/central/admin/componentes/Ca
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { HidratacaoDoProntuario } from "./HidratacaoDoProntuario";
 import { RestricoesDoProntuario } from "./RestricoesDoProntuario";
+import { FotosEvolucaoDoProntuario } from "./FotosEvolucaoDoProntuario";
 
 /**
  * O prontuário: tudo de uma paciente, em ordem cronológica.
@@ -315,6 +316,7 @@ export function Prontuario() {
 
         <HidratacaoDoProntuario pacienteId={pacienteId} pesoAtual={paciente.pesoAtual} />
         <RestricoesDoProntuario pacienteId={pacienteId} />
+        <FotosEvolucaoDoProntuario pacienteId={pacienteId} />
       </div>
 
       <div hidden={aba !== "condutas"}>

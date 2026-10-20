@@ -97,6 +97,7 @@ import { CONTEUDO_VAZIO } from "@/central/types/protocolo";
 import { semanaDoDesafio, situacaoDoDesafio, totalDeSemanas } from "@/central/utils/desafio";
 import type { MinhaHidratacao, RegistroHidratacao, DiaHidratacao } from "@/central/types/hidratacao";
 import type { RestricaoAlimentar } from "@/central/types/restricao";
+import type { FotoEvolucao, PoseEvolucao } from "@/central/types/fotoEvolucao";
 import { exigirSupabase } from "@/central/supabase/cliente";
 import { numeroDeTexto } from "@/central/utils/numero";
 import { urlDaRota } from "@/central/utils/enderecos";
@@ -2658,6 +2659,67 @@ export const repositorioSupabase: Repositorio = {
     erro("carregar minhas restrições", error);
     return (Array.isArray(data) ? data : []) as RestricaoAlimentar[];
   },
+
+  // -- Fotos evolutivas (0081) --
+
+  async enviarFotoEvolucao(foto: Blob, pose: PoseEvolucao, data?: string) {
+    const sb = exigirSupabase();
+    const { data: pasta, error: erroPasta } = await sb.rpc("minha_pasta_de_evolucao");
+    erro("descobrir sua pasta", erroPasta);
+    const dona = textoOuNulo(pasta);
+    if (!dona) throw new Error("Não encontrei o seu cadastro.");
+
+    const ts = Date.now();
+    const rand = Math.random().toString(36).slice(2, 8);
+    const caminho = `${dona}/${ts}-${rand}.jpg`;
+
+    const { error: erroEnvio } = await sb.storage.from("fotos-evolucao").upload(caminho, foto, {
+      contentType: "image/jpeg",
+      upsert: false,
+    });
+    erro("enviar a foto", erroEnvio);
+
+    const { data: idFoto, error: erroRegistro } = await sb.rpc("registrar_foto_evolucao", {
+      p_caminho: caminho,
+      p_pose: pose,
+      p_data: data ?? null,
+    });
+    if (erroRegistro) {
+      await sb.storage.from("fotos-evolucao").remove([caminho]);
+      erro("registrar a foto", erroRegistro);
+    }
+    return { id: texto(idFoto) };
+  },
+
+  async minhasFotosEvolucao(): Promise<FotoEvolucao[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("minhas_fotos_evolucao");
+    erro("carregar suas fotos evolutivas", error);
+    return paraFotosEvolucao(data);
+  },
+
+  async fotosEvolucaoDoPaciente(pacienteId: string): Promise<FotoEvolucao[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("fotos_evolucao_do_paciente", { p_paciente: pacienteId });
+    erro("carregar fotos evolutivas", error);
+    return paraFotosEvolucao(data);
+  },
+
+  async enderecoDaFotoEvolucao(caminho: string): Promise<string> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.storage.from("fotos-evolucao").createSignedUrl(caminho, 3600);
+    erro("abrir a foto", error);
+    if (!data?.signedUrl) throw new Error("Não consegui abrir esta foto.");
+    return data.signedUrl;
+  },
+
+  async apagarFotoEvolucao(id: string): Promise<void> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("apagar_foto_evolucao", { p_id: id });
+    erro("apagar a foto", error);
+    const caminho = texto(data);
+    if (caminho) await sb.storage.from("fotos-evolucao").remove([caminho]);
+  },
 };
 
 const REFEICOES_VALIDAS: RefeicaoDoDiario[] = [
@@ -2998,5 +3060,16 @@ async function listarPedidosLgpd(): Promise<PedidoLgpd[]> {
     motivo: textoOuNulo(l.motivo),
     criadoEm: texto(l.criado_em),
     atendidoEm: textoOuNulo(l.atendido_em),
+  }));
+}
+
+function paraFotosEvolucao(data: unknown): FotoEvolucao[] {
+  if (!Array.isArray(data)) return [];
+  return data.map((l: Linha) => ({
+    id: texto(l.id),
+    data: texto(l.data),
+    pose: texto(l.pose) as PoseEvolucao,
+    caminho: texto(l.caminho),
+    criadoEm: texto(l.criadoEm),
   }));
 }

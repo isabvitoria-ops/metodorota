@@ -2290,6 +2290,19 @@ export const repositorioLocal: Repositorio = {
   async minhasRestricoes() {
     return [];
   },
+  async enviarFotoEvolucao() {
+    return { id: "demo" };
+  },
+  async minhasFotosEvolucao() {
+    return [];
+  },
+  async fotosEvolucaoDoPaciente() {
+    return [];
+  },
+  async enderecoDaFotoEvolucao() {
+    return "";
+  },
+  async apagarFotoEvolucao() {},
 };
 
 /**

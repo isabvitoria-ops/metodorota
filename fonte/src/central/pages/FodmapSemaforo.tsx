@@ -1,6 +1,9 @@
 import { useState, useMemo } from "react";
+import { Navigate } from "react-router-dom";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { BarraBusca } from "@/central/components/BarraBusca";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { rotas } from "@/central/rotas";
 import { Icone } from "@/central/components/Icone";
 import { CATALOGO_FODMAP } from "@/central/dados/sementes/fodmap";
 import {
@@ -16,7 +19,6 @@ import {
   type NivelFodmap,
 } from "@/central/types/fodmap";
 import { filtrarFodmap, alimentosParaFase, contarPorNivel, ordenarPorNivel } from "@/central/utils/fodmap";
-import { rotas } from "@/central/rotas";
 
 const CORES_NIVEL: Record<NivelFodmap, string> = {
   verde: "var(--cor-sucesso, #2e7d32)",
@@ -39,6 +41,7 @@ const GRUPOS: GrupoFodmap[] = ["frutanos", "gos", "lactose", "frutose", "sorbito
 const NIVEIS_ORDEM: NivelFodmap[] = ["verde", "amarelo", "vermelho"];
 
 export function FodmapSemaforo() {
+  const { acesso } = useSessao();
   const [busca, definirBusca] = useState("");
   const [fase, definirFase] = useState<FaseFodmap>("eliminacao");
   const [categoria, definirCategoria] = useState<CategoriaFodmap | null>(null);
@@ -59,6 +62,8 @@ export function FodmapSemaforo() {
     () => resultados.filter((a) => a.nivel === nivelAtivo),
     [resultados, nivelAtivo],
   );
+
+  if (!acesso.fodmap) return <Navigate to={rotas.home} replace />;
 
   function limpar() {
     definirBusca("");
