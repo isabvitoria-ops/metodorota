@@ -12,6 +12,7 @@ import { FodmapSemaforo } from "./pages/FodmapSemaforo";
 import { Hidratacao } from "./pages/Hidratacao";
 import { Restricoes } from "./pages/Restricoes";
 import { FotosEvolucao } from "./pages/FotosEvolucao";
+import { ListaDeCompras } from "./pages/ListaDeCompras";
 import { Bristol } from "./pages/Bristol";
 import { Habitos } from "./pages/Habitos";
 import { DiarioDeFotosPagina } from "@/central/pages/DiarioDeFotos";
@@ -76,6 +77,7 @@ export function CentralApp() {
           <Route path="hidratacao" element={<Hidratacao />} />
           <Route path="restricoes" element={<Restricoes />} />
           <Route path="fotos-evolucao" element={<FotosEvolucao />} />
+          <Route path="lista-de-compras" element={<ListaDeCompras />} />
           <Route path="fibras" element={<Navigate to={rotas.habitos} replace />} />
           <Route path="bristol" element={<Bristol />} />
           <Route path="habitos" element={<Habitos />} />
