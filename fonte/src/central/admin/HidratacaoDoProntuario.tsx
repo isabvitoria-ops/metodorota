@@ -124,7 +124,7 @@ export function HidratacaoDoProntuario({ pacienteId, pesoAtual }: Props) {
                       <td>{d.data.split("-").reverse().join("/")}</td>
                       <td>{d.totalMl} mL</td>
                       {pct !== null && (
-                        <td style={{ color: pct >= 100 ? "var(--cor-sucesso)" : undefined }}>
+                        <td style={{ color: pct >= 100 ? "var(--success)" : undefined }}>
                           {pct}%
                         </td>
                       )}
