@@ -2662,11 +2662,16 @@ export const repositorioSupabase: Repositorio = {
 
   // -- Fotos evolutivas (0081) --
 
-  async enviarFotoEvolucao(foto: Blob, pose: PoseEvolucao, data?: string) {
+  async enviarFotoEvolucao(foto: Blob, pose: PoseEvolucao, data?: string, pacienteId?: string) {
     const sb = exigirSupabase();
-    const { data: pasta, error: erroPasta } = await sb.rpc("minha_pasta_de_evolucao");
-    erro("descobrir sua pasta", erroPasta);
-    const dona = textoOuNulo(pasta);
+    let dona: string | null;
+    if (pacienteId) {
+      dona = pacienteId;
+    } else {
+      const { data: pasta, error: erroPasta } = await sb.rpc("minha_pasta_de_evolucao");
+      erro("descobrir sua pasta", erroPasta);
+      dona = textoOuNulo(pasta);
+    }
     if (!dona) throw new Error("Não encontrei o seu cadastro.");
 
     const ts = Date.now();
@@ -2679,6 +2684,13 @@ export const repositorioSupabase: Repositorio = {
     });
     erro("enviar a foto", erroEnvio);
 
+    const { hojeSaoPaulo } = await import("@/central/utils/situacao");
+    const dataEfetiva = data ?? hojeSaoPaulo();
+    const fotosAtuais = pacienteId
+      ? await this.fotosEvolucaoDoPaciente(pacienteId)
+      : await this.minhasFotosEvolucao();
+    const anterior = fotosAtuais.find((f) => f.pose === pose && f.data === dataEfetiva);
+
     const { data: idFoto, error: erroRegistro } = await sb.rpc("registrar_foto_evolucao", {
       p_caminho: caminho,
       p_pose: pose,
@@ -2687,6 +2699,9 @@ export const repositorioSupabase: Repositorio = {
     if (erroRegistro) {
       await sb.storage.from("fotos-evolucao").remove([caminho]);
       erro("registrar a foto", erroRegistro);
+    }
+    if (anterior && anterior.caminho !== caminho) {
+      await sb.storage.from("fotos-evolucao").remove([anterior.caminho]).catch(() => {});
     }
     return { id: texto(idFoto) };
   },

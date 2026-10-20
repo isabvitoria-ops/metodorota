@@ -21,15 +21,15 @@ import {
 import { filtrarFodmap, alimentosParaFase, contarPorNivel, ordenarPorNivel } from "@/central/utils/fodmap";
 
 const CORES_NIVEL: Record<NivelFodmap, string> = {
-  verde: "var(--cor-sucesso, #2e7d32)",
-  amarelo: "var(--cor-atencao, #ed6c02)",
-  vermelho: "var(--cor-erro, #d32f2f)",
+  verde: "var(--success)",
+  amarelo: "var(--warning)",
+  vermelho: "var(--danger)",
 };
 
 const BG_NIVEL: Record<NivelFodmap, string> = {
-  verde: "var(--cor-sucesso-fundo, #e8f5e9)",
-  amarelo: "var(--cor-atencao-fundo, #fff3e0)",
-  vermelho: "var(--cor-erro-fundo, #fbe9e7)",
+  verde: "var(--success-soft)",
+  amarelo: "var(--warning-soft)",
+  vermelho: "var(--danger-soft)",
 };
 
 const FASES: FaseFodmap[] = ["eliminacao", "reintroducao", "manutencao"];

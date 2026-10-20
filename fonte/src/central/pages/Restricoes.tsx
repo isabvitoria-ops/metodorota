@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { rotas } from "@/central/rotas";
 import { repositorio } from "@/central/dados/repositorio";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import type { RestricaoAlimentar, GravidadeRestricao, TipoRestricao } from "@/central/types/restricao";
 import { Esqueleto } from "@/central/components/Esqueleto";
 
@@ -35,6 +37,7 @@ function seloGravidade(g: GravidadeRestricao): string {
 }
 
 export function Restricoes() {
+  const { acesso } = useSessao();
   const [lista, definirLista] = useState<RestricaoAlimentar[]>([]);
   const [carregando, definirCarregando] = useState(true);
 
@@ -52,6 +55,8 @@ export function Restricoes() {
   useEffect(() => {
     void carregar();
   }, [carregar]);
+
+  if (!acesso.restricoes) return <Navigate to={rotas.home} replace />;
 
   if (carregando) {
     return (

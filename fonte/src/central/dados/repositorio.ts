@@ -936,7 +936,7 @@ export interface Repositorio {
   // ---------------------------------------------------------------------
 
   /** Envia uma foto de evolução (reduzida no cliente). */
-  enviarFotoEvolucao(foto: Blob, pose: PoseEvolucao, data?: string): Promise<{ id: string }>;
+  enviarFotoEvolucao(foto: Blob, pose: PoseEvolucao, data?: string, pacienteId?: string): Promise<{ id: string }>;
   /** Minhas sessões de fotos evolutivas. */
   minhasFotosEvolucao(): Promise<FotoEvolucao[]>;
   /** Admin: fotos evolutivas de uma paciente. */

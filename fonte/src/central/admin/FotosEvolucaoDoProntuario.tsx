@@ -57,7 +57,7 @@ export function FotosEvolucaoDoProntuario({ pacienteId }: { pacienteId: string }
     definirMensagem(null);
     try {
       const blob = await reduzirFoto(arquivo);
-      await repositorio.enviarFotoEvolucao(blob, pose);
+      await repositorio.enviarFotoEvolucao(blob, pose, undefined, pacienteId);
       definirMensagem("Foto salva.");
       await carregar();
     } catch (e) {
