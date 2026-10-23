@@ -47,6 +47,7 @@ export function FichaPaciente({
   const [confirmandoExclusao, definirConfirmando] = useState(false);
   const [aviso, definirAviso] = useState<string | null>(null);
   const [ocupado, definirOcupado] = useState(false);
+  const [linkWpp, definirLinkWpp] = useState<string | null>(null);
 
   useEffect(() => {
     void historico(paciente.id).then(definirEventos).catch(() => {});
@@ -133,25 +134,45 @@ export function FichaPaciente({
             </button>
 
             {paciente.telefone && (
-              <button
-                type="button"
-                className="c-botao c-botao-secundario"
-                disabled={ocupado}
-                onClick={() =>
-                  void executar(async () => {
-                    const link = await gerarLinkConvite(paciente.id, paciente.email);
-                    if (!link) return;
-                    const fone = paciente.telefone!.replace(/\D/g, "");
-                    const numero = fone.length <= 11 ? `55${fone}` : fone;
-                    const texto = encodeURIComponent(
-                      `Oi! Aqui é a Bela 🙂\n\nSeu acesso ao app da Central do Paciente está pronto. Clique no link abaixo para criar sua senha:\n\n${link}\n\nQualquer dúvida, me chama aqui!`,
-                    );
-                    window.open(`https://wa.me/${numero}?text=${texto}`, "_blank");
-                  }, "Link gerado. A janela do WhatsApp deve abrir — envie a mensagem para a paciente.")
-                }
-              >
-                Enviar convite pelo WhatsApp
-              </button>
+              linkWpp ? (
+                <a
+                  href={linkWpp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="c-botao"
+                  style={{ textAlign: "center", textDecoration: "none", background: "#25d366", color: "#fff", borderColor: "#25d366" }}
+                >
+                  Abrir WhatsApp e enviar
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  className="c-botao c-botao-secundario"
+                  disabled={ocupado}
+                  onClick={async () => {
+                    definirOcupado(true);
+                    definirAviso(null);
+                    definirLinkWpp(null);
+                    try {
+                      const link = await gerarLinkConvite(paciente.id, paciente.email);
+                      if (!link) throw new Error("Não foi possível gerar o link.");
+                      const fone = paciente.telefone!.replace(/\D/g, "");
+                      const numero = fone.length <= 11 ? `55${fone}` : fone;
+                      const texto = encodeURIComponent(
+                        `Oi! Aqui é a Bela 🙂\n\nSeu acesso ao app da Central do Paciente está pronto. Clique no link abaixo para criar sua senha:\n\n${link}\n\nQualquer dúvida, me chama aqui!`,
+                      );
+                      definirLinkWpp(`https://wa.me/${numero}?text=${texto}`);
+                      definirAviso("Link gerado! Toque no botão verde para abrir o WhatsApp.");
+                    } catch (e) {
+                      definirAviso(e instanceof Error ? e.message : "Não foi possível gerar o link.");
+                    } finally {
+                      definirOcupado(false);
+                    }
+                  }}
+                >
+                  Enviar convite pelo WhatsApp
+                </button>
+              )
             )}
 
             {suspenso ? (
