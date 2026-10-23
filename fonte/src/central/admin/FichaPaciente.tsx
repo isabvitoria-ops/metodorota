@@ -57,9 +57,14 @@ export function FichaPaciente({
 
   async function executar(acao: () => Promise<void>, mensagem: string) {
     definirOcupado(true);
-    await acao();
-    definirAviso(mensagem);
-    definirOcupado(false);
+    try {
+      await acao();
+      definirAviso(mensagem);
+    } catch (e) {
+      definirAviso(e instanceof Error ? e.message : "Algo deu errado. Tente de novo.");
+    } finally {
+      definirOcupado(false);
+    }
   }
 
   return (

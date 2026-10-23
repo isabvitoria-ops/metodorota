@@ -77,7 +77,9 @@ export function FotosEvolucao() {
     return (
       <>
         <CabecalhoPagina titulo="Fotos evolutivas" voltarPara={rotas.home} />
-        <Esqueleto linhas={4} />
+        <div className="c-conteudo">
+          <Esqueleto linhas={4} />
+        </div>
       </>
     );
   }

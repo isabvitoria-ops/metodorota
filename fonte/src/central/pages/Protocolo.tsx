@@ -275,7 +275,7 @@ function Refeicao({
               <details className="c-refeicao-trocas-lista">
                 <summary>
                   <span aria-hidden="true">🔄</span>
-                  {item.substituicoes.length} substituicoes
+                  {item.substituicoes.length} substituições
                 </summary>
                 <ul>
                   {item.substituicoes.map((troca, j) => (

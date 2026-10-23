@@ -118,7 +118,9 @@ export function ListaDeCompras() {
     return (
       <>
         <CabecalhoPagina titulo="Lista de compras" voltarPara={rotas.home} />
-        <Esqueleto linhas={6} />
+        <div className="c-conteudo">
+          <Esqueleto linhas={6} />
+        </div>
       </>
     );
   }
@@ -127,11 +129,13 @@ export function ListaDeCompras() {
     return (
       <>
         <CabecalhoPagina titulo="Lista de compras" voltarPara={rotas.home} />
-        <EstadoVazio
-          icone="lista"
-          titulo="Sem protocolo publicado"
-          descricao="A lista de compras é gerada a partir do seu protocolo alimentar. Quando sua nutricionista publicar o plano, a lista aparece aqui."
-        />
+        <div className="c-conteudo">
+          <EstadoVazio
+            icone="lista"
+            titulo="Sem protocolo publicado"
+            descricao="A lista de compras é gerada a partir do seu protocolo alimentar. Quando sua nutricionista publicar o plano, a lista aparece aqui."
+          />
+        </div>
       </>
     );
   }
@@ -154,57 +158,59 @@ export function ListaDeCompras() {
         voltarPara={rotas.home}
       />
 
-      <div className="c-compras-topo">
-        <input
-          type="search"
-          className="c-campo-input"
-          placeholder="Buscar alimento…"
-          value={busca}
-          onChange={(e) => definirBusca(e.target.value)}
-        />
-        <div className="c-compras-controles">
-          <div className="c-compras-abas">
-            <button
-              type="button"
-              className={`c-compras-aba ${modo === "unificada" ? "c-compras-aba-ativa" : ""}`}
-              onClick={() => definirModo("unificada")}
-            >
-              Lista única
-            </button>
-            <button
-              type="button"
-              className={`c-compras-aba ${modo === "por-refeicao" ? "c-compras-aba-ativa" : ""}`}
-              onClick={() => definirModo("por-refeicao")}
-            >
-              Por refeição
-            </button>
+      <div className="c-conteudo">
+        <div className="c-compras-topo">
+          <input
+            type="search"
+            className="c-campo-input"
+            placeholder="Buscar alimento…"
+            value={busca}
+            onChange={(e) => definirBusca(e.target.value)}
+          />
+          <div className="c-compras-controles">
+            <div className="c-compras-abas">
+              <button
+                type="button"
+                className={`c-compras-aba ${modo === "unificada" ? "c-compras-aba-ativa" : ""}`}
+                onClick={() => definirModo("unificada")}
+              >
+                Lista única
+              </button>
+              <button
+                type="button"
+                className={`c-compras-aba ${modo === "por-refeicao" ? "c-compras-aba-ativa" : ""}`}
+                onClick={() => definirModo("por-refeicao")}
+              >
+                Por refeição
+              </button>
+            </div>
+            {marcadosNaLista > 0 && (
+              <button type="button" className="c-link c-link-discreto" onClick={limparMarcados}>
+                Limpar ({marcadosNaLista}/{total})
+              </button>
+            )}
           </div>
-          {marcadosNaLista > 0 && (
-            <button type="button" className="c-link c-link-discreto" onClick={limparMarcados}>
-              Limpar ({marcadosNaLista}/{total})
-            </button>
-          )}
+          <p className="c-dica">
+            {marcadosNaLista} de {total} {total === 1 ? "item marcado" : "itens marcados"}
+          </p>
         </div>
-        <p className="c-dica">
-          {marcadosNaLista} de {total} {total === 1 ? "item marcado" : "itens marcados"}
+
+        {modo === "unificada" ? (
+          <ListaUnificada itens={filtrados} marcados={marcados} aoAlternar={alternarMarcado} />
+        ) : (
+          <ListaPorRefeicao
+            refeicoes={protocolo.conteudo.refeicoes}
+            todosItens={todosItens}
+            marcados={marcados}
+            aoAlternar={alternarMarcado}
+            filtro={filtro}
+          />
+        )}
+
+        <p className="c-dica" style={{ marginTop: 20, textAlign: "center" }}>
+          Inclui os alimentos e suas substituições do seu protocolo.
         </p>
       </div>
-
-      {modo === "unificada" ? (
-        <ListaUnificada itens={filtrados} marcados={marcados} aoAlternar={alternarMarcado} />
-      ) : (
-        <ListaPorRefeicao
-          refeicoes={protocolo.conteudo.refeicoes}
-          todosItens={todosItens}
-          marcados={marcados}
-          aoAlternar={alternarMarcado}
-          filtro={filtro}
-        />
-      )}
-
-      <p className="c-dica" style={{ marginTop: 20, textAlign: "center" }}>
-        Inclui os alimentos e suas substituições do seu protocolo.
-      </p>
     </>
   );
 }

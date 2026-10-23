@@ -23,7 +23,8 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: "Isabela Marçal — Central do Paciente",
         short_name: "Isabela Marçal",
-        description: "Troca de alimentos, comer fora, substituições e guias do seu acompanhamento.",
+        lang: "pt-BR",
+        description: "Troca de alimentos, comer fora, substituições e ferramentas do seu acompanhamento.",
         theme_color: "#38546C",
         // Branco, como as telas passaram a ser: a tela de abertura do app
         // instalado nao pode piscar creme antes de abrir no branco.

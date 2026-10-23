@@ -62,7 +62,9 @@ export function Restricoes() {
     return (
       <>
         <CabecalhoPagina titulo="Minhas restrições" voltarPara={rotas.home} />
-        <Esqueleto linhas={4} />
+        <div className="c-conteudo">
+          <Esqueleto linhas={4} />
+        </div>
       </>
     );
   }
@@ -71,11 +73,13 @@ export function Restricoes() {
     return (
       <>
         <CabecalhoPagina titulo="Minhas restrições" voltarPara={rotas.home} />
-        <EstadoVazio
-          icone="alerta"
-          titulo="Nenhuma restrição cadastrada"
-          descricao="Quando sua nutricionista registrar alergias, intolerâncias ou cuidados especiais, eles aparecem aqui."
-        />
+        <div className="c-conteudo">
+          <EstadoVazio
+            icone="alerta"
+            titulo="Nenhuma restrição cadastrada"
+            descricao="Quando sua nutricionista registrar alergias, intolerâncias ou cuidados especiais, eles aparecem aqui."
+          />
+        </div>
       </>
     );
   }
@@ -88,17 +92,19 @@ export function Restricoes() {
         voltarPara={rotas.home}
       />
 
-      <div className="c-restricao-lista">
-        {lista.map((r) => (
-          <div key={r.id} className="c-restricao-card">
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <strong>{r.alimento}</strong>
-              <span className={seloGravidade(r.gravidade)}>{rotuloGravidade(r.gravidade)}</span>
-              <span className="c-restricao-tipo">{rotuloTipo(r.tipo)}</span>
+      <div className="c-conteudo">
+        <div className="c-restricao-lista">
+          {lista.map((r) => (
+            <div key={r.id} className="c-restricao-card">
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <strong>{r.alimento}</strong>
+                <span className={seloGravidade(r.gravidade)}>{rotuloGravidade(r.gravidade)}</span>
+                <span className="c-restricao-tipo">{rotuloTipo(r.tipo)}</span>
+              </div>
+              {r.notas && <p className="c-texto-muted" style={{ margin: "4px 0 0" }}>{r.notas}</p>}
             </div>
-            {r.notas && <p className="c-texto-muted" style={{ margin: "4px 0 0" }}>{r.notas}</p>}
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </>
   );

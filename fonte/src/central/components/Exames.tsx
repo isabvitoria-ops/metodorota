@@ -82,10 +82,17 @@ export function Exames({ pacienteId }: { pacienteId: string | null }) {
   }
 
   async function abrir(exame: Exame) {
+    const janela = window.open("about:blank", "_blank");
     try {
       const endereco = await repositorio.enderecoDoExame(exame.caminho);
-      window.open(endereco, "_blank", "noopener,noreferrer");
+      if (janela && !janela.closed) {
+        janela.opener = null;
+        janela.location.href = endereco;
+      } else {
+        window.location.href = endereco;
+      }
     } catch (e) {
+      janela?.close();
       definirErro(e instanceof Error ? e.message : "Não consegui abrir.");
     }
   }
