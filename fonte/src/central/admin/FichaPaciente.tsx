@@ -41,7 +41,7 @@ export function FichaPaciente({
   planos: Plano[];
   aoFechar: () => void;
 }) {
-  const { alterar, excluir, convidar, historico } = usePacientes();
+  const { alterar, excluir, convidar, gerarLinkConvite, historico } = usePacientes();
   const [aba, definirAba] = useState<"resumo" | "renovar" | "editar">("resumo");
   const [eventos, definirEventos] = useState<EventoHistorico[]>([]);
   const [confirmandoExclusao, definirConfirmando] = useState(false);
@@ -131,6 +131,28 @@ export function FichaPaciente({
             >
               {paciente.conviteEnviadoEm ? "Reenviar convite" : "Enviar convite"}
             </button>
+
+            {paciente.telefone && (
+              <button
+                type="button"
+                className="c-botao c-botao-secundario"
+                disabled={ocupado}
+                onClick={() =>
+                  void executar(async () => {
+                    const link = await gerarLinkConvite(paciente.id, paciente.email);
+                    if (!link) return;
+                    const fone = paciente.telefone!.replace(/\D/g, "");
+                    const numero = fone.length <= 11 ? `55${fone}` : fone;
+                    const texto = encodeURIComponent(
+                      `Oi! Aqui é a Bela 🙂\n\nSeu acesso ao app da Central do Paciente está pronto. Clique no link abaixo para criar sua senha:\n\n${link}\n\nQualquer dúvida, me chama aqui!`,
+                    );
+                    window.open(`https://wa.me/${numero}?text=${texto}`, "_blank");
+                  }, "Link gerado. A janela do WhatsApp deve abrir — envie a mensagem para a paciente.")
+                }
+              >
+                Enviar convite pelo WhatsApp
+              </button>
+            )}
 
             {suspenso ? (
               <button

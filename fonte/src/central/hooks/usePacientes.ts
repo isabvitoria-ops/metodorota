@@ -21,6 +21,7 @@ interface EstadoPacientes {
   alterar(id: string, alteracao: AlteracaoPaciente): Promise<void>;
   excluir(id: string): Promise<void>;
   convidar(id: string, email: string): Promise<void>;
+  gerarLinkConvite(pacienteId: string, email: string): Promise<string>;
   historico(id: string): Promise<EventoHistorico[]>;
 }
 
@@ -78,6 +79,17 @@ export const usePacientes = create<EstadoPacientes>((set, get) => ({
       await get().carregar();
     } catch (e) {
       set({ erro: mensagem(e) });
+    }
+  },
+
+  async gerarLinkConvite(pacienteId, email) {
+    try {
+      const link = await repositorio.gerarLinkConvite(pacienteId, email);
+      await get().carregar();
+      return link;
+    } catch (e) {
+      set({ erro: mensagem(e) });
+      return "";
     }
   },
 

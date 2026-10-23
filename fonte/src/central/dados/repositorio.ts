@@ -151,6 +151,7 @@ export interface Repositorio {
   alterarPaciente(id: string, alteracao: AlteracaoPaciente): Promise<void>;
   excluirPaciente(id: string): Promise<void>;
   registrarConvite(pacienteId: string, email: string): Promise<void>;
+  gerarLinkConvite(pacienteId: string, email: string): Promise<string>;
   historicoDoPaciente(pacienteId: string): Promise<EventoHistorico[]>;
 
   salvarAlimento(alimento: Alimento, ativo: boolean): Promise<void>;

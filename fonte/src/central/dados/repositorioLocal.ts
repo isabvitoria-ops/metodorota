@@ -425,6 +425,10 @@ export const repositorioLocal: Repositorio = {
     registrar(pacienteId, "convite_enviado");
   },
 
+  async gerarLinkConvite(_pacienteId) {
+    return `${window.location.origin}${import.meta.env.BASE_URL || "/"}`;
+  },
+
   async historicoDoPaciente(pacienteId) {
     return guardaHistorico.ler().filter((e) => e.pacienteId === pacienteId);
   },

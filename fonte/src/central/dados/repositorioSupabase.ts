@@ -325,6 +325,26 @@ export const repositorioSupabase: Repositorio = {
     erro("registrar convite", error);
   },
 
+  async gerarLinkConvite(pacienteId, email) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.functions.invoke("gerar-link-convite", {
+      body: { email: email.toLowerCase().trim(), redirectTo: urlDaRota("/definir-senha") },
+    });
+    if (error) throw new Error(error.message || "Não foi possível gerar o link.");
+    if (data?.error) throw new Error(data.error);
+    if (!data?.link) throw new Error("O servidor não devolveu o link.");
+
+    const { data: sessao } = await sb.auth.getUser();
+    const { error: erroConvite } = await sb.from("convites").insert({
+      paciente_id: pacienteId,
+      email: email.toLowerCase().trim(),
+      enviado_por: sessao.user?.id ?? null,
+    });
+    erro("registrar convite", erroConvite);
+
+    return data.link as string;
+  },
+
   async historicoDoPaciente(pacienteId): Promise<EventoHistorico[]> {
     const sb = exigirSupabase();
     const { data, error } = await sb
