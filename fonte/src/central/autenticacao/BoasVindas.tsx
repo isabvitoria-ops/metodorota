@@ -30,7 +30,7 @@ export function BoasVindas() {
         <div className="c-conta-caixa c-termo">
           <Marca altura={40} />
           <h1 className="c-titulo" style={{ fontSize: 26, marginTop: 10 }}>
-            Você é novo por aqui?
+            Primeira vez por aqui?
           </h1>
           <p className="c-subtitulo">
             Coloque o app na tela do seu celular, como qualquer outro aplicativo. Leva uns 20 segundos e você nunca mais

@@ -272,5 +272,6 @@ function traduzir(mensagem: string): string {
     return "Muitas tentativas seguidas. Espere alguns minutos e tente de novo.";
   }
   if (texto.includes("for security purposes")) return "Espere um minuto antes de pedir outro e-mail.";
+  if (texto.includes("should be different from the old password")) return "A nova senha precisa ser diferente da anterior.";
   return mensagem;
 }

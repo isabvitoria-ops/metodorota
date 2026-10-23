@@ -32,7 +32,7 @@ export function RecuperarSenha() {
   return (
     <TelaConta
       titulo="Recuperar senha"
-      descricao="Enviamos um link para você criar uma senha nova."
+      descricao="Informe seu e-mail e enviaremos um link para criar uma senha nova."
       aoEnviar={enviar}
       erro={erro}
       aviso={aviso}
