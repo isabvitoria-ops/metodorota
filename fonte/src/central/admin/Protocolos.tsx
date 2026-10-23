@@ -745,11 +745,11 @@ function BlocoDaRefeicao({
                     placeholder="3 fatias - 75g"
                   />
                 </Campo>
-                <Campo rotulo="Substituicoes" dica="Uma por linha. Pode nao ter nenhuma.">
+                <Campo rotulo="Substituições" dica="Uma por linha. Pode não ter nenhuma.">
                   <AreaDeLinhas
                     valor={item.substituicoes}
                     linhas={2}
-                    placeholder={"Tapioca - 70g\nPao frances - 1 unidade"}
+                    placeholder={"Tapioca - 70g\nPão francês - 1 unidade"}
                     aoMudar={(lista) =>
                       trocarOpcao(iOpcao, {
                         ...opcao,
@@ -916,7 +916,7 @@ function FotoDoItem({
       const caminho = await repositorio.enviarFotoDoProtocolo(pacienteId, reduzida);
       aoMudar(caminho);
     } catch (e) {
-      definirErro(e instanceof Error ? e.message : "Nao consegui enviar a foto.");
+      definirErro(e instanceof Error ? e.message : "Não consegui enviar a foto.");
     } finally {
       definirEnviando(false);
       if (ref.current) ref.current.value = "";

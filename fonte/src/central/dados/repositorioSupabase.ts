@@ -1052,7 +1052,7 @@ export const repositorioSupabase: Repositorio = {
     const sb = exigirSupabase();
     const { data, error } = await sb.storage.from("protocolo-fotos").createSignedUrl(caminho, 3600);
     erro("abrir a foto", error);
-    if (!data?.signedUrl) throw new Error("Nao consegui abrir esta foto.");
+    if (!data?.signedUrl) throw new Error("Não consegui abrir esta foto.");
     return data.signedUrl;
   },
 
