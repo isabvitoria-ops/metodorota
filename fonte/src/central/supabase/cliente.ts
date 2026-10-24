@@ -19,7 +19,7 @@ export const temSupabase = Boolean(url && chaveAnonima);
 
 export const supabase: SupabaseClient | null = temSupabase
   ? createClient(url as string, chaveAnonima as string, {
-      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true, flowType: "implicit" },
     })
   : null;
 
