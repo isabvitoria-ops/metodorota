@@ -206,9 +206,7 @@ export function Home() {
               (atalho.rota !== rotas.listaDeCompras || acesso.protocolo) &&
               // Sem treino ativo e sem nenhuma sessão registrada, a porta não
               // existe — em vez de abrir uma evolução sem o que mostrar.
-              (atalho.rota !== rotas.treino || acesso.treino) &&
-              // Sem meta combinada, a porta não existe.
-              (atalho.rota !== rotas.metas || acesso.metas),
+              (atalho.rota !== rotas.treino || acesso.treino),
           );
           if (portas.length === 0) return null;
           return (

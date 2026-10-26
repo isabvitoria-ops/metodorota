@@ -152,7 +152,7 @@ export function AcessosDaPaciente({ pacienteId }: { pacienteId: string }) {
         <Estado
           nome="Metas"
           ligado={acessos.metas}
-          apoio={acessos.metas ? "Tem metas." : "Nenhuma meta — a porta não aparece."}
+          apoio={acessos.metas ? "Tem metas." : "Nenhuma meta ainda."}
         />
       </div>
 
