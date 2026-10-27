@@ -11,7 +11,7 @@
 
 export type Sexo = "masculino" | "feminino";
 
-// ─── IMC ────────────────────────────────────────────────────────────────
+// ─── IMC ───────────────────────────────────────────────────────────────────────
 
 export function calcularIMC(pesoKg: number | null, alturaCm: number | null): number | null {
   if (!pesoKg || !alturaCm) return null;
@@ -51,7 +51,7 @@ export function pesoIdeal(alturaCm: number | null): { minimo: number; maximo: nu
   return { minimo: 18.5 * m * m, maximo: 24.9 * m * m };
 }
 
-// ─── Conversões de densidade → percentual ───────────────────────────────
+// ─── Conversões de densidade → percentual ───────────────────────────────────────
 
 function siri(d: number): number {
   return (4.95 / d - 4.5) * 100;
@@ -169,7 +169,7 @@ function percentualSlaughter(soma: number, sexo: Sexo): number | null {
   return menina ? 1.33 * soma - 0.013 * soma * soma - 2.5 : 1.21 * soma - 0.008 * soma * soma - 5.5;
 }
 
-// ─── Mapa: nome da Central → chave do cálculo ──────────────────────────
+// ─── Mapa: nome da Central → chave do cálculo ──────────────────────────────
 
 const MAPA_DOBRAS: Record<string, string> = {
   "Bíceps": "biceps",
@@ -183,7 +183,7 @@ const MAPA_DOBRAS: Record<string, string> = {
   "Panturrilha": "panturrilha",
 };
 
-// ─── Definição dos protocolos para cálculo ──────────────────────────────
+// ─── Definição dos protocolos para cálculo ────────────────────────────────
 
 interface ProtocoloCalculo {
   dobras: { masculino: string[]; feminino: string[] };
@@ -287,7 +287,7 @@ const PROTOCOLOS_CALCULO: Record<string, ProtocoloCalculo> = {
   },
 };
 
-// ─── RCQ ────────────────────────────────────────────────────────────────
+// ─── RCQ ───────────────────────────────────────────────────────────────────────
 
 export function calcularRCQ(
   circunferencias: { nome: string; valor: string }[],
@@ -310,7 +310,7 @@ export function classificarRCQ(rcq: number | null, sexo: Sexo | null): string | 
   return rcq >= corte ? "Risco aumentado" : "Baixo risco";
 }
 
-// ─── TMB (Taxa Metabólica Basal) ───────────────────────────────────────
+// ─── TMB (Taxa Metabólica Basal) ───────────────────────────────────────────
 
 export function mifflinStJeor(
   peso: number | null, altura: number | null, idade: number | null, sexo: Sexo | null,
@@ -329,7 +329,7 @@ export function harrisBenedict(
     : 447.593 + 9.247 * peso + 3.098 * altura - 4.33 * idade;
 }
 
-// ─── Fracionamento de composição corporal ──────────────────────────────
+// ─── Fracionamento de composição corporal ──────────────────────────────────
 
 function lerDiametro(diametros: { nome: string; valor: string }[], nome: string): number | null {
   const m = diametros.find((d) => d.nome === nome);
@@ -367,7 +367,7 @@ export function pesoMuscularCalc(
   return resultado > 0 ? resultado : null;
 }
 
-// ─── Resultado principal ────────────────────────────────────────────────
+// ─── Resultado principal ────────────────────────────────────────────────────
 
 export interface ResultadoCalculo {
   imc: number | null;
