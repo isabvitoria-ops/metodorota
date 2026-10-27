@@ -122,6 +122,7 @@ export interface GrupoDoProtocolo {
 export interface DadosAvaliacao {
   /** "4 Pregas: Protocolo de Faulkner" */
   metodo: string;
+  sexo: "masculino" | "feminino" | null;
   peso: number | null;
   altura: number | null;
   idade: number | null;
@@ -163,6 +164,7 @@ export interface MinhaAvaliacao {
 
 export const AVALIACAO_VAZIA: DadosAvaliacao = {
   metodo: "",
+  sexo: null,
   peso: null,
   altura: null,
   idade: null,
