@@ -1,5 +1,5 @@
 import type { DadosAvaliacao } from "@/central/types/protocolo";
-import { CIRCUNFERENCIAS, DOBRAS, numeroDaMedida } from "@/central/utils/medidasCorporais";
+import { CIRCUNFERENCIAS, DIAMETROS, DOBRAS, numeroDaMedida } from "@/central/utils/medidasCorporais";
 
 /**
  * A evolução entre avaliações.
@@ -26,7 +26,7 @@ export interface AvaliacaoNoTempo {
 }
 
 /** Uma chave numérica que dá para acompanhar no tempo. */
-export type ChaveDeSerie = "peso" | "imc" | "percentualGordura" | "massaGorda" | "massaMagra";
+export type ChaveDeSerie = "peso" | "imc" | "percentualGordura" | "massaGorda" | "massaMagra" | "pesoOsseo" | "pesoResidual" | "pesoMuscular" | "tmb";
 
 export interface PontoDaSerie {
   data: string;
@@ -144,11 +144,11 @@ export interface TabelaDeMedidas {
  */
 export function tabelaDeMedidas(
   avaliacoes: AvaliacaoNoTempo[],
-  tipo: "dobras" | "circunferencias",
+  tipo: "dobras" | "circunferencias" | "diametros",
   quantasColunas = 3,
 ): TabelaDeMedidas {
   const todas = emOrdemDeData(avaliacoes);
-  const oficiais = (tipo === "dobras" ? DOBRAS : CIRCUNFERENCIAS).map((c) => c.nome);
+  const oficiais = (tipo === "dobras" ? DOBRAS : tipo === "diametros" ? DIAMETROS : CIRCUNFERENCIAS).map((c) => c.nome);
 
   const mostradas = todas.slice(Math.max(0, todas.length - quantasColunas));
   const colunas: ColunaDeAvaliacao[] = mostradas.map((a) => ({

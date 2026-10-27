@@ -100,6 +100,7 @@ const DESTAQUES: { chave: ChaveDeSerie; rotulo: string; unidade: string }[] = [
   { chave: "percentualGordura", rotulo: "% Gordura", unidade: "%" },
   { chave: "massaGorda", rotulo: "Massa gorda", unidade: "kg" },
   { chave: "massaMagra", rotulo: "Massa magra", unidade: "kg" },
+  { chave: "pesoMuscular", rotulo: "Massa muscular", unidade: "kg" },
 ];
 
 function PainelDeNumeros({ historico }: { historico: AvaliacaoNoTempo[] }) {
@@ -199,6 +200,10 @@ function TabelaPrincipal({ cronologico }: { cronologico: AvaliacaoNoTempo[] }) {
     { rotulo: "Gordura (%)", extrair: (a) => num(a.dados.percentualGordura) },
     { rotulo: "Massa gorda (kg)", extrair: (a) => num(a.dados.massaGorda) },
     { rotulo: "Massa magra (kg)", extrair: (a) => num(a.dados.massaMagra) },
+    { rotulo: "Massa muscular (kg)", extrair: (a) => num(a.dados.pesoMuscular) },
+    { rotulo: "Peso ósseo (kg)", extrair: (a) => num(a.dados.pesoOsseo) },
+    { rotulo: "Peso residual (kg)", extrair: (a) => num(a.dados.pesoResidual) },
+    { rotulo: "TMB (kcal)", extrair: (a) => (a.dados.tmb !== null && a.dados.tmb !== undefined ? a.dados.tmb.toLocaleString("pt-BR") : null) },
     { rotulo: "Soma dobras (mm)", extrair: (a) => num(a.dados.somaDobras) },
   ];
 

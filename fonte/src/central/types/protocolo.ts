@@ -133,6 +133,11 @@ export interface DadosAvaliacao {
   somaDobras: number | null;
   dobras: { nome: string; valor: string }[];
   circunferencias: { nome: string; valor: string }[];
+  diametros: { nome: string; valor: string }[];
+  pesoOsseo: number | null;
+  pesoResidual: number | null;
+  pesoMuscular: number | null;
+  tmb: number | null;
   observacao: string | null;
 }
 
@@ -175,5 +180,10 @@ export const AVALIACAO_VAZIA: DadosAvaliacao = {
   somaDobras: null,
   dobras: [],
   circunferencias: [],
+  diametros: [],
+  pesoOsseo: null,
+  pesoResidual: null,
+  pesoMuscular: null,
+  tmb: null,
   observacao: null,
 };

@@ -56,6 +56,11 @@ function avaliacao(p: Partial<AvaliacaoFisica> & { peso?: number | null } = {}):
     somaDobras: null,
     dobras: [],
     circunferencias: [],
+    diametros: [],
+    pesoOsseo: null,
+    pesoResidual: null,
+    pesoMuscular: null,
+    tmb: null,
     observacao: null,
   } satisfies DadosAvaliacao;
   return { id: p.id ?? "a1", data: p.data ?? "2026-09-10", dados, publicada: p.publicada ?? true };

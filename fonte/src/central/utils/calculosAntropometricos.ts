@@ -294,6 +294,63 @@ export function classificarRCQ(rcq: number | null, sexo: Sexo | null): string | 
   return rcq >= corte ? "Risco aumentado" : "Baixo risco";
 }
 
+// ─── TMB (Taxa Metabólica Basal) ───────────────────────────────────────
+
+export function mifflinStJeor(
+  peso: number | null, altura: number | null, idade: number | null, sexo: Sexo | null,
+): number | null {
+  if (!peso || !altura || !idade || !sexo) return null;
+  const base = 10 * peso + 6.25 * altura - 5 * idade;
+  return sexo === "masculino" ? base + 5 : base - 161;
+}
+
+export function harrisBenedict(
+  peso: number | null, altura: number | null, idade: number | null, sexo: Sexo | null,
+): number | null {
+  if (!peso || !altura || !idade || !sexo) return null;
+  return sexo === "masculino"
+    ? 88.362 + 13.397 * peso + 4.799 * altura - 5.677 * idade
+    : 447.593 + 9.247 * peso + 3.098 * altura - 4.33 * idade;
+}
+
+// ─── Fracionamento de composição corporal ──────────────────────────────
+
+function lerDiametro(diametros: { nome: string; valor: string }[], nome: string): number | null {
+  const m = diametros.find((d) => d.nome === nome);
+  if (!m) return null;
+  const n = parseFloat(m.valor.replace(",", ".").replace(/[^\d.\-]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+export function pesoOsseoVonDobeln(
+  altura: number | null,
+  diametros: { nome: string; valor: string }[],
+): number | null {
+  if (!altura) return null;
+  const punho = lerDiametro(diametros, "Biestilóide (punho)");
+  const femur = lerDiametro(diametros, "Biepicondiliano do fêmur");
+  if (!punho || !femur) return null;
+  const alturaM = altura / 100;
+  return 3.02 * Math.pow(alturaM * alturaM * punho * femur, 0.712);
+}
+
+export function pesoResidualCalc(peso: number | null, sexo: Sexo | null): number | null {
+  if (!peso || !sexo) return null;
+  const fator = sexo === "masculino" ? 0.241 : 0.209;
+  return peso * fator;
+}
+
+export function pesoMuscularCalc(
+  peso: number | null,
+  massaGorda: number | null,
+  pesoOsseo: number | null,
+  pesoResidual: number | null,
+): number | null {
+  if (peso === null || massaGorda === null || pesoOsseo === null || pesoResidual === null) return null;
+  const resultado = peso - massaGorda - pesoOsseo - pesoResidual;
+  return resultado > 0 ? resultado : null;
+}
+
 // ─── Resultado principal ────────────────────────────────────────────────
 
 export interface ResultadoCalculo {
@@ -307,6 +364,11 @@ export interface ResultadoCalculo {
   somaDobras: number | null;
   rcq: number | null;
   classificacaoRCQ: string | null;
+  pesoOsseo: number | null;
+  pesoResidual: number | null;
+  pesoMuscular: number | null;
+  tmb: number | null;
+  tmbFormula: string | null;
   avisos: string[];
 }
 
@@ -324,8 +386,9 @@ export function calcularTudo(params: {
   idade: number | null;
   dobras: { nome: string; valor: string }[];
   circunferencias: { nome: string; valor: string }[];
+  diametros: { nome: string; valor: string }[];
 }): ResultadoCalculo {
-  const { protocoloId, sexo, peso, altura, idade, dobras, circunferencias } = params;
+  const { protocoloId, sexo, peso, altura, idade, dobras, circunferencias, diametros } = params;
   const avisos: string[] = [];
 
   const imcVal = calcularIMC(peso, altura);
@@ -399,6 +462,22 @@ export function calcularTudo(params: {
     }
   }
 
+  const osseo = pesoOsseoVonDobeln(altura, diametros);
+  const residual = pesoResidualCalc(peso, sexo);
+  const muscular = pesoMuscularCalc(peso, massaGordaVal, osseo, residual);
+
+  const tmbMifflin = mifflinStJeor(peso, altura, idade, sexo);
+  const tmbHB = harrisBenedict(peso, altura, idade, sexo);
+  let tmbVal: number | null = null;
+  let tmbFormula: string | null = null;
+  if (tmbMifflin !== null) {
+    tmbVal = Math.round(tmbMifflin);
+    tmbFormula = "Mifflin-St Jeor";
+  } else if (tmbHB !== null) {
+    tmbVal = Math.round(tmbHB);
+    tmbFormula = "Harris-Benedict";
+  }
+
   return {
     imc: imcVal !== null ? Math.round(imcVal * 100) / 100 : null,
     classificacaoIMC: classIMC,
@@ -410,6 +489,11 @@ export function calcularTudo(params: {
     somaDobras,
     rcq: rcqVal !== null ? Math.round(rcqVal * 100) / 100 : null,
     classificacaoRCQ: classRCQ,
+    pesoOsseo: osseo !== null ? Math.round(osseo * 100) / 100 : null,
+    pesoResidual: residual !== null ? Math.round(residual * 100) / 100 : null,
+    pesoMuscular: muscular !== null ? Math.round(muscular * 100) / 100 : null,
+    tmb: tmbVal,
+    tmbFormula,
     avisos,
   };
 }
