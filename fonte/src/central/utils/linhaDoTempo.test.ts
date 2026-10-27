@@ -47,6 +47,7 @@ function avaliacao(p: Partial<AvaliacaoFisica> & { peso?: number | null } = {}):
     metodo: "",
     peso: p.peso === undefined ? 72 : p.peso,
     altura: null,
+    sexo: null,
     idade: null,
     percentualGordura: null,
     massaGorda: null,

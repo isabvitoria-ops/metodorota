@@ -4606,6 +4606,41 @@ body:has(.central) {
   flex-wrap: wrap;
 }
 
+/* Barra de resumo em tempo real do formulário de avaliação */
+.c-resumo-calculo {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: var(--primary-soft);
+  border: 1px solid rgba(56, 84, 108, 0.2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  align-items: flex-start;
+}
+.c-resumo-calculo-item {
+  display: flex;
+  flex-direction: column;
+  min-width: 80px;
+}
+.c-resumo-calculo-rotulo {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-subtle);
+}
+.c-resumo-calculo-valor {
+  font-size: 18px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  color: var(--primary-dark);
+}
+.c-resumo-calculo-classe {
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
 /* Os campos de medida da avaliação: muitos e curtos, então uma grade que
    cabe três no celular e seis no computador — e não dez linhas de campo. */
 .c-linha-medidas {

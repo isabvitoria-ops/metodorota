@@ -2663,6 +2663,7 @@ const AVALIACOES_DEMO: { id: string; data: string; dados: DadosAvaliacao }[] = (
       data: diasAtras(0),
       dados: {
         metodo: "4 Pregas: Protocolo de Faulkner",
+        sexo: "feminino",
         peso: 47.8,
         altura: 159,
         idade: 22,
@@ -2690,6 +2691,7 @@ const AVALIACOES_DEMO: { id: string; data: string; dados: DadosAvaliacao }[] = (
       data: diasAtras(45),
       dados: {
         metodo: "4 Pregas: Protocolo de Faulkner",
+        sexo: "feminino",
         peso: 48.6,
         altura: 159,
         idade: 22,
@@ -2717,6 +2719,7 @@ const AVALIACOES_DEMO: { id: string; data: string; dados: DadosAvaliacao }[] = (
       data: diasAtras(110),
       dados: {
         metodo: "4 Pregas: Protocolo de Faulkner",
+        sexo: "feminino",
         peso: 50.2,
         altura: 159,
         idade: 21,
