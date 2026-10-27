@@ -3,7 +3,7 @@ import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation } from 
 import "@/central/styles/central.css";
 import { ProvedorSessao } from "@/central/autenticacao/SessaoContexto";
 import { Privacidade } from "@/central/autenticacao/Privacidade";
-import { Carregando, ExigeAcesso, ExigeAdmin, ExigeSessao } from "@/central/autenticacao/Protegido";
+import { Carregando, ExigeAcesso, ExigeAdmin, ExigeHotSlim, ExigeSessao } from "@/central/autenticacao/Protegido";
 import { Entrar } from "@/central/autenticacao/Entrar";
 import { DefinirSenha } from "@/central/autenticacao/DefinirSenha";
 import { RecuperarSenha } from "@/central/autenticacao/RecuperarSenha";
@@ -17,6 +17,7 @@ import { PREFIXO_ANTIGO, rotas } from "@/central/rotas";
 const CentralApp = lazy(() => import("@/central/CentralApp").then((m) => ({ default: m.CentralApp })));
 const AdminApp = lazy(() => import("@/central/admin/AdminApp").then((m) => ({ default: m.AdminApp })));
 const Consultorio = lazy(() => import("./Consultorio").then((m) => ({ default: m.Consultorio })));
+const HotSlimApp = lazy(() => import("@/central/hotslim/HotSlimApp").then((m) => ({ default: m.HotSlimApp })));
 
 /**
  * Roteamento de topo.
@@ -82,6 +83,14 @@ export function App() {
                 <ExigeSessao>
                   <SemAcesso />
                 </ExigeSessao>
+              }
+            />
+            <Route
+              path="/hotslim/*"
+              element={
+                <ExigeHotSlim>
+                  <HotSlimApp />
+                </ExigeHotSlim>
               }
             />
             <Route

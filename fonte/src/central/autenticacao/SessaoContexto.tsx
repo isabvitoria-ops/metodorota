@@ -42,6 +42,9 @@ const ACESSO_DEMONSTRACAO: Acesso = {
   metas: true,
   restricoes: true,
   fodmap: true,
+  hotslim: true,
+  hotslimFases: [1, 2, 3, 4],
+  hotslimDiaAtual: 1,
 };
 
 const ACESSO_VAZIO: Acesso = {
@@ -59,6 +62,9 @@ const ACESSO_VAZIO: Acesso = {
   metas: false,
   restricoes: false,
   fodmap: false,
+  hotslim: false,
+  hotslimFases: [],
+  hotslimDiaAtual: null,
   dataInicio: null,
   dataFim: null,
   diasRestantes: null,

@@ -55,6 +55,19 @@ export const rotas = {
   recuperarSenha: "/recuperar-senha",
   semAcesso: "/sem-acesso",
 
+  // Área do Desafio Hot Slim
+  hotslim: "/hotslim",
+  hotslimProtocolo: "/hotslim/protocolo",
+  hotslimListaCompras: "/hotslim/lista-compras",
+  hotslimCardapio: "/hotslim/cardapio",
+  hotslimReintroducao: "/hotslim/reintroducao",
+  hotslimChecklist: "/hotslim/checklist",
+  hotslimMetas: "/hotslim/metas",
+  hotslimFaq: "/hotslim/faq",
+  hotslimRotina: "/hotslim/rotina",
+  hotslimShots: "/hotslim/shots",
+  hotslimChas: "/hotslim/chas",
+
   // Área da nutricionista
   admin: "/admin",
   adminPacientes: "/admin/pacientes",
