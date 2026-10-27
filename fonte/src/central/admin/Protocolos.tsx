@@ -1516,6 +1516,9 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
                   <span className="c-resumo-calculo-valor">
                     {resultado.percentualGordura.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
                   </span>
+                  {resultado.classificacaoGordura && (
+                    <span className="c-resumo-calculo-classe">{resultado.classificacaoGordura}</span>
+                  )}
                 </div>
               )}
               {resultado.massaGorda !== null && (

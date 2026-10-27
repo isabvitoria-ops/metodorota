@@ -29,6 +29,22 @@ export function classificarIMC(valor: number | null): string | null {
   return "Obesidade grau III";
 }
 
+export function classificarGordura(percentual: number | null, sexo: Sexo | null): string | null {
+  if (percentual === null || !sexo) return null;
+  if (sexo === "masculino") {
+    if (percentual < 6) return "Essencial";
+    if (percentual < 14) return "Atleta";
+    if (percentual < 18) return "Bom";
+    if (percentual < 25) return "Normal";
+    return "Elevado";
+  }
+  if (percentual < 14) return "Essencial";
+  if (percentual < 21) return "Atleta";
+  if (percentual < 25) return "Bom";
+  if (percentual < 32) return "Normal";
+  return "Elevado";
+}
+
 export function pesoIdeal(alturaCm: number | null): { minimo: number; maximo: number } | null {
   if (!alturaCm) return null;
   const m = alturaCm / 100;
@@ -359,6 +375,7 @@ export interface ResultadoCalculo {
   pesoIdealMin: number | null;
   pesoIdealMax: number | null;
   percentualGordura: number | null;
+  classificacaoGordura: string | null;
   massaGorda: number | null;
   massaMagra: number | null;
   somaDobras: number | null;
@@ -484,6 +501,7 @@ export function calcularTudo(params: {
     pesoIdealMin: ideal ? Math.round(ideal.minimo * 10) / 10 : null,
     pesoIdealMax: ideal ? Math.round(ideal.maximo * 10) / 10 : null,
     percentualGordura,
+    classificacaoGordura: classificarGordura(percentualGordura, sexo),
     massaGorda: massaGordaVal,
     massaMagra: massaMagraVal,
     somaDobras,
