@@ -4595,6 +4595,17 @@ body:has(.central) {
   position: relative;
 }
 
+.c-delta-celula {
+  display: block;
+  font-size: 11px;
+  color: var(--text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.c-destaques-admin {
+  flex-wrap: wrap;
+}
+
 /* Os campos de medida da avaliação: muitos e curtos, então uma grade que
    cabe três no celular e seis no computador — e não dez linhas de campo. */
 .c-linha-medidas {
