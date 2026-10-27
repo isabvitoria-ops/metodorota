@@ -45,9 +45,9 @@ function meta(p: Partial<Meta> = {}): Meta {
 function avaliacao(p: Partial<AvaliacaoFisica> & { peso?: number | null } = {}): AvaliacaoFisica {
   const dados = {
     metodo: "",
+    sexo: null,
     peso: p.peso === undefined ? 72 : p.peso,
     altura: null,
-    sexo: null,
     idade: null,
     percentualGordura: null,
     massaGorda: null,
