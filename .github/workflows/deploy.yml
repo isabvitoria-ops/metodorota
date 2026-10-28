@@ -32,16 +32,21 @@ jobs:
         run: cd fonte && npm ci
 
       - name: Build Vite (pages)
-        run: cd fonte && npx vite build --mode pages
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+        run: cd fonte && npx vite build --mode pages --base /metodorota/
 
-      - name: Gerar index.html inline
-        run: python3 scripts/inline-build.py fonte/dist-pages/ index.html
+      - name: Gerar index.html e 404.html inline
+        run: |
+          python3 scripts/inline-build.py fonte/dist-pages/ index.html
+          cp index.html 404.html
 
       - name: Commit e push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html
+          git add index.html 404.html
           if git diff --cached --quiet; then
             echo "Nenhuma mudança no index.html"
           else
