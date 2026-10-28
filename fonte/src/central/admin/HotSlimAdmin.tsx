@@ -438,8 +438,13 @@ function ModalParticipante({
         });
       }
       aoFechar();
-    } catch (e) {
-      definirAviso(e instanceof Error ? e.message : "Não consegui salvar.");
+    } catch (e: unknown) {
+      const msg = e instanceof Error
+        ? e.message
+        : e && typeof e === "object" && "message" in e
+          ? String((e as { message: unknown }).message)
+          : "";
+      definirAviso(msg || "Não consegui salvar.");
     } finally {
       definirSalvando(false);
     }
