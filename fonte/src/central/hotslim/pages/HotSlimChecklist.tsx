@@ -92,22 +92,22 @@ export function HotSlimChecklist() {
         </span>
       </div>
 
-      {ITENS.map((item) => (
-        <div
-          key={item.campo}
-          className={`hs-toggle-row ${valores[item.campo] ? "ativo" : ""}`}
-          onClick={() => alternar(item.campo)}
-          role="checkbox"
-          aria-checked={valores[item.campo]}
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); alternar(item.campo); } }}
-        >
-          <span className="hs-toggle-text">{item.texto}</span>
-          <span className="hs-toggle-check">
-            {valores[item.campo] ? "✓" : ""}
-          </span>
-        </div>
-      ))}
+      <div className="hs-list-card">
+        {ITENS.map((item) => (
+          <div
+            key={item.campo}
+            className={`hs-list-item ${valores[item.campo] ? "checked" : ""}`}
+            onClick={() => alternar(item.campo)}
+            role="checkbox"
+            aria-checked={valores[item.campo]}
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); alternar(item.campo); } }}
+          >
+            <span className="hs-check">{valores[item.campo] ? "✓" : ""}</span>
+            <span className="hs-list-item-name">{item.texto}</span>
+          </div>
+        ))}
+      </div>
 
       {erroSalvar && (
         <div className="hs-dica" style={{ marginTop: 12, borderColor: "var(--hs-accent)", color: "var(--hs-accent)" }}>

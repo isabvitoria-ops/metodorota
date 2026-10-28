@@ -15,19 +15,19 @@ export function HotSlimMais() {
         <p className="hs-texto">Todo o conteúdo do desafio</p>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div className="hs-list-card">
         {ITENS.map((item) => (
           <Link
             key={item.rota}
             to={item.rota}
             style={{ textDecoration: "none", color: "inherit" }}
           >
-            <div className="hs-card" style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 0 }}>
-              <div>
+            <div className="hs-list-item">
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontWeight: 600, fontSize: 15 }}>{item.titulo}</div>
-                <div className="hs-texto" style={{ margin: 0, fontSize: 13 }}>{item.desc}</div>
+                <div style={{ fontSize: 13, color: "var(--hs-fg-soft)", marginTop: 1 }}>{item.desc}</div>
               </div>
-              <span style={{ marginLeft: "auto", color: "var(--hs-fg-soft)", fontSize: 18 }}>›</span>
+              <span style={{ color: "var(--hs-border-strong)", fontSize: 18, flexShrink: 0 }}>›</span>
             </div>
           </Link>
         ))}

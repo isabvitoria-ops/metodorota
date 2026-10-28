@@ -193,20 +193,21 @@ export function HotSlimReintroducao() {
             {aberta && (
               <div className="hs-fase-body">
                 {fase.categorias.map((cat) => (
-                  <div key={cat.titulo}>
-                    <div className="hs-cat-header">{cat.titulo}</div>
-                    <div className="c-chips">
+                  <div className="hs-list-section" key={cat.titulo} style={{ marginBottom: 16 }}>
+                    <div className="hs-list-header">{cat.titulo}</div>
+                    <div className="hs-list-card">
                       {cat.alimentos.map((a) => (
-                        <span key={a.nome} className="c-chip" style={{ cursor: "default" }}>
-                          {a.nome} <span className="hs-alimento-porcao">— {a.porcao}</span>
-                        </span>
+                        <div key={a.nome} className="hs-list-item static">
+                          <span className="hs-list-item-name">{a.nome}</span>
+                          <span className="hs-list-item-detail">{a.porcao}</span>
+                        </div>
                       ))}
                     </div>
                   </div>
                 ))}
 
                 {fase.dica && (
-                  <div className="hs-dica" style={{ marginTop: 12 }}>
+                  <div className="hs-dica" style={{ marginTop: 4 }}>
                     <strong>Dica:</strong> {fase.dica}
                   </div>
                 )}
