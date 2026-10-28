@@ -90,7 +90,7 @@ export function HotSlimListaCompras() {
           <div className="hs-alimentos">
             <span className="hs-alimento">🧂 Sal</span>
             <span className="hs-alimento">🫚 Pimenta-do-reino</span>
-            <span className="hs-alimento">🌿 Salsinha, cebolinha, coentro</span>
+            <span className="hs-alimento">🌿 Salsinha, coentro</span>
             <span className="hs-alimento">🌱 Manjericão</span>
             <span className="hs-alimento">🟡 Cúrcuma</span>
             <span className="hs-alimento">🫚 Gengibre</span>

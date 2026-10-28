@@ -27,7 +27,7 @@ const REFEICOES: Refeicao[] = [
     opcoes: [
       { nome: "Opção 1", itens: "Frango grelhado + arroz + abobrinha refogada + azeite" },
       { nome: "Opção 2", itens: "Peixe assado + batata cozida + cenoura no vapor + azeite" },
-      { nome: "Opção 3", itens: "Carne moída (patinho) + arroz + chuchu cozido + azeite" },
+      { nome: "Opção 3", itens: "Frango desfiado + arroz + chuchu cozido + azeite" },
     ],
   },
   {
@@ -84,7 +84,7 @@ export function HotSlimCardapio() {
     <div className="hs-pagina">
       <div style={{ marginBottom: 20 }}>
         <h1 className="hs-titulo">🍽️ Cardápio Sugestivo</h1>
-        <p className="hs-texto">Ideias de refeições para os dias do desafio</p>
+        <p className="hs-texto">Ideias de refeições para a fase de repouso digestivo (GUTCODE)</p>
       </div>
 
       <div className="hs-dica">

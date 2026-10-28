@@ -25,11 +25,12 @@ export interface MetaSemanal {
 export const repositorioHotSlim = {
   async carregarChecklistHoje(): Promise<ChecklistDia | null> {
     const sb = exigirSupabase();
-    const { data } = await sb
+    const { data, error } = await sb
       .from("hotslim_checklist")
       .select("*")
       .eq("dia", hojeSaoPaulo())
       .maybeSingle();
+    if (error) throw error;
     return data as ChecklistDia | null;
   },
 
@@ -46,21 +47,23 @@ export const repositorioHotSlim = {
 
   async carregarHistoricoChecklist(): Promise<ChecklistDia[]> {
     const sb = exigirSupabase();
-    const { data } = await sb
+    const { data, error } = await sb
       .from("hotslim_checklist")
       .select("*")
       .order("dia", { ascending: false })
       .limit(30);
+    if (error) throw error;
     return (data ?? []) as ChecklistDia[];
   },
 
   async carregarMetas(semana: number): Promise<MetaSemanal | null> {
     const sb = exigirSupabase();
-    const { data } = await sb
+    const { data, error } = await sb
       .from("hotslim_metas")
       .select("*")
       .eq("semana", semana)
       .maybeSingle();
+    if (error) throw error;
     return data as MetaSemanal | null;
   },
 

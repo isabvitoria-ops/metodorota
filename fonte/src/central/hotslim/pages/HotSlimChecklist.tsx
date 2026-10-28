@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { repositorioHotSlim, type ChecklistDia } from "../dados/repositorioHotSlim";
+import { hojeSaoPaulo } from "@/central/utils/situacao";
 
 type Campo = keyof Omit<ChecklistDia, "dia" | "notas">;
 
@@ -20,7 +21,8 @@ function contarMarcados(valores: Record<Campo, boolean>): number {
 }
 
 function hoje(): string {
-  return new Date().toLocaleDateString("pt-BR", {
+  const iso = hojeSaoPaulo();
+  return new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -35,6 +37,7 @@ export function HotSlimChecklist() {
   });
   const [notas, setNotas] = useState("");
   const [historico, setHistorico] = useState<ChecklistDia[]>([]);
+  const [erroSalvar, setErroSalvar] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -52,10 +55,11 @@ export function HotSlimChecklist() {
   const salvar = useCallback(
     (novo: Record<Campo, boolean>, notasVal: string) => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      setErroSalvar(false);
       timerRef.current = setTimeout(() => {
         repositorioHotSlim
           .salvarChecklist({ ...novo, notas: notasVal || null })
-          .catch(() => {});
+          .catch(() => setErroSalvar(true));
       }, 500);
     },
     [],
@@ -108,6 +112,12 @@ export function HotSlimChecklist() {
           </span>
         </div>
       ))}
+
+      {erroSalvar && (
+        <div className="hs-dica" style={{ marginTop: 12, borderColor: "var(--hs-accent)", color: "var(--hs-accent)" }}>
+          <strong>⚠️ Não consegui salvar.</strong> Verifique sua conexão e tente novamente.
+        </div>
+      )}
 
       <div style={{ marginTop: 16 }}>
         <label className="hs-label" htmlFor="hs-notas" style={{ display: "block", marginBottom: 6 }}>

@@ -89,15 +89,15 @@ export function HotSlimHome() {
           <ul className="hs-lista">
             <li>
               <span className="hs-lista-icon">1️⃣</span>
-              <span><strong>Semana 1 (Dias 1–7):</strong> Repouso digestivo — alimentos de fácil digestão</span>
+              <span><strong>Dias 1–6:</strong> Repouso digestivo (GUTCODE) — alimentos de fácil digestão</span>
             </li>
             <li>
               <span className="hs-lista-icon">2️⃣</span>
-              <span><strong>Semana 2 (Dias 8–14):</strong> Teste — reintrodução guiada de alimentos</span>
+              <span><strong>Dias 7–14:</strong> Teste — reintrodução guiada de alimentos</span>
             </li>
             <li>
               <span className="hs-lista-icon">3️⃣</span>
-              <span><strong>Semana 3 (Dias 15–21):</strong> Autonomia — consolidação dos resultados</span>
+              <span><strong>Dias 15–21:</strong> Autonomia — consolidação dos resultados</span>
             </li>
             <li>
               <span className="hs-lista-icon">✅</span>

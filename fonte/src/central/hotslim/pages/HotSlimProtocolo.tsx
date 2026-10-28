@@ -11,8 +11,8 @@ export function HotSlimProtocolo() {
 
       <p className="hs-texto" style={{ marginTop: 16 }}>
         O GUTCODE é um protocolo de 6 dias de repouso digestivo. Durante esse período, você consome
-        apenas alimentos de fácil digestão para permitir que o intestino se regenere. Depois, seguem
-        4 dias de reintrodução guiada.
+        apenas alimentos de fácil digestão para permitir que o intestino se regenere. Depois, começa
+        a reintrodução guiada dos alimentos, semana a semana.
       </p>
 
       {/* ── Como funciona ──────────────────────────────────── */}
@@ -66,9 +66,13 @@ export function HotSlimProtocolo() {
             <span className="hs-alimento">🧂 Sal</span>
             <span className="hs-alimento">⚫ Pimenta-do-reino</span>
             <span className="hs-alimento">🌿 Salsinha</span>
-            <span className="hs-alimento">🌿 Cebolinha</span>
             <span className="hs-alimento">🌿 Coentro</span>
             <span className="hs-alimento">🌿 Manjericão</span>
+            <span className="hs-alimento">🌿 Alecrim</span>
+            <span className="hs-alimento">🌿 Hortelã</span>
+            <span className="hs-alimento">🌿 Orégano</span>
+            <span className="hs-alimento">🟠 Páprica</span>
+            <span className="hs-alimento">🟤 Cominho</span>
             <span className="hs-alimento">🫒 Azeite extravirgem</span>
             <span className="hs-alimento">🍋 Limão / Lima</span>
             <span className="hs-alimento">🟡 Cúrcuma</span>
@@ -83,6 +87,10 @@ export function HotSlimProtocolo() {
         <div className="hs-accordion-body">
           <div className="hs-alimentos">
             {[
+              "Alho",
+              "Cebola",
+              "Alho-poró",
+              "Cebolinha",
               "Temperos prontos / industrializados",
               "Shoyu / molho de soja",
               "Ketchup",

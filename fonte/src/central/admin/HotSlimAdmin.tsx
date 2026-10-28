@@ -403,13 +403,13 @@ function ModalParticipante({
   aoFechar: () => void;
 }) {
   const hoje = hojeSaoPaulo();
-  const daquiDez = somarDiasISO(hoje, 21);
+  const fimPadrao = somarDiasISO(hoje, 20);
 
   const [nome, definirNome] = useState(participante?.nome ?? "");
   const [email, definirEmail] = useState(participante?.email ?? "");
   const [telefone, definirTelefone] = useState(participante?.telefone ?? "");
   const [dataInicio, definirDataInicio] = useState(participante?.data_inicio ?? hoje);
-  const [dataFim, definirDataFim] = useState(participante?.data_fim ?? daquiDez);
+  const [dataFim, definirDataFim] = useState(participante?.data_fim ?? fimPadrao);
   const [salvando, definirSalvando] = useState(false);
   const [aviso, definirAviso] = useState<string | null>(null);
 

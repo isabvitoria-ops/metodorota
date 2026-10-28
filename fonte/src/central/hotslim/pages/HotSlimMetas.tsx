@@ -14,6 +14,7 @@ export function HotSlimMetas() {
     metas_extras: [],
   });
   const [novaMeta, setNovaMeta] = useState("");
+  const [erroSalvar, setErroSalvar] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
@@ -27,9 +28,10 @@ export function HotSlimMetas() {
     (patch: Partial<MetaSemanal>) => {
       const novo = { ...metas, ...patch };
       setMetas(novo);
+      setErroSalvar(false);
       clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
-        void repositorioHotSlim.salvarMetas(semana, novo);
+        void repositorioHotSlim.salvarMetas(semana, novo).catch(() => setErroSalvar(true));
       }, 600);
     },
     [metas, semana],
@@ -177,6 +179,12 @@ export function HotSlimMetas() {
           </button>
         </div>
       </div>
+
+      {erroSalvar && (
+        <div className="hs-dica" style={{ borderColor: "var(--hs-accent)", color: "var(--hs-accent)" }}>
+          <strong>⚠️ Não consegui salvar.</strong> Verifique sua conexão e tente novamente.
+        </div>
+      )}
 
       <div className="hs-dica">
         <strong>💡 Dica:</strong> Metas realistas geram mais resultado. Comece com pouco e aumente conforme sentir confiança. O progresso vem da consistência, não da perfeição!
