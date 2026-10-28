@@ -35,7 +35,7 @@ export function HotSlimFaq() {
       <Pergunta
         emoji="🍷"
         titulo="Posso beber álcool?"
-        resposta="Não durante os 10 dias. O álcool irrita a mucosa intestinal e prejudica todo o trabalho de recuperação do GUTCODE. Depois do desafio, com moderação."
+        resposta="Não durante os 21 dias. O álcool irrita a mucosa intestinal e prejudica todo o trabalho de recuperação. Depois do desafio, com moderação."
       />
       <Pergunta
         emoji="🤢"
@@ -44,7 +44,7 @@ export function HotSlimFaq() {
       />
       <Pergunta
         emoji="🔄"
-        titulo="O que faço se um alimento da reintrodução me causar desconforto?"
+        titulo="O que faço se um alimento da reintrodução me causar desconforto?"
         resposta="Retire esse alimento por mais uma semana e tente novamente depois. Anote no seu checklist diário o que sentiu. Isso faz parte do rastreio — é assim que você descobre o que funciona para você."
       />
       <Pergunta
@@ -54,8 +54,8 @@ export function HotSlimFaq() {
       />
       <Pergunta
         emoji="⏰"
-        titulo="E depois dos 10 dias?"
-        resposta="O desafio termina, mas o aprendizado fica! Você vai saber quais alimentos funcionam para você e terá uma rotina alimentar mais consciente. A reintrodução continua por mais semanas no mapa."
+        titulo="E depois dos 21 dias?"
+        resposta="O desafio termina, mas o aprendizado fica! Você vai saber quais alimentos funcionam para você e terá uma rotina alimentar mais consciente. Use o mapa de reintrodução para continuar o rastreio."
       />
 
       <div className="hs-dica" style={{ marginTop: 24 }}>

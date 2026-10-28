@@ -39,8 +39,9 @@ export function HotSlimAdmin() {
       const lista = await repositorioHotSlimAdmin.listarParticipantes();
       definirParticipantes(lista);
       definirErro(null);
-    } catch (e) {
-      definirErro(e instanceof Error ? e.message : "Não consegui carregar.");
+    } catch (e: unknown) {
+      const msg = e && typeof e === "object" && "message" in e ? String((e as { message: unknown }).message) : "";
+      definirErro(msg || "Não consegui carregar.");
     } finally {
       definirCarregando(false);
     }
@@ -63,7 +64,7 @@ export function HotSlimAdmin() {
         <div>
           <h1 className="c-titulo" style={{ fontSize: 28 }}>🔥 Hot Slim</h1>
           <p className="c-subtitulo">
-            Gerenciar participantes do desafio de 10 dias
+            Gerenciar participantes do desafio de 21 dias
           </p>
         </div>
         <button
@@ -199,7 +200,7 @@ function ListaParticipantes({
     if (p.data_inicio > hoje) return { texto: "Aguardando", classe: "c-selo-proximo" };
     if (p.data_fim < hoje) return { texto: "Encerrado", classe: "c-selo-parada" };
     const dia = Math.max(1, diasEntre(p.data_inicio, hoje) + 1);
-    return { texto: `Dia ${dia} de 10`, classe: "c-selo-em-dia" };
+    return { texto: `Dia ${dia} de 21`, classe: "c-selo-em-dia" };
   }
 
   if (participantes.length === 0 && !busca.trim()) {
@@ -402,7 +403,7 @@ function ModalParticipante({
   aoFechar: () => void;
 }) {
   const hoje = hojeSaoPaulo();
-  const daquiDez = somarDiasISO(hoje, 10);
+  const daquiDez = somarDiasISO(hoje, 21);
 
   const [nome, definirNome] = useState(participante?.nome ?? "");
   const [email, definirEmail] = useState(participante?.email ?? "");
