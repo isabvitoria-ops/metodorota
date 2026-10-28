@@ -47,39 +47,33 @@ export function HotSlimProtocolo() {
         </div>
       </details>
 
-      <details className="hs-accordion">
-        <summary>Temperos permitidos</summary>
-        <div className="hs-accordion-body">
-          <div className="c-chips">
-            {["Sal", "Pimenta-do-reino", "Salsinha", "Coentro", "Manjericão", "Alecrim",
-              "Hortelã", "Orégano", "Páprica", "Cominho", "Azeite extravirgem",
-              "Limão / Lima", "Cúrcuma", "Gengibre",
-            ].map((t) => (
-              <span key={t} className="c-chip" style={{ cursor: "default" }}>{t}</span>
-            ))}
-          </div>
+      <div className="hs-list-section" style={{ marginTop: 20 }}>
+        <div className="hs-list-header">Temperos permitidos</div>
+        <div className="hs-list-card">
+          {["Sal", "Pimenta-do-reino", "Salsinha", "Coentro", "Manjericão", "Alecrim",
+            "Hortelã", "Orégano", "Páprica", "Cominho", "Azeite extravirgem",
+            "Limão / Lima", "Cúrcuma", "Gengibre",
+          ].map((t) => (
+            <div key={t} className="hs-list-item static">
+              <span className="hs-list-item-name">{t}</span>
+            </div>
+          ))}
         </div>
-      </details>
+      </div>
 
-      <details className="hs-accordion">
-        <summary>Temperos proibidos</summary>
-        <div className="hs-accordion-body">
-          <div className="c-chips">
-            {["Alho", "Cebola", "Alho-poró", "Cebolinha", "Temperos prontos / industrializados",
-              "Shoyu / molho de soja", "Ketchup", "Mostarda", "Maionese", "Molhos prontos",
-              "Caldos de carne / galinha em cubo", "Pimenta em conserva",
-            ].map((t) => (
-              <span
-                key={t}
-                className="c-chip"
-                style={{ cursor: "default", borderColor: "var(--danger)", color: "var(--danger)" }}
-              >
-                {t}
-              </span>
-            ))}
-          </div>
+      <div className="hs-list-section">
+        <div className="hs-list-header">Temperos proibidos</div>
+        <div className="hs-list-card">
+          {["Alho", "Cebola", "Alho-poró", "Cebolinha", "Temperos prontos / industrializados",
+            "Shoyu / molho de soja", "Ketchup", "Mostarda", "Maionese", "Molhos prontos",
+            "Caldos de carne / galinha em cubo", "Pimenta em conserva",
+          ].map((t) => (
+            <div key={t} className="hs-list-item static evitar">
+              <span className="hs-list-item-name">{t}</span>
+            </div>
+          ))}
         </div>
-      </details>
+      </div>
 
       <details className="hs-accordion" open>
         <summary>Regras de ouro</summary>
@@ -93,29 +87,27 @@ export function HotSlimProtocolo() {
         </div>
       </details>
 
-      <details className="hs-accordion">
-        <summary>Métodos de preparo</summary>
-        <div className="hs-accordion-body">
-          <div className="c-secao-titulo" style={{ marginTop: 0 }}>Recomendados</div>
-          <div className="c-chips">
-            {["Cozido", "Assado", "Grelhado", "Airfryer", "Vapor"].map((m) => (
-              <span key={m} className="c-chip" style={{ cursor: "default" }}>{m}</span>
-            ))}
-          </div>
-          <div className="c-secao-titulo" style={{ marginTop: 16 }}>Evitar</div>
-          <div className="c-chips">
-            {["Frituras", "Empanados", "Refogados pesados"].map((m) => (
-              <span
-                key={m}
-                className="c-chip"
-                style={{ cursor: "default", borderColor: "var(--danger)", color: "var(--danger)" }}
-              >
-                {m}
-              </span>
-            ))}
-          </div>
+      <div className="hs-list-section" style={{ marginTop: 20 }}>
+        <div className="hs-list-header">Métodos de preparo recomendados</div>
+        <div className="hs-list-card">
+          {["Cozido", "Assado", "Grelhado", "Airfryer", "Vapor"].map((m) => (
+            <div key={m} className="hs-list-item static">
+              <span className="hs-list-item-name">{m}</span>
+            </div>
+          ))}
         </div>
-      </details>
+      </div>
+
+      <div className="hs-list-section">
+        <div className="hs-list-header">Evitar</div>
+        <div className="hs-list-card">
+          {["Frituras", "Empanados", "Refogados pesados"].map((m) => (
+            <div key={m} className="hs-list-item static evitar">
+              <span className="hs-list-item-name">{m}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

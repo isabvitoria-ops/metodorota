@@ -92,11 +92,11 @@ export function HotSlimCardapio() {
           </div>
           {abertos.has(i) && (
             <div className="hs-refeicao-body">
-              <div className="hs-card-grid" style={{ gap: 8 }}>
+              <div className="hs-list-card" style={{ border: "none" }}>
                 {ref.opcoes.map((op, j) => (
-                  <div className="hs-card-sm" key={j}>
-                    <div className="hs-label" style={{ marginBottom: 4 }}>{op.nome}</div>
-                    <div style={{ fontSize: 14 }}>{op.itens}</div>
+                  <div className="hs-list-item static" key={j}>
+                    <span className="hs-label" style={{ flexShrink: 0 }}>{op.nome}</span>
+                    <span className="hs-list-item-name" style={{ fontSize: 14 }}>{op.itens}</span>
                   </div>
                 ))}
               </div>
@@ -105,28 +105,24 @@ export function HotSlimCardapio() {
         </div>
       ))}
 
-      <div className="hs-divider" />
-
-      <div className="c-secao">
-        <h2 className="c-secao-titulo">Pode usar</h2>
-        <div className="c-chips">
+      <div className="hs-list-section" style={{ marginTop: 28 }}>
+        <div className="hs-list-header">Pode usar</div>
+        <div className="hs-list-card">
           {PODE_USAR.map((item) => (
-            <span className="c-chip" style={{ cursor: "default" }} key={item}>{item}</span>
+            <div className="hs-list-item static" key={item}>
+              <span className="hs-list-item-name">{item}</span>
+            </div>
           ))}
         </div>
       </div>
 
-      <div className="c-secao">
-        <h2 className="c-secao-titulo">Evitar durante a fase de repouso</h2>
-        <div className="c-chips">
+      <div className="hs-list-section">
+        <div className="hs-list-header">Evitar durante o repouso</div>
+        <div className="hs-list-card">
           {EVITAR.map((item) => (
-            <span
-              className="c-chip"
-              key={item}
-              style={{ cursor: "default", borderColor: "var(--danger)", color: "var(--danger)" }}
-            >
-              {item}
-            </span>
+            <div className="hs-list-item static evitar" key={item}>
+              <span className="hs-list-item-name">{item}</span>
+            </div>
           ))}
         </div>
       </div>
