@@ -21,31 +21,37 @@ export function HotSlimMetas() {
     void repositorioHotSlim.carregarMetas(semana).then((d) => {
       if (d) setMetas(d);
       else setMetas({ semana, agua_litros: null, sono_horas: null, musculacao_vezes: null, cardio_minutos: null, metas_extras: [] });
-    });
+    }).catch(() => {});
   }, [semana]);
+
+  const ultimoRef = useRef<MetaSemanal>(metas);
+  ultimoRef.current = metas;
 
   const salvar = useCallback(
     (patch: Partial<MetaSemanal>) => {
-      const novo = { ...metas, ...patch };
-      setMetas(novo);
+      setMetas((prev) => {
+        const novo = { ...prev, ...patch };
+        ultimoRef.current = novo;
+        return novo;
+      });
       setErroSalvar(false);
       clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => {
-        void repositorioHotSlim.salvarMetas(semana, novo).catch(() => setErroSalvar(true));
+        void repositorioHotSlim.salvarMetas(semana, ultimoRef.current).catch(() => setErroSalvar(true));
       }, 600);
     },
-    [metas, semana],
+    [semana],
   );
 
   const adicionarExtra = () => {
     const texto = novaMeta.trim();
     if (!texto) return;
-    salvar({ metas_extras: [...metas.metas_extras, texto] });
+    salvar({ metas_extras: [...ultimoRef.current.metas_extras, texto] });
     setNovaMeta("");
   };
 
   const removerExtra = (idx: number) => {
-    salvar({ metas_extras: metas.metas_extras.filter((_, i) => i !== idx) });
+    salvar({ metas_extras: ultimoRef.current.metas_extras.filter((_, i) => i !== idx) });
   };
 
   return (
