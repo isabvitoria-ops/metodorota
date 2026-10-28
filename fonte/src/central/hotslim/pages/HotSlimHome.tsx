@@ -73,7 +73,7 @@ export function HotSlimHome() {
           </Link>
           <Link to="/hotslim/reintroducao" className="hs-atalho">
             <span className="hs-atalho-emoji">🔄</span>
-            Reintrodução
+            Reintrodução
           </Link>
           <Link to="/hotslim/metas" className="hs-atalho">
             <span className="hs-atalho-emoji">🎯</span>
@@ -93,15 +93,15 @@ export function HotSlimHome() {
             </li>
             <li>
               <span className="hs-lista-icon">2️⃣</span>
-              <span><strong>Semana 2 (Dias 8–14):</strong> Teste — reintrodução guiada de alimentos</span>
+              <span><strong>Semana 2 (Dias 8–14):</strong> Teste — reintrodução guiada de alimentos</span>
             </li>
             <li>
               <span className="hs-lista-icon">3️⃣</span>
-              <span><strong>Semana 3 (Dias 15–21):</strong> Autonomia — consolidação dos resultados</span>
+              <span><strong>Semana 3 (Dias 15–21):</strong> Autonomia — consolidação dos resultados</span>
             </li>
             <li>
               <span className="hs-lista-icon">✅</span>
-              <span><strong>Todo dia:</strong> Preencha o checklist para acompanhar sua evolução</span>
+              <span><strong>Todo dia:</strong> Preencha o checklist para acompanhar sua evolução</span>
             </li>
             <li>
               <span className="hs-lista-icon">💬</span>
