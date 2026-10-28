@@ -47,11 +47,21 @@ export function ExigeAcesso({ children }: { children: ReactNode }) {
   const { pronto, acesso, termo } = useSessao();
   if (!pronto) return <Carregando />;
   if (!acesso.autenticado) return <Navigate to={rotas.entrar} replace />;
+  if (acesso.papel === "hotslim") return <Navigate to="/hotslim" replace />;
   if (!acesso.temAcesso) return <Navigate to={rotas.semAcesso} replace />;
   // O termo vem antes de tudo: sem o aceite da versão atual, a paciente só vê o texto.
   if (acesso.papel !== "admin" && termo && !termo.aceito) return <TermoDeUso />;
   // Depois do termo, na primeira entrada, o guia de colocar o app na tela inicial.
   if (acesso.papel !== "admin" && termo && !termo.boasVindasVistas) return <BoasVindas />;
+  return <>{children}</>;
+}
+
+/** Exige ser participante do Hot Slim (ou admin). */
+export function ExigeHotSlim({ children }: { children: ReactNode }) {
+  const { pronto, acesso } = useSessao();
+  if (!pronto) return <Carregando />;
+  if (!acesso.autenticado) return <Navigate to={rotas.entrar} replace />;
+  if (acesso.papel !== "hotslim" && acesso.papel !== "admin") return <Navigate to={rotas.home} replace />;
   return <>{children}</>;
 }
 

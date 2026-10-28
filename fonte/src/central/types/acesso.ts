@@ -9,7 +9,7 @@
  * resposta até a tela.
  */
 
-export type Papel = "admin" | "paciente";
+export type Papel = "admin" | "paciente" | "hotslim";
 
 /**
  * Situação de um paciente. Só as três primeiras são gravadas — as outras
@@ -119,6 +119,9 @@ export interface Acesso {
    * O FODMAP é para quem faz rastreio intestinal, não para todo mundo.
    */
   fodmap: boolean;
+  hotslim: boolean;
+  hotslimFases: number[];
+  hotslimDiaAtual: number | null;
 }
 
 export interface Configuracoes {

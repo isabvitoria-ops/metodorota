@@ -45,6 +45,7 @@ function meta(p: Partial<Meta> = {}): Meta {
 function avaliacao(p: Partial<AvaliacaoFisica> & { peso?: number | null } = {}): AvaliacaoFisica {
   const dados = {
     metodo: "",
+    sexo: null,
     peso: p.peso === undefined ? 72 : p.peso,
     altura: null,
     idade: null,
@@ -55,6 +56,11 @@ function avaliacao(p: Partial<AvaliacaoFisica> & { peso?: number | null } = {}):
     somaDobras: null,
     dobras: [],
     circunferencias: [],
+    diametros: [],
+    pesoOsseo: null,
+    pesoResidual: null,
+    pesoMuscular: null,
+    tmb: null,
     observacao: null,
   } satisfies DadosAvaliacao;
   return { id: p.id ?? "a1", data: p.data ?? "2026-09-10", dados, publicada: p.publicada ?? true };

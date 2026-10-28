@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Paciente } from "@/central/types";
 import type {
   AvaliacaoFisica,
@@ -32,12 +32,14 @@ import {
 } from "@/central/utils/recolherRefeicoes";
 import {
   CIRCUNFERENCIAS,
+  DIAMETROS,
   DOBRAS,
   medidasPreenchidas,
   valoresDeMedidas,
 } from "@/central/utils/medidasCorporais";
 import { hojeSaoPaulo, dataBonita as diaBonito } from "@/central/utils/situacao";
 import { reduzirFoto } from "@/central/utils/reduzirFoto";
+import { calcularTudo } from "@/central/utils/calculosAntropometricos";
 
 /**
  * Protocolo alimentar — área da nutricionista.
@@ -1283,6 +1285,61 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
   const divergencias = conferirAvaliacao(dados);
   const valoresDobras = valoresDeMedidas(dados.dobras);
   const valoresCircunferencias = valoresDeMedidas(dados.circunferencias);
+  const valoresDiametros = valoresDeMedidas(dados.diametros ?? []);
+
+  const resultado = useMemo(
+    () =>
+      calcularTudo({
+        protocoloId: protocoloId === OUTRO_METODO ? null : protocoloId,
+        sexo: dados.sexo,
+        peso: dados.peso,
+        altura: dados.altura,
+        idade: dados.idade,
+        dobras: dados.dobras,
+        circunferencias: dados.circunferencias,
+        diametros: dados.diametros ?? [],
+      }),
+    [protocoloId, dados],
+  );
+
+  const autoSalvoRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (abertaId === null || abertaId === "nova") return;
+    if (ocupado) return;
+
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      autoSalvoRef.current = true;
+      void repositorio
+        .salvarAvaliacaoFisica(abertaId, paciente.id, data, dados, publicada)
+        .then(() => {
+          definirAviso("Salvo automaticamente.");
+          setTimeout(() => definirAviso((v) => v === "Salvo automaticamente." ? null : v), 2500);
+        })
+        .catch(() => {});
+    }, 4000);
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [dados, data, abertaId, paciente.id, publicada, ocupado]);
+
+  function aplicarCalculos() {
+    const r = resultado;
+    const proximo = { ...dados };
+    if (r.imc !== null) proximo.imc = r.imc;
+    if (r.percentualGordura !== null) proximo.percentualGordura = r.percentualGordura;
+    if (r.massaGorda !== null) proximo.massaGorda = r.massaGorda;
+    if (r.massaMagra !== null) proximo.massaMagra = r.massaMagra;
+    if (r.somaDobras !== null) proximo.somaDobras = r.somaDobras;
+    if (r.pesoOsseo !== null) proximo.pesoOsseo = r.pesoOsseo;
+    if (r.pesoResidual !== null) proximo.pesoResidual = r.pesoResidual;
+    if (r.pesoMuscular !== null) proximo.pesoMuscular = r.pesoMuscular;
+    if (r.tmb !== null) proximo.tmb = r.tmb;
+    definirDados(proximo);
+  }
 
   function mudarDobra(nome: string, valor: number | null) {
     const atuais = { ...valoresDobras, [nome]: valor === null ? "" : textoDeNumero(valor) };
@@ -1295,6 +1352,14 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
       [nome]: valor === null ? "" : textoDeNumero(valor),
     };
     definirDados({ ...dados, circunferencias: medidasPreenchidas(CIRCUNFERENCIAS, atuais) });
+  }
+
+  function mudarDiametro(nome: string, valor: number | null) {
+    const atuais = {
+      ...valoresDiametros,
+      [nome]: valor === null ? "" : textoDeNumero(valor),
+    };
+    definirDados({ ...dados, diametros: medidasPreenchidas(DIAMETROS, atuais) });
   }
 
   const campoNumero = (
@@ -1316,8 +1381,8 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
         Avaliação física
       </h2>
       <p className="c-dica" style={{ marginTop: 0 }}>
-        Lance aqui o resultado que você calculou na ferramenta. A paciente vê a última publicada,
-        num atalho dentro do Protocolo dela.
+        Preencha peso, altura, sexo e as dobras do protocolo — os cálculos aparecem na hora.
+        A paciente vê a última avaliação publicada, num atalho dentro do Protocolo dela.
       </p>
 
       {aviso && (
@@ -1394,6 +1459,20 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
           )}
 
           <div className="c-duas-colunas">
+            <Campo rotulo="Sexo biológico" dica="Necessário para o cálculo de composição corporal.">
+              <Selecao
+                valor={dados.sexo ?? ""}
+                aoMudar={(v) => definirDados({ ...dados, sexo: (v || null) as DadosAvaliacao["sexo"] })}
+                opcoes={[
+                  { valor: "" as const, rotulo: "Selecionar…" },
+                  { valor: "feminino" as const, rotulo: "Feminino" },
+                  { valor: "masculino" as const, rotulo: "Masculino" },
+                ]}
+              />
+            </Campo>
+          </div>
+
+          <div className="c-duas-colunas">
             {campoNumero("Peso (kg)", "peso")}
             {campoNumero("Altura (cm)", "altura")}
             {campoNumero("Idade", "idade")}
@@ -1408,7 +1487,126 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
           <div className="c-duas-colunas">
             {campoNumero("IMC", "imc")}
             {campoNumero("Soma das dobras (mm)", "somaDobras", "A do protocolo usado.")}
+            {campoNumero("TMB (kcal)", "tmb", "Taxa Metabólica Basal.")}
           </div>
+
+          <div className="c-duas-colunas">
+            {campoNumero("Peso ósseo (kg)", "pesoOsseo")}
+            {campoNumero("Peso residual (kg)", "pesoResidual")}
+            {campoNumero("Massa muscular (kg)", "pesoMuscular")}
+          </div>
+
+          {/* ── Resumo calculado em tempo real ── */}
+          {(resultado.imc !== null || resultado.percentualGordura !== null) && (
+            <div className="c-resumo-calculo">
+              {resultado.imc !== null && (
+                <div className="c-resumo-calculo-item">
+                  <span className="c-resumo-calculo-rotulo">IMC</span>
+                  <span className="c-resumo-calculo-valor">
+                    {resultado.imc.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}
+                  </span>
+                  {resultado.classificacaoIMC && (
+                    <span className="c-resumo-calculo-classe">{resultado.classificacaoIMC}</span>
+                  )}
+                </div>
+              )}
+              {resultado.percentualGordura !== null && (
+                <div className="c-resumo-calculo-item">
+                  <span className="c-resumo-calculo-rotulo">Gordura</span>
+                  <span className="c-resumo-calculo-valor">
+                    {resultado.percentualGordura.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
+                  </span>
+                  {resultado.classificacaoGordura && (
+                    <span className="c-resumo-calculo-classe">{resultado.classificacaoGordura}</span>
+                  )}
+                </div>
+              )}
+              {resultado.massaGorda !== null && (
+                <div className="c-resumo-calculo-item">
+                  <span className="c-resumo-calculo-rotulo">Massa gorda</span>
+                  <span className="c-resumo-calculo-valor">
+                    {resultado.massaGorda.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg
+                  </span>
+                </div>
+              )}
+              {resultado.massaMagra !== null && (
+                <div className="c-resumo-calculo-item">
+                  <span className="c-resumo-calculo-rotulo">Massa magra</span>
+                  <span className="c-resumo-calculo-valor">
+                    {resultado.massaMagra.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg
+                  </span>
+                </div>
+              )}
+              {resultado.rcq !== null && (
+                <div className="c-resumo-calculo-item">
+                  <span className="c-resumo-calculo-rotulo">RCQ</span>
+                  <span className="c-resumo-calculo-valor">
+                    {resultado.rcq.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}
+                  </span>
+                  {resultado.classificacaoRCQ && (
+                    <span className="c-resumo-calculo-classe">{resultado.classificacaoRCQ}</span>
+                  )}
+                </div>
+              )}
+              {resultado.pesoIdealMin !== null && resultado.pesoIdealMax !== null && (
+                <div className="c-resumo-calculo-item">
+                  <span className="c-resumo-calculo-rotulo">Peso ideal</span>
+                  <span className="c-resumo-calculo-valor">
+                    {resultado.pesoIdealMin.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}–
+                    {resultado.pesoIdealMax.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg
+                  </span>
+                </div>
+              )}
+              {resultado.pesoOsseo !== null && (
+                <div className="c-resumo-calculo-item">
+                  <span className="c-resumo-calculo-rotulo">Peso ósseo</span>
+                  <span className="c-resumo-calculo-valor">
+                    {resultado.pesoOsseo.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg
+                  </span>
+                  <span className="c-resumo-calculo-classe">Von Döbeln</span>
+                </div>
+              )}
+              {resultado.pesoResidual !== null && (
+                <div className="c-resumo-calculo-item">
+                  <span className="c-resumo-calculo-rotulo">Peso residual</span>
+                  <span className="c-resumo-calculo-valor">
+                    {resultado.pesoResidual.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg
+                  </span>
+                  <span className="c-resumo-calculo-classe">{dados.sexo === "masculino" ? "24,1%" : "20,9%"}</span>
+                </div>
+              )}
+              {resultado.pesoMuscular !== null && (
+                <div className="c-resumo-calculo-item">
+                  <span className="c-resumo-calculo-rotulo">Massa muscular</span>
+                  <span className="c-resumo-calculo-valor">
+                    {resultado.pesoMuscular.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg
+                  </span>
+                </div>
+              )}
+              {resultado.tmb !== null && (
+                <div className="c-resumo-calculo-item">
+                  <span className="c-resumo-calculo-rotulo">TMB</span>
+                  <span className="c-resumo-calculo-valor">
+                    {resultado.tmb.toLocaleString("pt-BR")} kcal
+                  </span>
+                  <span className="c-resumo-calculo-classe">{resultado.tmbFormula}</span>
+                </div>
+              )}
+              <button
+                type="button"
+                className="c-botao c-botao-secundario"
+                style={{ marginTop: 6, fontSize: 13 }}
+                onClick={aplicarCalculos}
+              >
+                Usar estes valores nos campos
+              </button>
+              {resultado.avisos.map((a, i) => (
+                <p key={i} className="c-dica" style={{ marginTop: 4, color: "var(--warning)" }}>
+                  {a}
+                </p>
+              ))}
+            </div>
+          )}
 
           {/* Um campo por dobra, como na ferramenta de cálculo — ela pediu
               assim: "não quero tudo junto, quero tipo o meu de cálculo
@@ -1465,6 +1663,23 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
                 <NumeroDecimal
                   valor={numeroDeTexto(valoresCircunferencias[campo.nome] ?? "")}
                   aoMudar={(v) => mudarCircunferencia(campo.nome, v)}
+                />
+              </Campo>
+            ))}
+          </div>
+
+          <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
+            Diâmetros ósseos (cm)
+          </h3>
+          <p className="c-dica" style={{ marginTop: 0 }}>
+            Usados no cálculo de peso ósseo (Von Döbeln) e massa muscular.
+          </p>
+          <div className="c-linha-medidas">
+            {DIAMETROS.map((campo) => (
+              <Campo rotulo={campo.nome} key={campo.nome}>
+                <NumeroDecimal
+                  valor={numeroDeTexto(valoresDiametros[campo.nome] ?? "")}
+                  aoMudar={(v) => mudarDiametro(campo.nome, v)}
                 />
               </Campo>
             ))}

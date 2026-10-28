@@ -55,6 +55,15 @@ export const rotas = {
   recuperarSenha: "/recuperar-senha",
   semAcesso: "/sem-acesso",
 
+  // Área do Desafio Hot Slim
+  hotslim: "/hotslim",
+  hotslimProtocolo: "/hotslim/protocolo",
+  hotslimListaCompras: "/hotslim/lista-compras",
+  hotslimCardapio: "/hotslim/cardapio",
+  hotslimReintroducao: "/hotslim/reintroducao",
+  hotslimChecklist: "/hotslim/checklist",
+  hotslimMetas: "/hotslim/metas",
+  hotslimFaq: "/hotslim/faq",
   // Área da nutricionista
   admin: "/admin",
   adminPacientes: "/admin/pacientes",
@@ -79,6 +88,7 @@ export const rotas = {
   adminRastreabilidadeDe: (pacienteId: string) => `/admin/rastreabilidade/${pacienteId}`,
   adminCerebro: "/admin/cerebro",
   adminCondutas: "/admin/condutas",
+  adminHotSlim: "/admin/hotslim",
 };
 
 /** Prefixo antigo, mantido para não quebrar link já enviado a paciente. */

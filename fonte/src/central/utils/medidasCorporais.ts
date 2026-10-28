@@ -37,6 +37,12 @@ export const CIRCUNFERENCIAS: CampoDeMedida[] = [
   { nome: "Panturrilha esquerda", unidade: "cm" },
 ];
 
+export const DIAMETROS: CampoDeMedida[] = [
+  { nome: "Biestilóide (punho)", unidade: "cm" },
+  { nome: "Biepicondiliano do fêmur", unidade: "cm" },
+  { nome: "Biepicondiliano do úmero", unidade: "cm" },
+];
+
 /**
  * Só o número de um valor guardado.
  *

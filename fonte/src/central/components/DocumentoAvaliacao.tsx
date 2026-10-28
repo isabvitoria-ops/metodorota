@@ -170,6 +170,18 @@ function Composicao({ avaliacao }: { avaliacao: MinhaAvaliacao }) {
       <p className="doc-nota">
         Massa gorda {numero(d.massaGorda)} kg · massa livre de gordura {numero(d.massaMagra)} kg
       </p>
+      {d.pesoMuscular !== null && d.pesoMuscular !== undefined
+        && d.pesoOsseo !== null && d.pesoOsseo !== undefined
+        && d.pesoResidual !== null && d.pesoResidual !== undefined && (
+        <p className="doc-nota">
+          Muscular {numero(d.pesoMuscular)} kg · ósseo {numero(d.pesoOsseo)} kg · residual {numero(d.pesoResidual)} kg
+        </p>
+      )}
+      {d.tmb !== null && d.tmb !== undefined && (
+        <p className="doc-nota">
+          Taxa metabólica basal: {d.tmb.toLocaleString("pt-BR")} kcal/dia
+        </p>
+      )}
     </section>
   );
 }

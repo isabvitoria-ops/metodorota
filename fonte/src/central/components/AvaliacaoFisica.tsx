@@ -246,6 +246,10 @@ function Composicao({ avaliacao }: { avaliacao: MinhaAvaliacao }) {
   const bruto = d.percentualGordura ?? (d.massaGorda / d.peso) * 100;
   const porcentoGorda = Math.max(0, Math.min(100, bruto));
 
+  const temFracionamento = d.pesoOsseo !== null && d.pesoOsseo !== undefined
+    && d.pesoResidual !== null && d.pesoResidual !== undefined
+    && d.pesoMuscular !== null && d.pesoMuscular !== undefined;
+
   return (
     <section className="c-secao">
       <h2 className="c-secao-titulo">Do que o seu peso é feito</h2>
@@ -256,6 +260,16 @@ function Composicao({ avaliacao }: { avaliacao: MinhaAvaliacao }) {
       <p className="c-item-protocolo-trocas" style={{ marginTop: 8 }}>
         Massa gorda {numero(d.massaGorda)} kg · massa livre de gordura {numero(d.massaMagra)} kg
       </p>
+      {temFracionamento && (
+        <p className="c-item-protocolo-trocas" style={{ marginTop: 4 }}>
+          Muscular {numero(d.pesoMuscular)} kg · ósseo {numero(d.pesoOsseo)} kg · residual {numero(d.pesoResidual)} kg
+        </p>
+      )}
+      {d.tmb !== null && d.tmb !== undefined && (
+        <p className="c-item-protocolo-trocas" style={{ marginTop: 4 }}>
+          Taxa metabólica basal: {d.tmb.toLocaleString("pt-BR")} kcal/dia
+        </p>
+      )}
     </section>
   );
 }
