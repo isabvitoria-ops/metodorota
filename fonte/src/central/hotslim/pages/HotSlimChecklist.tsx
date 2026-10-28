@@ -4,14 +4,14 @@ import { hojeSaoPaulo } from "@/central/utils/situacao";
 
 type Campo = keyof Omit<ChecklistDia, "dia" | "notas">;
 
-const ITENS: { campo: Campo; emoji: string; texto: string }[] = [
-  { campo: "intestino_regulou", emoji: "🚽", texto: "Intestino regulou?" },
-  { campo: "sem_gases", emoji: "💨", texto: "Sem gases?" },
-  { campo: "dormiu_bem", emoji: "😴", texto: "Dormiu bem?" },
-  { campo: "barriga_desinchada", emoji: "🫄", texto: "Barriga desinchada?" },
-  { campo: "sem_compulsao", emoji: "🍫", texto: "Menos compulsão?" },
-  { campo: "energia_boa", emoji: "⚡", texto: "Energia boa?" },
-  { campo: "humor_estavel", emoji: "😊", texto: "Humor estável?" },
+const ITENS: { campo: Campo; texto: string }[] = [
+  { campo: "intestino_regulou", texto: "Intestino regulou?" },
+  { campo: "sem_gases", texto: "Sem gases?" },
+  { campo: "dormiu_bem", texto: "Dormiu bem?" },
+  { campo: "barriga_desinchada", texto: "Barriga desinchada?" },
+  { campo: "sem_compulsao", texto: "Menos compulsão?" },
+  { campo: "energia_boa", texto: "Energia boa?" },
+  { campo: "humor_estavel", texto: "Humor estável?" },
 ];
 
 const CAMPOS: Campo[] = ITENS.map((i) => i.campo);
@@ -82,10 +82,7 @@ export function HotSlimChecklist() {
 
   return (
     <div className="hs-pagina">
-      <div style={{ marginBottom: 4 }}>
-        <span className="hs-emoji">✅</span>
-      </div>
-      <h1 className="hs-titulo hs-titulo-gradient">Checklist Diário</h1>
+      <h1 className="hs-titulo">Checklist Diário</h1>
       <p className="hs-texto" style={{ textTransform: "capitalize" }}>{hoje()}</p>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 12px" }}>
@@ -105,7 +102,6 @@ export function HotSlimChecklist() {
           tabIndex={0}
           onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); alternar(item.campo); } }}
         >
-          <span className="hs-toggle-emoji">{item.emoji}</span>
           <span className="hs-toggle-text">{item.texto}</span>
           <span className="hs-toggle-check">
             {valores[item.campo] ? "✓" : ""}
@@ -115,13 +111,13 @@ export function HotSlimChecklist() {
 
       {erroSalvar && (
         <div className="hs-dica" style={{ marginTop: 12, borderColor: "var(--hs-accent)", color: "var(--hs-accent)" }}>
-          <strong>⚠️ Não consegui salvar.</strong> Verifique sua conexão e tente novamente.
+          <strong>Não consegui salvar.</strong> Verifique sua conexão e tente novamente.
         </div>
       )}
 
       <div style={{ marginTop: 16 }}>
         <label className="hs-label" htmlFor="hs-notas" style={{ display: "block", marginBottom: 6 }}>
-          📝 Anotações do dia
+          Anotações do dia
         </label>
         <textarea
           id="hs-notas"
@@ -133,8 +129,8 @@ export function HotSlimChecklist() {
       </div>
 
       {historico.length > 0 && (
-        <div className="hs-secao" style={{ marginTop: 28 }}>
-          <h2 className="hs-secao-titulo">📊 Histórico recente</h2>
+        <div className="c-secao" style={{ marginTop: 28 }}>
+          <h2 className="c-secao-titulo">Histórico recente</h2>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {historico.slice(0, 7).map((dia) => {
               const total = CAMPOS.filter((c) => Boolean(dia[c as keyof ChecklistDia])).length;
@@ -164,7 +160,7 @@ export function HotSlimChecklist() {
             })}
           </div>
           <p style={{ fontSize: 11, color: "var(--hs-fg-soft)", marginTop: 8 }}>
-            🟢 5+ marcados &nbsp; 🟡 3–4 marcados &nbsp; ⚪ {"<"}3 marcados
+            Verde: 5+ marcados — Dourado: 3–4 marcados — Cinza: {"<"}3 marcados
           </p>
         </div>
       )}

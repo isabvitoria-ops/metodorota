@@ -1,11 +1,11 @@
 import { NavLink } from "react-router-dom";
 
 const ITENS = [
-  { rota: "/hotslim", rotulo: "Início", emoji: "🏠", fim: true },
-  { rota: "/hotslim/protocolo", rotulo: "Protocolo", emoji: "🧬" },
-  { rota: "/hotslim/checklist", rotulo: "Checklist", emoji: "✅" },
-  { rota: "/hotslim/reintroducao", rotulo: "Reintro", emoji: "🔄" },
-  { rota: "/hotslim/mais", rotulo: "Mais", emoji: "📚" },
+  { rota: "/hotslim", rotulo: "Início", fim: true },
+  { rota: "/hotslim/protocolo", rotulo: "Método", fim: false },
+  { rota: "/hotslim/checklist", rotulo: "Checklist", fim: false },
+  { rota: "/hotslim/reintroducao", rotulo: "Fases", fim: false },
+  { rota: "/hotslim/mais", rotulo: "Mais", fim: false },
 ];
 
 export function NavHotSlim() {
@@ -18,7 +18,6 @@ export function NavHotSlim() {
           end={item.fim}
           className={({ isActive }) => `${isActive ? "ativo" : ""}`}
         >
-          <span className="hs-nav-icon">{item.emoji}</span>
           <span>{item.rotulo}</span>
         </NavLink>
       ))}

@@ -6,66 +6,61 @@ interface Opcao {
 }
 
 interface Refeicao {
-  emoji: string;
   titulo: string;
   opcoes: Opcao[];
 }
 
 const REFEICOES: Refeicao[] = [
   {
-    emoji: "☀️",
     titulo: "Café da Manhã",
     opcoes: [
-      { nome: "Opção 1", itens: "2 ovos mexidos + tapioca + banana" },
-      { nome: "Opção 2", itens: "Omelete com salsinha + cuscuz + mamão" },
-      { nome: "Opção 3", itens: "Ovo cozido + batata inglesa cozida amassada + morango" },
+      { nome: "Opção 1", itens: "2 ovos mexidos (100g) + tapioca (50g) + 1 banana (70g)" },
+      { nome: "Opção 2", itens: "Omelete com salsinha (100g) + cuscuz (90g) + mamão (170g)" },
+      { nome: "Opção 3", itens: "Ovo cozido (50g) + batata inglesa cozida amassada (145g) + morango (115g)" },
     ],
   },
   {
-    emoji: "🌞",
     titulo: "Almoço",
     opcoes: [
-      { nome: "Opção 1", itens: "Frango grelhado + arroz + abobrinha refogada + azeite" },
-      { nome: "Opção 2", itens: "Peixe assado + batata cozida + cenoura no vapor + azeite" },
-      { nome: "Opção 3", itens: "Frango desfiado + arroz + chuchu cozido + azeite" },
+      { nome: "Opção 1", itens: "Frango grelhado (120g) + arroz (100g) + abobrinha refogada + azeite (5ml)" },
+      { nome: "Opção 2", itens: "Peixe assado (120g) + batata cozida (145g) + cenoura no vapor + azeite (5ml)" },
+      { nome: "Opção 3", itens: "Frango desfiado (120g) + arroz (100g) + chuchu cozido + azeite (5ml)" },
     ],
   },
   {
-    emoji: "🌅",
     titulo: "Lanche da Tarde",
     opcoes: [
-      { nome: "Opção 1", itens: "Banana + ovo cozido" },
-      { nome: "Opção 2", itens: "Maçã sem casca + tapioca com ovo" },
-      { nome: "Opção 3", itens: "Mamão + cuscuz com ovo" },
+      { nome: "Opção 1", itens: "1 banana (70g) + ovo cozido (50g)" },
+      { nome: "Opção 2", itens: "Maçã sem casca (80g) + tapioca com ovo (50g + 50g)" },
+      { nome: "Opção 3", itens: "Mamão (170g) + cuscuz com ovo (90g + 50g)" },
     ],
   },
   {
-    emoji: "🌙",
     titulo: "Jantar",
     opcoes: [
-      { nome: "Opção 1", itens: "Frango desfiado + abóbora assada + azeite" },
-      { nome: "Opção 2", itens: "Omelete + vagem no vapor + azeite" },
-      { nome: "Opção 3", itens: "Peixe grelhado + cenoura + pepino (se tolerar cru)" },
+      { nome: "Opção 1", itens: "Frango desfiado (120g) + abóbora assada + azeite (5ml)" },
+      { nome: "Opção 2", itens: "Omelete (100g) + vagem no vapor + azeite (5ml)" },
+      { nome: "Opção 3", itens: "Peixe grelhado (120g) + cenoura + pepino (se tolerar cru)" },
     ],
   },
 ];
 
 const PODE_USAR = [
-  { emoji: "🐟", nome: "Atum em lata (natural)" },
-  { emoji: "🍜", nome: "Macarrão de arroz" },
-  { emoji: "🫓", nome: "Tapioca" },
-  { emoji: "🌽", nome: "Cuscuz" },
-  { emoji: "🧈", nome: "Ghee" },
+  "Atum em lata (natural)",
+  "Macarrão de arroz",
+  "Tapioca",
+  "Cuscuz",
+  "Ghee",
 ];
 
 const EVITAR = [
-  { emoji: "🥛", nome: "Leite e derivados" },
-  { emoji: "🍞", nome: "Glúten (pão, macarrão, bolos)" },
-  { emoji: "🍬", nome: "Açúcar refinado" },
-  { emoji: "🚫", nome: "Ultraprocessados" },
-  { emoji: "🥤", nome: "Refrigerante" },
-  { emoji: "🍷", nome: "Álcool" },
-  { emoji: "⚠️", nome: "Adoçante artificial" },
+  "Leite e derivados",
+  "Glúten (pão, macarrão, bolos)",
+  "Açúcar refinado",
+  "Ultraprocessados",
+  "Refrigerante",
+  "Álcool",
+  "Adoçante artificial",
 ];
 
 export function HotSlimCardapio() {
@@ -83,18 +78,13 @@ export function HotSlimCardapio() {
   return (
     <div className="hs-pagina">
       <div style={{ marginBottom: 20 }}>
-        <h1 className="hs-titulo">🍽️ Cardápio Sugestivo</h1>
-        <p className="hs-texto">Ideias de refeições para a fase de repouso digestivo (GUTCODE)</p>
-      </div>
-
-      <div className="hs-dica">
-        <strong>💡 Dica:</strong> Estas são sugestões — adapte ao seu gosto e ao que tiver disponível. O importante é respeitar as regras do protocolo GUTCODE.
+        <h1 className="hs-titulo">Cardápio Sugestivo</h1>
+        <p className="hs-texto">Ideias de refeições para a fase de repouso digestivo</p>
       </div>
 
       {REFEICOES.map((ref, i) => (
         <div className="hs-refeicao" key={i}>
           <div className="hs-refeicao-header" onClick={() => alternar(i)}>
-            <span>{ref.emoji}</span>
             <span>{ref.titulo}</span>
             <span style={{ marginLeft: "auto", color: "var(--hs-fg-soft)", fontSize: 14 }}>
               {abertos.has(i) ? "▾" : "▸"}
@@ -117,23 +107,25 @@ export function HotSlimCardapio() {
 
       <div className="hs-divider" />
 
-      <div className="hs-secao">
-        <h2 className="hs-secao-titulo">✅ Pode usar!</h2>
-        <div className="hs-alimentos">
+      <div className="c-secao">
+        <h2 className="c-secao-titulo">Pode usar</h2>
+        <div className="c-chips">
           {PODE_USAR.map((item) => (
-            <span className="hs-alimento" key={item.nome}>
-              {item.emoji} {item.nome}
-            </span>
+            <span className="c-chip" style={{ cursor: "default" }} key={item}>{item}</span>
           ))}
         </div>
       </div>
 
-      <div className="hs-secao">
-        <h2 className="hs-secao-titulo">🚫 Evitar durante o GUTCODE</h2>
-        <div className="hs-alimentos">
+      <div className="c-secao">
+        <h2 className="c-secao-titulo">Evitar durante a fase de repouso</h2>
+        <div className="c-chips">
           {EVITAR.map((item) => (
-            <span className="hs-alimento" key={item.nome} style={{ borderColor: "var(--hs-accent)", opacity: 0.85 }}>
-              {item.emoji} {item.nome}
+            <span
+              className="c-chip"
+              key={item}
+              style={{ cursor: "default", borderColor: "var(--danger)", color: "var(--danger)" }}
+            >
+              {item}
             </span>
           ))}
         </div>

@@ -50,13 +50,11 @@ export function HotSlimMetas() {
 
   return (
     <div className="hs-pagina">
-      <div style={{ textAlign: "center", marginBottom: 20 }}>
-        <div className="hs-emoji">🎯</div>
+      <div style={{ marginBottom: 20 }}>
         <h1 className="hs-titulo">Minhas Metas</h1>
         <p className="hs-texto">Defina seus objetivos semanais</p>
       </div>
 
-      {/* Seletor de semana */}
       <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 20 }}>
         {SEMANAS.map((s) => (
           <button
@@ -70,11 +68,9 @@ export function HotSlimMetas() {
         ))}
       </div>
 
-      {/* Metas fixas */}
-      <div className="hs-secao">
-        <h2 className="hs-secao-titulo">💧 Hidratação</h2>
+      <div className="c-secao">
+        <h2 className="c-secao-titulo">Hidratação</h2>
         <div className="hs-meta-row">
-          <span className="hs-meta-emoji">💧</span>
           <div className="hs-meta-info">
             <div className="hs-meta-label">Água por dia</div>
             <div className="hs-meta-hint">Meta: 40ml × seu peso (kg)</div>
@@ -91,10 +87,9 @@ export function HotSlimMetas() {
         </div>
       </div>
 
-      <div className="hs-secao">
-        <h2 className="hs-secao-titulo">😴 Sono</h2>
+      <div className="c-secao">
+        <h2 className="c-secao-titulo">Sono</h2>
         <div className="hs-meta-row">
-          <span className="hs-meta-emoji">😴</span>
           <div className="hs-meta-info">
             <div className="hs-meta-label">Horas de sono</div>
             <div className="hs-meta-hint">Mínimo recomendado: 7h</div>
@@ -111,10 +106,9 @@ export function HotSlimMetas() {
         </div>
       </div>
 
-      <div className="hs-secao">
-        <h2 className="hs-secao-titulo">💪 Exercícios</h2>
+      <div className="c-secao">
+        <h2 className="c-secao-titulo">Exercícios</h2>
         <div className="hs-meta-row">
-          <span className="hs-meta-emoji">🏋️</span>
           <div className="hs-meta-info">
             <div className="hs-meta-label">Musculação</div>
             <div className="hs-meta-hint">Vezes por semana</div>
@@ -129,7 +123,6 @@ export function HotSlimMetas() {
           />
         </div>
         <div className="hs-meta-row">
-          <span className="hs-meta-emoji">🏃</span>
           <div className="hs-meta-info">
             <div className="hs-meta-label">Cardio</div>
             <div className="hs-meta-hint">Minutos por semana</div>
@@ -145,14 +138,12 @@ export function HotSlimMetas() {
         </div>
       </div>
 
-      {/* Metas extras */}
-      <div className="hs-secao">
-        <h2 className="hs-secao-titulo">✨ Metas extras</h2>
+      <div className="c-secao">
+        <h2 className="c-secao-titulo">Metas extras</h2>
         <p className="hs-texto">Adicione seus objetivos pessoais para esta semana</p>
 
         {metas.metas_extras.map((m, i) => (
           <div key={i} className="hs-toggle-row ativo">
-            <span className="hs-toggle-emoji">⭐</span>
             <span className="hs-toggle-text">{m}</span>
             <button
               onClick={() => removerExtra(i)}
@@ -182,13 +173,9 @@ export function HotSlimMetas() {
 
       {erroSalvar && (
         <div className="hs-dica" style={{ borderColor: "var(--hs-accent)", color: "var(--hs-accent)" }}>
-          <strong>⚠️ Não consegui salvar.</strong> Verifique sua conexão e tente novamente.
+          <strong>Não consegui salvar.</strong> Verifique sua conexão e tente novamente.
         </div>
       )}
-
-      <div className="hs-dica">
-        <strong>💡 Dica:</strong> Metas realistas geram mais resultado. Comece com pouco e aumente conforme sentir confiança. O progresso vem da consistência, não da perfeição!
-      </div>
     </div>
   );
 }
