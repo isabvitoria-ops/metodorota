@@ -64,10 +64,6 @@ export const rotas = {
   hotslimChecklist: "/hotslim/checklist",
   hotslimMetas: "/hotslim/metas",
   hotslimFaq: "/hotslim/faq",
-  hotslimRotina: "/hotslim/rotina",
-  hotslimShots: "/hotslim/shots",
-  hotslimChas: "/hotslim/chas",
-
   // Área da nutricionista
   admin: "/admin",
   adminPacientes: "/admin/pacientes",

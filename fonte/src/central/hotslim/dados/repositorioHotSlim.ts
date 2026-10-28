@@ -1,4 +1,5 @@
 import { exigirSupabase } from "@/central/supabase/cliente";
+import { hojeSaoPaulo } from "@/central/utils/situacao";
 
 export interface ChecklistDia {
   dia: string;
@@ -21,17 +22,13 @@ export interface MetaSemanal {
   metas_extras: string[];
 }
 
-function hojeStr(): string {
-  return new Date().toLocaleDateString("sv-SE");
-}
-
 export const repositorioHotSlim = {
   async carregarChecklistHoje(): Promise<ChecklistDia | null> {
     const sb = exigirSupabase();
     const { data } = await sb
       .from("hotslim_checklist")
       .select("*")
-      .eq("dia", hojeStr())
+      .eq("dia", hojeSaoPaulo())
       .maybeSingle();
     return data as ChecklistDia | null;
   },
@@ -41,7 +38,7 @@ export const repositorioHotSlim = {
     const uid = (await sb.auth.getUser()).data.user?.id;
     if (!uid) return;
     const { error } = await sb.from("hotslim_checklist").upsert(
-      { participante_id: uid, dia: hojeStr(), ...valores },
+      { participante_id: uid, dia: hojeSaoPaulo(), ...valores },
       { onConflict: "participante_id,dia" },
     );
     if (error) throw error;
