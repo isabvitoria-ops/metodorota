@@ -1,15 +1,24 @@
 import { Link } from "react-router-dom";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { Marca } from "@/central/components/Marca";
+import { Icone } from "@/central/components/Icone";
 
 export function HotSlimHome() {
-  const { acesso } = useSessao();
+  const { acesso, sair } = useSessao();
   const diaAtual = acesso.hotslimDiaAtual ?? 1;
   const progresso = Math.min(100, Math.round((diaAtual / 21) * 100));
 
   return (
     <div className="hs-pagina">
-      <div style={{ textAlign: "center", marginBottom: 24 }}>
+      <div style={{ textAlign: "center", marginBottom: 24, position: "relative" }}>
+        <button
+          type="button"
+          className="hs-btn-sair"
+          aria-label="Sair da conta"
+          onClick={() => void sair()}
+        >
+          <Icone nome="voltar" tamanho={17} />
+        </button>
         <Marca altura={28} />
         <h1 className="hs-titulo" style={{ marginTop: 12 }}>Método Rota — 21 Dias</h1>
         <p className="hs-texto" style={{ maxWidth: 340, margin: "4px auto 0" }}>

@@ -95,6 +95,24 @@
 
 .hs-pagina { padding-top: 20px; }
 
+.hs-btn-sair {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: none;
+  border: 1px solid var(--hs-border);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--hs-fg-soft);
+  transition: color .15s, border-color .15s;
+}
+.hs-btn-sair:hover { color: var(--hs-accent); border-color: var(--hs-accent); }
+
 /* ── Tipografia ─────────────────────────────────────────────── */
 .hs-titulo {
   font-family: "Fraunces", Georgia, "Times New Roman", serif;
@@ -558,6 +576,13 @@
   border-color: var(--hs-green);
 }
 .hs-dia.concluido .hs-dia-num { color: var(--hs-green); }
+.hs-dia-check {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--hs-green);
+  display: block;
+  line-height: 1.2;
+}
 
 /* ── Links rápidos (home) ───────────────────────────────────── */
 .hs-atalhos {
