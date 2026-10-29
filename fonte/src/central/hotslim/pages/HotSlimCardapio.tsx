@@ -1,61 +1,144 @@
 import { useState } from "react";
 
-type Secao = "alimentos" | "sugestoes";
+type Secao = "refeicoes" | "listas";
 
-const CARBOIDRATOS = [
-  { nome: "Arroz branco", porcao: "100g (4 col. sopa)" },
-  { nome: "Batata inglesa", porcao: "145g (1 unid. média)" },
-  { nome: "Batata-doce", porcao: "100g (1 unid. pequena)" },
-  { nome: "Inhame / Cará", porcao: "100g" },
-  { nome: "Mandioca / Aipim", porcao: "100g" },
-  { nome: "Tapioca", porcao: "50g (2 col. sopa)" },
-  { nome: "Cuscuz de milho", porcao: "90g" },
-  { nome: "Macarrão de arroz", porcao: "80g (seco)" },
-  { nome: "Abóbora / Moranga", porcao: "150g" },
+/* ═══════════════════════════════════════════════════════
+   CAFÉ DA MANHÃ
+   ═══════════════════════════════════════════════════════ */
+
+const CAFE_CARBS = [
+  "Biscoito de arroz",
+  "Tapioca",
+  "Flocão de milho",
+  "Frutas (conferir lista)",
+  "Geleia 100% fruta",
 ];
 
-const PROTEINAS = [
-  { nome: "Frango (peito ou coxa)", porcao: "120g" },
-  { nome: "Peixe branco (tilápia, merluza)", porcao: "120g" },
-  { nome: "Salmão", porcao: "120g" },
-  { nome: "Ovo", porcao: "2 unid. (100g)" },
-  { nome: "Carne bovina magra (patinho, alcatra)", porcao: "120g" },
-  { nome: "Atum em lata (natural)", porcao: "1 lata" },
-  { nome: "Sardinha em lata", porcao: "1 lata" },
+const CAFE_PROTEINAS = [
+  "Ovo",
+  "Peito de frango",
+  "Atum",
+  "Colágeno",
+  "Bebida vegetal (amêndoas)",
 ];
 
-const VEGETAIS = [
-  { nome: "Abobrinha", porcao: "à vontade" },
-  { nome: "Cenoura", porcao: "à vontade" },
-  { nome: "Chuchu", porcao: "à vontade" },
-  { nome: "Vagem", porcao: "à vontade" },
-  { nome: "Pepino", porcao: "à vontade" },
-  { nome: "Espinafre", porcao: "à vontade" },
-  { nome: "Alface", porcao: "à vontade" },
-  { nome: "Berinjela", porcao: "à vontade" },
-  { nome: "Tomate (sem sementes)", porcao: "à vontade" },
-  { nome: "Broto de feijão", porcao: "à vontade" },
+const CAFE_ACRESCENTAR = [
+  "Tomate",
+  "Espinafre ou Couve",
+  "Levedura Nutricional",
+  "Temperos permitidos",
 ];
 
-const ACRESCENTAR = [
-  { nome: "Azeite extravirgem", porcao: "5–10ml (1 col. sopa)" },
-  { nome: "Ghee (manteiga clarificada)", porcao: "5g" },
-  { nome: "Óleo de coco", porcao: "5ml" },
-  { nome: "Sal, pimenta-do-reino" },
-  { nome: "Ervas frescas e secas" },
+const CAFE_SUGESTOES = [
+  "Biscoito de arroz + Ovos mexidos com tomate + Fruta",
+  "Crepioca (ovos + tapioca) + Fruta",
+  "Bolinho ou panqueca de cuscuz (ovos + flocão de milho) + Fruta",
+  "Biscoito de arroz + Geleia 100% + Bebida vegetal com Colágeno",
+  "Tapioca recheada com frango ou atum + Fruta",
+  "Biscoito de arroz + Frango com tomate + Fruta",
+  "Tapioca + Ovos com couve ou espinafre + Fruta",
 ];
+
+/* ═══════════════════════════════════════════════════════
+   ALMOÇO E JANTAR
+   ═══════════════════════════════════════════════════════ */
+
+const ALMOCO_CARBS = [
+  "Arroz branco ou integral",
+  "Batata inglesa",
+  "Batata baroa",
+  "Mandioca",
+  "Macarrão de arroz",
+  "Abóbora cabotiá",
+  "Quinoa",
+  "Milho",
+];
+
+const ALMOCO_PROTEINAS = [
+  "Frango (peito ou sobrecoxa sem pele)",
+  "Peixes (todos os tipos)",
+  "Frutos do mar (camarão, polvo, lula…)",
+];
+
+const ALMOCO_LEGUMES = [
+  "Abobrinha",
+  "Berinjela",
+  "Cenoura",
+  "Tomate",
+  "Pimentão",
+  "Couve ou Espinafre",
+];
+
+const ALMOCO_SUGESTOES = [
+  "Frango grelhado + Arroz + Abobrinha refogada + Azeite",
+  "Peixe assado + Batata inglesa cozida + Cenoura no vapor + Azeite",
+  "Frutos do mar + Macarrão de arroz + Tomate cozido + Azeite",
+  "Frango + Quinoa + Espinafre refogado + Azeite",
+  "Peixe grelhado + Abóbora assada + Pimentão cozido + Azeite",
+];
+
+/* ═══════════════════════════════════════════════════════
+   LANCHE DA TARDE
+   ═══════════════════════════════════════════════════════ */
+
+const LANCHE_CARBS = [
+  "Frutas (conferir lista)",
+  "Milho para pipoca",
+  "Tapioca",
+  "Biscoito de arroz",
+  "Flocão de milho",
+  "Geleia 100% fruta",
+];
+
+const LANCHE_PROTEINAS = [
+  "Colágeno",
+  "Chia",
+  "Pasta de amendoim (só amendoim)",
+  "Granola low carb ou Mix de nuts (sem castanha de caju ou pistache)",
+  "Ovo",
+  "Bebida vegetal (amêndoas)",
+  "Peito de frango",
+  "Atum",
+];
+
+const LANCHE_ACRESCENTAR = [
+  "Canela em pó",
+  "Cacau 100%",
+  "Tomate",
+  "Levedura Nutricional",
+];
+
+const LANCHE_SUGESTOES = [
+  "Pipoca + Creminho de colágeno com cacau, uva e granola low carb",
+  "Panqueca ou bolinho de banana (ovo + banana + cacau + canela) — sem fermento",
+  "Overnight (bebida de amêndoas + chia + maçã cozida com canela + pasta de amendoim)",
+  "Smoothie (fruta congelada + bebida vegetal + colágeno) com granola ou pasta de amendoim",
+];
+
+/* ═══════════════════════════════════════════════════════
+   FRUTAS PERMITIDAS
+   ═══════════════════════════════════════════════════════ */
 
 const FRUTAS = [
-  { nome: "Banana", porcao: "1 unid. média (70g)" },
-  { nome: "Morango", porcao: "8 unid. (115g)" },
-  { nome: "Mamão papaia", porcao: "½ unid. (170g)" },
-  { nome: "Maçã sem casca", porcao: "½ unid. (80g)" },
-  { nome: "Melão", porcao: "1 fatia (150g)" },
-  { nome: "Uva", porcao: "10 unid. (100g)" },
-  { nome: "Kiwi", porcao: "1 unid. (75g)" },
-  { nome: "Laranja (sem bagaço)", porcao: "1 unid. (130g)" },
-  { nome: "Abacaxi", porcao: "1 fatia (80g)" },
+  { nome: "Abacaxi", porcao: "160g" },
+  { nome: "Banana", porcao: "1 unid. (80g)" },
+  { nome: "Blueberry / Mirtilo", porcao: "140g" },
+  { nome: "Framboesa", porcao: "120g" },
+  { nome: "Kiwi", porcao: "2 unid. (180g)" },
+  { nome: "Laranja", porcao: "1 unid. (200g)" },
+  { nome: "Limão", porcao: "livre (para temperar)" },
+  { nome: "Maçã (sem casca ou cozida)", porcao: "1 unid. (130g)" },
+  { nome: "Mamão", porcao: "200g" },
+  { nome: "Maracujá", porcao: "130g" },
+  { nome: "Melão", porcao: "270g" },
+  { nome: "Mexerica", porcao: "1 unid. (140g)" },
+  { nome: "Morango", porcao: "300g" },
+  { nome: "Uva", porcao: "150g" },
 ];
+
+/* ═══════════════════════════════════════════════════════
+   CHÁS, TEMPEROS, BEBIDAS
+   ═══════════════════════════════════════════════════════ */
 
 const CHAS = [
   { nome: "Hortelã", dica: "Alivia gases" },
@@ -66,91 +149,174 @@ const CHAS = [
   { nome: "Boldo", dica: "Auxilia o fígado" },
 ];
 
-const BEBIDAS_PROIBIDAS = [
-  "Refrigerante (normal e zero)",
-  "Suco de caixinha / industrializado",
-  "Leite e bebidas lácteas",
-  "Álcool",
-  "Energéticos",
-  "Café em excesso (máx. 1 xícara/dia coado)",
-  "Chá mate e chá preto em excesso",
+const TEMPEROS_LIBERADOS = [
+  "Sal", "Cúrcuma", "Açafrão", "Páprica doce e picante",
+  "Orégano", "Manjericão", "Alecrim", "Cominho", "Coentro",
+  "Salsinha", "Sálvia", "Hortelã", "Curry (sem farinha de trigo)",
+  "Pimenta-do-reino", "Pimenta calabresa", "Gengibre", "Limão",
+  "Vinagre de arroz e maçã (puro)",
 ];
 
-interface SugestaoRefeicao {
-  titulo: string;
-  opcoes: string[];
+const TEMPEROS_PROIBIDOS = [
+  "Alho", "Cebola", "Cebolinha", "Alho-poró",
+  "Páprica defumada", "Fumaça / defumados", "Manteiga",
+  "Temperos prontos industrializados",
+];
+
+const BEBIDAS_PROIBIDAS = [
+  "Água com gás",
+  "Café (mais de 100mg por dia)",
+  "Chás prontos (garrafa) — comum e zero",
+  "Refrigerante — comum e zero",
+  "Qualquer bebida alcoólica",
+  "Água de coco (FODMAPs)",
+  "Água tônica — comum e zero",
+];
+
+/* ═══════════════════════════════════════════════════════
+   COMPONENTES
+   ═══════════════════════════════════════════════════════ */
+
+function ListaNomes({ titulo, itens }: { titulo: string; itens: string[] }) {
+  return (
+    <div className="hs-list-section">
+      <div className="hs-list-header">{titulo}</div>
+      <div className="hs-list-card">
+        {itens.map((item) => (
+          <div key={item} className="hs-list-item static">
+            <span className="hs-list-item-name">{item}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
-const SUGESTOES: SugestaoRefeicao[] = [
-  {
-    titulo: "Café da Manhã",
-    opcoes: [
-      "2 ovos mexidos + tapioca (50g) + banana (70g)",
-      "Omelete com salsinha + cuscuz (90g) + mamão (170g)",
-      "Ovo cozido + batata inglesa amassada (145g) + morango (115g)",
-    ],
-  },
-  {
-    titulo: "Almoço",
-    opcoes: [
-      "Frango grelhado (120g) + arroz (100g) + abobrinha refogada + azeite",
-      "Peixe assado (120g) + batata cozida (145g) + cenoura no vapor + azeite",
-      "Carne magra (120g) + arroz (100g) + chuchu cozido + azeite",
-    ],
-  },
-  {
-    titulo: "Lanche da Tarde",
-    opcoes: [
-      "1 banana + 1 ovo cozido",
-      "Morango (115g) + tapioca (50g)",
-      "Mamão (170g) + 1 fatia de frango desfiado",
-    ],
-  },
-  {
-    titulo: "Jantar",
-    opcoes: [
-      "Sopa de abóbora com frango desfiado + azeite",
-      "Omelete (2 ovos) + arroz (100g) + vagem no vapor",
-      "Peixe grelhado (120g) + purê de mandioca (100g) + salada verde",
-    ],
-  },
-];
+function Sugestoes({ opcoes }: { opcoes: string[] }) {
+  return (
+    <div className="hs-list-section" style={{ marginTop: 8 }}>
+      <div className="hs-list-header">Sugestões de montagem</div>
+      <div className="hs-list-card" style={{ border: "none" }}>
+        {opcoes.map((op, j) => (
+          <div className="hs-list-item static" key={j}>
+            <span className="hs-label" style={{ flexShrink: 0 }}>Opção {j + 1}</span>
+            <span className="hs-list-item-name" style={{ fontSize: 14 }}>{op}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   PÁGINA PRINCIPAL
+   ═══════════════════════════════════════════════════════ */
 
 export function HotSlimCardapio() {
-  const [secao, definirSecao] = useState<Secao>("alimentos");
+  const [secao, setSecao] = useState<Secao>("refeicoes");
 
   return (
     <div className="hs-pagina">
-      <h1 className="hs-titulo">Cardápio</h1>
-      <p className="hs-texto">O que você pode comer durante o repouso digestivo</p>
+      <div style={{ marginBottom: 20 }}>
+        <h1 className="hs-titulo">Cardápio — Etapa 1</h1>
+        <p className="hs-texto">Alimentos permitidos durante o repouso digestivo (dias 1–6)</p>
+      </div>
 
-      <div className="hs-toggle">
+      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
         <button
-          type="button"
-          className={secao === "alimentos" ? "ativo" : ""}
-          onClick={() => definirSecao("alimentos")}
+          onClick={() => setSecao("refeicoes")}
+          className={`hs-btn ${secao === "refeicoes" ? "hs-btn-accent" : "hs-btn-outline"}`}
+          style={{ flex: 1, padding: "10px 12px", fontSize: 13 }}
         >
-          Alimentos
+          Refeições
         </button>
         <button
-          type="button"
-          className={secao === "sugestoes" ? "ativo" : ""}
-          onClick={() => definirSecao("sugestoes")}
+          onClick={() => setSecao("listas")}
+          className={`hs-btn ${secao === "listas" ? "hs-btn-accent" : "hs-btn-outline"}`}
+          style={{ flex: 1, padding: "10px 12px", fontSize: 13 }}
         >
-          Sugestões
+          Listas de referência
         </button>
       </div>
 
-      {secao === "alimentos" ? (
+      {secao === "refeicoes" ? (
         <>
-          <FoodSection titulo="Carboidratos" itens={CARBOIDRATOS} />
-          <FoodSection titulo="Proteínas" itens={PROTEINAS} />
-          <FoodSection titulo="Vegetais" itens={VEGETAIS} />
-          <FoodSection titulo="Para acrescentar" itens={ACRESCENTAR} />
-          <FoodSection titulo="Frutas" itens={FRUTAS} />
+          {/* ─── Café da Manhã ─── */}
+          <details className="hs-accordion" open>
+            <summary>Café da Manhã</summary>
+            <div className="hs-accordion-body">
+              <ListaNomes titulo="Carboidratos" itens={CAFE_CARBS} />
+              <ListaNomes titulo="Proteínas / Gorduras" itens={CAFE_PROTEINAS} />
+              <ListaNomes titulo="Pode acrescentar" itens={CAFE_ACRESCENTAR} />
+              <Sugestoes opcoes={CAFE_SUGESTOES} />
+            </div>
+          </details>
 
+          {/* ─── Almoço e Jantar ─── */}
+          <details className="hs-accordion" open>
+            <summary>Almoço e Jantar</summary>
+            <div className="hs-accordion-body">
+              <ListaNomes titulo="Carboidratos" itens={ALMOCO_CARBS} />
+              <ListaNomes titulo="Proteínas" itens={ALMOCO_PROTEINAS} />
+
+              <div className="hs-list-section">
+                <div className="hs-list-header">Legumes — todos COZIDOS</div>
+                <div className="hs-list-card">
+                  {ALMOCO_LEGUMES.map((item) => (
+                    <div key={item} className="hs-list-item static">
+                      <span className="hs-list-item-name">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="hs-dica" style={{ marginTop: 8, borderColor: "var(--hs-warn)", background: "var(--hs-warn-soft)" }}>
+                <strong style={{ color: "var(--hs-warn)" }}>Importante:</strong>{" "}
+                Todos os vegetais devem ser cozidos na Etapa 1. Folhas e legumes crus só na segunda etapa.
+                Finalize com azeite extravirgem — use para temperar, não para fritar.
+              </div>
+
+              <Sugestoes opcoes={ALMOCO_SUGESTOES} />
+            </div>
+          </details>
+
+          {/* ─── Lanche da Tarde ─── */}
+          <details className="hs-accordion" open>
+            <summary>Lanche da Tarde</summary>
+            <div className="hs-accordion-body">
+              <ListaNomes titulo="Carboidratos" itens={LANCHE_CARBS} />
+              <ListaNomes titulo="Proteínas / Gorduras" itens={LANCHE_PROTEINAS} />
+              <ListaNomes titulo="Pode acrescentar" itens={LANCHE_ACRESCENTAR} />
+              <Sugestoes opcoes={LANCHE_SUGESTOES} />
+            </div>
+          </details>
+
+          <div className="hs-dica" style={{ marginTop: 16 }}>
+            <strong>Dica:</strong> Use os temperos permitidos (veja aba Listas de referência).
+            Use azeite para finalizar, não para fritar.
+          </div>
+        </>
+      ) : (
+        <>
+          {/* ─── Frutas Permitidas ─── */}
           <div className="hs-list-section">
-            <div className="hs-list-header">Chás recomendados</div>
+            <div className="hs-list-header">Frutas permitidas</div>
+            <div className="hs-list-card">
+              {FRUTAS.map((f) => (
+                <div key={f.nome} className="hs-list-item static">
+                  <span className="hs-list-item-name">{f.nome}</span>
+                  <span className="hs-list-item-detail">{f.porcao}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ─── Chás ─── */}
+          <div className="hs-dica" style={{ marginTop: 8, borderColor: "var(--hs-green)", background: "var(--hs-green-soft)" }}>
+            <strong style={{ color: "var(--hs-green)" }}>Chás — tome ao longo do dia!</strong>{" "}
+            Sem açúcar. Ajudam na digestão, reduzem gases e acalmam o intestino.
+          </div>
+          <div className="hs-list-section" style={{ marginTop: 4 }}>
             <div className="hs-list-card">
               {CHAS.map((c) => (
                 <div key={c.nome} className="hs-list-item static">
@@ -161,6 +327,31 @@ export function HotSlimCardapio() {
             </div>
           </div>
 
+          {/* ─── Temperos Liberados ─── */}
+          <div className="hs-list-section">
+            <div className="hs-list-header" style={{ color: "var(--hs-green)" }}>Temperos liberados</div>
+            <div className="hs-list-card">
+              {TEMPEROS_LIBERADOS.map((t) => (
+                <div key={t} className="hs-list-item static">
+                  <span className="hs-list-item-name">{t}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ─── Temperos Proibidos ─── */}
+          <div className="hs-list-section">
+            <div className="hs-list-header" style={{ color: "var(--hs-accent-red, #c0392b)" }}>Temperos proibidos</div>
+            <div className="hs-list-card">
+              {TEMPEROS_PROIBIDOS.map((t) => (
+                <div key={t} className="hs-list-item static evitar">
+                  <span className="hs-list-item-name">{t}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ─── Bebidas Proibidas ─── */}
           <div className="hs-list-section">
             <div className="hs-list-header">Bebidas proibidas</div>
             <div className="hs-list-card">
@@ -173,54 +364,11 @@ export function HotSlimCardapio() {
           </div>
 
           <div className="hs-dica" style={{ marginTop: 12 }}>
-            <strong>Leite vegetal:</strong> Leite de coco e de arroz são permitidos.
-            Evite leite de soja, amêndoas e castanhas durante o repouso.
-          </div>
-        </>
-      ) : (
-        <>
-          <p className="hs-texto" style={{ marginBottom: 16 }}>
-            Monte suas refeições combinando alimentos da lista. Estas são apenas sugestões —
-            você pode variar como preferir dentro do que é permitido.
-          </p>
-          {SUGESTOES.map((ref, i) => (
-            <details className="hs-accordion" key={i} open>
-              <summary>{ref.titulo}</summary>
-              <div className="hs-accordion-body">
-                <div className="hs-list-card" style={{ border: "none" }}>
-                  {ref.opcoes.map((op, j) => (
-                    <div className="hs-list-item static" key={j}>
-                      <span className="hs-label" style={{ flexShrink: 0 }}>Opção {j + 1}</span>
-                      <span className="hs-list-item-name" style={{ fontSize: 14 }}>{op}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </details>
-          ))}
-
-          <div className="hs-dica" style={{ marginTop: 16 }}>
-            <strong>Dica:</strong> Prepare tudo com os temperos permitidos (veja a aba Método).
-            Use azeite para finalizar, não para fritar.
+            <strong>Leite vegetal:</strong> Leite de amêndoas é permitido.
+            Evite leite de soja durante o repouso.
           </div>
         </>
       )}
-    </div>
-  );
-}
-
-function FoodSection({ titulo, itens }: { titulo: string; itens: { nome: string; porcao?: string }[] }) {
-  return (
-    <div className="hs-list-section">
-      <div className="hs-list-header">{titulo}</div>
-      <div className="hs-list-card">
-        {itens.map((item) => (
-          <div key={item.nome} className="hs-list-item static">
-            <span className="hs-list-item-name">{item.nome}</span>
-            {item.porcao && <span className="hs-list-item-detail">{item.porcao}</span>}
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

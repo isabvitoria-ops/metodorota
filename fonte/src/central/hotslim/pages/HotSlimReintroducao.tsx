@@ -64,21 +64,6 @@ const FASES: Fase[] = [
         titulo: "Proteínas",
         alimentos: [{ nome: "Cottage", porcao: "60g" }],
       },
-      {
-        titulo: "Frutas",
-        alimentos: [
-          { nome: "Uva", porcao: "100g" },
-          { nome: "Abacaxi", porcao: "130g" },
-          { nome: "Laranja", porcao: "150g (1 unidade)" },
-        ],
-      },
-      {
-        titulo: "Vegetais",
-        alimentos: [
-          { nome: "Abobrinha italiana", porcao: "livre" },
-          { nome: "Berinjela", porcao: "livre" },
-        ],
-      },
     ],
   },
   {
@@ -91,6 +76,7 @@ const FASES: Fase[] = [
         alimentos: [
           { nome: "Mel", porcao: "8g (1 colher de chá)" },
           { nome: "Batata doce", porcao: "160g" },
+          { nome: "Pão", porcao: "1 fatia (30g)" },
         ],
       },
       {
@@ -117,7 +103,6 @@ const FASES: Fase[] = [
         alimentos: [
           { nome: "Brócolis", porcao: "livre" },
           { nome: "Couve-flor", porcao: "livre" },
-          { nome: "Folhas verdes", porcao: "livre" },
         ],
       },
     ],
@@ -133,7 +118,6 @@ const FASES: Fase[] = [
           { nome: "Feijão", porcao: "85g" },
           { nome: "Lentilha", porcao: "85g" },
           { nome: "Grão-de-bico", porcao: "85g" },
-          { nome: "Quinoa", porcao: "80g" },
         ],
       },
       {
@@ -150,7 +134,12 @@ const FASES: Fase[] = [
           { nome: "Iogurte", porcao: "170g" },
           { nome: "Kefir", porcao: "200ml" },
           { nome: "Queijos", porcao: "30g" },
-          { nome: "Amendoim", porcao: "15g" },
+        ],
+      },
+      {
+        titulo: "Vegetais",
+        alimentos: [
+          { nome: "Salada crua (folhas, legumes crus)", porcao: "livre" },
         ],
       },
     ],
@@ -166,6 +155,79 @@ const BRISTOL = [
   { n: 6, label: "Tipo 6", desc: "Massa fofa com bordas irregulares", hint: "Inflamação leve", cor: "#C08540" },
   { n: 7, label: "Tipo 7", desc: "Totalmente líquida", hint: "Diarreia", cor: "#B0503C" },
 ];
+
+function BristolIcon({ tipo, cor }: { tipo: number; cor: string }) {
+  const w = 72;
+  const h = 32;
+  const darken = (c: string, amt: number) => {
+    const n = parseInt(c.slice(1), 16);
+    const r = Math.max(0, ((n >> 16) & 0xff) - amt);
+    const g = Math.max(0, ((n >> 8) & 0xff) - amt);
+    const b = Math.max(0, (n & 0xff) - amt);
+    return `rgb(${r},${g},${b})`;
+  };
+  const stroke = darken(cor, 40);
+
+  const shapes: Record<number, JSX.Element> = {
+    1: (
+      <>
+        <circle cx="14" cy="14" r="5" fill={cor} stroke={stroke} strokeWidth="1" />
+        <circle cx="28" cy="18" r="5.5" fill={cor} stroke={stroke} strokeWidth="1" />
+        <circle cx="42" cy="13" r="4.5" fill={cor} stroke={stroke} strokeWidth="1" />
+        <circle cx="54" cy="17" r="5" fill={cor} stroke={stroke} strokeWidth="1" />
+        <circle cx="66" cy="14" r="4" fill={cor} stroke={stroke} strokeWidth="1" />
+      </>
+    ),
+    2: (
+      <path
+        d="M8,16 Q12,8 18,12 Q24,6 30,14 Q36,8 42,12 Q48,6 54,14 Q60,8 64,16 Q60,24 54,20 Q48,26 42,20 Q36,26 30,18 Q24,26 18,20 Q12,24 8,16Z"
+        fill={cor} stroke={stroke} strokeWidth="1"
+      />
+    ),
+    3: (
+      <>
+        <ellipse cx="36" cy="16" rx="28" ry="10" fill={cor} stroke={stroke} strokeWidth="1" />
+        <line x1="16" y1="10" x2="18" y2="14" stroke={stroke} strokeWidth="0.8" />
+        <line x1="26" y1="8" x2="27" y2="13" stroke={stroke} strokeWidth="0.8" />
+        <line x1="36" y1="7" x2="36" y2="12" stroke={stroke} strokeWidth="0.8" />
+        <line x1="46" y1="8" x2="45" y2="13" stroke={stroke} strokeWidth="0.8" />
+        <line x1="56" y1="10" x2="54" y2="14" stroke={stroke} strokeWidth="0.8" />
+      </>
+    ),
+    4: (
+      <ellipse cx="36" cy="16" rx="28" ry="9" fill={cor} stroke={stroke} strokeWidth="1.2" />
+    ),
+    5: (
+      <>
+        <ellipse cx="14" cy="16" rx="8" ry="7" fill={cor} stroke={stroke} strokeWidth="1" />
+        <ellipse cx="32" cy="14" rx="9" ry="8" fill={cor} stroke={stroke} strokeWidth="1" />
+        <ellipse cx="50" cy="17" rx="8" ry="6" fill={cor} stroke={stroke} strokeWidth="1" />
+        <ellipse cx="65" cy="15" rx="6" ry="7" fill={cor} stroke={stroke} strokeWidth="1" />
+      </>
+    ),
+    6: (
+      <path
+        d="M6,18 Q10,8 20,14 Q28,6 36,16 Q44,8 52,14 Q58,6 66,18 Q60,26 50,22 Q44,28 36,20 Q28,26 20,22 Q12,26 6,18Z"
+        fill={cor} stroke={stroke} strokeWidth="1" opacity="0.85"
+      />
+    ),
+    7: (
+      <>
+        <ellipse cx="36" cy="18" rx="30" ry="6" fill={cor} opacity="0.5" />
+        <path
+          d="M8,16 Q16,10 24,16 Q32,10 40,16 Q48,10 56,16 Q64,10 66,14"
+          fill="none" stroke={cor} strokeWidth="2.5" strokeLinecap="round"
+        />
+      </>
+    ),
+  };
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} width={w} height={h} style={{ flexShrink: 0 }}>
+      {shapes[tipo]}
+    </svg>
+  );
+}
 
 export function HotSlimReintroducao() {
   const { acesso } = useSessao();
@@ -184,7 +246,7 @@ export function HotSlimReintroducao() {
       <div className="hs-dica" style={{ marginBottom: 20 }}>
         <strong>Como funciona:</strong> Após os 6 dias de repouso, começa a reintrodução guiada.
         Teste um alimento novo por vez e observe por 48 horas se há sintomas (gases, inchaço, dor, alteração intestinal).
-        Sua nutricionista desbloqueia as fases conforme seu progresso.
+        As fases desbloqueiam automaticamente conforme suas semanas avançam.
       </div>
 
       {FASES.map((fase) => {
@@ -235,26 +297,10 @@ export function HotSlimReintroducao() {
         </p>
         <div className="hs-list-card">
           {BRISTOL.map((b) => (
-            <div key={b.n} className="hs-list-item static" style={{ gap: 10 }}>
-              <span
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: "50%",
-                  background: b.cor,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "white",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}
-              >
-                {b.n}
-              </span>
+            <div key={b.n} className="hs-list-item static" style={{ gap: 10, alignItems: "center" }}>
+              <BristolIcon tipo={b.n} cor={b.cor} />
               <span className="hs-list-item-name" style={{ minWidth: 0 }}>
-                <span style={{ fontWeight: 600 }}>{b.desc}</span>
+                <span style={{ fontWeight: 600 }}>{b.label}: {b.desc}</span>
               </span>
               <span className="hs-list-item-detail" style={{
                 color: b.n === 3 || b.n === 4 ? "var(--hs-green)" : "var(--hs-fg-soft)",
