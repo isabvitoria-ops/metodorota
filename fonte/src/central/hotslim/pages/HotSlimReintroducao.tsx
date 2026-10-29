@@ -76,7 +76,7 @@ const FASES: Fase[] = [
         alimentos: [
           { nome: "Mel", porcao: "8g (1 colher de chá)" },
           { nome: "Batata doce", porcao: "160g" },
-          { nome: "Pão", porcao: "1 fatia (30g)" },
+          { nome: "Pão", porcao: "50g (2 fatias ou 1 pão francês)" },
         ],
       },
       {
