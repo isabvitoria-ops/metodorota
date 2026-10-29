@@ -11,19 +11,132 @@ import { Modal } from "./componentes/Modal";
 import { Esqueleto } from "@/central/components/Esqueleto";
 
 const TODAS_FASES = [1, 2, 3, 4];
+const FASE_NOMES = ["Semana 1", "Semana 2", "Semana 3", "Semana 4"];
 
 const ABAS = ["Participantes", "Checklist"] as const;
 type Aba = (typeof ABAS)[number];
 
 const CAMPOS_CHECKLIST = [
-  { campo: "intestino_regulou", emoji: "🚽", texto: "Intestino" },
-  { campo: "sem_gases", emoji: "💨", texto: "Sem gases" },
-  { campo: "dormiu_bem", emoji: "😴", texto: "Sono" },
-  { campo: "barriga_desinchada", emoji: "🫄", texto: "Barriga" },
-  { campo: "sem_compulsao", emoji: "🍫", texto: "Compulsão" },
-  { campo: "energia_boa", emoji: "⚡", texto: "Energia" },
-  { campo: "humor_estavel", emoji: "😊", texto: "Humor" },
+  { campo: "intestino_regulou", icone: "🚽", texto: "Intestino regulou" },
+  { campo: "sem_gases", icone: "💨", texto: "Sem gases" },
+  { campo: "dormiu_bem", icone: "😴", texto: "Dormiu bem" },
+  { campo: "barriga_desinchada", icone: "🫄", texto: "Barriga desinchada" },
+  { campo: "sem_compulsao", icone: "🍫", texto: "Sem compulsão" },
+  { campo: "energia_boa", icone: "⚡", texto: "Energia boa" },
+  { campo: "humor_estavel", icone: "😊", texto: "Humor estável" },
 ] as const;
+
+const CSS = {
+  dashboard: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+    gap: 12,
+    marginTop: 16,
+    marginBottom: 20,
+  } as React.CSSProperties,
+  statCard: {
+    background: "var(--surface, #fff)",
+    border: "1px solid var(--border, #e5e7eb)",
+    borderRadius: 14,
+    padding: "18px 16px",
+    textAlign: "center" as const,
+  } as React.CSSProperties,
+  statValue: {
+    fontSize: 28,
+    fontWeight: 700,
+    lineHeight: 1.1,
+    fontFamily: "'Fraunces', Georgia, serif",
+  } as React.CSSProperties,
+  statLabel: {
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: "0.06em",
+    textTransform: "uppercase" as const,
+    color: "var(--fg-soft, #6b7280)",
+    marginTop: 4,
+  } as React.CSSProperties,
+  participantCard: {
+    background: "var(--surface, #fff)",
+    border: "1px solid var(--border, #e5e7eb)",
+    borderRadius: 14,
+    padding: "18px 20px",
+    marginBottom: 12,
+    transition: "box-shadow .15s",
+  } as React.CSSProperties,
+  progressBar: {
+    height: 6,
+    background: "var(--border, #e5e7eb)",
+    borderRadius: 3,
+    overflow: "hidden" as const,
+    marginTop: 10,
+    marginBottom: 6,
+  } as React.CSSProperties,
+  progressFill: {
+    height: "100%",
+    borderRadius: 3,
+    transition: "width .4s ease",
+  } as React.CSSProperties,
+  phaseChip: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 4,
+    padding: "4px 10px",
+    borderRadius: 20,
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: "pointer",
+    border: "1.5px solid var(--border, #e5e7eb)",
+    background: "var(--surface-alt, #f9fafb)",
+    color: "var(--fg-soft, #6b7280)",
+    transition: "all .15s",
+    letterSpacing: "0.02em",
+  } as React.CSSProperties,
+  phaseChipActive: {
+    background: "#E4EFE8",
+    borderColor: "#3D6650",
+    color: "#3D6650",
+  } as React.CSSProperties,
+  badge: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 5,
+    padding: "3px 10px",
+    borderRadius: 20,
+    fontSize: 11,
+    fontWeight: 600,
+    letterSpacing: "0.04em",
+  } as React.CSSProperties,
+  checkDot: {
+    width: 28,
+    height: 28,
+    borderRadius: "50%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: 13,
+    fontWeight: 700,
+    flexShrink: 0,
+  } as React.CSSProperties,
+  dayCard: {
+    background: "var(--surface, #fff)",
+    border: "1px solid var(--border, #e5e7eb)",
+    borderRadius: 12,
+    padding: "14px 16px",
+    marginBottom: 8,
+  } as React.CSSProperties,
+  dotRow: {
+    display: "flex",
+    gap: 6,
+    flexWrap: "wrap" as const,
+    alignItems: "center",
+  } as React.CSSProperties,
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: "50%",
+    flexShrink: 0,
+  } as React.CSSProperties,
+} as const;
 
 export function HotSlimAdmin() {
   const [participantes, definirParticipantes] = useState<ParticipanteHotSlim[]>([]);
@@ -57,14 +170,20 @@ export function HotSlimAdmin() {
   );
   const ativas = participantes.filter((p) => p.ativo);
   const emAndamento = ativas.filter((p) => p.data_inicio <= hoje && p.data_fim >= hoje);
+  const concluidas = ativas.filter((p) => p.data_fim < hoje);
+  const fasesMediana = ativas.length > 0
+    ? Math.round(ativas.reduce((s, p) => s + p.fases_liberadas.length, 0) / ativas.length)
+    : 0;
 
   return (
     <>
       <div className="c-admin-topo-linha" style={{ marginBottom: 4 }}>
         <div>
-          <h1 className="c-titulo" style={{ fontSize: 28 }}>🔥 Hot Slim</h1>
+          <h1 className="c-titulo" style={{ fontSize: 28, fontFamily: "'Fraunces', Georgia, serif", fontWeight: 400 }}>
+            Método Rota — Monitoramento
+          </h1>
           <p className="c-subtitulo">
-            Gerenciar participantes do desafio de 21 dias
+            Acompanhe cada participante dos 21 dias
           </p>
         </div>
         <button
@@ -72,7 +191,7 @@ export function HotSlimAdmin() {
           className="c-botao c-botao-pequeno"
           onClick={() => definirEditando("novo")}
         >
-          Nova participante
+          + Nova participante
         </button>
       </div>
 
@@ -82,13 +201,14 @@ export function HotSlimAdmin() {
         </div>
       )}
 
-      <div className="c-numeros" style={{ marginTop: 12 }}>
-        <Numero rotulo="Total" valor={participantes.length} />
-        <Numero rotulo="Ativas" valor={ativas.length} />
-        <Numero rotulo="Em andamento" valor={emAndamento.length} destaque={emAndamento.length > 0} />
+      <div style={CSS.dashboard}>
+        <StatCard valor={participantes.length} rotulo="Total" cor="#38546C" />
+        <StatCard valor={emAndamento.length} rotulo="Em andamento" cor="#3D6650" destaque={emAndamento.length > 0} />
+        <StatCard valor={concluidas.length} rotulo="Concluíram" cor="#8B7A2E" />
+        <StatCard valor={fasesMediana} rotulo="Fases (média)" cor="#5A7A8F" sufixo="/4" />
       </div>
 
-      <div className="c-admin-abas" style={{ marginTop: 16 }}>
+      <div className="c-admin-abas" style={{ marginTop: 8 }}>
         {ABAS.map((a) => (
           <button
             key={a}
@@ -141,11 +261,23 @@ export function HotSlimAdmin() {
   );
 }
 
-function Numero({ rotulo, valor, destaque }: { rotulo: string; valor: number; destaque?: boolean }) {
+function StatCard({ valor, rotulo, cor, destaque, sufixo }: {
+  valor: number;
+  rotulo: string;
+  cor: string;
+  destaque?: boolean;
+  sufixo?: string;
+}) {
   return (
-    <div className={`c-numero ${destaque ? "destaque" : ""}`}>
-      <strong>{valor}</strong>
-      <span>{rotulo}</span>
+    <div style={{
+      ...CSS.statCard,
+      borderColor: destaque ? cor : undefined,
+      boxShadow: destaque ? `0 0 0 1px ${cor}20` : undefined,
+    }}>
+      <div style={{ ...CSS.statValue, color: cor }}>
+        {valor}{sufixo && <span style={{ fontSize: 14, fontWeight: 400, color: "var(--fg-soft, #6b7280)" }}>{sufixo}</span>}
+      </div>
+      <div style={CSS.statLabel}>{rotulo}</div>
     </div>
   );
 }
@@ -195,12 +327,20 @@ function ListaParticipantes({
     }
   }
 
-  function situacao(p: ParticipanteHotSlim): { texto: string; classe: string } {
-    if (!p.ativo) return { texto: "Inativa", classe: "c-selo-sem-acesso" };
-    if (p.data_inicio > hoje) return { texto: "Aguardando", classe: "c-selo-proximo" };
-    if (p.data_fim < hoje) return { texto: "Encerrado", classe: "c-selo-parada" };
+  function infoDia(p: ParticipanteHotSlim): { dia: number; total: number; percentual: number } {
     const dia = Math.max(1, diasEntre(p.data_inicio, hoje) + 1);
-    return { texto: `Dia ${dia} de 21`, classe: "c-selo-em-dia" };
+    const total = Math.max(1, diasEntre(p.data_inicio, p.data_fim) + 1);
+    const percentual = Math.min(100, Math.round((dia / total) * 100));
+    return { dia: Math.min(dia, total), total, percentual };
+  }
+
+  function situacao(p: ParticipanteHotSlim): { texto: string; cor: string; bg: string } {
+    if (!p.ativo) return { texto: "Inativa", cor: "#6b7280", bg: "#f3f4f6" };
+    if (p.data_inicio > hoje) return { texto: "Aguardando", cor: "#8B7A2E", bg: "#F5F0DC" };
+    if (p.data_fim < hoje) return { texto: "Concluído", cor: "#3D6650", bg: "#E4EFE8" };
+    const { dia } = infoDia(p);
+    const fase = dia <= 6 ? "Repouso" : "Teste";
+    return { texto: `Dia ${dia} · ${fase}`, cor: "#38546C", bg: "#E8EFF5" };
   }
 
   if (participantes.length === 0 && !busca.trim()) {
@@ -216,42 +356,70 @@ function ListaParticipantes({
       {participantes.length === 0 ? (
         <p className="c-contagem">Nenhum resultado para "{busca}".</p>
       ) : (
-        <div className="c-acoes">
+        <div>
           {participantes.map((p) => {
             const sit = situacao(p);
+            const prog = infoDia(p);
+            const emAndamento = p.ativo && p.data_inicio <= hoje && p.data_fim >= hoje;
+
             return (
-              <article className="c-acao" key={p.id}>
-                <div className="c-acao-topo">
-                  <span className="c-acao-texto">
-                    <strong>{p.nome}</strong>
-                    <span className="c-acao-descricao">
-                      {p.email}
-                      {p.telefone ? ` · ${p.telefone}` : ""}
-                    </span>
-                    <span className="c-acao-descricao">
+              <div key={p.id} style={CSS.participantCard}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <strong style={{ fontSize: 16 }}>{p.nome}</strong>
+                      <span style={{ ...CSS.badge, color: sit.cor, background: sit.bg }}>
+                        {sit.texto}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 13, color: "var(--fg-soft, #6b7280)", marginTop: 4 }}>
+                      {p.email}{p.telefone ? ` · ${p.telefone}` : ""}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--fg-soft, #6b7280)", marginTop: 2 }}>
                       {dataBonita(p.data_inicio)} — {dataBonita(p.data_fim)}
-                    </span>
-                  </span>
-                  <span className={`c-selo ${sit.classe}`}>{sit.texto}</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 8 }}>
-                  {TODAS_FASES.map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      className={`c-chip`}
-                      aria-pressed={p.fases_liberadas.includes(f)}
-                      disabled={ocupado === p.id}
-                      onClick={() => void liberarFase(p, f)}
-                      title={p.fases_liberadas.includes(f) ? `Bloquear fase ${f}` : `Liberar fase ${f}`}
-                    >
-                      {p.fases_liberadas.includes(f) ? "🔓" : "🔒"} Fase {f}
-                    </button>
-                  ))}
+                {emAndamento && (
+                  <>
+                    <div style={CSS.progressBar}>
+                      <div style={{
+                        ...CSS.progressFill,
+                        width: `${prog.percentual}%`,
+                        background: `linear-gradient(90deg, #38546C, #5A7A8F)`,
+                      }} />
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--fg-soft, #6b7280)" }}>
+                      <span>Dia {prog.dia} de {prog.total}</span>
+                      <span>{prog.percentual}%</span>
+                    </div>
+                  </>
+                )}
+
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 12 }}>
+                  {TODAS_FASES.map((f) => {
+                    const ativa = p.fases_liberadas.includes(f);
+                    return (
+                      <button
+                        key={f}
+                        type="button"
+                        style={{
+                          ...CSS.phaseChip,
+                          ...(ativa ? CSS.phaseChipActive : {}),
+                        }}
+                        disabled={ocupado === p.id}
+                        onClick={() => void liberarFase(p, f)}
+                        title={ativa ? `Bloquear ${FASE_NOMES[f - 1]}` : `Liberar ${FASE_NOMES[f - 1]}`}
+                      >
+                        <span style={{ fontSize: 12 }}>{ativa ? "✓" : "○"}</span>
+                        {FASE_NOMES[f - 1]}
+                      </button>
+                    );
+                  })}
                 </div>
 
-                <div className="c-acao-estado" style={{ marginTop: 8 }}>
+                <div style={{ display: "flex", gap: 8, marginTop: 14, alignItems: "center" }}>
                   <button
                     type="button"
                     className="c-botao c-botao-pequeno"
@@ -269,13 +437,14 @@ function ListaParticipantes({
                   <button
                     type="button"
                     className="c-link"
+                    style={{ marginLeft: "auto", fontSize: 12 }}
                     disabled={ocupado === p.id}
                     onClick={() => void alternarAtivo(p)}
                   >
                     {p.ativo ? "Desativar" : "Reativar"}
                   </button>
                 </div>
-              </article>
+              </div>
             );
           })}
         </div>
@@ -312,6 +481,12 @@ function PainelChecklist({
 
   const participanteNome = participantes.find((p) => p.id === selecionada)?.nome ?? "";
 
+  const totalDias = checklist.length;
+  const diasBons = checklist.filter((d) => contarMarcadosChecklist(d) >= 5).length;
+  const mediaChecks = totalDias > 0
+    ? (checklist.reduce((s, d) => s + contarMarcadosChecklist(d), 0) / totalDias).toFixed(1)
+    : "0";
+
   return (
     <>
       <Campo rotulo="Participante">
@@ -337,58 +512,76 @@ function PainelChecklist({
         <p className="c-contagem">{participanteNome} ainda não preencheu nenhum checklist.</p>
       ) : (
         <>
-          <p className="c-contagem" style={{ marginBottom: 12 }}>
-            {checklist.length} {checklist.length === 1 ? "dia" : "dias"} registrados por {participanteNome}
-          </p>
-
-          <div style={{ overflowX: "auto" }}>
-            <table className="c-tabela" style={{ width: "100%", fontSize: 13 }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left" }}>Dia</th>
-                  {CAMPOS_CHECKLIST.map((c) => (
-                    <th key={c.campo} title={c.texto} style={{ textAlign: "center", minWidth: 36 }}>
-                      {c.emoji}
-                    </th>
-                  ))}
-                  <th style={{ textAlign: "center" }}>Total</th>
-                  <th style={{ textAlign: "left" }}>Notas</th>
-                </tr>
-              </thead>
-              <tbody>
-                {checklist.map((dia) => {
-                  const total = contarMarcadosChecklist(dia);
-                  return (
-                    <tr key={dia.dia}>
-                      <td>
-                        {new Date(dia.dia + "T12:00:00").toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "2-digit",
-                        })}
-                      </td>
-                      {CAMPOS_CHECKLIST.map((c) => (
-                        <td key={c.campo} style={{ textAlign: "center" }}>
-                          {dia[c.campo as keyof ChecklistResumo] ? "✅" : "—"}
-                        </td>
-                      ))}
-                      <td
-                        style={{
-                          textAlign: "center",
-                          fontWeight: 700,
-                          color: total >= 5 ? "var(--c-sucesso, #16a34a)" : total >= 3 ? "var(--c-alerta, #ca8a04)" : undefined,
-                        }}
-                      >
-                        {total}/7
-                      </td>
-                      <td style={{ maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {dia.notas || "—"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div style={{ ...CSS.dashboard, gridTemplateColumns: "repeat(3, 1fr)", marginTop: 12 }}>
+            <StatCard valor={totalDias} rotulo="Dias registrados" cor="#38546C" />
+            <StatCard valor={diasBons} rotulo="Dias bons (5+/7)" cor="#3D6650" />
+            <StatCard valor={Number(mediaChecks)} rotulo="Média diária" cor="#8B7A2E" sufixo="/7" />
           </div>
+
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
+            {CAMPOS_CHECKLIST.map((c) => (
+              <span key={c.campo} style={{ fontSize: 11, color: "var(--fg-soft, #6b7280)", display: "flex", alignItems: "center", gap: 3 }}>
+                <span>{c.icone}</span> {c.texto}
+              </span>
+            ))}
+          </div>
+
+          {checklist.map((dia) => {
+            const total = contarMarcadosChecklist(dia);
+            const corTotal = total >= 5 ? "#3D6650" : total >= 3 ? "#8B7A2E" : "#9B3B30";
+            const bgTotal = total >= 5 ? "#E4EFE8" : total >= 3 ? "#F5F0DC" : "#FAE8E5";
+
+            return (
+              <div key={dia.dia} style={CSS.dayCard}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                  <span style={{ fontWeight: 700, fontSize: 14, minWidth: 44 }}>
+                    {new Date(dia.dia + "T12:00:00").toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                    })}
+                  </span>
+
+                  <div style={CSS.dotRow}>
+                    {CAMPOS_CHECKLIST.map((c) => {
+                      const marcado = dia[c.campo as keyof ChecklistResumo] as boolean;
+                      return (
+                        <span
+                          key={c.campo}
+                          title={`${c.texto}: ${marcado ? "Sim" : "Não"}`}
+                          style={{
+                            ...CSS.dot,
+                            background: marcado ? "#3D6650" : "#e5e7eb",
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+
+                  <span style={{
+                    ...CSS.badge,
+                    color: corTotal,
+                    background: bgTotal,
+                    marginLeft: "auto",
+                    fontVariantNumeric: "tabular-nums",
+                  }}>
+                    {total}/7
+                  </span>
+                </div>
+
+                {dia.notas && (
+                  <div style={{
+                    fontSize: 13,
+                    color: "var(--fg-soft, #6b7280)",
+                    paddingLeft: 54,
+                    lineHeight: 1.5,
+                    fontStyle: "italic",
+                  }}>
+                    "{dia.notas}"
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </>
       )}
     </>
