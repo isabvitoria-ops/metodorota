@@ -101,78 +101,56 @@ const SUGESTOES: SugestaoRefeicao[] = [
   {
     titulo: "Lanche da Tarde",
     opcoes: [
-      "Banana (70g) + ovo cozido",
-      "Maçã sem casca (80g) + tapioca com ovo",
-      "Mamão (170g) + cuscuz com ovo",
+      "1 banana + 1 ovo cozido",
+      "Morango (115g) + tapioca (50g)",
+      "Mamão (170g) + 1 fatia de frango desfiado",
     ],
   },
   {
     titulo: "Jantar",
     opcoes: [
-      "Frango desfiado (120g) + abóbora assada + azeite",
-      "Omelete (100g) + vagem no vapor + azeite",
-      "Peixe grelhado (120g) + cenoura + pepino",
+      "Sopa de abóbora com frango desfiado + azeite",
+      "Omelete (2 ovos) + arroz (100g) + vagem no vapor",
+      "Peixe grelhado (120g) + purê de mandioca (100g) + salada verde",
     ],
   },
 ];
 
-function ListaAlimentos({ titulo, itens }: { titulo: string; itens: { nome: string; porcao?: string }[] }) {
-  return (
-    <div className="hs-list-section">
-      <div className="hs-list-header">{titulo}</div>
-      <div className="hs-list-card">
-        {itens.map((item) => (
-          <div key={item.nome} className="hs-list-item static">
-            <span className="hs-list-item-name">{item.nome}</span>
-            {item.porcao && <span className="hs-list-item-detail">{item.porcao}</span>}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function HotSlimCardapio() {
-  const [secao, setSecao] = useState<Secao>("alimentos");
+  const [secao, definirSecao] = useState<Secao>("alimentos");
 
   return (
     <div className="hs-pagina">
-      <div style={{ marginBottom: 20 }}>
-        <h1 className="hs-titulo">Cardápio — Etapa 1</h1>
-        <p className="hs-texto">Alimentos permitidos durante o repouso digestivo (dias 1–6)</p>
-      </div>
+      <h1 className="hs-titulo">Cardápio</h1>
+      <p className="hs-texto">O que você pode comer durante o repouso digestivo</p>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+      <div className="hs-toggle">
         <button
-          onClick={() => setSecao("alimentos")}
-          className={`hs-btn ${secao === "alimentos" ? "hs-btn-accent" : "hs-btn-outline"}`}
-          style={{ flex: 1, padding: "10px 12px", fontSize: 13 }}
+          type="button"
+          className={secao === "alimentos" ? "ativo" : ""}
+          onClick={() => definirSecao("alimentos")}
         >
           Alimentos
         </button>
         <button
-          onClick={() => setSecao("sugestoes")}
-          className={`hs-btn ${secao === "sugestoes" ? "hs-btn-accent" : "hs-btn-outline"}`}
-          style={{ flex: 1, padding: "10px 12px", fontSize: 13 }}
+          type="button"
+          className={secao === "sugestoes" ? "ativo" : ""}
+          onClick={() => definirSecao("sugestoes")}
         >
-          Ideias de montagem
+          Sugestões
         </button>
       </div>
 
       {secao === "alimentos" ? (
         <>
-          <ListaAlimentos titulo="Carboidratos" itens={CARBOIDRATOS} />
-          <ListaAlimentos titulo="Proteínas" itens={PROTEINAS} />
-          <ListaAlimentos titulo="Vegetais" itens={VEGETAIS} />
-          <ListaAlimentos titulo="Pode acrescentar" itens={ACRESCENTAR} />
-          <ListaAlimentos titulo="Frutas permitidas" itens={FRUTAS} />
+          <FoodSection titulo="Carboidratos" itens={CARBOIDRATOS} />
+          <FoodSection titulo="Proteínas" itens={PROTEINAS} />
+          <FoodSection titulo="Vegetais" itens={VEGETAIS} />
+          <FoodSection titulo="Para acrescentar" itens={ACRESCENTAR} />
+          <FoodSection titulo="Frutas" itens={FRUTAS} />
 
-          <div className="hs-dica" style={{ marginTop: 8, borderColor: "var(--hs-green)", background: "var(--hs-green-soft)" }}>
-            <strong style={{ color: "var(--hs-green)" }}>Chás — tome ao longo do dia!</strong>{" "}
-            Sem açúcar. Ajudam na digestão, reduzem gases e acalmam o intestino.
-          </div>
-
-          <div className="hs-list-section" style={{ marginTop: 4 }}>
+          <div className="hs-list-section">
+            <div className="hs-list-header">Chás recomendados</div>
             <div className="hs-list-card">
               {CHAS.map((c) => (
                 <div key={c.nome} className="hs-list-item static">
@@ -195,11 +173,6 @@ export function HotSlimCardapio() {
           </div>
 
           <div className="hs-dica" style={{ marginTop: 12 }}>
-            <strong>Aveia:</strong> Se não contiver glúten (aveia certificada sem glúten), pode usar em pequena
-            quantidade. Na dúvida, evite — a maioria das aveias tem contaminação cruzada.
-          </div>
-
-          <div className="hs-dica">
             <strong>Leite vegetal:</strong> Leite de coco e de arroz são permitidos.
             Evite leite de soja, amêndoas e castanhas durante o repouso.
           </div>
@@ -232,6 +205,22 @@ export function HotSlimCardapio() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+function FoodSection({ titulo, itens }: { titulo: string; itens: { nome: string; porcao?: string }[] }) {
+  return (
+    <div className="hs-list-section">
+      <div className="hs-list-header">{titulo}</div>
+      <div className="hs-list-card">
+        {itens.map((item) => (
+          <div key={item.nome} className="hs-list-item static">
+            <span className="hs-list-item-name">{item.nome}</span>
+            {item.porcao && <span className="hs-list-item-detail">{item.porcao}</span>}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
