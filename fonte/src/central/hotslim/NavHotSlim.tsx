@@ -5,7 +5,7 @@ const ITENS = [
   { rota: "/hotslim/protocolo", rotulo: "Método", fim: false },
   { rota: "/hotslim/checklist", rotulo: "Checklist", fim: false },
   { rota: "/hotslim/reintroducao", rotulo: "Fases", fim: false },
-  { rota: "/hotslim/mais", rotulo: "Mais", fim: false },
+  { rota: "/hotslim/cardapio", rotulo: "Cardápio", fim: false },
 ];
 
 export function NavHotSlim() {

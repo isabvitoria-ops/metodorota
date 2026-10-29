@@ -36,7 +36,7 @@ export function HotSlimHome() {
         </div>
         <div className="hs-progresso-dias">
           <span>Início</span>
-          <span>{diaAtual <= 6 ? "Repouso" : diaAtual <= 14 ? "Teste" : "Autonomia"}</span>
+          <span>{diaAtual <= 6 ? "Repouso" : "Teste"}</span>
           <span>Fim</span>
         </div>
       </div>
@@ -47,11 +47,11 @@ export function HotSlimHome() {
           {Array.from({ length: 21 }, (_, i) => {
             const dia = i + 1;
             const classe = dia < diaAtual ? "concluido" : dia === diaAtual ? "ativo" : "";
-            const fase = dia <= 6 ? "Repouso" : dia <= 14 ? "Teste" : "Auto";
+            const fase = dia <= 6 ? "Repouso" : "Teste";
             return (
               <div key={dia} className={`hs-dia ${classe}`}>
                 <span className="hs-dia-num">{dia}</span>
-                {fase}
+                {dia < diaAtual ? <span className="hs-dia-check">✓</span> : fase}
               </div>
             );
           })}
@@ -67,6 +67,7 @@ export function HotSlimHome() {
           <Link to="/hotslim/cardapio" className="hs-atalho">Cardápio</Link>
           <Link to="/hotslim/reintroducao" className="hs-atalho">Reintrodução</Link>
           <Link to="/hotslim/metas" className="hs-atalho">Minhas Metas</Link>
+          <Link to="/hotslim/faq" className="hs-atalho">Dúvidas Frequentes</Link>
         </div>
       </div>
 
@@ -84,7 +85,7 @@ export function HotSlimHome() {
             </li>
             <li>
               <span className="hs-lista-num">3</span>
-              <span><strong>Dias 15–21:</strong> Autonomia — consolidação dos resultados</span>
+              <span><strong>Dias 15–21:</strong> Teste — consolidação dos resultados</span>
             </li>
           </ul>
         </div>
