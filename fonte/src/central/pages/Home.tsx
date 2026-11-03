@@ -48,7 +48,7 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
   {
     rota: rotas.treino,
     grupo: "acompanhamento",
-    icone: "evolucao",
+    icone: "treino",
     titulo: "Minha evolução",
     descricao: "Seu treino registrado, e o que mudou de uma sessão para a outra.",
   },
@@ -90,7 +90,7 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
   {
     rota: rotas.listaDeCompras,
     grupo: "ferramentas",
-    icone: "lista",
+    icone: "mercado",
     titulo: "Lista de compras",
     descricao: "Todos os alimentos do seu protocolo, para levar ao mercado.",
   },
@@ -104,14 +104,14 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
   {
     rota: rotas.habitos,
     grupo: "ferramentas",
-    icone: "evolucao",
+    icone: "sono",
     titulo: "Hábitos e intestino",
     descricao: "Sono, estresse, exercício, medicação, hidratação e fibras: o que afeta seu intestino além da comida.",
   },
   {
     rota: rotas.comerFora,
     grupo: "ferramentas",
-    icone: "comerFora",
+    icone: "restaurante",
     titulo: "Comer fora",
     descricao: "Estratégias para escolher melhor fora de casa.",
   },

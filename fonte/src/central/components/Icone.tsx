@@ -54,7 +54,30 @@ const TRACOS: Record<string, string> = {
   link: "M10 14a3.5 3.5 0 0 0 5 0l3-3a3.54 3.54 0 0 0-5-5l-.5.5M14 10a3.5 3.5 0 0 0-5 0l-3 3a3.54 3.54 0 0 0 5 5l.5-.5",
 };
 
-export type NomeIcone = keyof typeof TRACOS | string;
+/**
+ * Ícones de linha da marca, desenhados em 64×64 com traço único. Quando o nome
+ * existe aqui, vale sobre `TRACOS` (por isso `agua` e `restaurante` mudam em
+ * todo o app de uma vez).
+ */
+const TRACOS_MARCA: Record<string, string> = {
+  cafe: "M14 26H42V38a10 10 0 0 1-10 10H24a10 10 0 0 1-10-10ZM42 29h3a5 5 0 0 1 0 10h-3M10 54H46M22 8c-3 4 3 6 0 10M32 8c-3 4 3 6 0 10",
+  almoco:
+    "M19 32a13 13 0 1 0 26 0a13 13 0 1 0-26 0M25 32a7 7 0 1 0 14 0a7 7 0 1 0-14 0M8 12v12q0 4 4 4t4-4V12M12 12v38M56 12q-7 6-7 18h7M56 12v38",
+  jantar: "M10 34H50c0 11-9 18-20 18S10 45 10 34ZM20 14c-3 4 3 6 0 10M30 14c-3 4 3 6 0 10M50 8a9 9 0 1 0 6 14 7 7 0 0 1-6-14Z",
+  lanche:
+    "M32 20c-6-5-18-2-18 12 0 12 8 20 14 20 3 0 3-1 4-1s1 1 4 1c6 0 14-8 14-20 0-14-12-17-18-12ZM32 20c0-5 2-9 6-11M38 9c4-2 8 0 8 4-4 2-8 0-8-4",
+  agua: "M32 8S16 28 16 38a16 16 0 0 0 32 0C48 28 32 8 32 8ZM24 40a8 8 0 0 0 6 8",
+  mercado: "M8 26H56L50 52H14ZM20 26l8-14M44 26l-8-14M24 34v10M32 34v10M40 34v10",
+  receita: "M14 8H46a4 4 0 0 1 4 4V52a4 4 0 0 1-4 4H14ZM20 8V56M27 20H42M27 28H42M27 36H36",
+  congelar: "M32 8V56M11 20L53 44M11 44L53 20M26 13l6 6 6-6M26 51l6-6 6 6M10 29l8 2-2 8M54 29l-8 2 2 8",
+  airfryer:
+    "M12 20a8 8 0 0 1 8-8H44a8 8 0 0 1 8 8V46a8 8 0 0 1-8 8H20a8 8 0 0 1-8-8ZM12 30H52M19 21a3 3 0 1 0 6 0a3 3 0 1 0-6 0M34 21H46M22 42H42",
+  restaurante: "M14 44a18 18 0 0 1 36 0M8 50H56M14 44H50M29 17a3 3 0 1 0 6 0a3 3 0 1 0-6 0",
+  treino: "M20 32H44M14 22V42M20 18V46M44 18V46M50 22V42M8 28v8M56 28v8",
+  sono: "M30 10a20 20 0 1 0 22 30 16 16 0 0 1-22-30ZM42 12h8l-8 9h8M52 26h5l-5 6h5",
+};
+
+export type NomeIcone = keyof typeof TRACOS | keyof typeof TRACOS_MARCA | string;
 
 interface Props extends SVGProps<SVGSVGElement> {
   nome: NomeIcone;
@@ -62,15 +85,16 @@ interface Props extends SVGProps<SVGSVGElement> {
 }
 
 export function Icone({ nome, tamanho = 20, ...rest }: Props) {
-  const traco = TRACOS[nome] ?? TRACOS.info!;
+  const daMarca = TRACOS_MARCA[nome];
+  const traco = daMarca ?? TRACOS[nome] ?? TRACOS.info!;
   return (
     <svg
       width={tamanho}
       height={tamanho}
-      viewBox="0 0 24 24"
+      viewBox={daMarca ? "0 0 64 64" : "0 0 24 24"}
       fill="none"
       stroke="currentColor"
-      strokeWidth={1.5}
+      strokeWidth={daMarca ? 3.6 : 1.5}
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"

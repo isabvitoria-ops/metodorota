@@ -50,7 +50,9 @@ export function MinhaMetaDeHoje() {
 
   return (
     <section className="c-secao">
-      <h2 className="c-secao-titulo">Minha meta {periodo}</h2>
+      <h2 className="c-secao-titulo">
+        <span className="c-etiqueta">Minha meta {periodo}</span>
+      </h2>
 
       <button
         type="button"

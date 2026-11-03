@@ -29,6 +29,7 @@ export function TelaConta({
   return (
     <div className="central">
       <div className="c-conta">
+        <div className="c-conta-estampa" aria-hidden="true" />
         <div className="c-conta-caixa">
           {/* Maior aqui do que no cabeçalho: esta é a porta de entrada, e é
               onde a paciente confere que chegou no lugar certo. */}
