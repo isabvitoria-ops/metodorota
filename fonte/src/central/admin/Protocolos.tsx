@@ -14,6 +14,8 @@ import type {
 import { AVALIACAO_VAZIA, CONTEUDO_VAZIO } from "@/central/types/protocolo";
 import { useParams } from "react-router-dom";
 import { repositorio } from "@/central/dados/repositorio";
+import { DocumentoProtocolo } from "@/central/components/DocumentoProtocolo";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { dataBonita } from "@/central/utils/situacao";
 import { AreaDeLinhas, AreaTexto, Campo, NumeroDecimal, Selecao, Texto } from "./componentes/Campos";
 import { numeroDeTexto, textoDeNumero } from "@/central/utils/numero";
@@ -214,6 +216,8 @@ function EditorDoProtocolo({
   // `utils/recolherRefeicoes.ts` para o porque de morar aqui e nao no bloco.
   const [recolhidas, definirRecolhidas] = useState<ReadonlySet<number>>(new Set<number>());
   const [guardando, definirGuardando] = useState<"parado" | "salvando" | "salvo">("parado");
+  const [imprimindo, definirImprimindo] = useState(false);
+  const { configuracoes } = useSessao();
   // O que veio do banco. Enquanto for igual ao da tela, não há o que guardar
   // — e é isso que impede o salvamento automático de disparar na abertura.
   const espelho = useRef<string>("");
@@ -281,6 +285,25 @@ function EditorDoProtocolo({
     } finally {
       definirOcupado(false);
     }
+  }
+
+  function gerarPdf() {
+    definirImprimindo(true);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        let jaSaiu = false;
+        const limpar = () => {
+          if (jaSaiu) return;
+          jaSaiu = true;
+          window.removeEventListener("afterprint", limpar);
+          clearTimeout(prazo);
+          definirImprimindo(false);
+        };
+        const prazo = setTimeout(limpar, 60_000);
+        window.addEventListener("afterprint", limpar);
+        window.print();
+      });
+    });
   }
 
   function acrescentarRefeicao(nome: string) {
@@ -557,6 +580,16 @@ function EditorDoProtocolo({
           </button>
         )}
 
+        {publicado && (
+          <button
+            type="button"
+            className="c-botao c-botao-secundario"
+            onClick={gerarPdf}
+          >
+            Gerar PDF da dieta publicada
+          </button>
+        )}
+
         {ficha?.rascunho && (
           <button
             type="button"
@@ -611,6 +644,15 @@ function EditorDoProtocolo({
             ))}
           </div>
         </>
+      )}
+
+      {imprimindo && publicado && (
+        <DocumentoProtocolo
+          paciente={paciente.nome}
+          protocolo={publicado}
+          conteudo={publicado.conteudo}
+          nutricionista={configuracoes.nomeNutricionista}
+        />
       )}
     </div>
   );

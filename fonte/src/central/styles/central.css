@@ -930,6 +930,13 @@ body:has(.central) {
   line-height: 1.25;
 }
 
+.c-resultado-caseira {
+  margin-top: 6px;
+  font-size: 15px;
+  opacity: 0.78;
+  font-style: italic;
+}
+
 .c-resultado-troca {
   margin-top: 16px;
   padding-top: 14px;

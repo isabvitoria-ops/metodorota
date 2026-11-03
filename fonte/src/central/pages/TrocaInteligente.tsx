@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import type { Alimento } from "@/central/types";
 import { catalogo } from "@/central/dados/catalogo";
 import { calcularTroca, destinosPossiveis, origensPossiveis } from "@/central/utils/calculoTroca";
-import { rotuloUnidade, unidadesDoAlimento } from "@/central/utils/medidas";
+import { arredondarExibicao, daBase, rotuloUnidade, unidadesDoAlimento } from "@/central/utils/medidas";
 import { numero } from "@/central/utils/texto";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { CampoAlimento } from "@/central/components/CampoAlimento";
@@ -240,6 +240,18 @@ export function TrocaInteligente() {
               <span>{rotuloUnidade(resultado.saida.quantidade, catalogo.unidade(resultado.saida.unidadeId), resultado.saida.unidadeId)}</span>
             </p>
             <p className="c-resultado-alimento">de {destino.nome}</p>
+            {(() => {
+              const caseiras = medidasCaseirasDoResultado(
+                destino,
+                resultado.saida.quantidade,
+                resultado.saida.unidadeId,
+              );
+              return caseiras.length > 0 ? (
+                <p className="c-resultado-caseira">
+                  ≈ {caseiras.map((m) => `${numero(m.quantidade)} ${m.rotulo}`).join(" ou ")}
+                </p>
+              ) : null;
+            })()}
             <p className="c-resultado-troca">
               no lugar de {numero(valor)}{" "}
               {rotuloUnidade(valor, catalogo.unidade(unidadeId), unidadeId)} de {origem.nome}
@@ -306,6 +318,55 @@ export function TrocaInteligente() {
       </div>
     </>
   );
+}
+
+/**
+ * Medidas caseiras equivalentes ao resultado, para o paciente visualizar.
+ *
+ * Se o resultado é "86 g de Achocolatado em pó" e o alimento tem "colher de
+ * sopa = 10 g" cadastrada, mostra "≈ 8,5 colheres de sopa" ao lado.
+ */
+function medidasCaseirasDoResultado(
+  alimento: Alimento,
+  quantidade: number,
+  unidadeId: string,
+): { quantidade: number; rotulo: string }[] {
+  const base =
+    unidadeId === alimento.unidadeBaseId
+      ? quantidade
+      : (() => {
+          const medida = alimento.medidas.find((m) => m.unidadeId === unidadeId);
+          return medida?.equivalenteNaBase != null ? quantidade * medida.equivalenteNaBase : null;
+        })();
+  if (base === null) return [];
+
+  const resultado: { quantidade: number; rotulo: string }[] = [];
+  for (const m of alimento.medidas) {
+    if (m.unidadeId === unidadeId) continue;
+    if (m.equivalenteNaBase == null || m.equivalenteNaBase === 0) continue;
+    const convertido = daBase(alimento, base, m.unidadeId);
+    if (convertido === null || convertido <= 0) continue;
+    const unidade = catalogo.unidade(m.unidadeId);
+    if (!unidade) continue;
+    const arredondado = arredondarExibicao(convertido, unidade);
+    resultado.push({
+      quantidade: arredondado,
+      rotulo: rotuloUnidade(arredondado, unidade, m.unidadeId),
+    });
+  }
+
+  if (unidadeId !== alimento.unidadeBaseId && base > 0) {
+    const unidadeBase = catalogo.unidade(alimento.unidadeBaseId);
+    if (unidadeBase) {
+      const arredondado = arredondarExibicao(base, unidadeBase);
+      resultado.unshift({
+        quantidade: arredondado,
+        rotulo: rotuloUnidade(arredondado, unidadeBase, alimento.unidadeBaseId),
+      });
+    }
+  }
+
+  return resultado;
 }
 
 /** A quantidade já começa na porção de referência — resultado na tela sem digitar nada. */
