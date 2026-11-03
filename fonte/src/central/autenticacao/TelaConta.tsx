@@ -72,6 +72,7 @@ export function CampoTexto({
   placeholder,
   autoComplete,
   dica,
+  modoEntrada,
 }: {
   id: string;
   rotulo: string;
@@ -81,6 +82,7 @@ export function CampoTexto({
   placeholder?: string;
   autoComplete?: string;
   dica?: string;
+  modoEntrada?: "numeric" | "email" | "text";
 }) {
   return (
     <div className="c-campo">
@@ -94,7 +96,7 @@ export function CampoTexto({
         value={valor}
         placeholder={placeholder}
         autoComplete={autoComplete}
-        inputMode={tipo === "email" ? "email" : undefined}
+        inputMode={modoEntrada ?? (tipo === "email" ? "email" : undefined)}
         onChange={(e) => aoMudar(e.target.value)}
       />
       {dica && <p className="c-dica">{dica}</p>}

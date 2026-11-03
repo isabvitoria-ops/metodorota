@@ -90,6 +90,8 @@ interface ValorSessao {
   concluirBoasVindas(): Promise<void>;
   entrarComSenha(email: string, senha: string): Promise<void>;
   enviarLink(email: string): Promise<void>;
+  /** Entra com o código de 6 números que veio no e-mail. */
+  entrarComCodigo(email: string, codigo: string): Promise<void>;
   definirSenha(senha: string): Promise<void>;
   enviarRecuperacao(email: string): Promise<void>;
   sair(): Promise<void>;
@@ -233,6 +235,16 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
         if (error) throw new Error(traduzir(error.message));
       },
 
+      async entrarComCodigo(email, codigo) {
+        if (!supabase) return;
+        const { error } = await supabase.auth.verifyOtp({
+          email: email.trim().toLowerCase(),
+          token: codigo.replace(/\s+/g, ""),
+          type: "email",
+        });
+        if (error) throw new Error(traduzir(error.message));
+      },
+
       async definirSenha(senha) {
         if (!supabase) return;
         const { error } = await supabase.auth.updateUser({ password: senha });
@@ -276,6 +288,9 @@ function traduzir(mensagem: string): string {
   if (texto.includes("password should be at least")) return "A senha precisa ter pelo menos 6 caracteres.";
   if (texto.includes("rate limit") || texto.includes("too many")) {
     return "Muitas tentativas seguidas. Espere alguns minutos e tente de novo.";
+  }
+  if (texto.includes("token has expired") || texto.includes("otp_expired") || texto.includes("invalid or has expired")) {
+    return "Código errado ou vencido. Confira os 6 números ou peça um novo.";
   }
   if (texto.includes("for security purposes")) return "Espere um minuto antes de pedir outro e-mail.";
   if (texto.includes("should be different from the old password")) return "A nova senha precisa ser diferente da anterior.";

@@ -7,18 +7,21 @@ import { CampoTexto, TelaConta } from "./TelaConta";
 /**
  * Entrada do paciente.
  *
- * Dois caminhos: senha, para quem já definiu uma, e link por e-mail, para
- * quem nunca definiu ou esqueceu. O link é o mesmo mecanismo do convite —
- * quem recebeu o convite e ainda não criou senha entra por aqui.
+ * Dois caminhos: senha, para quem já definiu uma, e código de 6 números por
+ * e-mail, para quem nunca definiu ou esqueceu. O código existe porque o link
+ * do e-mail é de uso único e é gasto por quem o abre antes da paciente (a
+ * prévia do WhatsApp, verificadores de e-mail); o código não é aberto por ninguém.
  */
 export function Entrar() {
-  const { acesso, entrarComSenha, enviarLink, pronto } = useSessao();
+  const { acesso, entrarComSenha, enviarLink, entrarComCodigo, pronto } = useSessao();
   const navegar = useNavigate();
   const [email, definirEmail] = useState("");
   const [senha, definirSenha] = useState("");
   const [erro, definirErro] = useState<string | null>(null);
   const [aviso, definirAviso] = useState<string | null>(null);
   const [enviando, definirEnviando] = useState(false);
+  const [codigoPedido, definirCodigoPedido] = useState(false);
+  const [codigo, definirCodigo] = useState("");
 
   if (pronto && acesso.autenticado) return <Navigate to={rotas.home} replace />;
 
@@ -45,18 +48,75 @@ export function Entrar() {
     definirErro(null);
     definirAviso(null);
     if (!email.trim()) {
-      definirErro("Escreva seu e-mail para receber o link.");
+      definirErro("Escreva seu e-mail para receber o código.");
       return;
     }
     definirEnviando(true);
     try {
       await enviarLink(email);
-      definirAviso("Link enviado. Confira seu e-mail — ele vale por 24 horas. Abra o e-mail mais recente.");
+      definirCodigoPedido(true);
+      definirCodigo("");
+      definirAviso("Enviamos um código de 6 números para o seu e-mail. Digite o código abaixo.");
     } catch (e) {
-      definirErro(e instanceof Error ? e.message : "Não foi possível enviar o link.");
+      definirErro(e instanceof Error ? e.message : "Não foi possível enviar o código.");
     } finally {
       definirEnviando(false);
     }
+  }
+
+  async function confirmarCodigo(evento: FormEvent) {
+    evento.preventDefault();
+    definirErro(null);
+    definirAviso(null);
+    if (codigo.replace(/\s+/g, "").length < 6) {
+      definirErro("Digite os 6 números do código.");
+      return;
+    }
+    definirEnviando(true);
+    try {
+      await entrarComCodigo(email, codigo);
+      // Quem entra pelo código escolhe uma senha em seguida, como no convite.
+      navegar(rotas.definirSenha, { replace: true });
+    } catch (e) {
+      definirErro(e instanceof Error ? e.message : "Não foi possível entrar com o código.");
+    } finally {
+      definirEnviando(false);
+    }
+  }
+
+  if (codigoPedido) {
+    return (
+      <TelaConta
+        titulo="Digite o código"
+        descricao={`Enviamos 6 números para ${email.trim()}. Abra o e-mail mais recente.`}
+        aoEnviar={confirmarCodigo}
+        erro={erro}
+        aviso={aviso}
+        rodape={
+          <>
+            <button type="button" className="c-link" onClick={porLink} disabled={enviando}>
+              Pedir outro código
+            </button>
+            <button type="button" className="c-link" onClick={() => definirCodigoPedido(false)}>
+              Voltar
+            </button>
+          </>
+        }
+      >
+        <CampoTexto
+          id="codigo"
+          rotulo="Código do e-mail"
+          valor={codigo}
+          aoMudar={definirCodigo}
+          placeholder="000000"
+          autoComplete="one-time-code"
+          modoEntrada="numeric"
+        />
+        <button type="submit" className="c-botao" disabled={enviando}>
+          {enviando ? "Entrando…" : "Entrar com o código"}
+        </button>
+      </TelaConta>
+    );
   }
 
   return (
@@ -69,7 +129,7 @@ export function Entrar() {
       rodape={
         <>
           <button type="button" className="c-link" onClick={porLink} disabled={enviando}>
-            Entrar por link no e-mail
+            Entrar com código por e-mail
           </button>
           <button type="button" className="c-link" onClick={() => navegar(rotas.recuperarSenha)}>
             Esqueci minha senha

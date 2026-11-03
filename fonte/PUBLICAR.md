@@ -191,8 +191,8 @@ Agora que o site tem endereço, o Supabase precisa saber qual é.
 
 1. Abra o endereço do seu site.
 2. Você vai cair na tela **Entrar**.
-3. Escreva o seu e-mail e clique em **Entrar por link no e-mail**.
-4. Abra o e-mail e clique no link. Você cai na tela de criar senha. Crie uma.
+3. Escreva o seu e-mail e clique em **Entrar com código por e-mail**.
+4. Abra o e-mail, digite os 6 números na tela. Você cai na tela de criar senha. Crie uma.
 5. Neste momento você entrou, mas ainda é uma conta comum, sem acesso a nada —
    e isso está certo.
 6. Volte ao Supabase → **SQL Editor** → **New query**.
