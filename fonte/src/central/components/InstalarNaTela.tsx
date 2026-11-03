@@ -126,9 +126,9 @@ function AndroidBarra() {
 
 function AndroidMenu() {
   return (
-    <Figura rotulo="Menu do Chrome, com a opção Instalar app ou Adicionar à tela inicial em destaque">
+    <Figura rotulo="Menu do Chrome, com a opção Instalar e criar atalho (ou Instalar app, ou Adicionar à tela inicial) em destaque">
       <Linha y={26} texto="Nova guia" />
-      <Linha y={60} texto="Instalar app  (ou Adicionar à tela inicial)" destaque />
+      <Linha y={60} texto="Instalar e criar atalho" destaque />
       <Linha y={94} texto="Histórico" />
       <Linha y={128} texto="Downloads" />
     </Figura>
@@ -196,7 +196,7 @@ const PASSOS: Record<Plataforma, Passo[]> = {
   ],
   android: [
     { titulo: "Toque nos três pontinhos", texto: "No canto de cima, à direita do Chrome.", figura: <AndroidBarra /> },
-    { titulo: "Toque em “Instalar app”", texto: "Em alguns celulares o nome é “Adicionar à tela inicial”. É a mesma coisa.", figura: <AndroidMenu /> },
+    { titulo: "Toque em “Instalar e criar atalho”", texto: "O nome muda de celular para celular: “Instalar app”, “Instalar e criar atalho” ou “Adicionar à tela inicial”. É a mesma coisa. Se “Site para computador” estiver marcado no menu, desmarque antes.", figura: <AndroidMenu /> },
     { titulo: "Confirme", texto: `Toque em Instalar (ou Adicionar). O ícone ${NOME_DO_ICONE} aparece na sua tela.`, figura: <AndroidConfirma /> },
   ],
   computador: [
