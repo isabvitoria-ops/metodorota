@@ -102,7 +102,7 @@ export function HotSlimProtocolo() {
           <div className="hs-regra"><span className="hs-regra-num">1</span><span>Não belisque entre refeições — respeite as 4 janelas alimentares.</span></div>
           <div className="hs-regra"><span className="hs-regra-num">2</span><span>Cafeína ≤ 150mg/dia: prefira café coado, evite espresso duplo.</span></div>
           <div className="hs-regra"><span className="hs-regra-num">3</span><span>Coma devagar, mastigue bem cada garfada.</span></div>
-          <div className="hs-regra"><span className="hs-regra-num">4</span><span>Pare de comer quando satisfeita, não quando estufada.</span></div>
+          <div className="hs-regra"><span className="hs-regra-num">4</span><span>Pare de comer quando a fome passar, não quando a barriga estufar.</span></div>
           <div className="hs-regra"><span className="hs-regra-num">5</span><span>Beba água entre as refeições, não durante.</span></div>
           <div className="hs-regra"><span className="hs-regra-num">6</span><span>Durma pelo menos 7h — o intestino descansa enquanto você dorme.</span></div>
         </div>

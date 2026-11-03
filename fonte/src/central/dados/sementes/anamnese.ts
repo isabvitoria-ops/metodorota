@@ -147,7 +147,7 @@ const GASTROINTESTINAL: ModeloDeAnamnese = {
       "Sim, com acompanhamento profissional",
     ]),
     p("Nível de estresse no dia a dia", "escala", [], true, true),
-    p("Os sintomas pioram quando você está estressada?", "escolha", [
+    p("Os sintomas pioram nos períodos de estresse?", "escolha", [
       "Não percebo relação",
       "Um pouco",
       "Bastante",

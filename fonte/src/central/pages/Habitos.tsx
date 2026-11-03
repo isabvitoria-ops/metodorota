@@ -16,7 +16,7 @@ const HABITOS: Habito[] = [
     porque:
       "Dormir mal aumenta a fome por doces, reduz a saciedade e altera a flora intestinal. Uma noite ruim pode afetar suas escolhas alimentares por até dois dias.",
     sinais: [
-      "Acordar cansada mesmo dormindo 7-8h",
+      "Acordar sem energia mesmo dormindo 7-8h",
       "Desejar doces ou carboidratos simples durante o dia",
       "Intestino mais lento ou irregular sem mudar a alimentação",
       "Dificuldade de concentração e humor irritado",

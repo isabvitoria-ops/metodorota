@@ -22,7 +22,7 @@ export function FaixaAdmin() {
 
   return (
     <div className="c-faixa-admin">
-      <span>Esta é a tela que sua paciente vê.</span>
+      <span>Esta é a tela que quem é paciente vê.</span>
       <button type="button" onClick={() => navegar(rotas.admin)}>
         Área da nutricionista
       </button>
