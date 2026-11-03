@@ -32,3 +32,37 @@ nas páginas de aplicação sobre o azul, não uma combinação inventada aqui.
 
 Horizontal: **4,58 : 1**. Monograma e ícone: **quadrados**. Use só uma das
 duas medidas (largura *ou* altura) e deixe a outra em `auto`.
+
+## Regra da marca: o que não se muda
+
+Pedido da Isabela em 03/11/2026: **cores, paleta, letras e logo do manual da
+designer precisam ser preservados.** Vale para qualquer tela, PDF, capa,
+imagem ou material novo, e para qualquer proposta visual.
+
+**Cores.** Só estas cinco, do manual (`ENTREGAISABELA.pdf`, Drive, pasta
+`Isabela Marçal / rgb (telas)`). Estão no `central.css` como `--marca-*`.
+
+| nome | cor |
+|---|---|
+| marfim | `#F7EEE7` |
+| areia | `#C9BCAC` |
+| azul gelo | `#C8DAE4` |
+| azul médio | `#5A7A8F` |
+| azul profundo | `#38546C` (a cor da logo) |
+
+Nenhuma cor nova entra por conta própria. Se um material pedir uma cor fora
+destas, a decisão é da Isabela e da designer. Verde, amarelo e vermelho só
+existem para sucesso, aviso e erro dentro do app.
+
+**Logo.** Só os arquivos desta pasta. Não esticar, não recolorir, não
+redesenhar, não trocar a fonte do nome, não mudar a proporção.
+
+**Letras: ainda a confirmar.** O app usa Fraunces (títulos) e Public Sans
+(texto). Os PDFs da Rota da Regulação Intestinal da Isabela usam TAN
+Tangkiwood Display, Lato e Josefin Sans Light. Não se sabe qual conjunto é o
+oficial do manual, porque o PDF e os PNGs da pasta são só imagem e não deu
+para ler o texto. **Não trocar as letras do app até a Isabela confirmar.**
+
+**Estampa e ilustração.** Se a designer entregou estampas, elas valem mais do
+que qualquer padrão desenhado aqui. Ilustração nova deve ser feita por uma
+pessoa, não gerada.

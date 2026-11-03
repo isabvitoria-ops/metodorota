@@ -83,6 +83,14 @@ Mudou algo em `supabase/migracoes/`? Rode `npm run instalador` para regerar
 `supabase/instalar.sql`, e entregue a ela **só o trecho novo**, não o arquivo
 inteiro de 900 linhas.
 
+## Regra permanente: a marca não se muda
+
+Cores, paleta, letras e logo do manual da designer são intocáveis. Só as
+cinco cores de `src/central/marca/LEIA-ME.md`, só os arquivos oficiais da
+logo, e as letras não mudam até ela confirmar quais são as oficiais. Leia
+aquele arquivo antes de qualquer capa, PDF, tela ou proposta visual. Cor
+nova só com pedido dela.
+
 ## Publicar
 
 Ela não sobe arquivo. Você publica:
