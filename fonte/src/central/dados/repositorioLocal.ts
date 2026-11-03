@@ -988,7 +988,7 @@ export const repositorioLocal: Repositorio = {
       pacienteId: "demo",
       titulo: "Protocolo de emagrecimento",
       conteudo: PROTOCOLO_DEMO,
-      ajustes: "Essa semana, trocar o lanche da tarde por fruta com castanha.",
+      ajustes: null,
       situacao: "publicado",
       versao: 1,
       atualizadoEm: new Date().toISOString(),
