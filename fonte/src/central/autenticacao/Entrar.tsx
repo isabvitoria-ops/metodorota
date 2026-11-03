@@ -51,7 +51,7 @@ export function Entrar() {
     definirEnviando(true);
     try {
       await enviarLink(email);
-      definirAviso("Link enviado. Confira seu e-mail — ele vale por uma hora.");
+      definirAviso("Link enviado. Confira seu e-mail — ele vale por 24 horas. Abra o e-mail mais recente.");
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não foi possível enviar o link.");
     } finally {

@@ -48,7 +48,7 @@ export function DefinirSenha() {
     return (
       <TelaConta
         titulo="Link expirado"
-        descricao="Este link já foi usado ou passou da validade. Peça um novo na tela de entrada."
+        descricao="Este link já foi usado ou passou de 24 horas. Peça um novo na tela de entrada e abra pelo e-mail, não por mensagem de WhatsApp."
         aoEnviar={(e) => {
           e.preventDefault();
           navegar(rotas.entrar);
