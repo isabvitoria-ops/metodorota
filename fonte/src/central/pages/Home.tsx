@@ -25,6 +25,13 @@ const GRUPOS: { chave: Grupo; titulo: string }[] = [
 
 const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: string; grupo: Grupo }[] = [
   {
+    rota: rotas.hotslim,
+    grupo: "acompanhamento",
+    icone: "evolucao",
+    titulo: "Método Rota — 21 Dias",
+    descricao: "Seu desafio: dia a dia, checklist e cardápio.",
+  },
+  {
     rota: rotas.protocolo,
     grupo: "acompanhamento",
     icone: "lista",
@@ -196,6 +203,7 @@ export function Home() {
               (atalho.rota !== rotas.fodmap || acesso.fodmap) &&
               (atalho.rota !== rotas.restricoes || acesso.restricoes) &&
               (atalho.rota !== rotas.protocolo || acesso.protocolo) &&
+              (atalho.rota !== rotas.hotslim || (acesso.hotslim && acesso.papel !== "admin")) &&
               // Sem treino ativo e sem nenhuma sessão registrada, a porta não
               // existe — em vez de abrir uma evolução sem o que mostrar.
               (atalho.rota !== rotas.treino || acesso.treino),

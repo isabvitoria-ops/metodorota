@@ -47,7 +47,10 @@ export function ExigeAcesso({ children }: { children: ReactNode }) {
   const { pronto, acesso, termo } = useSessao();
   if (!pronto) return <Carregando />;
   if (!acesso.autenticado) return <Navigate to={rotas.entrar} replace />;
-  if (acesso.papel === "hotslim") return <Navigate to="/hotslim" replace />;
+  // Quem é só do Hot Slim vai direto para o desafio. Quem também é paciente do
+  // acompanhamento (tem os dois acessos) fica aqui e passa de um lado para o
+  // outro pelos botões de cada área; o papel guardado no perfil não decide.
+  if (acesso.papel === "hotslim" && !acesso.temAcesso) return <Navigate to="/hotslim" replace />;
   if (!acesso.temAcesso) return <Navigate to={rotas.semAcesso} replace />;
   // O termo vem antes de tudo: sem o aceite da versão atual, a paciente só vê o texto.
   if (acesso.papel !== "admin" && termo && !termo.aceito) return <TermoDeUso />;
@@ -61,7 +64,8 @@ export function ExigeHotSlim({ children }: { children: ReactNode }) {
   const { pronto, acesso } = useSessao();
   if (!pronto) return <Carregando />;
   if (!acesso.autenticado) return <Navigate to={rotas.entrar} replace />;
-  if (acesso.papel !== "hotslim" && acesso.papel !== "admin") return <Navigate to={rotas.home} replace />;
+  // `acesso.hotslim` já é verdadeiro para o admin e para quem tem participação ativa.
+  if (!acesso.hotslim) return <Navigate to={rotas.home} replace />;
   return <>{children}</>;
 }
 

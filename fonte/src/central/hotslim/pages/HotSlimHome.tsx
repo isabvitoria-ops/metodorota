@@ -69,6 +69,16 @@ export function HotSlimHome() {
         </p>
       </div>
 
+      {acesso.temAcesso && acesso.papel !== "admin" && (
+        <Link
+          to="/"
+          className="hs-btn hs-btn-outline hs-btn-full"
+          style={{ marginBottom: 24, textDecoration: "none", boxSizing: "border-box" }}
+        >
+          Ir para o meu acompanhamento
+        </Link>
+      )}
+
       <ProgressoCircular dia={diaAtual} />
       <div style={{ textAlign: "center", marginBottom: 24 }}>
         <div className="hs-phase-badge">

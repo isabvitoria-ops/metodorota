@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
 
 const ITENS = [
   { rota: "/hotslim/lista-compras", titulo: "Lista de Compras", desc: "O que levar do supermercado" },
@@ -8,6 +9,11 @@ const ITENS = [
 ];
 
 export function HotSlimMais() {
+  const { acesso } = useSessao();
+  const itens =
+    acesso.temAcesso && acesso.papel !== "admin"
+      ? [{ rota: "/", titulo: "Meu acompanhamento", desc: "Voltar para a minha área de paciente" }, ...ITENS]
+      : ITENS;
   return (
     <div className="hs-pagina">
       <div style={{ marginBottom: 20 }}>
@@ -16,7 +22,7 @@ export function HotSlimMais() {
       </div>
 
       <div className="hs-list-card">
-        {ITENS.map((item) => (
+        {itens.map((item) => (
           <Link
             key={item.rota}
             to={item.rota}
