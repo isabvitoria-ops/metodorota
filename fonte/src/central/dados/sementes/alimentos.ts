@@ -153,7 +153,7 @@ const PROTEINAS: Linha[] = [
   ["clara-de-ovo", "Clara de ovo", 9, "unidade"],
   ["clara-de-ovo-de-codorna", "Clara de ovo de codorna", 27, "unidade"],
   ["claras-pasteurizadas", "Claras pasteurizadas", 330, "g", MIN_INGREDIENTES],
-  ["gema-ou-ovo-inteiro", "Gema ou ovo inteiro", 3, "unidade"],
+  ["gema-ou-ovo-inteiro", "Gema ou ovo inteiro", 2, "unidade"],
   ["creme-de-ricota-light-com-ou-sem-lactose", "Creme de ricota light com ou sem lactose", 100, "g", MIN_INGREDIENTES],
   ["coalhada-desnatada-com-ou-sem-lactose", "Coalhada desnatada com ou sem lactose", 250, "g", ADOCANTES],
   ["coracao-de-galinha", "Coração de galinha", 90],
