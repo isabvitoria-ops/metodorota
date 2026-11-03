@@ -144,7 +144,7 @@ const CARBOIDRATOS: Linha[] = [
   ["tapioca", "Tapioca", 45],
 ];
 
-/** PROTEÍNAS — 44 itens da lista de substituição. */
+/** PROTEÍNAS — 45 itens da lista de substituição. */
 const PROTEINAS: Linha[] = [
   ["acem", "Acém", 70],
   ["atum-cozido-em-lata-ou-grelhado", "Atum cozido em lata ou grelhado", 110],
@@ -153,6 +153,7 @@ const PROTEINAS: Linha[] = [
   ["clara-de-ovo", "Clara de ovo", 9, "unidade"],
   ["clara-de-ovo-de-codorna", "Clara de ovo de codorna", 27, "unidade"],
   ["claras-pasteurizadas", "Claras pasteurizadas", 330, "g", MIN_INGREDIENTES],
+  ["gema-ou-ovo-inteiro", "Gema ou ovo inteiro", 3, "unidade"],
   ["creme-de-ricota-light-com-ou-sem-lactose", "Creme de ricota light com ou sem lactose", 100, "g", MIN_INGREDIENTES],
   ["coalhada-desnatada-com-ou-sem-lactose", "Coalhada desnatada com ou sem lactose", 250, "g", ADOCANTES],
   ["coracao-de-galinha", "Coração de galinha", 90],
@@ -192,7 +193,7 @@ const PROTEINAS: Linha[] = [
   ["tofu-organico", "Tofu orgânico", 200],
 ];
 
-/** GORDURAS — 62 itens da lista de substituição. */
+/** GORDURAS — 61 itens da lista de substituição. */
 const GORDURAS: Linha[] = [
   ["abacate-ou-avocado", "Abacate ou avocado", 60, "g", FERMENTA],
   ["amendoas", "Amêndoas", 15],
@@ -216,7 +217,6 @@ const GORDURAS: Linha[] = [
   ["farinha-de-amendoas", "Farinha de amêndoas", 15],
   ["farinha-de-coco", "Farinha de coco", 15],
   ["farinha-de-linhaca", "Farinha de linhaça", 15],
-  ["gema-ou-ovo-inteiro", "Gema ou ovo inteiro", 1, "unidade"],
   ["iogurte-de-2-ou-3-ingredientes-com-ou-sem", "Iogurte de 2 ou 3 ingredientes com ou sem lactose", 140, "g", ADOCANTES],
   ["kefir-integral-com-ou-sem-lactose", "Kefir integral com ou sem lactose", 135, "g", ADOCANTES],
   ["leite-integral-com-ou-sem-lactose", "Leite integral com ou sem lactose", 130, "ml"],

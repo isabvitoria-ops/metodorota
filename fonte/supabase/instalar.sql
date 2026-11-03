@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0083_hotslim_fases_automaticas.sql
 -- =============================================================================
 
 
@@ -908,6 +908,7 @@ insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, p
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('clara-de-ovo', 'Clara de ovo', 'proteinas', 'unidade', 9, 'unidade', false, '[]'::jsonb, null, null, '{}'::text[], null) on conflict (id) do nothing;
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('clara-de-ovo-de-codorna', 'Clara de ovo de codorna', 'proteinas', 'unidade', 27, 'unidade', false, '[]'::jsonb, null, null, '{}'::text[], null) on conflict (id) do nothing;
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('claras-pasteurizadas', 'Claras pasteurizadas', 'proteinas', 'g', 330, 'g', false, '[]'::jsonb, null, null, '{}'::text[], 'Prefira a versão com o mínimo de ingredientes possível.') on conflict (id) do nothing;
+insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('gema-ou-ovo-inteiro', 'Gema ou ovo inteiro', 'proteinas', 'unidade', 3, 'unidade', false, '[]'::jsonb, null, null, '{}'::text[], null) on conflict (id) do nothing;
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('creme-de-ricota-light-com-ou-sem-lactose', 'Creme de ricota light com ou sem lactose', 'proteinas', 'g', 100, 'g', false, '[]'::jsonb, null, null, '{}'::text[], 'Prefira a versão com o mínimo de ingredientes possível.') on conflict (id) do nothing;
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('coalhada-desnatada-com-ou-sem-lactose', 'Coalhada desnatada com ou sem lactose', 'proteinas', 'g', 250, 'g', false, '[]'::jsonb, null, null, '{}'::text[], 'Mínimo de ingredientes possível, sem açúcar e sem sabor. Adoçantes naturais: stevia, taumatina, eritritol. Evitar sucralose, acessulfame K, aspartame, acessulfame de potássio, ciclamato e xilitol.') on conflict (id) do nothing;
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('coracao-de-galinha', 'Coração de galinha', 'proteinas', 'g', 90, 'g', false, '[]'::jsonb, null, null, '{}'::text[], null) on conflict (id) do nothing;
@@ -967,7 +968,6 @@ insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, p
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('farinha-de-amendoas', 'Farinha de amêndoas', 'gorduras', 'g', 15, 'g', false, '[]'::jsonb, null, null, '{}'::text[], null) on conflict (id) do nothing;
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('farinha-de-coco', 'Farinha de coco', 'gorduras', 'g', 15, 'g', false, '[]'::jsonb, null, null, '{}'::text[], null) on conflict (id) do nothing;
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('farinha-de-linhaca', 'Farinha de linhaça', 'gorduras', 'g', 15, 'g', false, '[]'::jsonb, null, null, '{}'::text[], null) on conflict (id) do nothing;
-insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('gema-ou-ovo-inteiro', 'Gema ou ovo inteiro', 'gorduras', 'unidade', 1, 'unidade', false, '[]'::jsonb, null, null, '{}'::text[], null) on conflict (id) do nothing;
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('iogurte-de-2-ou-3-ingredientes-com-ou-sem', 'Iogurte de 2 ou 3 ingredientes com ou sem lactose', 'gorduras', 'g', 140, 'g', false, '[]'::jsonb, null, null, '{}'::text[], 'Mínimo de ingredientes possível, sem açúcar e sem sabor. Adoçantes naturais: stevia, taumatina, eritritol. Evitar sucralose, acessulfame K, aspartame, acessulfame de potássio, ciclamato e xilitol.') on conflict (id) do nothing;
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('kefir-integral-com-ou-sem-lactose', 'Kefir integral com ou sem lactose', 'gorduras', 'g', 135, 'g', false, '[]'::jsonb, null, null, '{}'::text[], 'Mínimo de ingredientes possível, sem açúcar e sem sabor. Adoçantes naturais: stevia, taumatina, eritritol. Evitar sucralose, acessulfame K, aspartame, acessulfame de potássio, ciclamato e xilitol.') on conflict (id) do nothing;
 insert into alimentos (id, nome, grupo_id, unidade_base_id, porcao_quantidade, porcao_unidade_id, quantidade_livre, medidas, sem_gluten, sem_lactose, tags, observacao) values ('leite-integral-com-ou-sem-lactose', 'Leite integral com ou sem lactose', 'gorduras', 'ml', 130, 'ml', false, '[]'::jsonb, null, null, '{}'::text[], null) on conflict (id) do nothing;
@@ -1127,6 +1127,8 @@ insert into configuracoes (chave, valor, descricao) values ('comer_fora_introduc
 insert into configuracoes (chave, valor, descricao) values ('whatsapp', '"5531994503318"'::jsonb, 'Número do WhatsApp da nutricionista, só dígitos com DDI e DDD (ex.: 5511999999999).') on conflict (chave) do nothing;
 insert into configuracoes (chave, valor, descricao) values ('nome_nutricionista', '"Isabela Marçal"'::jsonb, 'Nome que aparece nos textos de contato.') on conflict (chave) do nothing;
 insert into configuracoes (chave, valor, descricao) values ('alerta_vencimento_dias', '15'::jsonb, 'A partir de quantos dias antes do fim o paciente entra em ''próximo do vencimento''.') on conflict (chave) do nothing;
+insert into configuracoes (chave, valor, descricao) values ('chave_pix', '""'::jsonb, 'Chave PIX que vai no lembrete automático de cobrança. Em branco = o lembrete não fala de PIX.') on conflict (chave) do nothing;
+insert into configuracoes (chave, valor, descricao) values ('cupons', '[{"marca":"Puravida","codigo":"ISAMARCALPH"},{"marca":"Caffeine Army","codigo":"NUTRIBELAMARCAL"},{"marca":"Jui","codigo":"NUTRIBELAMARCALL"},{"marca":"Dux","codigo":"pacisamarcal"}]'::jsonb, 'Cupons da nutricionista, mostrados na tela do desafio. Lista de {marca, codigo}.') on conflict (chave) do nothing;
 
 
 -- ###########################################################################
@@ -21743,3 +21745,87 @@ $$;
 
 revoke all on function apagar_foto_evolucao(uuid) from anon, public;
 grant execute on function apagar_foto_evolucao(uuid) to authenticated;
+
+
+-- ###########################################################################
+-- 0083_hotslim_fases_automaticas.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0083 — Reintrodução automática: fases desbloqueiam por semana
+--
+-- Antes a nutricionista precisava liberar manualmente cada fase. Agora
+-- `meu_acesso()` calcula as fases pela semana corrida do programa:
+--
+--   Dias 1–7  → Fase 1
+--   Dias 8–14 → Fases 1–2
+--   Dias 15–21 → Fases 1–3
+--   Dia 22+   → Fases 1–4
+--
+-- A coluna `fases_liberadas` continua existindo como override manual:
+-- se a nutricionista liberar uma fase antes do tempo, ela aparece junto.
+-- =============================================================================
+
+create or replace function meu_acesso()
+returns jsonb
+language sql
+stable security definer
+set search_path to 'public'
+as $$
+  select jsonb_build_object(
+    'autenticado', auth.uid() is not null,
+    'perfilId', auth.uid(),
+    'papel', coalesce((select papel from perfis where id = auth.uid()), 'paciente'),
+    'nome', (select coalesce(pa.nome, pe.nome) from perfis pe
+             left join pacientes pa on pa.perfil_id = pe.id where pe.id = auth.uid()),
+    'email', (select email::text from perfis where id = auth.uid()),
+    'temAcesso', tem_acesso() or e_admin(),
+    'situacao', coalesce(
+      (select situacao_paciente(p.status, p.perfil_id, p.data_inicio, p.data_fim)
+         from pacientes p where p.perfil_id = auth.uid()),
+      case when e_admin() then 'admin' else 'sem_cadastro' end
+    ),
+    'dataInicio', (select data_inicio from pacientes where perfil_id = auth.uid()),
+    'dataFim', (select data_fim from pacientes where perfil_id = auth.uid()),
+    'diasRestantes', (select data_fim - hoje_sp() from pacientes where perfil_id = auth.uid()),
+    'plano', (select pl.nome from pacientes p join planos pl on pl.id = p.plano_id
+               where p.perfil_id = auth.uid()),
+    'rastreio', e_admin() or coalesce(rastreio_ativo(meu_paciente_id()), false),
+    'protocolo', e_admin() or tenho_protocolo(),
+    'avaliacao', e_admin() or tenho_avaliacao(),
+    'treino', e_admin() or tenho_treino(),
+    'metas', e_admin() or tenho_metas(),
+    'desafio', e_admin() or coalesce(desafio_liberado(meu_paciente_id()), true),
+    'restricoes', e_admin() or coalesce(restricoes_liberado(meu_paciente_id()), false),
+    'fodmap', e_admin() or coalesce(fodmap_liberado(meu_paciente_id()), false),
+    -- Hot Slim
+    'hotslim', e_admin() or e_hotslim(),
+    'hotslimFases', coalesce(
+      (select
+        case
+          when hoje_sp() < hp.data_inicio then hp.fases_liberadas
+          else (
+            select array(
+              select distinct unnest(
+                hp.fases_liberadas ||
+                (select coalesce(array_agg(g)::int[], '{}'::int[])
+                 from generate_series(1,
+                   least(4, ceil((hoje_sp() - hp.data_inicio + 1)::numeric / 7))::int
+                 ) g)
+              ) order by 1
+            )
+          )
+        end
+       from hotslim_participantes hp
+       where hp.id = auth.uid() and hp.ativo = true),
+      '{}'::int[]
+    ),
+    'hotslimDiaAtual', (
+      select least(21, greatest(1, hoje_sp() - data_inicio + 1))
+      from hotslim_participantes
+      where id = auth.uid() and ativo = true
+    )
+  );
+$$;
+
+grant execute on function meu_acesso() to authenticated;
