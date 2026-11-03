@@ -88,13 +88,6 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Consulte o que pode comer, com porções seguras, em cada fase.",
   },
   {
-    rota: rotas.listaDeCompras,
-    grupo: "ferramentas",
-    icone: "mercado",
-    titulo: "Lista de compras",
-    descricao: "Todos os alimentos do seu protocolo, para levar ao mercado.",
-  },
-  {
     rota: rotas.trocas,
     grupo: "ferramentas",
     icone: "troca",
@@ -203,7 +196,6 @@ export function Home() {
               (atalho.rota !== rotas.fodmap || acesso.fodmap) &&
               (atalho.rota !== rotas.restricoes || acesso.restricoes) &&
               (atalho.rota !== rotas.protocolo || acesso.protocolo) &&
-              (atalho.rota !== rotas.listaDeCompras || acesso.protocolo) &&
               // Sem treino ativo e sem nenhuma sessão registrada, a porta não
               // existe — em vez de abrir uma evolução sem o que mostrar.
               (atalho.rota !== rotas.treino || acesso.treino),
