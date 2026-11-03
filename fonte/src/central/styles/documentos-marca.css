@@ -1,0 +1,528 @@
+/* =========================================================================
+   OS DOCUMENTOS IMPRESSOS — a marca da Isabela, no papel
+
+   Vale para TODO PDF que o aplicativo gera (protocolo, avaliação física,
+   rastreabilidade, encaminhamento, placar): todos usam as classes `.doc-*`,
+   então basta mudar aqui para mudar todos.
+
+   Este arquivo vem DEPOIS do central.css e sobrescreve só o que é de
+   documento. A tela do aplicativo não muda.
+
+   O QUE VEM DA DESIGNER (ENTREGAISABELA.pdf e pasta "fontes" do Drive):
+     - cores: marfim #F7EEE7, areia #C9BCAC, azul gelo #C8DAE4,
+       azul médio #5A7A8F, azul profundo #38546C, areia clara #EAE6DB
+     - letras: Josefin Sans (títulos) e Lato (texto)
+     - logo e estampa: arquivos oficiais, sem alteração
+   O QUE VEM DA CONVERSA COM A ISABELA: nanquim #263D52 (texto, nunca preto
+   puro), cereja #A82B3C e folha #4F6F4A (detalhes pequenos).
+
+   Regras: nada fora da paleta · texto nunca em preto puro · fundo nunca em
+   branco puro · um elemento de apoio por peça (aqui, a estampa da capa).
+   ========================================================================= */
+
+@font-face {
+  font-family: "Josefin Sans";
+  font-style: normal;
+  font-weight: 300;
+  font-display: block;
+  src: url("./fontes/josefin-sans-300.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Josefin Sans";
+  font-style: normal;
+  font-weight: 600;
+  font-display: block;
+  src: url("./fontes/josefin-sans-600.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("./fontes/lato-400.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Lato";
+  font-style: normal;
+  font-weight: 700;
+  font-display: block;
+  src: url("./fontes/lato-700.woff2") format("woff2");
+}
+
+/* A FOLHA. 15 mm nas laterais é a margem da marca. Em cima e embaixo ficam
+   as faixas do cabeçalho (a logo) e do rodapé: como são caixas da própria
+   margem da página, repetem em toda folha SEM tomar espaço do texto — um
+   rodapé "fixo" no meio do conteúdo passava por cima da última linha.
+
+   O rodapé inteiro (nome do documento, CRN, contato) é escrito por
+   `FolhaDeDocumento`, que conhece o documento. Aqui fica o que é igual em
+   todos: o fundo marfim, a logo e o número da página. Safari do iPhone ainda
+   não desenha caixas de margem: lá a folha sai limpa, sem cabeçalho e rodapé. */
+@page {
+  size: A4;
+  margin: 26mm 15mm 27mm;
+  background: #f7eee7;
+
+  @top-center {
+    content: "";
+    background: url("../marca/isabela-marcal.svg") center 10mm / auto 9mm no-repeat;
+  }
+
+  @bottom-right {
+    content: "Página " counter(page) " de " counter(pages);
+    font-family: "Lato", system-ui, sans-serif;
+    font-size: 8pt;
+    color: #38546c;
+    vertical-align: top;
+    padding-top: 7mm;
+    text-align: right;
+  }
+}
+
+/* A primeira folha é a capa: sem a logo do alto, que a capa já traz. */
+@page :first {
+  margin-top: 15mm;
+
+  @top-center {
+    content: none;
+    background: none;
+  }
+}
+
+@media print {
+  html,
+  body {
+    background: #f7eee7 !important;
+  }
+
+  .doc,
+  .doc * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .doc {
+    --faixa: #38546c;
+    --faixa-fundo: #c8dae4;
+    font-family: "Lato", system-ui, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.5;
+    color: #263d52;
+    padding-bottom: 0;
+  }
+
+  /* ---- capa: o cartão azul profundo, com a estampa da designer ---- */
+
+  .doc-capa {
+    position: relative;
+    overflow: hidden;
+    margin: 0 0 9mm;
+    padding: 11mm 12mm 12mm;
+    border: 0;
+    border-radius: 4mm;
+    background: #38546c;
+    color: #f7eee7;
+    break-inside: avoid;
+  }
+
+  .doc-capa::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 22mm;
+    background: url("../marca/estampa-claro-sobre-azul.svg") center bottom / 70mm 70mm repeat;
+    pointer-events: none;
+  }
+
+  .doc-capa > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .doc-capa .doc-marca {
+    display: block;
+    height: 12mm !important;
+    width: auto !important;
+    margin-bottom: 10mm;
+  }
+
+  .doc-sobretitulo {
+    margin: 0;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #c9bcac;
+  }
+
+  .doc-nome {
+    margin: 3mm 0 0;
+    font-family: "Josefin Sans", system-ui, sans-serif;
+    font-size: 30pt;
+    font-weight: 300;
+    line-height: 1.08;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #f7eee7;
+  }
+
+  .doc-lema {
+    margin: 3mm 0 0;
+    font-size: 11pt;
+    font-style: normal;
+    color: #c8dae4;
+  }
+
+  .doc-periodo {
+    margin: 5mm 0 0;
+    font-size: 9.5pt;
+    color: #f7eee7;
+  }
+
+  .doc-capa .doc-aviso {
+    margin: 7mm 0 28mm;
+    padding: 4mm 5mm;
+    border: 0;
+    border-radius: 3mm;
+    background: #c8dae4;
+    color: #263d52;
+    font-size: 9.5pt;
+    line-height: 1.5;
+  }
+
+  .doc-capa:not(:has(.doc-aviso)) {
+    padding-bottom: 30mm;
+  }
+
+  /* A capa inteira — a primeira folha do protocolo é só ela. */
+  .doc-capa-inteira {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 250mm;
+    margin-bottom: 0;
+    padding: 14mm 14mm 16mm;
+    break-after: page;
+  }
+
+  .doc-capa-inteira::after {
+    height: 100mm;
+    background-size: 90mm 90mm;
+  }
+
+  .doc-capa-inteira .doc-marca {
+    height: 16mm !important;
+    margin-bottom: 0;
+  }
+
+  .doc-capa-inteira .doc-nome {
+    font-size: 40pt;
+  }
+
+  .doc-capa-inteira .doc-aviso {
+    margin: 8mm 0 0;
+    max-width: 120mm;
+  }
+
+  .doc-capa-inteira .doc-capa-meio {
+    position: relative;
+    z-index: 1;
+  }
+
+  .doc-capa-inteira .doc-capa-fim {
+    position: relative;
+    z-index: 1;
+    margin-bottom: 108mm;
+  }
+
+  /* ---- seções e títulos ---- */
+
+  .doc-secao {
+    margin-top: 9mm;
+  }
+
+  .doc-titulo {
+    margin: 0 0 4mm;
+    padding-bottom: 2mm;
+    border-bottom: 0.3mm solid #c9bcac;
+    font-family: "Josefin Sans", system-ui, sans-serif;
+    font-size: 17pt;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #38546c;
+    break-after: avoid;
+  }
+
+  .doc-nota {
+    margin: 0 0 4mm;
+    font-size: 9.5pt;
+    color: #38546c;
+  }
+
+  .doc-vazio {
+    margin: 0;
+    font-size: 10pt;
+    color: #38546c;
+    font-style: normal;
+  }
+
+  .doc-paragrafo {
+    margin: 0 0 3.5mm;
+  }
+
+  .doc-lista {
+    margin: 0;
+    padding-left: 5mm;
+  }
+
+  .doc-lista li {
+    margin-bottom: 2mm;
+  }
+
+  .doc-lista li::marker {
+    color: #5a7a8f;
+  }
+
+  .doc-lista-nota {
+    margin-top: 3mm;
+    font-size: 9.5pt;
+    color: #263d52;
+  }
+
+  /* ---- as três faixas: sempre com o nome escrito; a cor só reforça ---- */
+
+  .doc-bem {
+    --faixa: #4f6f4a;
+    --faixa-fundo: #eae6db;
+  }
+
+  .doc-obs {
+    --faixa: #38546c;
+    --faixa-fundo: #eae6db;
+  }
+
+  .doc-resp {
+    --faixa: #a82b3c;
+    --faixa-fundo: #eae6db;
+  }
+
+  .doc-bola {
+    background: var(--faixa);
+  }
+
+  /* ---- números de resumo ---- */
+
+  .doc-numero {
+    border: 0;
+    border-left: 1.2mm solid var(--faixa);
+    border-radius: 3mm;
+    padding: 4mm 5mm;
+    background: var(--faixa-fundo);
+  }
+
+  .doc-numero strong {
+    font-family: "Josefin Sans", system-ui, sans-serif;
+    font-size: 26pt;
+    font-weight: 300;
+    color: var(--faixa);
+  }
+
+  .doc-numero span {
+    font-size: 9pt;
+    color: #263d52;
+  }
+
+  .doc-numero strong small {
+    font-family: "Lato", system-ui, sans-serif;
+    color: #263d52;
+  }
+
+  .doc-variacao {
+    color: #263d52;
+  }
+
+  .doc-barra {
+    height: 6mm;
+    border-radius: 3mm;
+    background: #c8dae4;
+  }
+
+  .doc-barra-gorda {
+    background: #38546c;
+  }
+
+  .doc-ordinal {
+    color: #38546c;
+  }
+
+  /* ---- mapa de tolerância ---- */
+
+  .doc-coluna {
+    border: 0;
+    border-top: 1.2mm solid var(--faixa);
+    border-radius: 3mm;
+    padding: 4mm 5mm;
+    background: var(--faixa-fundo);
+  }
+
+  .doc-coluna-titulo {
+    font-weight: 700;
+    color: var(--faixa);
+  }
+
+  /* ---- tabelas ---- */
+
+  .doc-tabela {
+    font-size: 9.5pt;
+  }
+
+  .doc-tabela thead th {
+    padding: 2.4mm 3mm;
+    border-bottom: 0;
+    background: #c8dae4;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #263d52;
+  }
+
+  .doc-tabela thead th:first-child {
+    border-top-left-radius: 2mm;
+  }
+
+  .doc-tabela thead th:last-child {
+    border-top-right-radius: 2mm;
+  }
+
+  .doc-tabela tbody th,
+  .doc-tabela tbody td {
+    padding: 2.8mm 3mm;
+    border-bottom: 0.25mm solid #c9bcac;
+  }
+
+  .doc-tabela tbody th {
+    font-weight: 700;
+    color: #38546c;
+  }
+
+  .doc-tabela tbody tr:nth-child(odd) {
+    background: none;
+  }
+
+  .doc-testes {
+    color: #38546c;
+  }
+
+  .doc-vazia th,
+  .doc-vazia td {
+    border-right: 0.25mm solid #c9bcac;
+  }
+
+  /* ---- protocolo: cada refeição é um cartão ---- */
+
+  .doc-refeicao {
+    margin-top: 7mm;
+    border: 0.3mm solid #c9bcac;
+    border-radius: 4mm;
+    overflow: hidden;
+    break-inside: avoid;
+  }
+
+  .doc-refeicao > .doc-titulo:not(.doc-titulo-refeicao) {
+    margin: 0;
+    padding: 5mm 5mm 0;
+    border-bottom: 0;
+  }
+
+  .doc-titulo-refeicao {
+    margin: 0;
+    padding: 3.5mm 5mm;
+    border-bottom: 0;
+    background: #c8dae4;
+    font-family: "Lato", system-ui, sans-serif;
+    font-size: 11pt;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #263d52;
+  }
+
+  .doc-horario {
+    font-family: "Lato", system-ui, sans-serif;
+    font-size: 10pt;
+    font-weight: 400;
+    letter-spacing: 0;
+    color: #263d52;
+  }
+
+  .doc-refeicao > .doc-opcao,
+  .doc-refeicao > .doc-paragrafo {
+    margin: 0;
+    padding: 4mm 5mm 5mm;
+  }
+
+  .doc-opcao + .doc-opcao {
+    margin-top: 0;
+    border-top: 0.25mm solid #c9bcac;
+  }
+
+  .doc-opcao-rotulo {
+    margin: 0 0 2.5mm;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #38546c;
+  }
+
+  .doc-tabela-protocolo tbody th,
+  .doc-tabela-protocolo tbody td {
+    vertical-align: middle;
+  }
+
+  .doc-tabela-protocolo th:nth-child(1),
+  .doc-tabela-protocolo td:nth-child(1) {
+    width: 38%;
+  }
+
+  .doc-tabela-protocolo th:nth-child(2),
+  .doc-tabela-protocolo td:nth-child(2) {
+    width: 18%;
+  }
+
+  .doc-tabela-protocolo th:nth-child(3),
+  .doc-tabela-protocolo td:nth-child(3) {
+    width: 44%;
+  }
+
+  /* A fotinha que a Isabela põe no item, ao lado do nome. */
+  .doc-item-foto {
+    display: flex;
+    align-items: center;
+    gap: 3mm;
+  }
+
+  .doc-item-foto img {
+    flex: none;
+    width: 17mm;
+    height: 17mm;
+    border-radius: 3mm;
+    object-fit: cover;
+    background: #eae6db;
+  }
+
+  .doc-item-link {
+    font-weight: 400;
+    font-size: 8.5pt;
+    word-break: break-all;
+    color: #38546c;
+  }
+
+  .doc-item-link a {
+    color: inherit;
+  }
+}

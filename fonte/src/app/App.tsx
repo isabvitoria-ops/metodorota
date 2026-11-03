@@ -1,6 +1,7 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { BrowserRouter, HashRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import "@/central/styles/central.css";
+import "@/central/styles/documentos-marca.css";
 import { ProvedorSessao } from "@/central/autenticacao/SessaoContexto";
 import { Privacidade } from "@/central/autenticacao/Privacidade";
 import { Carregando, ExigeAcesso, ExigeAdmin, ExigeHotSlim, ExigeSessao } from "@/central/autenticacao/Protegido";
@@ -12,6 +13,8 @@ import { Diagnostico } from "@/central/pages/Diagnostico";
 import { AvisoOffline } from "@/central/components/AvisoOffline";
 import { AvisoAtualizacao } from "@/central/components/AvisoAtualizacao";
 import { PREFIXO_ANTIGO, rotas } from "@/central/rotas";
+import logoDosDocumentos from "@/central/marca/isabela-marcal.svg";
+import estampaDosDocumentos from "@/central/marca/estampa-claro-sobre-azul.svg";
 
 // Cada área baixa só o que precisa: quem é paciente nunca carrega o pacote
 // da área da nutricionista, e vice-versa.
@@ -54,7 +57,33 @@ const Roteador = import.meta.env.VITE_ROTEADOR === "hash" ? HashRouter : Browser
 // relativo e não serve de prefixo de rota — só uma base absoluta entra aqui.
 const PREFIXO = import.meta.env.BASE_URL?.startsWith("/") ? import.meta.env.BASE_URL : "/";
 
+/**
+ * As letras dos PDFs (Josefin Sans e Lato). Só são usadas no papel, e o
+ * navegador só baixa uma fonte quando alguma coisa na tela a usa — então, sem
+ * isto, o PDF sairia na letra de sistema na primeira vez que fosse gerado.
+ */
+const LETRAS_DOS_DOCUMENTOS = [
+  '300 1em "Josefin Sans"',
+  '600 1em "Josefin Sans"',
+  '400 1em "Lato"',
+  '700 1em "Lato"',
+];
+
 export function App() {
+  useEffect(() => {
+    if (document.fonts) {
+      for (const letra of LETRAS_DOS_DOCUMENTOS) void document.fonts.load(letra).catch(() => undefined);
+    }
+    // A logo do cabeçalho e a estampa da capa só aparecem no papel, onde o
+    // navegador não espera a imagem terminar de carregar. Carregadas aqui,
+    // ficam na memória quando o PDF é gerado.
+    for (const url of [logoDosDocumentos, estampaDosDocumentos]) {
+      const imagem = new Image();
+      imagem.src = url;
+      void imagem.decode?.().catch(() => undefined);
+    }
+  }, []);
+
   // O app antigo de acompanhamento (login de teste, dados fictícios em
   // memória) continua no repositório, mas fica fora do ar por padrão: ele
   // aceita qualquer senha e mostra pacientes inventados, o que não pode

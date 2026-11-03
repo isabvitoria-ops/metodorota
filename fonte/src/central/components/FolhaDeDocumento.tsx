@@ -1,5 +1,12 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import {
+  CRN_DA_NUTRICIONISTA,
+  INSTAGRAM_DA_MARCA,
+  TELEFONE_DA_MARCA,
+  paraConteudoCss,
+} from "@/central/utils/marcaDosDocumentos";
 
 /**
  * A folha onde os documentos são impressos — fora da árvore do aplicativo.
@@ -38,6 +45,26 @@ export function FolhaDeDocumento({
   children: ReactNode;
 }) {
   const [caixa, definirCaixa] = useState<HTMLElement | null>(null);
+  const { configuracoes } = useSessao();
+  const nome = configuracoes.nomeNutricionista || "Isabela Marçal";
+
+  // O rodapé de cada folha: à esquerda quem assina, no meio QUAL documento é
+  // (e de quem), à direita o número da página (escrito em documentos-marca.css).
+  // É uma caixa da margem da página, e só o JavaScript sabe o nome do
+  // documento — por isso a regra é escrita aqui, enquanto a folha existe.
+  useEffect(() => {
+    const estilo = document.createElement("style");
+    const esquerda = paraConteudoCss(`${nome} · Nutricionista\n${CRN_DA_NUTRICIONISTA} · ${INSTAGRAM_DA_MARCA} · ${TELEFONE_DA_MARCA}`);
+    const caixaDoRodape = (conteudo: string, alinhamento: string) => `content: "${conteudo}";
+      white-space: pre; font-family: "Lato", system-ui, sans-serif; font-size: 8pt; line-height: 1.4;
+      color: #38546c; vertical-align: top; padding-top: 7mm; text-align: ${alinhamento};`;
+    estilo.textContent = `@page {
+      @bottom-left { ${caixaDoRodape(esquerda, "left")} }
+      @bottom-center { ${caixaDoRodape(paraConteudoCss(titulo), "center")} }
+    }`;
+    document.head.appendChild(estilo);
+    return () => estilo.remove();
+  }, [titulo, nome]);
 
   useEffect(() => {
     const anterior = document.title;

@@ -14,6 +14,7 @@ import type {
 import { AVALIACAO_VAZIA, CONTEUDO_VAZIO } from "@/central/types/protocolo";
 import { useParams } from "react-router-dom";
 import { repositorio } from "@/central/dados/repositorio";
+import { fotosDoProtocolo } from "@/central/utils/fotosDoProtocolo";
 import { DocumentoProtocolo } from "@/central/components/DocumentoProtocolo";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { dataBonita } from "@/central/utils/situacao";
@@ -217,6 +218,7 @@ function EditorDoProtocolo({
   const [recolhidas, definirRecolhidas] = useState<ReadonlySet<number>>(new Set<number>());
   const [guardando, definirGuardando] = useState<"parado" | "salvando" | "salvo">("parado");
   const [imprimindo, definirImprimindo] = useState(false);
+  const [fotosDoPdf, definirFotosDoPdf] = useState<Record<string, string>>({});
   const { configuracoes } = useSessao();
   // O que veio do banco. Enquanto for igual ao da tela, não há o que guardar
   // — e é isso que impede o salvamento automático de disparar na abertura.
@@ -287,7 +289,8 @@ function EditorDoProtocolo({
     }
   }
 
-  function gerarPdf() {
+  async function gerarPdf() {
+    definirFotosDoPdf(await fotosDoProtocolo(publicado?.conteudo ?? null));
     definirImprimindo(true);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -584,7 +587,7 @@ function EditorDoProtocolo({
           <button
             type="button"
             className="c-botao c-botao-secundario"
-            onClick={gerarPdf}
+            onClick={() => void gerarPdf()}
           >
             Gerar PDF da dieta publicada
           </button>
@@ -652,6 +655,7 @@ function EditorDoProtocolo({
           protocolo={publicado}
           conteudo={publicado.conteudo}
           nutricionista={configuracoes.nomeNutricionista}
+          fotos={fotosDoPdf}
         />
       )}
     </div>

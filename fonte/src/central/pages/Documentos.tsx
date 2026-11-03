@@ -7,6 +7,7 @@ import { DocumentoAvaliacao } from "@/central/components/DocumentoAvaliacao";
 import { DocumentoProtocolo } from "@/central/components/DocumentoProtocolo";
 import { DocumentoRastreio } from "@/central/components/DocumentoRastreio";
 import { Icone } from "@/central/components/Icone";
+import { fotosDoProtocolo } from "@/central/utils/fotosDoProtocolo";
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
@@ -49,6 +50,7 @@ export function Documentos() {
   const [dados, definirDados] = useState<Dados | null>(null);
   const [carregando, definirCarregando] = useState(true);
   const [imprimindo, definirImprimindo] = useState<Qual | null>(null);
+  const [fotos, definirFotos] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let vivo = true;
@@ -96,7 +98,10 @@ export function Documentos() {
    * para sempre — invisível na tela, mas pesando em toda impressão
    * seguinte.
    */
-  function gerar(qual: Qual) {
+  async function gerar(qual: Qual) {
+    // As fotinhas do protocolo são baixadas ANTES: o PDF imprime o que já está
+    // carregado, e uma foto ainda baixando sairia como um buraco.
+    if (qual === "protocolo") definirFotos(await fotosDoProtocolo(dados?.conteudo ?? null));
     definirImprimindo(qual);
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -154,7 +159,7 @@ export function Documentos() {
                   : "Aparece aqui quando sua nutricionista publicar."
               }
               disponivel={temProtocolo}
-              aoGerar={() => gerar("protocolo")}
+              aoGerar={() => void gerar("protocolo")}
             />
             <Cartao
               icone="balanca"
@@ -165,7 +170,7 @@ export function Documentos() {
                   : "Aparece aqui quando sua nutricionista lançar a primeira."
               }
               disponivel={temAvaliacao}
-              aoGerar={() => gerar("avaliacao")}
+              aoGerar={() => void gerar("avaliacao")}
             />
             <Cartao
               icone="folha"
@@ -176,7 +181,7 @@ export function Documentos() {
                   : "Aparece aqui depois do seu primeiro registro."
               }
               disponivel={temRastreio}
-              aoGerar={() => gerar("rastreio")}
+              aoGerar={() => void gerar("rastreio")}
             />
 
             <p className="c-dica" style={{ marginTop: 18 }}>
@@ -199,6 +204,7 @@ export function Documentos() {
           protocolo={dados.protocolo}
           conteudo={dados.conteudo}
           nutricionista={nutri}
+          fotos={fotos}
         />
       )}
       {imprimindo === "avaliacao" && dados && (

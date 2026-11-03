@@ -23,7 +23,7 @@ export function DocumentoPlacar({
     <FolhaDeDocumento titulo={`Placar de ${placar.titulo}`}>
       <article className="doc doc-placar">
         <header className="doc-capa doc-placar-capa">
-          <Marca altura={40} className="doc-marca" />
+          <Marca variante="horizontal-clara" altura={40} className="doc-marca" />
           <p className="doc-sobretitulo">Desafio do mês</p>
           <h1 className="doc-nome">Placar de {placar.titulo.split(" de ")[0]}</h1>
           <p className="doc-periodo">
@@ -59,6 +59,7 @@ export function DocumentoPlacar({
         )}
 
         {mensagem.trim() && <p className="doc-placar-mensagem">{mensagem.trim()}</p>}
+
       </article>
     </FolhaDeDocumento>
   );

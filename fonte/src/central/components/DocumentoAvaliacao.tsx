@@ -28,11 +28,11 @@ import { Marca } from "./Marca";
 export function DocumentoAvaliacao({
   paciente,
   avaliacao,
-  nutricionista,
 }: {
   paciente: string;
   avaliacao: MinhaAvaliacao | null;
-  nutricionista: string;
+  /** Já não é usado: o nome sai no rodapé, escrito por `FolhaDeDocumento`. */
+  nutricionista?: string;
 }) {
   if (!avaliacao) return null;
 
@@ -49,7 +49,7 @@ export function DocumentoAvaliacao({
     <FolhaDeDocumento titulo={`Avaliação Física — ${paciente}`}>
       <article className="doc">
       <header className="doc-capa">
-        <Marca altura={40} className="doc-marca" />
+        <Marca variante="horizontal-clara" altura={40} className="doc-marca" />
         <p className="doc-sobretitulo">Avaliação Física</p>
         <h1 className="doc-nome">{paciente}</h1>
         <p className="doc-periodo">
@@ -89,12 +89,6 @@ export function DocumentoAvaliacao({
         </section>
       )}
 
-      <footer className="doc-rodape">
-        <p>
-          <strong>Avaliação Física — {paciente}</strong>
-        </p>
-        <p>Nutricionista: {nutricionista}</p>
-      </footer>
       </article>
     </FolhaDeDocumento>
   );

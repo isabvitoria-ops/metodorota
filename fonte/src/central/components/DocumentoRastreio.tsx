@@ -31,13 +31,13 @@ export function DocumentoRastreio({
   semana,
   itens,
   registros,
-  nutricionista,
 }: {
   paciente: string;
   semana: number;
   itens: ItemDeReintroducao[];
   registros: RegistroDeReintroducao[];
-  nutricionista: string;
+  /** Já não é usado: o nome sai no rodapé, escrito por `FolhaDeDocumento`. */
+  nutricionista?: string;
 }) {
   const doc = montarDocumento({ paciente, semana, itens, registros });
 
@@ -54,7 +54,6 @@ export function DocumentoRastreio({
       <TabelaRespostas linhas={doc.respostas} />
 
       <ProximosTestes aTestar={doc.aTestar} />
-      <Rodape paciente={doc.paciente} nutricionista={nutricionista} />
       </article>
     </FolhaDeDocumento>
   );
@@ -65,7 +64,7 @@ export function DocumentoRastreio({
 function Cabecalho({ doc }: { doc: DocumentoDeRastreio }) {
   return (
     <header className="doc-capa">
-      <Marca altura={40} className="doc-marca" />
+      <Marca variante="horizontal-clara" altura={40} className="doc-marca" />
       <p className="doc-sobretitulo">Rastreabilidade Alimentar</p>
       {/* O nome grande: o documento é dela, e é a primeira coisa que se lê. */}
       <h1 className="doc-nome">{doc.paciente}</h1>
@@ -408,13 +407,3 @@ function ProximosTestes({ aTestar }: { aTestar: string[] }) {
 
 // ------------------------------------------------------------------- rodapé
 
-function Rodape({ paciente, nutricionista }: { paciente: string; nutricionista: string }) {
-  return (
-    <footer className="doc-rodape">
-      <p>
-        <strong>Rastreabilidade Alimentar — {paciente}</strong>
-      </p>
-      <p>Nutricionista: {nutricionista}</p>
-    </footer>
-  );
-}

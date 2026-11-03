@@ -67,7 +67,7 @@ export function DocumentoEncaminhamento({
     <FolhaDeDocumento titulo={`Encaminhamento — ${paciente}`}>
       <article className="doc">
         <header className="doc-capa">
-          <Marca altura={40} className="doc-marca" />
+          <Marca variante="horizontal-clara" altura={40} className="doc-marca" />
           <p className="doc-sobretitulo">Encaminhamento</p>
           <h1 className="doc-nome">{paciente}</h1>
           <p className="doc-periodo">{dataBonita(hoje)}</p>
@@ -175,9 +175,6 @@ export function DocumentoEncaminhamento({
           </p>
         </section>
 
-        <p className="doc-rodape">
-          {paciente} · {dataBonita(hoje)}
-        </p>
       </article>
     </FolhaDeDocumento>
   );

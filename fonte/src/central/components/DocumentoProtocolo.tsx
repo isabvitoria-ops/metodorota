@@ -19,35 +19,41 @@ export function DocumentoProtocolo({
   paciente,
   protocolo,
   conteudo,
-  nutricionista,
+  fotos = {},
 }: {
+  /** Caminho da foto → endereço já baixado (ver `fotosDoProtocolo`). */
+  fotos?: Record<string, string>;
   paciente: string;
   protocolo: Protocolo | null;
   conteudo: ConteudoProtocolo | null;
-  nutricionista: string;
+  /** Já não é usado: o nome sai no rodapé, escrito por `FolhaDeDocumento`. */
+  nutricionista?: string;
 }) {
   if (!conteudo || conteudo.refeicoes.length === 0) return null;
 
   return (
     <FolhaDeDocumento titulo={`Protocolo Alimentar — ${paciente}`}>
       <article className="doc">
-      <header className="doc-capa">
-        <Marca altura={40} className="doc-marca" />
-        <p className="doc-sobretitulo">Protocolo Alimentar</p>
-        <h1 className="doc-nome">{paciente}</h1>
-        {protocolo?.titulo && <p className="doc-lema">{protocolo.titulo}</p>}
-        <p className="doc-periodo">
-          {protocolo?.publicadoEm
-            ? `Publicado em ${dataBonita(protocolo.publicadoEm)}`
-            : "Protocolo atual"}
-          {protocolo?.versao ? ` · versão ${protocolo.versao}` : ""}
-        </p>
-
-        {protocolo?.ajustes && (
-          <p className="doc-aviso">
-            <TextoComLinks texto={protocolo.ajustes} />
+      <header className="doc-capa doc-capa-inteira">
+        <Marca variante="horizontal-clara" altura={40} className="doc-marca" />
+        <div className="doc-capa-meio">
+          <p className="doc-sobretitulo">Protocolo Alimentar</p>
+          <h1 className="doc-nome">{paciente}</h1>
+          {protocolo?.titulo && <p className="doc-lema">{protocolo.titulo}</p>}
+          <p className="doc-periodo">
+            {protocolo?.publicadoEm
+              ? `Publicado em ${dataBonita(protocolo.publicadoEm)}`
+              : "Protocolo atual"}
+            {protocolo?.versao ? ` · versão ${protocolo.versao}` : ""}
           </p>
-        )}
+        </div>
+        <div className="doc-capa-fim">
+          {protocolo?.ajustes && (
+            <p className="doc-aviso">
+              <TextoComLinks texto={protocolo.ajustes} />
+            </p>
+          )}
+        </div>
       </header>
 
       {conteudo.orientacoes.length > 0 && (
@@ -93,7 +99,14 @@ export function DocumentoProtocolo({
                   {opcao.itens.map((item, k) => (
                     <tr key={k}>
                       <th scope="row">
-                        {item.alimento}
+                        {item.imagem && fotos[item.imagem] ? (
+                          <div className="doc-item-foto">
+                            <img src={fotos[item.imagem]} alt="" />
+                            <span>{item.alimento}</span>
+                          </div>
+                        ) : (
+                          item.alimento
+                        )}
                         {item.link && (
                           <span className="doc-item-link">
                             {" "}— <a href={item.link} target="_blank" rel="noreferrer noopener">{item.link}</a>
@@ -134,12 +147,6 @@ export function DocumentoProtocolo({
         </section>
       ))}
 
-      <footer className="doc-rodape">
-        <p>
-          <strong>Protocolo Alimentar — {paciente}</strong>
-        </p>
-        <p>Nutricionista: {nutricionista}</p>
-      </footer>
       </article>
     </FolhaDeDocumento>
   );
