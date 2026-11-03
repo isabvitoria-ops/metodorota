@@ -7170,7 +7170,13 @@ body:has(.central) {
 .central .c-instalar-abas { display: flex; flex-wrap: wrap; gap: 8px; }
 .central .c-chip-ativo { background: var(--primary); color: #fff; border-color: var(--primary); }
 .central .c-passos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px; }
-.central .c-passos > .c-passo { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; }
+.central .c-passos > .c-passo {
+  display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px;
+  /* "c-passo" também é a classe do questionário, que ocupa a tela inteira
+     (min-height: 100dvh). Aqui cada passo tem só o tamanho do próprio conteúdo;
+     sem isto o passo 1 enchia a tela e os passos 2 e 3 ficavam fora de vista. */
+  min-height: 0; margin-top: 0;
+}
 .central .c-passo-numero {
   width: 30px; height: 30px; border-radius: 999px; background: var(--primary-soft); color: var(--primary-dark);
   display: grid; place-items: center; font-weight: 700; font-size: 15px;
