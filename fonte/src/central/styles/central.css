@@ -8512,3 +8512,40 @@ body:has(.central) {
     print-color-adjust: exact;
   }
 }
+
+/* ------------------------------------------------ aviso de atualização
+   Fica fora de `.central`, então usa as cores do manual por extenso. */
+.c-aviso-atualizacao {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: calc(8px + env(safe-area-inset-top)) 16px 8px;
+  background: #38546c;
+  color: #f7eee7;
+  font-family: "Public Sans", system-ui, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.c-aviso-atualizacao button {
+  min-height: 44px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #f7eee7;
+  color: #38546c;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.c-aviso-atualizacao button:focus-visible {
+  outline: 3px solid #c8dae4;
+  outline-offset: 2px;
+}

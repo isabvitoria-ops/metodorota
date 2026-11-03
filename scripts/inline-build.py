@@ -30,7 +30,7 @@ custom_head = head_match.group(1).strip() if head_match else ""
 
 # Update the version timestamp
 now = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M UTC")
-custom_head = re.sub(r'content="[^"]*?"(\s*/>.*?versao-do-site)', f'content="{now}"\\1', custom_head)
+custom_head = re.sub(r'(<meta name="versao-do-site" content=")[^"]*(")', lambda m: m.group(1) + now + m.group(2), custom_head)
 if "versao-do-site" not in custom_head:
     custom_head = custom_head.replace(
         '<meta name="description"',

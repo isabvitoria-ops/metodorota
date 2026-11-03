@@ -484,6 +484,10 @@ export const repositorioLocal: Repositorio = {
     /* na demonstração o desafio já vem pronto */
   },
 
+  async carimboDoConteudo() {
+    return null;
+  },
+
   async meuDesafio() {
     const desafio = desafioDemo();
     const envios = guardaEnvios.ler();

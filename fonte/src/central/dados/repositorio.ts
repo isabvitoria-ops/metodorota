@@ -173,6 +173,12 @@ export interface Repositorio {
   garantirDesafioDoMes(): Promise<void>;
   /** Tudo que a tela do desafio mostra, numa chamada só. */
   meuDesafio(): Promise<MeuDesafio>;
+  /**
+   * Um resumo do que este paciente enxerga. Muda quando a nutricionista altera
+   * algo que aparece para ele. `null` quando não deu para saber (sem rede,
+   * demonstração): quem chama trata como "nada a dizer", nunca como mudança.
+   */
+  carimboDoConteudo(): Promise<string | null>;
   /** "Eu fiz isso." Nasce pendente, sempre. */
   enviarAcao(acaoId: string, observacao?: string | null): Promise<void>;
   /** Desfaz o próprio envio, enquanto não foi conferido. */

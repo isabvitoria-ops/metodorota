@@ -478,6 +478,15 @@ export const repositorioSupabase: Repositorio = {
     }
   },
 
+  async carimboDoConteudo() {
+    try {
+      const { data, error } = await exigirSupabase().rpc("meu_carimbo_de_conteudo");
+      return error || typeof data !== "string" ? null : data;
+    } catch {
+      return null;
+    }
+  },
+
   async meuDesafio() {
     await repositorioSupabase.garantirDesafioDoMes();
     const sb = exigirSupabase();
