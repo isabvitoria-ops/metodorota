@@ -7,11 +7,11 @@ const SECOES: SecaoLista[] = [
   {
     titulo: "Proteínas",
     itens: [
-      "Frango (peito ou sobrecoxa sem pele)",
-      "Peixes variados (tilápia, salmão, merluza…)",
-      "Frutos do mar (camarão, polvo, lula…)",
+      "Frango (peito, coxa, sobrecoxa)",
+      "Peixe (tilápia, salmão, atum em lata ao natural)",
       "Ovos",
-      "Atum em lata (ao natural)",
+      "Carne bovina magra (patinho, alcatra, músculo)",
+      "Carne suína (lombo)",
     ],
   },
   {
@@ -19,84 +19,62 @@ const SECOES: SecaoLista[] = [
     itens: [
       "Arroz branco ou integral",
       "Batata inglesa",
-      "Batata baroa",
-      "Mandioca / Aipim",
-      "Macarrão de arroz",
-      "Abóbora cabotiá",
-      "Quinoa",
-      "Milho",
+      "Aipim / mandioca",
+      "Cuscuz de milho",
       "Tapioca (goma)",
-      "Flocão de milho",
-      "Biscoito de arroz",
-      "Milho para pipoca",
+      "Macarrão de arroz",
     ],
   },
   {
-    titulo: "Legumes (para cozinhar)",
+    titulo: "Gorduras boas",
+    itens: [
+      "Azeite de oliva extravirgem",
+      "Óleo de coco",
+      "Manteiga ghee",
+    ],
+  },
+  {
+    titulo: "Vegetais",
     itens: [
       "Abobrinha",
-      "Berinjela",
       "Cenoura",
-      "Tomate",
-      "Pimentão",
-      "Couve ou Espinafre",
+      "Chuchu",
+      "Vagem",
+      "Pepino",
+      "Beterraba",
+      "Abóbora",
+      "Tomate (sem semente e sem casca)",
     ],
   },
   {
     titulo: "Frutas",
     itens: [
       "Banana",
+      "Maçã (sem casca)",
       "Morango",
-      "Uva",
-      "Maçã",
-      "Mamão",
       "Melão",
-      "Laranja",
-      "Abacaxi",
       "Kiwi",
-      "Mexerica",
-      "Blueberry / Mirtilo",
-      "Framboesa",
-      "Maracujá",
-      "Limão",
+      "Mamão",
     ],
   },
   {
-    titulo: "Gorduras e extras para lanche",
-    itens: [
-      "Azeite de oliva extravirgem",
-      "Pasta de amendoim (só amendoim)",
-      "Chia",
-      "Colágeno",
-      "Bebida vegetal de amêndoas",
-      "Granola low carb ou Mix de nuts (sem castanha de caju/pistache)",
-      "Geleia 100% fruta",
-    ],
-  },
-  {
-    titulo: "Temperos",
+    titulo: "Temperos e ervas",
     itens: [
       "Sal",
-      "Cúrcuma / Açafrão",
-      "Orégano",
-      "Manjericão",
-      "Alecrim",
-      "Cominho",
-      "Salsinha e Coentro",
       "Pimenta-do-reino",
-      "Pimenta calabresa",
+      "Salsinha, coentro",
+      "Manjericão",
+      "Cúrcuma",
       "Gengibre",
       "Limão",
-      "Vinagre de arroz ou maçã",
     ],
   },
   {
     titulo: "Extras",
     itens: [
-      "Cacau 100%",
-      "Canela em pó",
-      "Levedura Nutricional",
-      "Chás (camomila, hortelã, erva-doce, gengibre, capim-limão, boldo)",
+      "Café (coado, moderado)",
+      "Chás (camomila, erva-doce, hortelã)",
+      "Água de coco (sem açúcar)",
     ],
   },
 ];
@@ -113,7 +91,7 @@ export function HotSlimListaCompras() {
     <div className="hs-pagina">
       <div style={{ marginBottom: 20 }}>
         <h1 className="hs-titulo">Lista de Compras</h1>
-        <p className="hs-texto">O que levar do supermercado para a Etapa 1</p>
+        <p className="hs-texto">O que levar do supermercado para o desafio</p>
       </div>
 
       <div className="hs-dica">
