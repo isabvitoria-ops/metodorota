@@ -138,6 +138,24 @@ export interface DadosAvaliacao {
   pesoResidual: number | null;
   pesoMuscular: number | null;
   tmb: number | null;
+  /** Fator de atividade — multiplicador da TMB. */
+  fatorAtividade: number | null;
+  /** GET = TMB × FA. */
+  get: number | null;
+  /** Positivo = superávit, negativo = déficit (kcal). */
+  ajusteEnergetico: number | null;
+  /** VET = GET + ajuste. */
+  vet: number | null;
+  /** PTN em g por kg de peso. */
+  ptnGKg: number | null;
+  /** LIP em g por kg de peso. */
+  lipGKg: number | null;
+  /** PTN em g/dia (calculado ou digitado). */
+  ptnG: number | null;
+  /** LIP em g/dia (calculado ou digitado). */
+  lipG: number | null;
+  /** CHO em g/dia (restante do VET ou digitado). */
+  choG: number | null;
   observacao: string | null;
 }
 
@@ -185,5 +203,14 @@ export const AVALIACAO_VAZIA: DadosAvaliacao = {
   pesoResidual: null,
   pesoMuscular: null,
   tmb: null,
+  fatorAtividade: null,
+  get: null,
+  ajusteEnergetico: null,
+  vet: null,
+  ptnGKg: null,
+  lipGKg: null,
+  ptnG: null,
+  lipG: null,
+  choG: null,
   observacao: null,
 };
