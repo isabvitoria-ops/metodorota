@@ -1384,6 +1384,25 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
     if (r.pesoResidual !== null) proximo.pesoResidual = r.pesoResidual;
     if (r.pesoMuscular !== null) proximo.pesoMuscular = r.pesoMuscular;
     if (r.tmb !== null) proximo.tmb = r.tmb;
+    if (proximo.tmb !== null && proximo.fatorAtividade !== null) {
+      proximo.get = Math.round(proximo.tmb * proximo.fatorAtividade);
+      if (proximo.ajusteEnergetico !== null) {
+        proximo.vet = Math.round(proximo.get + proximo.ajusteEnergetico);
+      }
+    }
+    if (proximo.peso !== null && proximo.vet !== null) {
+      if (proximo.ptnGKg !== null) {
+        proximo.ptnG = Math.round(proximo.ptnGKg * proximo.peso * 10) / 10;
+      }
+      if (proximo.lipGKg !== null) {
+        proximo.lipG = Math.round(proximo.lipGKg * proximo.peso * 10) / 10;
+      }
+      if (proximo.ptnG !== null && proximo.lipG !== null) {
+        const kcalPtn = proximo.ptnG * 4;
+        const kcalLip = proximo.lipG * 9;
+        proximo.choG = Math.round((proximo.vet - kcalPtn - kcalLip) / 4 * 10) / 10;
+      }
+    }
     definirDados(proximo);
   }
 
@@ -1467,14 +1486,43 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
       )}
 
       {abertaId === null && (
-        <button
-          type="button"
-          className="c-botao c-botao-secundario"
-          style={{ marginTop: 12 }}
-          onClick={() => abrir(null)}
-        >
-          + Lançar avaliação
-        </button>
+        <div style={{ display: "flex", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+          <button
+            type="button"
+            className="c-botao c-botao-secundario"
+            onClick={() => abrir(null)}
+          >
+            + Lançar avaliação
+          </button>
+          {lista.length > 0 && (
+            <button
+              type="button"
+              className="c-botao c-botao-secundario"
+              onClick={() => {
+                const ultima = lista[0]!;
+                definirAberta("nova");
+                definirData(hojeSaoPaulo());
+                const d = ultima.dados;
+                const base: DadosAvaliacao = {
+                  ...AVALIACAO_VAZIA,
+                  metodo: d.metodo ?? "",
+                  sexo: d.sexo ?? null,
+                  altura: d.altura ?? null,
+                  idade: d.idade !== null ? d.idade + 1 : null,
+                  fatorAtividade: d.fatorAtividade ?? null,
+                  ptnGKg: d.ptnGKg ?? null,
+                  lipGKg: d.lipGKg ?? null,
+                };
+                definirDados(base);
+                definirProtocoloId(protocoloDoMetodo(base.metodo)?.id ?? OUTRO_METODO);
+                definirPublicada(false);
+                definirErro(null);
+              }}
+            >
+              Continuar da última avaliação
+            </button>
+          )}
+        </div>
       )}
 
       {abertaId !== null && (
@@ -1540,6 +1588,61 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
             {campoNumero("Peso ósseo (kg)", "pesoOsseo")}
             {campoNumero("Peso residual (kg)", "pesoResidual")}
             {campoNumero("Massa muscular (kg)", "pesoMuscular")}
+          </div>
+
+          {/* ── Gasto energético ── */}
+          <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
+            Gasto energético
+          </h3>
+          <p className="c-dica" style={{ marginTop: 0 }}>
+            TMB × Fator de atividade = GET. GET ± ajuste = VET.
+          </p>
+
+          <Campo rotulo="Fator de atividade (FA)">
+            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+              <NumeroDecimal
+                valor={dados.fatorAtividade}
+                aoMudar={(v) => definirDados({ ...dados, fatorAtividade: v })}
+              />
+              {[
+                { v: 1.2, r: "Sedentário" },
+                { v: 1.375, r: "Leve" },
+                { v: 1.55, r: "Moderado" },
+                { v: 1.725, r: "Intenso" },
+                { v: 1.9, r: "Muito intenso" },
+              ].map(({ v, r }) => (
+                <button
+                  key={v}
+                  type="button"
+                  className={`c-tag${dados.fatorAtividade === v ? " c-tag-ativa" : ""}`}
+                  onClick={() => definirDados({ ...dados, fatorAtividade: v })}
+                  title={r}
+                >
+                  {v.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
+                </button>
+              ))}
+            </div>
+          </Campo>
+
+          <div className="c-duas-colunas">
+            {campoNumero("GET (kcal)", "get", "TMB × FA.")}
+            {campoNumero("Ajuste (kcal)", "ajusteEnergetico", "Positivo = superávit, negativo = déficit.")}
+            {campoNumero("VET (kcal)", "vet", "GET + ajuste.")}
+          </div>
+
+          {/* ── Macronutrientes ── */}
+          <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
+            Macronutrientes
+          </h3>
+
+          <div className="c-duas-colunas">
+            {campoNumero("PTN (g/kg)", "ptnGKg")}
+            {campoNumero("LIP (g/kg)", "lipGKg")}
+          </div>
+          <div className="c-duas-colunas">
+            {campoNumero("PTN (g/dia)", "ptnG")}
+            {campoNumero("LIP (g/dia)", "lipG")}
+            {campoNumero("CHO (g/dia)", "choG")}
           </div>
 
           {/* ── Resumo calculado em tempo real ── */}
@@ -1629,15 +1732,93 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
                   </span>
                 </div>
               )}
-              {resultado.tmb !== null && (
-                <div className="c-resumo-calculo-item">
-                  <span className="c-resumo-calculo-rotulo">TMB</span>
-                  <span className="c-resumo-calculo-valor">
-                    {resultado.tmb.toLocaleString("pt-BR")} kcal
-                  </span>
-                  <span className="c-resumo-calculo-classe">{resultado.tmbFormula}</span>
-                </div>
+              {resultado.tmbTodas.length > 0 && (
+                <>
+                  {resultado.tmbTodas.map((t) => (
+                    <div className="c-resumo-calculo-item" key={t.formula}>
+                      <span className="c-resumo-calculo-rotulo">TMB</span>
+                      <span className="c-resumo-calculo-valor">
+                        {t.valor.toLocaleString("pt-BR")} kcal
+                      </span>
+                      <span className="c-resumo-calculo-classe">
+                        {t.formula} · <em>{t.indicacao}</em>
+                        {dados.tmb !== t.valor && (
+                          <button
+                            type="button"
+                            className="c-link"
+                            style={{ marginLeft: 6, fontSize: 12 }}
+                            onClick={() => definirDados({ ...dados, tmb: t.valor })}
+                          >
+                            usar
+                          </button>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                  {dados.tmb !== null && dados.fatorAtividade !== null && (
+                    <div className="c-resumo-calculo-item">
+                      <span className="c-resumo-calculo-rotulo">GET</span>
+                      <span className="c-resumo-calculo-valor">
+                        {Math.round(dados.tmb * dados.fatorAtividade).toLocaleString("pt-BR")} kcal
+                      </span>
+                      <span className="c-resumo-calculo-classe">
+                        TMB × {dados.fatorAtividade.toLocaleString("pt-BR")}
+                      </span>
+                    </div>
+                  )}
+                  {dados.tmb !== null && dados.fatorAtividade !== null && dados.ajusteEnergetico !== null && (
+                    <div className="c-resumo-calculo-item">
+                      <span className="c-resumo-calculo-rotulo">VET</span>
+                      <span className="c-resumo-calculo-valor">
+                        {Math.round(dados.tmb * dados.fatorAtividade + dados.ajusteEnergetico).toLocaleString("pt-BR")} kcal
+                      </span>
+                      <span className="c-resumo-calculo-classe">
+                        GET {dados.ajusteEnergetico >= 0 ? "+" : ""}{dados.ajusteEnergetico.toLocaleString("pt-BR")}
+                      </span>
+                    </div>
+                  )}
+                </>
               )}
+              {(() => {
+                const vet = dados.vet ?? (dados.tmb !== null && dados.fatorAtividade !== null && dados.ajusteEnergetico !== null
+                  ? Math.round(dados.tmb * dados.fatorAtividade + dados.ajusteEnergetico) : null);
+                if (vet === null || dados.peso === null) return null;
+                const ptnG = dados.ptnGKg !== null ? Math.round(dados.ptnGKg * dados.peso * 10) / 10 : dados.ptnG;
+                const lipG = dados.lipGKg !== null ? Math.round(dados.lipGKg * dados.peso * 10) / 10 : dados.lipG;
+                const choG = ptnG !== null && lipG !== null ? Math.round((vet - ptnG * 4 - lipG * 9) / 4 * 10) / 10 : dados.choG;
+                if (ptnG === null && lipG === null) return null;
+                return (
+                  <>
+                    {ptnG !== null && (
+                      <div className="c-resumo-calculo-item">
+                        <span className="c-resumo-calculo-rotulo">PTN</span>
+                        <span className="c-resumo-calculo-valor">{ptnG.toLocaleString("pt-BR")}g</span>
+                        <span className="c-resumo-calculo-classe">
+                          {Math.round(ptnG * 4)} kcal · {Math.round(ptnG * 4 / vet * 100)}%
+                        </span>
+                      </div>
+                    )}
+                    {lipG !== null && (
+                      <div className="c-resumo-calculo-item">
+                        <span className="c-resumo-calculo-rotulo">LIP</span>
+                        <span className="c-resumo-calculo-valor">{lipG.toLocaleString("pt-BR")}g</span>
+                        <span className="c-resumo-calculo-classe">
+                          {Math.round(lipG * 9)} kcal · {Math.round(lipG * 9 / vet * 100)}%
+                        </span>
+                      </div>
+                    )}
+                    {choG !== null && choG > 0 && (
+                      <div className="c-resumo-calculo-item">
+                        <span className="c-resumo-calculo-rotulo">CHO</span>
+                        <span className="c-resumo-calculo-valor">{choG.toLocaleString("pt-BR")}g</span>
+                        <span className="c-resumo-calculo-classe">
+                          {Math.round(choG * 4)} kcal · {Math.round(choG * 4 / vet * 100)}%
+                        </span>
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
               <button
                 type="button"
                 className="c-botao c-botao-secundario"

@@ -19,7 +19,7 @@ import { Esqueleto } from "@/central/components/Esqueleto";
  * acabou?" — a pergunta de quem vai dar os presentes. A resposta não depende
  * de memória: vem do livro de pontos, mês a mês.
  *
- * A JANELA É DE 3 MESES (o atual e os 3 anteriores). O que é mais antigo sai
+ * A JANELA É DE 6 MESES (o atual e os 6 anteriores). O que é mais antigo sai
  * da tela sozinho; os pontos continuam valendo no saldo de cada paciente.
  */
 export function HistoricoDePontos() {
@@ -30,7 +30,7 @@ export function HistoricoDePontos() {
 
   useEffect(() => {
     void repositorio
-      .historicoMensalDePontos(3)
+      .historicoMensalDePontos(6)
       .then(definirMeses)
       .catch((e) => definirErro(e instanceof Error ? e.message : "Não consegui carregar o histórico."));
   }, []);
@@ -57,7 +57,7 @@ export function HistoricoDePontos() {
     <>
       <p className="c-dica" style={{ marginTop: 0 }}>
         Quantos pontos cada paciente fez em cada mês, para você dar os presentes. Mostra o mês
-        atual e os 3 anteriores; os mais antigos saem da tela sozinhos, mas os pontos continuam
+        atual e os 6 anteriores; os mais antigos saem da tela sozinhos, mas os pontos continuam
         valendo no saldo de cada uma. O “saldo” é o acumulado até o fim daquele mês.
       </p>
 
@@ -220,8 +220,8 @@ function PlacarParaComunidade({
 }
 
 /**
- * A limpeza de 3 em 3 meses. Em outubro, sai de junho para trás e ficam julho,
- * agosto, setembro e outubro. Primeiro MOSTRA o que sairia; só apaga depois de
+ * A limpeza de 6 em 6 meses. Em outubro, sai de abril para trás e ficam maio,
+ * junho, julho, agosto, setembro e outubro. Primeiro MOSTRA o que sairia; só apaga depois de
  * uma confirmação, e as linhas vão para um arquivo antes de saírem do saldo.
  */
 function LimpezaDosAntigos() {
@@ -259,7 +259,7 @@ function LimpezaDosAntigos() {
 
   return (
     <div className="c-bloco" style={{ marginTop: 12 }}>
-      <strong style={{ fontSize: 14 }}>Limpeza de 3 em 3 meses</strong>
+      <strong style={{ fontSize: 14 }}>Limpeza de 6 em 6 meses</strong>
       <p className="c-dica">
         Ficam {corte} em diante; o que for mais antigo sai do saldo (e dos prêmios). As indicações
         não mudam.

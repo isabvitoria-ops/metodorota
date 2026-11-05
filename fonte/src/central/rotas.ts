@@ -25,6 +25,7 @@ export const rotas = {
   // porque não há para onde mandar: cai no `*` e volta para a tela inicial,
   // que é o destino certo para um link que não existe mais.
   protocolo: "/protocolo",
+  mercado: "/mercado",
   avaliacao: "/avaliacao",
   treino: "/evolucao",
   metas: "/metas",

@@ -16,6 +16,7 @@ import { Bristol } from "./pages/Bristol";
 import { Habitos } from "./pages/Habitos";
 import { DiarioDeFotosPagina } from "@/central/pages/DiarioDeFotos";
 import { Protocolo } from "./pages/Protocolo";
+import { Mercado } from "./pages/Mercado";
 import { Avaliacao } from "./pages/Avaliacao";
 import { Metas } from "./pages/Metas";
 import { Treino } from "./pages/Treino";
@@ -51,6 +52,7 @@ export function CentralApp() {
         <Routes>
           <Route index element={<Home />} />
           <Route path="protocolo" element={<Protocolo />} />
+          <Route path="mercado" element={<Mercado />} />
           <Route path="avaliacao" element={<Avaliacao />} />
           <Route path="evolucao" element={<Treino />} />
           <Route path="metas" element={<Metas />} />
