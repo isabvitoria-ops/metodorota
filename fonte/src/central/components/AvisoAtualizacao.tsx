@@ -24,7 +24,11 @@ export function AvisoAtualizacao() {
   const carimboInicial = useRef<string | null>(null);
   const versaoInicial = useRef(versaoDoSite());
 
-  const ativo = acesso.autenticado && !modoDemonstracao && !pathname.startsWith(rotas.admin);
+  const ativo = acesso.autenticado && !modoDemonstracao;
+  // Na área da nutricionista o resumo do conteúdo muda a cada coisa que ELA
+  // edita, e a faixa avisaria sobre o que ela mesma acabou de fazer. Lá só
+  // vale o aviso de versão nova do aplicativo.
+  const naAreaDaNutri = pathname.startsWith(rotas.admin);
 
   useEffect(() => {
     if (!ativo || disponivel) return;
@@ -33,11 +37,13 @@ export function AvisoAtualizacao() {
     async function verificar() {
       if (document.visibilityState === "hidden") return;
 
-      const carimbo = await repositorio.carimboDoConteudo();
-      if (cancelado) return;
-      if (carimbo !== null) {
-        if (carimboInicial.current === null) carimboInicial.current = carimbo;
-        else if (carimbo !== carimboInicial.current) return definirDisponivel(true);
+      if (!naAreaDaNutri) {
+        const carimbo = await repositorio.carimboDoConteudo();
+        if (cancelado) return;
+        if (carimbo !== null) {
+          if (carimboInicial.current === null) carimboInicial.current = carimbo;
+          else if (carimbo !== carimboInicial.current) return definirDisponivel(true);
+        }
       }
 
       if (versaoInicial.current === SEM_CARIMBO) return;
@@ -57,7 +63,7 @@ export function AvisoAtualizacao() {
       document.removeEventListener("visibilitychange", aoVoltar);
       window.removeEventListener("online", aoVoltar);
     };
-  }, [ativo, disponivel]);
+  }, [ativo, disponivel, naAreaDaNutri]);
 
   if (!ativo || !disponivel) return null;
 

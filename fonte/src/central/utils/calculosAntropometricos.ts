@@ -329,6 +329,20 @@ export function harrisBenedict(
     : 447.593 + 9.247 * peso + 3.098 * altura - 4.33 * idade;
 }
 
+export function harrisBenedict1919(
+  peso: number | null, altura: number | null, idade: number | null, sexo: Sexo | null,
+): number | null {
+  if (!peso || !altura || !idade || !sexo) return null;
+  return sexo === "masculino"
+    ? 66.473 + 13.7516 * peso + 5.0033 * altura - 6.755 * idade
+    : 655.0955 + 9.5634 * peso + 1.8496 * altura - 4.6756 * idade;
+}
+
+export function cunningham(massaMagra: number | null): number | null {
+  if (!massaMagra) return null;
+  return 370 + 21.6 * massaMagra;
+}
+
 // ─── Fracionamento de composição corporal ──────────────────────────────────
 
 function lerDiametro(diametros: { nome: string; valor: string }[], nome: string): number | null {
@@ -369,6 +383,12 @@ export function pesoMuscularCalc(
 
 // ─── Resultado principal ────────────────────────────────────────────────────
 
+export interface TmbOpcao {
+  formula: string;
+  valor: number;
+  indicacao: string;
+}
+
 export interface ResultadoCalculo {
   imc: number | null;
   classificacaoIMC: string | null;
@@ -386,6 +406,7 @@ export interface ResultadoCalculo {
   pesoMuscular: number | null;
   tmb: number | null;
   tmbFormula: string | null;
+  tmbTodas: TmbOpcao[];
   avisos: string[];
 }
 
@@ -485,6 +506,8 @@ export function calcularTudo(params: {
 
   const tmbMifflin = mifflinStJeor(peso, altura, idade, sexo);
   const tmbHB = harrisBenedict(peso, altura, idade, sexo);
+  const tmbHB1919 = harrisBenedict1919(peso, altura, idade, sexo);
+  const tmbCunn = cunningham(massaMagraVal);
   let tmbVal: number | null = null;
   let tmbFormula: string | null = null;
   if (tmbMifflin !== null) {
@@ -494,6 +517,12 @@ export function calcularTudo(params: {
     tmbVal = Math.round(tmbHB);
     tmbFormula = "Harris-Benedict";
   }
+
+  const tmbTodas: TmbOpcao[] = [];
+  if (tmbMifflin !== null) tmbTodas.push({ formula: "Mifflin-St Jeor", valor: Math.round(tmbMifflin), indicacao: "Sobrepeso e obesidade" });
+  if (tmbHB !== null) tmbTodas.push({ formula: "Harris-Benedict (1984)", valor: Math.round(tmbHB), indicacao: "Uso geral" });
+  if (tmbHB1919 !== null) tmbTodas.push({ formula: "Harris-Benedict (1919)", valor: Math.round(tmbHB1919), indicacao: "Magros e eutróficos" });
+  if (tmbCunn !== null) tmbTodas.push({ formula: "Cunningham", valor: Math.round(tmbCunn), indicacao: "Atletas e musculosos" });
 
   return {
     imc: imcVal !== null ? Math.round(imcVal * 100) / 100 : null,
@@ -512,6 +541,7 @@ export function calcularTudo(params: {
     pesoMuscular: muscular !== null ? Math.round(muscular * 100) / 100 : null,
     tmb: tmbVal,
     tmbFormula,
+    tmbTodas,
     avisos,
   };
 }
