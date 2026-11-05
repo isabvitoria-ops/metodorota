@@ -8562,3 +8562,240 @@ body:has(.central) {
   outline: 3px solid #c8dae4;
   outline-offset: 2px;
 }
+
+/* ─── Rolê no Mercado ─── */
+
+.c-mercado-intro {
+  font-size: 15px;
+  line-height: 1.55;
+  color: #5A7A8F;
+  margin: 18px 0 8px;
+}
+
+.c-mercado-corredores {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+/* Botão do corredor */
+.c-corredor {
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.c-corredor-botao {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 16px 18px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--corredor-clara);
+  color: var(--corredor-cor);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.12s;
+}
+.c-corredor-botao:active {
+  transform: scale(0.98);
+}
+.c-corredor-botao--aberto {
+  border-radius: 14px 14px 0 0;
+  background: var(--corredor-cor);
+  color: #fff;
+}
+
+.c-corredor-emoji {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.c-corredor-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.c-corredor-titulo {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.c-corredor-contagem {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.c-corredor-seta {
+  font-size: 22px;
+  font-weight: 700;
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.c-corredor-seta--aberto {
+  transform: rotate(90deg);
+}
+
+/* Conteúdo aberto */
+.c-corredor-conteudo {
+  background: #fff;
+  border: 2px solid var(--corredor-clara);
+  border-top: 0;
+  border-radius: 0 0 14px 14px;
+  padding: 16px;
+  animation: c-corredor-aparecer 0.22s ease-out;
+}
+@keyframes c-corredor-aparecer {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.c-corredor-dica {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  background: #f7eee7;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #38546C;
+}
+.c-corredor-dica-icone {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.c-corredor-categoria + .c-corredor-categoria {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #EAE6DB;
+}
+
+.c-corredor-cat-titulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--corredor-cor);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 10px;
+}
+
+/* Grade de produtos */
+.c-produtos-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+@media (max-width: 400px) {
+  .c-produtos-grade {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+}
+
+/* Card de produto */
+.c-produto-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #FAFAF8;
+  border: 1px solid #EAE6DB;
+  transition: box-shadow 0.15s, transform 0.12s;
+}
+.c-produto-card--clicavel {
+  cursor: pointer;
+}
+.c-produto-card--clicavel:hover,
+.c-produto-card--clicavel:focus-visible {
+  box-shadow: 0 2px 8px rgba(56, 84, 108, 0.12);
+  transform: translateY(-1px);
+}
+.c-produto-card--clicavel:active {
+  transform: scale(0.98);
+}
+
+.c-produto-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.c-produto-marca {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+}
+
+.c-produto-destaque {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.c-produto-nome {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #263D52;
+  line-height: 1.35;
+}
+
+.c-produto-detalhe {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #5A7A8F;
+  margin-top: 4px;
+  animation: c-corredor-aparecer 0.18s ease-out;
+}
+
+.c-produto-ver-mais {
+  font-size: 11.5px;
+  color: #C9BCAC;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .c-corredor-conteudo {
+    background: #1e2a35;
+  }
+  .c-corredor-dica {
+    background: #263D52;
+    color: #C8DAE4;
+  }
+  .c-produto-card {
+    background: #263D52;
+    border-color: #38546C;
+  }
+  .c-produto-nome {
+    color: #F7EEE7;
+  }
+  .c-produto-ver-mais {
+    color: #5A7A8F;
+  }
+  .c-mercado-intro {
+    color: #C9BCAC;
+  }
+}
