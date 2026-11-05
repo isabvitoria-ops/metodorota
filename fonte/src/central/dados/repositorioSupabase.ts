@@ -24,6 +24,7 @@ import type {
   Reintroducao,
   ResumoIndicacao,
   StatusReintroducao,
+  LinhaDoRankingGeral,
 } from "@/central/types";
 import type {
   Questionario,
@@ -606,7 +607,7 @@ export const repositorioSupabase: Repositorio = {
     return data as PainelDoDesafio;
   },
 
-  async historicoMensalDePontos(meses = 3): Promise<MesDoHistorico[]> {
+  async historicoMensalDePontos(meses = 6): Promise<MesDoHistorico[]> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("historico_mensal_de_pontos", { p_meses: meses });
     erro("carregar o histórico de pontos", error);
@@ -626,7 +627,7 @@ export const repositorioSupabase: Repositorio = {
 
   async meuHistoricoDePontos(): Promise<MesDaMinhaEvolucao[]> {
     const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("meu_historico_de_pontos", { p_meses: 3 });
+    const { data, error } = await sb.rpc("meu_historico_de_pontos", { p_meses: 6 });
     erro("carregar a sua evolução", error);
     return ((data ?? []) as Linha[]).map((m) => ({
       mes: texto(m.mes),
@@ -647,6 +648,18 @@ export const repositorioSupabase: Repositorio = {
       pontos: numero(l.pontos),
       acumulado: numero(l.acumulado),
       souEu: l.sou_eu === true,
+    }));
+  },
+
+  async rankingGeral(): Promise<LinhaDoRankingGeral[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("ranking_geral");
+    erro("carregar o ranking geral", error);
+    return (data ?? []).map((l: Linha) => ({
+      posicao: numero(l.posicao),
+      pacienteId: texto(l.paciente_id),
+      nome: texto(l.nome),
+      saldo: numero(l.saldo),
     }));
   },
 

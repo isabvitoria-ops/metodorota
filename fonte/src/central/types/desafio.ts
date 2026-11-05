@@ -52,7 +52,7 @@ export interface LinhaDoRanking {
   nome: string;
   /** Os pontos do mês do desafio (o número grande). */
   pontos: number;
-  /** O mês e os 3 anteriores somados (o número pequeno); o resgate não conta. */
+  /** O mês e os 6 anteriores somados (o número pequeno); o resgate não conta. */
   acumulado?: number;
   souEu: boolean;
 }
@@ -193,6 +193,14 @@ export interface PainelDoDesafio {
   maiorPontuacao: number;
   media: number;
   acoesMaisFeitas: { nome: string; total: number }[];
+}
+
+/** Uma linha do ranking geral — todas as pacientes com saldo != 0. */
+export interface LinhaDoRankingGeral {
+  posicao: number;
+  pacienteId: string;
+  nome: string;
+  saldo: number;
 }
 
 export interface DesafioAdmin extends Omit<Desafio, "semanaAtual" | "totalDeSemanas"> {

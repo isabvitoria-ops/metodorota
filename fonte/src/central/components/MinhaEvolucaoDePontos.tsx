@@ -10,7 +10,7 @@ import { hojeSaoPaulo } from "@/central/utils/situacao";
  * gráfico de zeros dizendo que ela não fez nada.
  *
  * Em cima, a frase do mês que acabou (pontos e posição), para ela saber por que
- * recebe o presente. Mostra o mês atual e os 3 anteriores. Os pontos mais antigos continuam no
+ * recebe o presente. Mostra o mês atual e os 6 anteriores. Os pontos mais antigos continuam no
  * saldo; só saem desta lista.
  */
 export function MinhaEvolucaoDePontos() {

@@ -5,6 +5,7 @@ import type {
   EnvioPendente,
   IndicacaoPendente,
   LinhaDoRanking,
+  LinhaDoRankingGeral,
   Paciente,
   PainelDoDesafio,
   ResumoIndicacao,
@@ -767,39 +768,90 @@ function IndicacaoPelaNutri({
 
 function Ranking({ desafioId }: { desafioId: string }) {
   const [lista, definirLista] = useState<LinhaDoRanking[]>([]);
+  const [geral, definirGeral] = useState<LinhaDoRankingGeral[]>([]);
   const [busca, definirBusca] = useState("");
+  const [buscaGeral, definirBuscaGeral] = useState("");
+  const [verGeral, definirVerGeral] = useState(false);
 
   useEffect(() => {
     void repositorio.rankingDoDesafio(desafioId).then(definirLista).catch(() => definirLista([]));
+    void repositorio.rankingGeral().then(definirGeral).catch(() => definirGeral([]));
   }, [desafioId]);
 
   const visiveis = lista.filter((l) => l.nome.toLowerCase().includes(busca.trim().toLowerCase()));
-
-  if (lista.length === 0) return <p className="c-contagem">Ninguém pontuou ainda.</p>;
+  const visiveisGeral = geral.filter((l) => l.nome.toLowerCase().includes(buscaGeral.trim().toLowerCase()));
 
   return (
     <>
-      <Campo rotulo="Buscar paciente">
-        <Texto valor={busca} aoMudar={definirBusca} placeholder="Nome" />
-      </Campo>
-      <div className="c-ranking" style={{ marginTop: 12 }}>
-        {visiveis.map((l) => (
-          <div key={`${l.posicao}-${l.nome}`} className={`c-ranking-linha ${l.posicao <= 3 ? "destaque" : ""}`}>
-            <span className="c-ranking-posicao">{l.posicao}º</span>
-            <span className="c-ranking-nome">{l.nome}</span>
-            <span className="c-ranking-pontos">
-              {l.pontos} pts
-              {l.acumulado !== undefined && (
-                <small className="c-ranking-acumulado">acumulado {l.acumulado}</small>
-              )}
-            </span>
-          </div>
-        ))}
+      <div className="c-linha-botoes-treino" style={{ marginBottom: 8 }}>
+        <button
+          type="button"
+          className={`c-botao c-botao-pequeno ${!verGeral ? "" : "c-botao-secundario"}`}
+          onClick={() => definirVerGeral(false)}
+        >
+          Ranking do desafio
+        </button>
+        <button
+          type="button"
+          className={`c-botao c-botao-pequeno ${verGeral ? "" : "c-botao-secundario"}`}
+          onClick={() => definirVerGeral(true)}
+        >
+          Ranking geral
+        </button>
       </div>
-      <p className="c-dica">
-        Grande: pontos do mês. Pequeno: acumulado deste mês e dos 3 anteriores (o que fica guardado
-        depois da limpeza de 3 em 3 meses, na aba Histórico).
-      </p>
+
+      {!verGeral ? (
+        lista.length === 0 ? (
+          <p className="c-contagem">Ninguém pontuou ainda.</p>
+        ) : (
+          <>
+            <Campo rotulo="Buscar paciente">
+              <Texto valor={busca} aoMudar={definirBusca} placeholder="Nome" />
+            </Campo>
+            <div className="c-ranking" style={{ marginTop: 12 }}>
+              {visiveis.map((l) => (
+                <div key={`${l.posicao}-${l.nome}`} className={`c-ranking-linha ${l.posicao <= 3 ? "destaque" : ""}`}>
+                  <span className="c-ranking-posicao">{l.posicao}º</span>
+                  <span className="c-ranking-nome">{l.nome}</span>
+                  <span className="c-ranking-pontos">
+                    {l.pontos} pts
+                    {l.acumulado !== undefined && (
+                      <small className="c-ranking-acumulado">acumulado {l.acumulado}</small>
+                    )}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="c-dica">
+              Grande: pontos do mês. Pequeno: acumulado deste mês e dos 6 anteriores (o que fica guardado
+              depois da limpeza de 6 em 6 meses, na aba Histórico).
+            </p>
+          </>
+        )
+      ) : (
+        geral.length === 0 ? (
+          <p className="c-contagem">Nenhuma paciente com saldo.</p>
+        ) : (
+          <>
+            <Campo rotulo="Buscar paciente">
+              <Texto valor={buscaGeral} aoMudar={definirBuscaGeral} placeholder="Nome" />
+            </Campo>
+            <div className="c-ranking" style={{ marginTop: 12 }}>
+              {visiveisGeral.map((l) => (
+                <div key={l.pacienteId} className={`c-ranking-linha ${l.posicao <= 3 ? "destaque" : ""}`}>
+                  <span className="c-ranking-posicao">{l.posicao}º</span>
+                  <span className="c-ranking-nome">{l.nome}</span>
+                  <span className="c-ranking-pontos">{l.saldo} pts</span>
+                </div>
+              ))}
+            </div>
+            <p className="c-dica">
+              Todas as pacientes com saldo acumulado, independente de terem pontuado no desafio
+              selecionado.
+            </p>
+          </>
+        )
+      )}
     </>
   );
 }

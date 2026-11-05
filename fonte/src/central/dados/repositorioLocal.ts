@@ -17,6 +17,7 @@ import type {
   IndicacaoPendente,
   LimpezaDePontos,
   LinhaDoRanking,
+  LinhaDoRankingGeral,
   MeuDesafio,
   NovoPaciente,
   NovoRegistroDeReintroducao,
@@ -607,7 +608,7 @@ export const repositorioLocal: Repositorio = {
   async limparPontosAntigos(confirmar: boolean): Promise<LimpezaDePontos> {
     // Na demonstração não há livro de pontos; devolve um exemplo para a tela.
     const hoje = hojeLocal();
-    const d = new Date(Date.UTC(Number(hoje.slice(0, 4)), Number(hoje.slice(5, 7)) - 1 - 3, 1));
+    const d = new Date(Date.UTC(Number(hoje.slice(0, 4)), Number(hoje.slice(5, 7)) - 1 - 6, 1));
     return {
       corte: d.toISOString().slice(0, 10),
       linhas: 6,
@@ -718,6 +719,16 @@ export const repositorioLocal: Repositorio = {
 
   async rankingDoDesafio() {
     return (await repositorioLocal.meuDesafio()).ranking ?? [];
+  },
+
+  async rankingGeral(): Promise<LinhaDoRankingGeral[]> {
+    const nomes = pacientesDaSemente();
+    return nomes.slice(0, 4).map((p, i) => ({
+      posicao: i + 1,
+      pacienteId: `demo-${i}`,
+      nome: p.nome,
+      saldo: [245, 120, 60, 15][i] ?? 0,
+    }));
   },
 
   async enviosPendentes(): Promise<EnvioPendente[]> {

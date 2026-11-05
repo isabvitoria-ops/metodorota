@@ -17,6 +17,7 @@ import type {
   IndicacaoPendente,
   LimpezaDePontos,
   LinhaDoRanking,
+  LinhaDoRankingGeral,
   MarcadorDoAlimento,
   MeuDesafio,
   NovoPaciente,
@@ -193,7 +194,7 @@ export interface Repositorio {
   ): Promise<string>;
   /**
    * Mostra (`confirmar` falso) ou faz (verdadeiro) a limpeza dos pontos de mais
-   * de 3 meses atrás. As linhas vão para um arquivo antes de saírem do saldo.
+   * de 6 meses atrás. As linhas vão para um arquivo antes de saírem do saldo.
    */
   limparPontosAntigos(confirmar: boolean): Promise<LimpezaDePontos>;
 
@@ -202,6 +203,7 @@ export interface Repositorio {
   salvarDesafio(desafio: Partial<DesafioAdmin> & { nome: string; dataInicio: string; dataFim: string }): Promise<void>;
   painelDoDesafio(desafioId: string): Promise<PainelDoDesafio>;
   rankingDoDesafio(desafioId: string): Promise<LinhaDoRanking[]>;
+  rankingGeral(): Promise<LinhaDoRankingGeral[]>;
   /**
    * O placar de cada mês (o atual e os `meses` anteriores), para a nutricionista
    * dar os presentes no começo do mês (0059). Lê o livro de pontos: nada é
