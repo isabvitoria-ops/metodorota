@@ -8658,6 +8658,13 @@ body:has(.central) {
   to { opacity: 1; transform: translateY(0); }
 }
 
+.c-corredor-imagem {
+  width: 100%;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(38, 61, 82, 0.10);
+}
+
 .c-corredor-dica {
   display: flex;
   gap: 10px;

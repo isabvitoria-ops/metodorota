@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { rotas } from "@/central/rotas";
+import imgLaticinios from "@/central/mercado-imgs/laticinios.webp";
+import imgPadaria from "@/central/mercado-imgs/padaria.webp";
+import imgConservas from "@/central/mercado-imgs/conservas.webp";
+import imgCongelados from "@/central/mercado-imgs/congelados.webp";
+import imgAcougue from "@/central/mercado-imgs/acougue.webp";
 
 interface Produto {
   nome: string;
@@ -15,6 +20,7 @@ interface Corredor {
   titulo: string;
   cor: string;
   corClara: string;
+  imagem: string;
   dica?: string;
   categorias: { titulo: string; produtos: Produto[] }[];
 }
@@ -26,6 +32,7 @@ const CORREDORES: Corredor[] = [
     titulo: "Laticínios",
     cor: "#7A9DB5",
     corClara: "#DDE9F0",
+    imagem: imgLaticinios,
     dica: "Prefira iogurtes naturais, sem açúcar e com poucos ingredientes. Quanto mais curta a lista, melhor a escolha.",
     categorias: [
       {
@@ -65,6 +72,7 @@ const CORREDORES: Corredor[] = [
     titulo: "Padaria",
     cor: "#B08C3E",
     corClara: "#F5EDD8",
+    imagem: imgPadaria,
     dica: "Procure pães com farinha integral como primeiro ingrediente e sem xarope de glicose. '100% integral' na embalagem é o mais seguro.",
     categorias: [
       {
@@ -95,6 +103,7 @@ const CORREDORES: Corredor[] = [
     titulo: "Conservas & doces",
     cor: "#C4515F",
     corClara: "#F9E0E3",
+    imagem: imgConservas,
     dica: "Geléia boa de verdade é feita só de fruta. Fuja das que têm açúcar como primeiro ingrediente — procure '100% fruta' no rótulo.",
     categorias: [
       {
@@ -114,6 +123,7 @@ const CORREDORES: Corredor[] = [
     titulo: "Congelados",
     cor: "#6A95AE",
     corClara: "#DAE8F0",
+    imagem: imgCongelados,
     dica: "Frutas congeladas mantêm os nutrientes e são perfeitas para smoothies, açaí caseiro e sobremesas. Confira se o ingrediente é só a fruta.",
     categorias: [
       {
@@ -136,6 +146,7 @@ const CORREDORES: Corredor[] = [
     titulo: "Açougue & peixaria",
     cor: "#6E946A",
     corClara: "#DFEeDd",
+    imagem: imgAcougue,
     dica: "Proteínas magras são a base. No frango desfiado pronto, escolha a opção com menos ingredientes possíveis.",
     categorias: [
       {
@@ -219,6 +230,15 @@ export function Mercado() {
 
                 {aberto && (
                   <div className="c-corredor-conteudo" style={{ "--corredor-cor": corredor.cor, "--corredor-clara": corredor.corClara } as React.CSSProperties}>
+                    {corredor.imagem && (
+                      <img
+                        src={corredor.imagem}
+                        alt={`Produtos recomendados — ${corredor.titulo}`}
+                        className="c-corredor-imagem"
+                        loading="lazy"
+                      />
+                    )}
+
                     {corredor.dica && (
                       <div className="c-corredor-dica">
                         <span className="c-corredor-dica-icone">💡</span>
