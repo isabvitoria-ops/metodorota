@@ -52,7 +52,8 @@ export function CentralApp() {
         <Routes>
           <Route index element={<Home />} />
           <Route path="protocolo" element={<Protocolo />} />
-          <Route path="mercado" element={<Mercado />} />
+          {/* Rolê no Mercado — escondido até as fotos individuais ficarem prontas */}
+          {/* <Route path="mercado" element={<Mercado />} /> */}
           <Route path="avaliacao" element={<Avaliacao />} />
           <Route path="evolucao" element={<Treino />} />
           <Route path="metas" element={<Metas />} />

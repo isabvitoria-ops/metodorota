@@ -38,13 +38,14 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     titulo: "Protocolo Alimentar",
     descricao: "Seu plano, com as substituições de cada item.",
   },
-  {
-    rota: rotas.mercado,
-    grupo: "acompanhamento",
-    icone: "mercado",
-    titulo: "Rolê no Mercado",
-    descricao: "Boas escolhas em cada corredor do supermercado.",
-  },
+  // Rolê no Mercado — escondido até as fotos individuais ficarem prontas
+  // {
+  //   rota: rotas.mercado,
+  //   grupo: "acompanhamento",
+  //   icone: "mercado",
+  //   titulo: "Rolê no Mercado",
+  //   descricao: "Boas escolhas em cada corredor do supermercado.",
+  // },
   {
     rota: rotas.rastreabilidade,
     grupo: "acompanhamento",
