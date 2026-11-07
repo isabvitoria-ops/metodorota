@@ -16,7 +16,8 @@ import { Bristol } from "./pages/Bristol";
 import { Habitos } from "./pages/Habitos";
 import { DiarioDeFotosPagina } from "@/central/pages/DiarioDeFotos";
 import { Protocolo } from "./pages/Protocolo";
-import { Mercado } from "./pages/Mercado";
+// Rolê no Mercado — escondido até as fotos individuais ficarem prontas
+// import { Mercado } from "./pages/Mercado";
 import { Avaliacao } from "./pages/Avaliacao";
 import { Metas } from "./pages/Metas";
 import { Treino } from "./pages/Treino";

@@ -121,7 +121,10 @@ export function Rastreabilidade() {
     );
   }
 
-  const itens = dados?.itens ?? [];
+  const semanaAtual = dados?.semanaAtual ?? 1;
+  const itens = (dados?.itens ?? []).filter(
+    (item) => item.semanaSugerida === null || item.semanaSugerida <= semanaAtual,
+  );
   const registros = dados?.registros ?? [];
   const disponiveis = itensParaRegistrar(itens);
   const semanas = porSemana(registros);
