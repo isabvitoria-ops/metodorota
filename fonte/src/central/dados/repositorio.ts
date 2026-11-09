@@ -102,6 +102,7 @@ import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { MinhaHidratacao, HidratacaoDoPaciente, TipoLiquido } from "@/central/types/hidratacao";
 import type { RestricaoAlimentar, TipoRestricao, GravidadeRestricao } from "@/central/types/restricao";
 import type { FotoEvolucao, PoseEvolucao } from "@/central/types/fotoEvolucao";
+import type { FichaDeViagem } from "@/central/types/viagem";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
 import { repositorioSupabase } from "./repositorioSupabase";
@@ -939,6 +940,13 @@ export interface Repositorio {
   excluirRestricao(id: string): Promise<void>;
   restricoesDoPaciente(pacienteId: string): Promise<RestricaoAlimentar[]>;
   minhasRestricoes(): Promise<RestricaoAlimentar[]>;
+
+  // ---------------------------------------------------------------------
+  // Rota Viagem (0086)
+  // ---------------------------------------------------------------------
+
+  /** Os dados pessoais da ficha de saúde da viagem. Nulo se não houver. */
+  minhaFichaDeViagem(): Promise<FichaDeViagem | null>;
 
   // ---------------------------------------------------------------------
   // Fotos evolutivas (0081)

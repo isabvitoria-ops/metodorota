@@ -2702,6 +2702,21 @@ export const repositorioSupabase: Repositorio = {
     return (Array.isArray(data) ? data : []) as RestricaoAlimentar[];
   },
 
+  // -- Rota Viagem (0086) --
+
+  async minhaFichaDeViagem() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("minha_ficha_viagem");
+    erro("carregar a ficha da viagem", error);
+    if (!data || typeof data !== "object") return null;
+    const ficha = data as Record<string, unknown>;
+    return {
+      nome: textoOuNulo(ficha.nome),
+      nascimento: textoOuNulo(ficha.nascimento),
+      diagnosticos: textoOuNulo(ficha.diagnosticos),
+    };
+  },
+
   // -- Fotos evolutivas (0081) --
 
   async enviarFotoEvolucao(foto: Blob, pose: PoseEvolucao, data?: string, pacienteId?: string) {

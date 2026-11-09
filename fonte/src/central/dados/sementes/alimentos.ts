@@ -262,6 +262,9 @@ const GORDURAS: Linha[] = [
 const FRUTAS: Linha[] = [
   ["abacaxi", "Abacaxi", 200],
   ["acai-polpa-pura-sem-acucar", "Açaí polpa pura sem açúcar", 175, "g", ACAI],
+  ["acai-com-acucar", "Açaí com açúcar (polpa com xarope de guaraná)", 100, "g",
+    "Referência: TACO — açaí, polpa, com xarope de guaraná e glucose. " +
+    "Porção de 100 g equivale a uma porção de fruta."],
   ["acerola", "Acerola", 310],
   ["agua-de-coco-in-natura", "Água de coco in natura", 500, "ml", FERMENTA],
   ["ameixa", "Ameixa", 210],

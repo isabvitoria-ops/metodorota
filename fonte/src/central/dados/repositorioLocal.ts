@@ -2309,6 +2309,9 @@ export const repositorioLocal: Repositorio = {
   async minhasRestricoes() {
     return [];
   },
+  async minhaFichaDeViagem() {
+    return null;
+  },
   async enviarFotoEvolucao() {
     return { id: "demo" };
   },

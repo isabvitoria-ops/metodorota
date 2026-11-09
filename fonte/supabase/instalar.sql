@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql
 -- =============================================================================
 
 
@@ -21884,3 +21884,282 @@ $$;
 
 revoke all on function meu_carimbo_de_conteudo() from public, anon;
 grant execute on function meu_carimbo_de_conteudo() to authenticated;
+
+
+-- ###########################################################################
+-- 0085_ranking_geral_e_limpeza_6_meses.sql
+-- ###########################################################################
+
+-- Duas mudanças pedidas pela Isabela:
+--
+-- 1. Ranking geral — todas as pacientes com saldo, independente de terem
+--    pontuado no mês. Quem não pontuou no desafio selecionado mas tem saldo
+--    remanescente aparece também.
+--
+-- 2. Limpeza de 6 em 6 meses (era 3 em 3). O acumulado no ranking do desafio
+--    acompanha: passa a cobrir o mês do desafio e os 6 anteriores.
+
+-- 1. ranking_do_desafio: acumulado passa a cobrir 6 meses --------------------------------
+
+drop function if exists ranking_do_desafio(uuid);
+
+create function ranking_do_desafio(p_desafio uuid)
+returns table (
+  posicao integer,
+  paciente_id uuid,
+  nome text,
+  pontos integer,
+  sou_eu boolean,
+  acumulado integer
+)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not coalesce(e_admin() or tem_acesso(), false) then
+    raise exception 'Seu acesso não está liberado.' using errcode = '42501';
+  end if;
+  return query
+  with mes as (
+    select date_trunc('month', d.data_inicio::timestamp)::date as inicio
+      from desafios d where d.id = p_desafio
+  ),
+  envolvidas as (
+    select dp.paciente_id from desafio_participantes dp where dp.desafio_id = p_desafio
+    union
+    select l.paciente_id from pontos_lancamentos l where l.desafio_id = p_desafio
+  ),
+  somas as (
+    select p.id, p.nome, coalesce(sum(l.pontos), 0)::int as pontos
+    from envolvidas e
+    join pacientes p on p.id = e.paciente_id
+    left join pontos_lancamentos l on l.paciente_id = p.id and l.desafio_id = p_desafio
+    group by p.id, p.nome
+  ),
+  acum as (
+    select l.paciente_id, sum(l.pontos) filter (where l.tipo <> 'resgate')::int as total
+      from pontos_lancamentos l
+      left join desafios dd on dd.id = l.desafio_id
+      cross join mes
+     where date_trunc('month',
+             coalesce(dd.data_inicio::timestamp, l.criado_em at time zone 'America/Sao_Paulo'))::date
+           between (mes.inicio - interval '6 months')::date and mes.inicio
+     group by l.paciente_id
+  )
+  select rank() over (order by s.pontos desc)::int, s.id,
+         nome_para_ranking(s.nome), s.pontos, s.id = meu_paciente_id(),
+         coalesce(a.total, 0)
+  from somas s
+  left join acum a on a.paciente_id = s.id
+  order by s.pontos desc, s.nome;
+end;
+$$;
+
+revoke all on function ranking_do_desafio(uuid) from anon, public;
+grant execute on function ranking_do_desafio(uuid) to authenticated;
+
+-- 2. ranking_geral: todas as pacientes com saldo != 0 -----------------------------------
+
+create or replace function ranking_geral()
+returns table (
+  posicao integer,
+  paciente_id uuid,
+  nome text,
+  saldo integer
+)
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê o ranking geral.' using errcode = '42501';
+  end if;
+  return query
+  select rank() over (order by s.total desc)::int,
+         s.id, s.nome_completo, s.total
+  from (
+    select p.id, p.nome as nome_completo,
+           coalesce(sum(l.pontos), 0)::int as total
+      from pacientes p
+      left join pontos_lancamentos l on l.paciente_id = p.id
+     group by p.id, p.nome
+    having coalesce(sum(l.pontos), 0) <> 0
+  ) s
+  order by s.total desc, s.nome_completo;
+end;
+$$;
+
+revoke all on function ranking_geral() from anon, public;
+grant execute on function ranking_geral() to authenticated;
+
+-- 3. limpar_pontos_antigos: de 3 para 6 meses -------------------------------------------
+
+create or replace function limpar_pontos_antigos(p_confirmar boolean default false)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_corte date := (date_trunc('month', hoje_sp()::timestamp) - interval '6 months')::date;
+  v_linhas integer;
+  v_pacientes integer;
+  v_pontos integer;
+  v_negativas integer;
+  v_ids uuid[];
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista limpa os pontos antigos.' using errcode = '42501';
+  end if;
+
+  select coalesce(array_agg(l.id), '{}') into v_ids
+    from pontos_lancamentos l
+    left join desafios d on d.id = l.desafio_id
+   where date_trunc('month',
+           coalesce(d.data_inicio::timestamp, l.criado_em at time zone 'America/Sao_Paulo'))::date < v_corte;
+
+  select count(*), count(distinct l.paciente_id), coalesce(sum(l.pontos), 0)
+    into v_linhas, v_pacientes, v_pontos
+    from pontos_lancamentos l where l.id = any (v_ids);
+
+  select count(*) into v_negativas from (
+    select l.paciente_id
+      from pontos_lancamentos l
+     where not (l.id = any (v_ids))
+     group by l.paciente_id
+    having sum(l.pontos) < 0) t;
+
+  if p_confirmar and v_linhas > 0 then
+    insert into pontos_arquivo
+    select l.*, now(), auth.uid() from pontos_lancamentos l where l.id = any (v_ids);
+    delete from pontos_lancamentos l where l.id = any (v_ids);
+  end if;
+
+  return jsonb_build_object(
+    'corte', v_corte, 'linhas', v_linhas, 'pacientes', v_pacientes,
+    'pontos', v_pontos, 'saldoNegativo', v_negativas,
+    'apagou', p_confirmar and v_linhas > 0);
+end;
+$$;
+
+
+-- ###########################################################################
+-- 0086_viagem.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0086 — Rota Viagem: interruptor por paciente
+--
+-- Mesmo padrão de 0080: coluna booleana + função auxiliar + meu_acesso()
+-- atualizado com a chave 'viagem'.
+--
+-- `viagem_ficha` guarda os dados pessoais da ficha de saúde (nome completo,
+-- nascimento, diagnósticos). Ficam no banco, e não no código da tela, porque o
+-- código é baixado por qualquer visitante; a ficha só sai para a própria
+-- paciente, por `minha_ficha_viagem()`. O conteúdo de cada paciente é gravado
+-- direto no banco, nunca nesta migração.
+-- =============================================================================
+
+alter table pacientes
+  add column if not exists viagem_liberado boolean not null default false;
+
+alter table pacientes
+  add column if not exists viagem_ficha jsonb;
+
+create or replace function minha_ficha_viagem()
+returns jsonb
+language sql stable security definer
+set search_path to 'public'
+as $$
+  select p.viagem_ficha
+    from pacientes p
+   where p.perfil_id = auth.uid()
+     and p.viagem_liberado;
+$$;
+
+revoke execute on function minha_ficha_viagem() from public, anon;
+grant execute on function minha_ficha_viagem() to authenticated;
+
+create or replace function viagem_liberado(p_paciente uuid)
+returns boolean
+language sql stable security definer
+set search_path to 'public'
+as $$
+  select case when e_admin() then true
+    else coalesce(
+      (select p.viagem_liberado from pacientes p where p.id = p_paciente),
+      false
+    )
+  end;
+$$;
+
+grant execute on function viagem_liberado(uuid) to authenticated;
+
+create or replace function meu_acesso()
+returns jsonb
+language sql
+stable security definer
+set search_path to 'public'
+as $$
+  select jsonb_build_object(
+    'autenticado', auth.uid() is not null,
+    'perfilId', auth.uid(),
+    'papel', coalesce((select papel from perfis where id = auth.uid()), 'paciente'),
+    'nome', (select coalesce(pa.nome, pe.nome) from perfis pe
+             left join pacientes pa on pa.perfil_id = pe.id where pe.id = auth.uid()),
+    'email', (select email::text from perfis where id = auth.uid()),
+    'temAcesso', tem_acesso() or e_admin(),
+    'situacao', coalesce(
+      (select situacao_paciente(p.status, p.perfil_id, p.data_inicio, p.data_fim)
+         from pacientes p where p.perfil_id = auth.uid()),
+      case when e_admin() then 'admin' else 'sem_cadastro' end
+    ),
+    'dataInicio', (select data_inicio from pacientes where perfil_id = auth.uid()),
+    'dataFim', (select data_fim from pacientes where perfil_id = auth.uid()),
+    'diasRestantes', (select data_fim - hoje_sp() from pacientes where perfil_id = auth.uid()),
+    'plano', (select pl.nome from pacientes p join planos pl on pl.id = p.plano_id
+               where p.perfil_id = auth.uid()),
+    'rastreio', e_admin() or coalesce(rastreio_ativo(meu_paciente_id()), false),
+    'protocolo', e_admin() or tenho_protocolo(),
+    'avaliacao', e_admin() or tenho_avaliacao(),
+    'treino', e_admin() or tenho_treino(),
+    'metas', e_admin() or tenho_metas(),
+    'desafio', e_admin() or coalesce(desafio_liberado(meu_paciente_id()), true),
+    'restricoes', e_admin() or coalesce(restricoes_liberado(meu_paciente_id()), false),
+    'fodmap', e_admin() or coalesce(fodmap_liberado(meu_paciente_id()), false),
+    'viagem', e_admin() or coalesce(viagem_liberado(meu_paciente_id()), false),
+    -- Hot Slim
+    'hotslim', e_admin() or e_hotslim(),
+    'hotslimFases', coalesce(
+      (select
+        case
+          when hoje_sp() < hp.data_inicio then hp.fases_liberadas
+          else (
+            select array(
+              select distinct unnest(
+                hp.fases_liberadas ||
+                (select coalesce(array_agg(g)::int[], '{}'::int[])
+                 from generate_series(1,
+                   least(4, ceil((hoje_sp() - hp.data_inicio + 1)::numeric / 7))::int
+                 ) g)
+              ) order by 1
+            )
+          )
+        end
+       from hotslim_participantes hp
+       where hp.id = auth.uid() and hp.ativo = true),
+      '{}'::int[]
+    ),
+    'hotslimDiaAtual', (
+      select least(21, greatest(1, hoje_sp() - data_inicio + 1))
+      from hotslim_participantes
+      where id = auth.uid() and ativo = true
+    )
+  );
+$$;
+
+grant execute on function meu_acesso() to authenticated;

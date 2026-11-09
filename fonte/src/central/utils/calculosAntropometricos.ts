@@ -361,7 +361,8 @@ export function pesoOsseoVonDobeln(
   const femur = lerDiametro(diametros, "Biepicondiliano do fêmur");
   if (!punho || !femur) return null;
   const alturaM = altura / 100;
-  return 3.02 * Math.pow(alturaM * alturaM * punho * femur, 0.712);
+  // Rocha 1975 / Von Döbeln 1964: diâmetros em metros, fator empírico 400
+  return 3.02 * Math.pow(alturaM * alturaM * (punho / 100) * (femur / 100) * 400, 0.712);
 }
 
 export function pesoResidualCalc(peso: number | null, sexo: Sexo | null): number | null {

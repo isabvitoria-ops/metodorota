@@ -190,7 +190,7 @@ export function Home() {
           </div>
         )}
 
-        <CardDeViagem />
+        <CardDeViagem temGuia={acesso.viagem} />
 
         <CheckinPendente />
 
@@ -259,18 +259,20 @@ export function Home() {
 }
 
 /**
- * CTA de viagem na Home — leva para o formulário de aviso de viagem.
+ * CTA de viagem na Home. Quem tem o Rota Viagem liberado vai para o guia;
+ * as demais avisam a nutricionista de uma viagem programada.
  */
-function CardDeViagem() {
+function CardDeViagem({ temGuia }: { temGuia: boolean }) {
   return (
     <section className="c-secao">
       <Link to={rotas.viagem} className="c-card-viagem c-card-viagem--clicavel">
         <span className="c-card-viagem-emoji" aria-hidden="true">✈️</span>
         <div className="c-card-viagem-texto">
-          <strong>Tem alguma viagem programada?</strong>
+          <strong>{temGuia ? "Rota Viagem" : "Tem alguma viagem programada?"}</strong>
           <span>
-            Toque aqui para avisar sua nutricionista e receber orientações
-            especiais para a viagem.
+            {temGuia
+              ? "Seu guia personalizado para comer bem durante a viagem."
+              : "Toque aqui para avisar sua nutricionista e receber orientações especiais para a viagem."}
           </span>
         </div>
         <Icone nome="seta" tamanho={18} />

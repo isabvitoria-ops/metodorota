@@ -1702,10 +1702,11 @@ body:has(.central) {
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  margin-top: 18px;
   padding: 16px;
-  border-radius: var(--raio);
-  border: 1px solid var(--cor-destaque);
-  background: var(--cor-destaque-fundo);
+  border-radius: var(--radius);
+  border: 1px solid var(--primary);
+  background: var(--primary-soft);
 }
 
 .central .c-card-viagem-emoji {
@@ -1721,15 +1722,18 @@ body:has(.central) {
 
 .central .c-card-viagem-texto strong {
   display: block;
-  font: 600 0.95rem/1.3 var(--fonte);
-  color: var(--cor-titulo);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  color: var(--primary-dark);
 }
 
 .central .c-card-viagem-texto span {
   display: block;
   margin-top: 4px;
-  font: 400 0.85rem/1.4 var(--fonte);
-  color: var(--cor-texto-sec);
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--text-muted);
 }
 
 .central .c-card-viagem--clicavel {
@@ -1748,7 +1752,7 @@ body:has(.central) {
 .central .c-card-viagem--clicavel > .c-icone {
   flex-shrink: 0;
   align-self: center;
-  color: var(--cor-texto-sec);
+  color: var(--icone);
 }
 
 /* Formulário de viagem */
@@ -1785,6 +1789,567 @@ body:has(.central) {
   color: var(--cor-texto-sec);
   margin: 0 0 8px;
   max-width: 300px;
+}
+
+/* ----------------------------------------------------------------
+   Rota Viagem — guia personalizado (c-vg-*)
+   ---------------------------------------------------------------- */
+
+/* Hero */
+.c-vg-hero {
+  background: var(--marca-azul-profundo);
+  color: var(--marca-marfim);
+  padding: 24px var(--gutter);
+  margin: 14px calc(var(--gutter) * -1) 0;
+  text-align: center;
+}
+
+.c-vg-hero-tag {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+  margin: 0 0 8px;
+}
+
+.c-vg-hero-tagline {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  margin: 0 0 12px;
+}
+
+.c-vg-hero-meta {
+  font-size: 0.82rem;
+  margin: 2px 0;
+  opacity: 0.85;
+}
+
+/* Nav sticky */
+.c-vg-nav {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 0 var(--gutter);
+  scrollbar-width: none;
+}
+
+.c-vg-nav::-webkit-scrollbar { display: none; }
+
+/* `.central button { font/color: inherit }` pesa mais que uma classe sozinha:
+   os botões do guia levam `.central` na frente para a cor e o tamanho valerem. */
+.central .c-vg-nav-link {
+  flex: none;
+  padding: 12px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--transicao), border-color var(--transicao);
+}
+
+.central .c-vg-nav-link:focus-visible {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+@media (hover: hover) {
+  .central .c-vg-nav-link:hover {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+  }
+}
+
+/* Seção genérica */
+.c-vg-secao {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--border);
+  /* para o título não parar atrás da barra de seções */
+  scroll-margin-top: calc(48px + env(safe-area-inset-top, 0px));
+}
+
+.c-vg-secao > p {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin: 8px 0;
+}
+
+.c-vg-secao:last-of-type { border-bottom: none; }
+
+.c-vg-secao-titulo {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  margin: 0 0 12px;
+  line-height: 1.3;
+}
+
+.c-vg-sub {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 16px 0 8px;
+}
+
+.c-vg-intro {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin: 0 0 16px;
+  line-height: 1.55;
+}
+
+/* Estratégias */
+.c-vg-estrategias {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.c-vg-estrategia {
+  display: flex;
+  gap: 10px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.c-vg-estrategia-num {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+/* Dica box */
+.c-vg-dica {
+  background: var(--marca-gelo);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--primary-dark);
+  margin-top: 16px;
+}
+
+.c-vg-dica p { margin: 0; }
+
+/* Card genérico */
+.c-vg-card {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.c-vg-card p { margin: 4px 0; }
+
+/* Refeições (timeline) */
+.c-vg-refeicoes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.c-vg-refeicao {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--marca-azul-medio);
+}
+
+.c-vg-refeicao-label {
+  flex: none;
+  min-width: 70px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+/* Busca de alimentos */
+.c-vg-busca {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 0.88rem;
+  font-family: var(--font-body);
+  border: 1px solid var(--border-campo);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--transicao), box-shadow var(--transicao);
+}
+
+.c-vg-busca:focus {
+  border-color: var(--primary);
+  box-shadow: var(--foco);
+}
+
+/* Semáforo */
+.c-vg-sem-grupo {
+  margin-top: 16px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.c-vg-sem-label {
+  padding: 10px 16px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.c-vg-sem-label--verde { background: var(--success-soft); color: var(--success); }
+.c-vg-sem-label--amarelo { background: var(--warning-soft); color: var(--warning); }
+.c-vg-sem-label--vermelho { background: var(--danger-soft); color: var(--danger); }
+
+.c-vg-sem-corpo {
+  padding: 6px 0;
+}
+
+.c-vg-sem-corpo--verde { border-left: 3px solid var(--success); }
+.c-vg-sem-corpo--amarelo { border-left: 3px solid var(--warning); }
+.c-vg-sem-corpo--vermelho { border-left: 3px solid var(--danger); }
+
+.c-vg-sem-item {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.c-vg-sem-item + .c-vg-sem-item {
+  border-top: 1px solid var(--border);
+}
+
+.c-vg-sem-item strong {
+  display: block;
+  font-size: 0.88rem;
+  color: var(--primary-dark);
+  margin-bottom: 2px;
+}
+
+/* Abas (países, idiomas) */
+.c-vg-abas {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.central .c-vg-aba {
+  flex: 1;
+  min-height: 40px;
+  padding: 8px 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transicao), color var(--transicao), border-color var(--transicao);
+  text-align: center;
+}
+
+@media (hover: hover) {
+  .central .c-vg-aba:hover { border-color: var(--primary); color: var(--primary); }
+}
+
+.central .c-vg-aba--ativo,
+.central .c-vg-aba--ativo:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* Cartão do garçom */
+.c-vg-cartao-garcom {
+  background: var(--marca-marfim);
+  border: 2px solid var(--marca-azul-profundo);
+  border-radius: var(--radius);
+  padding: 20px;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--marca-nanquim);
+  text-align: center;
+}
+
+.c-vg-cartao-garcom strong {
+  display: block;
+  margin-top: 10px;
+  color: var(--danger);
+}
+
+/* Tabelas */
+.c-vg-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.c-vg-tabela th {
+  text-align: left;
+  padding: 8px 10px;
+  background: var(--marca-gelo);
+  color: var(--primary-dark);
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.c-vg-tabela td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.c-vg-tabela--frases td { font-size: 0.82rem; }
+
+/* Listas e checklists */
+.c-vg-lista {
+  padding-left: 20px;
+  margin: 8px 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.c-vg-lista li + li { margin-top: 8px; }
+
+.c-vg-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.c-vg-checklist li {
+  position: relative;
+  padding-left: 24px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.c-vg-checklist li + li { margin-top: 6px; }
+
+.c-vg-checklist li::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 9px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--marca-azul-medio);
+}
+
+/* Alertas */
+.c-vg-alerta-vermelho {
+  background: var(--danger-soft);
+  border-left: 4px solid var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 16px 18px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.c-vg-alerta-vermelho h3 {
+  font-size: 0.9rem;
+  color: var(--danger);
+  margin: 0 0 8px;
+}
+
+.c-vg-alerta-vermelho ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.c-vg-alerta-vermelho li + li { margin-top: 4px; }
+
+.c-vg-alerta-amarelo {
+  background: var(--warning-soft);
+  border-left: 4px solid var(--warning);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin-top: 12px;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.c-vg-112-nota {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 8px 0;
+}
+
+/* Ficha de saúde */
+.c-vg-ficha {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.c-vg-ficha-linha {
+  display: flex;
+  gap: 10px;
+  padding: 8px 14px;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  border-bottom: 1px solid var(--border);
+}
+
+.c-vg-ficha-linha:last-child { border-bottom: none; }
+
+.c-vg-ficha-label {
+  flex: none;
+  min-width: 110px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--primary);
+}
+
+/* Diário */
+.c-vg-diario-dia {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.c-vg-diario-resumo {
+  padding: 12px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.c-vg-diario-resumo::-webkit-details-marker { display: none; }
+
+.c-vg-diario-resumo::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 8px;
+  transition: transform var(--transicao);
+}
+
+.c-vg-diario-dia[open] > .c-vg-diario-resumo::before {
+  transform: rotate(90deg);
+}
+
+.c-vg-diario-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+
+.c-vg-diario-campo {
+  display: block;
+  min-width: 0;
+}
+
+.c-vg-diario-campo > span {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.c-vg-diario-campo--full {
+  grid-column: 1 / -1;
+}
+
+/* Modelo de mensagem e copiar */
+.c-vg-msg-modelo {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  margin-top: 12px;
+}
+
+.central .c-vg-copiar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  min-height: 40px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity var(--transicao);
+}
+
+.central .c-vg-copiar:hover { opacity: 0.85; }
+
+/* Rodapé */
+.c-vg-rodape {
+  background: var(--marca-azul-profundo);
+  color: var(--marca-marfim);
+  padding: 28px var(--gutter);
+  margin: 24px calc(var(--gutter) * -1) 0;
+  font-size: 0.78rem;
+  line-height: 1.7;
+  text-align: center;
 }
 
 /* ---------------------------------------------------------------- logos */
