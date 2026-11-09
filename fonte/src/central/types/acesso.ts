@@ -119,6 +119,7 @@ export interface Acesso {
    * O FODMAP é para quem faz rastreio intestinal, não para todo mundo.
    */
   fodmap: boolean;
+  viagem: boolean;
   hotslim: boolean;
   hotslimFases: number[];
   hotslimDiaAtual: number | null;

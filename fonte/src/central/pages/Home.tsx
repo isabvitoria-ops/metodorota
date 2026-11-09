@@ -190,7 +190,7 @@ export function Home() {
           </div>
         )}
 
-        <CardDeViagem />
+        {acesso.viagem && <CardDeViagem />}
 
         <CheckinPendente />
 
@@ -259,7 +259,7 @@ export function Home() {
 }
 
 /**
- * CTA de viagem na Home — leva para o formulário de aviso de viagem.
+ * CTA de viagem na Home — leva para o guia Rota Viagem.
  */
 function CardDeViagem() {
   return (
@@ -267,10 +267,9 @@ function CardDeViagem() {
       <Link to={rotas.viagem} className="c-card-viagem c-card-viagem--clicavel">
         <span className="c-card-viagem-emoji" aria-hidden="true">✈️</span>
         <div className="c-card-viagem-texto">
-          <strong>Tem alguma viagem programada?</strong>
+          <strong>Rota Viagem</strong>
           <span>
-            Toque aqui para avisar sua nutricionista e receber orientações
-            especiais para a viagem.
+            Seu guia personalizado para comer bem durante a viagem.
           </span>
         </div>
         <Icone nome="seta" tamanho={18} />
