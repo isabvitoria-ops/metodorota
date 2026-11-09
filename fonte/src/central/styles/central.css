@@ -3895,14 +3895,23 @@ body:has(.central) {
     table-layout: fixed;
   }
 
+  .doc-tabela-protocolo tbody th,
+  .doc-tabela-protocolo tbody td {
+    vertical-align: top;
+  }
+
+  .doc-tabela-protocolo td.doc-data {
+    white-space: normal;
+  }
+
   .doc-tabela-protocolo th:nth-child(1),
   .doc-tabela-protocolo td:nth-child(1) {
-    width: 34%;
+    width: 30%;
   }
 
   .doc-tabela-protocolo th:nth-child(2),
   .doc-tabela-protocolo td:nth-child(2) {
-    width: 18%;
+    width: 22%;
   }
 
   .doc-tabela-protocolo th:nth-child(3),

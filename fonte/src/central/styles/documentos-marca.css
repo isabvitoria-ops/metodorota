@@ -481,17 +481,17 @@
 
   .doc-tabela-protocolo tbody th,
   .doc-tabela-protocolo tbody td {
-    vertical-align: middle;
+    vertical-align: top;
   }
 
   .doc-tabela-protocolo th:nth-child(1),
   .doc-tabela-protocolo td:nth-child(1) {
-    width: 38%;
+    width: 34%;
   }
 
   .doc-tabela-protocolo th:nth-child(2),
   .doc-tabela-protocolo td:nth-child(2) {
-    width: 18%;
+    width: 22%;
   }
 
   .doc-tabela-protocolo th:nth-child(3),
