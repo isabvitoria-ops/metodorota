@@ -1,0 +1,1012 @@
+<title>Rota Viagem</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600&family=Lato:wght@400;700&display=swap">
+<style>
+:root {
+  --marfim: #F7EEE7;
+  --areia: #C9BCAC;
+  --azul-gelo: #C8DAE4;
+  --azul-medio: #5A7A8F;
+  --azul-profundo: #38546C;
+  --areia-clara: #EAE6DB;
+  --nanquim: #263D52;
+  --cereja: #A82B3C;
+  --rosa: #F0B8C4;
+  --limao: #E9C94A;
+  --folha: #4F6F4A;
+  --bg: var(--marfim);
+  --fg: var(--nanquim);
+  --verde-sem: #D4E8D0;
+  --amarelo-sem: #F5E6C8;
+  --vermelho-sem: #F0C8C8;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1a2633;
+    --fg: #e8e0d8;
+    --marfim: #1a2633;
+    --areia: #4a4038;
+    --azul-gelo: #2a3a48;
+    --azul-medio: #7a9aaf;
+    --azul-profundo: #8ab0cc;
+    --areia-clara: #2a2620;
+    --nanquim: #e0dcd6;
+    --cereja: #e05a6a;
+    --rosa: #5a3040;
+    --limao: #c9a93a;
+    --folha: #6f9f6a;
+    --verde-sem: #1a3a1a;
+    --amarelo-sem: #3a3018;
+    --vermelho-sem: #3a1818;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1a2633;
+  --fg: #e8e0d8;
+  --marfim: #1a2633;
+  --areia: #4a4038;
+  --azul-gelo: #2a3a48;
+  --azul-medio: #7a9aaf;
+  --azul-profundo: #8ab0cc;
+  --areia-clara: #2a2620;
+  --nanquim: #e0dcd6;
+  --cereja: #e05a6a;
+  --rosa: #5a3040;
+  --limao: #c9a93a;
+  --folha: #6f9f6a;
+  --verde-sem: #1a3a1a;
+  --amarelo-sem: #3a3018;
+  --vermelho-sem: #3a1818;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Lato', sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 {
+  font-family: 'Josefin Sans', sans-serif;
+  font-weight: 300;
+  color: var(--azul-profundo);
+  text-wrap: balance;
+}
+h1 { font-size: 2rem; text-transform: uppercase; letter-spacing: 0.05em; }
+h2 { font-size: 1.5rem; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; }
+h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 8px; color: var(--azul-medio); }
+.hero {
+  background: var(--azul-profundo);
+  color: var(--marfim);
+  padding: 48px 20px 32px;
+  margin: 0 max(-16px, calc(-1 * env(safe-area-inset-left, 0px))) 0 max(-16px, calc(-1 * env(safe-area-inset-left, 0px)));
+  text-align: center;
+}
+.hero h1 { color: var(--marfim); font-size: 2.2rem; margin-bottom: 4px; }
+.hero .tagline { font-size: 1rem; opacity: 0.85; margin-bottom: 16px; }
+.hero .meta { font-size: 0.85rem; opacity: 0.7; }
+.hero .meta strong { opacity: 1; }
+nav {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 10;
+  background: var(--azul-profundo);
+  margin: 0 max(-16px, calc(-1 * env(safe-area-inset-left, 0px))) 0 max(-16px, calc(-1 * env(safe-area-inset-left, 0px)));
+  padding: 0 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  display: flex;
+  gap: 0;
+}
+nav::-webkit-scrollbar { display: none; }
+nav a {
+  color: var(--marfim);
+  text-decoration: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 10px 12px;
+  white-space: nowrap;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+nav a:hover, nav a:active { opacity: 1; }
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  background: var(--azul-profundo);
+  z-index: 11;
+}
+section { padding: 24px 0; }
+section + section { border-top: 1px solid var(--areia); }
+.card {
+  background: var(--azul-gelo);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 0;
+}
+.card-warn {
+  background: var(--vermelho-sem);
+  border-left: 4px solid var(--cereja);
+  border-radius: 0 12px 12px 0;
+  padding: 16px;
+  margin: 12px 0;
+}
+.card-tip {
+  background: var(--verde-sem);
+  border-left: 4px solid var(--folha);
+  border-radius: 0 12px 12px 0;
+  padding: 16px;
+  margin: 12px 0;
+}
+.estrategia-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.estrategia-list li {
+  padding: 14px 16px;
+  background: var(--azul-gelo);
+  border-radius: 12px;
+  position: relative;
+  padding-left: 48px;
+}
+.estrategia-list li .num {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 26px;
+  height: 26px;
+  background: var(--azul-profundo);
+  color: var(--marfim);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+.estrategia-list li strong { color: var(--azul-profundo); }
+.sem-group { margin: 16px 0; }
+.sem-label {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  padding: 6px 14px;
+  border-radius: 8px 8px 0 0;
+  color: var(--nanquim);
+}
+.sem-label-verde { background: var(--folha); color: var(--marfim); }
+.sem-label-amarelo { background: var(--limao); color: var(--nanquim); }
+.sem-label-vermelho { background: var(--cereja); color: var(--marfim); }
+.sem-body {
+  border-radius: 0 0 8px 8px;
+  padding: 12px 14px;
+}
+.sem-body-verde { background: var(--verde-sem); }
+.sem-body-amarelo { background: var(--amarelo-sem); }
+.sem-body-vermelho { background: var(--vermelho-sem); }
+.sem-item { padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.sem-item:last-child { border-bottom: none; }
+.sem-item strong { display: block; color: var(--azul-profundo); font-size: 0.95rem; }
+.sem-item span { font-size: 0.85rem; opacity: 0.85; }
+.search-box {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid var(--areia);
+  border-radius: 24px;
+  font-size: 1rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Lato', sans-serif;
+  margin-bottom: 16px;
+}
+.search-box:focus { outline: none; border-color: var(--azul-medio); }
+.country-tab-bar {
+  display: flex;
+  gap: 0;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--azul-profundo);
+}
+.country-tab {
+  flex: 1;
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: var(--bg);
+  color: var(--azul-profundo);
+  transition: all 0.2s;
+}
+.country-tab.active {
+  background: var(--azul-profundo);
+  color: var(--marfim);
+}
+.country-content { display: none; }
+.country-content.active { display: block; }
+.meal-row {
+  display: flex;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--areia);
+  align-items: flex-start;
+}
+.meal-row:last-child { border-bottom: none; }
+.meal-label {
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--azul-medio);
+  min-width: 70px;
+  padding-top: 2px;
+  flex-shrink: 0;
+}
+.meal-desc { font-size: 0.9rem; min-width: 0; }
+.waiter-card {
+  background: var(--azul-profundo);
+  color: var(--marfim);
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin: 12px 0;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.waiter-card strong { color: var(--limao); }
+.lang-tabs {
+  display: flex;
+  gap: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--azul-profundo);
+  margin-bottom: 16px;
+}
+.lang-tab {
+  flex: 1;
+  padding: 10px 6px;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  background: var(--bg);
+  color: var(--azul-profundo);
+}
+.lang-tab.active { background: var(--azul-profundo); color: var(--marfim); }
+.lang-content { display: none; }
+.lang-content.active { display: block; }
+.phrase-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.phrase-table th {
+  background: var(--azul-gelo);
+  text-align: left;
+  padding: 8px 10px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--azul-profundo);
+}
+.phrase-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--areia);
+  font-size: 0.9rem;
+  vertical-align: top;
+}
+.phrase-table tr:last-child td { border-bottom: none; }
+.copy-btn {
+  background: var(--azul-medio);
+  color: var(--marfim);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  margin-top: 4px;
+}
+.alert-red {
+  background: var(--cereja);
+  color: var(--marfim);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 12px 0;
+}
+.alert-red h3 { color: var(--marfim); }
+.alert-red ul { padding-left: 20px; }
+.alert-red li { margin: 6px 0; }
+.alert-yellow {
+  background: var(--amarelo-sem);
+  border: 2px solid var(--limao);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 12px 0;
+}
+.alert-yellow h3 { color: var(--nanquim); }
+.alert-yellow ul { padding-left: 20px; }
+.alert-yellow li { margin: 6px 0; }
+.btn-112 {
+  display: block;
+  width: 100%;
+  padding: 18px;
+  background: var(--cereja);
+  color: var(--marfim);
+  font-size: 1.3rem;
+  font-weight: 700;
+  text-align: center;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  text-decoration: none;
+  margin: 16px 0;
+  letter-spacing: 0.05em;
+}
+.health-card {
+  background: var(--azul-gelo);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 12px 0;
+}
+.health-row {
+  display: flex;
+  gap: 8px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--areia);
+}
+.health-row:last-child { border-bottom: none; }
+.health-label {
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  color: var(--azul-medio);
+  min-width: 100px;
+  flex-shrink: 0;
+}
+.checklist {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.checklist li {
+  padding: 10px 14px 10px 38px;
+  background: var(--azul-gelo);
+  border-radius: 8px;
+  position: relative;
+  font-size: 0.9rem;
+}
+.checklist li::before {
+  content: "☐";
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  font-size: 1.1rem;
+}
+.diary-day {
+  background: var(--azul-gelo);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 8px 0;
+}
+.diary-day h4 {
+  font-family: 'Josefin Sans', sans-serif;
+  color: var(--azul-profundo);
+  margin-bottom: 8px;
+}
+.diary-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.diary-field label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--azul-medio);
+  display: block;
+  margin-bottom: 2px;
+}
+.diary-field input, .diary-field select, .diary-field textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--areia);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Lato', sans-serif;
+}
+.diary-field textarea { resize: vertical; min-height: 50px; }
+.diary-field.full { grid-column: 1 / -1; }
+.footer-bar {
+  background: var(--azul-profundo);
+  color: var(--marfim);
+  padding: 20px 16px;
+  margin: 24px max(-16px, calc(-1 * env(safe-area-inset-left, 0px))) 0;
+  text-align: center;
+  font-size: 0.8rem;
+  opacity: 0.9;
+  line-height: 1.6;
+}
+.rotulo-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.85rem; }
+.rotulo-table th {
+  background: var(--azul-profundo);
+  color: var(--marfim);
+  text-align: left;
+  padding: 8px;
+  font-size: 0.75rem;
+}
+.rotulo-table td { padding: 8px; border-bottom: 1px solid var(--areia); }
+.msg-modelo {
+  background: var(--areia-clara);
+  border-radius: 12px;
+  padding: 14px;
+  font-family: monospace;
+  font-size: 0.85rem;
+  margin: 12px 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+@media (min-width: 600px) {
+  body { max-width: 560px; margin: 0 auto; }
+  .diary-fields { grid-template-columns: 1fr 1fr 1fr; }
+}
+</style>
+
+<div class="hero">
+  <p class="meta" style="text-transform:uppercase;letter-spacing:0.1em;font-size:0.7rem;margin-bottom:8px;">Modulo Exclusivo</p>
+  <h1>Rota Viagem</h1>
+  <p class="tagline">Seu intestino, em qualquer destino.</p>
+  <p class="meta"><strong>Guia personalizado para Daniela</strong></p>
+  <p class="meta">Portugal · Itália · Espanha</p>
+  <p class="meta">11 a 26 de novembro de 2026 (16 dias)</p>
+</div>
+
+<nav>
+  <a href="#estrategia">Estratégia</a>
+  <a href="#semaforo">Semáforo</a>
+  <a href="#pedir">Pedir</a>
+  <a href="#cartao">Cartão</a>
+  <a href="#frases">Frases</a>
+  <a href="#kit">Kit</a>
+  <a href="#dificeis">Dias difíceis</a>
+  <a href="#alerta">Alerta</a>
+  <a href="#diario">Diário</a>
+</nav>
+
+<!-- INTRO -->
+<section>
+  <h2>Antes de tudo</h2>
+  <p>Daniela, esta viagem é para ser vivida. Você vai para a Itália pela primeira vez — e vai comer comida italiana de verdade. O objetivo deste guia não é te proibir de nada. É te dar um plano de controle de danos: como aproveitar sem destruir o intestino.</p>
+
+  <h3 style="margin-top:16px;">Onde estamos hoje</h3>
+  <ul style="padding-left:20px;margin:8px 0;">
+    <li>O seu teste respiratório indicou <strong>SIBO</strong> (excesso de bactérias no intestino delgado).</li>
+    <li>Você <strong>terminou os antibióticos do H. pylori</strong> (amoxicilina e outro antibiótico) em 06/11.</li>
+    <li>O <strong>antibiótico para a SIBO só começa depois de 26/11</strong>, na volta, combinado com a sua médica e com a alimentação.</li>
+    <li>Depois de um ciclo de antibióticos, é comum o intestino ficar mais sensível por um tempo: inchaço, gases, gosto amargo, fezes que variam entre soltas e presas. Isso costuma melhorar aos poucos, mas cada organismo é um. Por isso vamos <strong>observar e anotar</strong>.</li>
+    <li>Se o omeprazol continua em uso, siga exatamente a receita da sua médica. Não pare nem mude por conta própria durante a viagem.</li>
+  </ul>
+
+  <div class="card">
+    <strong>O que este guia faz:</strong> Organiza as refeições, mostra o que escolher e o que evitar em cada país, prepara frases e cartão para restaurantes, orienta os dias mais difíceis e acompanha você por um diário e um check-in.
+  </div>
+  <div class="card-warn">
+    <strong>O que ele não faz:</strong> Não troca nem inicia antibiótico, não inclui fitoterápicos antimicrobianos, probióticos ou suplementos novos e não altera seus remédios. Essas decisões são da sua médica.
+  </div>
+
+  <h3 style="margin-top:16px;">Quanto aos seus remédios e suplementos</h3>
+  <p>Leve só o que está na sua prescrição atual, na embalagem original e na bolsa de mão, com a receita. Se aparecer diarreia, prisão de ventre forte ou dúvida sobre o <strong>Peg-lax</strong>, fale com a sua médica. Sobre o <strong>magnésio</strong> e o <strong>Digeliv</strong>, fale comigo.</p>
+
+  <div class="card-tip">
+    <strong>Enzima digestiva:</strong> você vai levar a sua enzima (Complexo de Enzimas Digestivas — Oficial Farma) no pote, direto do Brasil. Tome antes das refeições "aventura" — aquelas com laticínio, trigo ou refeição mais pesada. Veja detalhes no <a href="#kit" style="color:var(--folha);font-weight:700;">Kit de bolso</a>.
+  </div>
+</section>
+
+<!-- ESTRATÉGIA -->
+<section id="estrategia">
+  <h2>Estratégia da viagem</h2>
+  <p style="margin-bottom:16px;">Você vai comer coisas diferentes — e tudo bem. A estratégia não é proibir: é equilibrar.</p>
+
+  <ol class="estrategia-list">
+    <li>
+      <span class="num">1</span>
+      <strong>Uma aventura por dia.</strong> Se almoçou massa, janta leve (proteína + legume). Se quer gelato à tarde, almoço mais simples. Nunca dois gatilhos fortes na mesma refeição.
+    </li>
+    <li>
+      <span class="num">2</span>
+      <strong>Alho e cebola: a linha que não cruza.</strong> É o maior gatilho para SIBO. Peça sempre "senza aglio e cipolla". O resto a gente negocia; esse não.
+    </li>
+    <li>
+      <span class="num">3</span>
+      <strong>Porção italiana.</strong> Na Itália, o "primo" (primeiro prato de massa) já vem em porção menor que no Brasil. Aceite a porção italiana — ela já é o controle.
+    </li>
+    <li>
+      <span class="num">4</span>
+      <strong>Dia pesado, dia seguinte leve.</strong> Depois de um dia mais pesado, o dia seguinte volta para o verde: arroz, proteína, legumes cozidos. O intestino agradece a pausa.
+    </li>
+    <li>
+      <span class="num">5</span>
+      <strong>Mastigar e caminhar.</strong> Comer devagar, sem pressa. Caminhar 10 a 15 minutos depois da maior refeição. Evitar deitar nas 2 horas seguintes.
+    </li>
+    <li>
+      <span class="num">6</span>
+      <strong>Água, não vinho.</strong> Cerca de 2 litros por dia. Água sem gás. Álcool continua fora — ele irrita o intestino recém-saído de antibiótico.
+    </li>
+    <li>
+      <span class="num">7</span>
+      <strong>Enzima antes da aventura.</strong> Antes de uma refeição com laticínio ou trigo, tome a sua enzima digestiva (Oficial Farma). Ela ajuda a digerir melhor, mas não é passe livre — continua valendo a porção menor e o equilíbrio do dia.
+    </li>
+    <li>
+      <span class="num">8</span>
+      <strong>Registrar.</strong> Anote o que comeu e como se sentiu. Esse diário é o seu mapa — mostra quais gatilhos realmente incomodam VOCÊ, não o que a teoria diz.
+    </li>
+  </ol>
+
+  <div class="card-tip">
+    <strong>Gosto amargo na boca:</strong> escove os dentes e raspe a língua de manhã, beba água em goles ao longo do dia e prefira chá de gengibre, melissa ou erva-cidreira. Se continuar depois da viagem, conte para a sua médica.
+  </div>
+
+  <h3 style="margin-top:20px;">Modelo de um dia de passeio</h3>
+  <div style="margin:8px 0;">
+    <div class="meal-row"><span class="meal-label">08:00</span><span class="meal-desc">Café: ovos mexidos com azeite + banana ou kiwi + chá de gengibre</span></div>
+    <div class="meal-row"><span class="meal-label">12:30</span><span class="meal-desc">Almoço: peixe ou frango grelhado + arroz branco ou batata + legumes cozidos. <em>Ou</em>, se for o dia da aventura: meia porção de massa senza glutine com molho simples</span></div>
+    <div class="meal-row"><span class="meal-label">16:30</span><span class="meal-desc">Lanche: fruta + um punhado de amendoim ou nozes (20 g). <em>Ou</em> um sorbetto pequeno</span></div>
+    <div class="meal-row"><span class="meal-label">19:30</span><span class="meal-desc">Jantar leve (se almoçou pesado): ovos ou peixe + batata ou arroz + legumes. Se almoçou leve: pode explorar mais</span></div>
+  </div>
+</section>
+
+<!-- SEMÁFORO -->
+<section id="semaforo">
+  <h2>Semáforo: o que escolher</h2>
+  <p style="margin-bottom:12px;">A lista segue o seu cardápio atual (baixo em FODMAPs, sem alho e cebola). <strong>O amarelo não é proibido</strong> — é um "com cuidado". As porções importam: o que está no verde também pode incomodar em quantidade grande.</p>
+
+  <input type="text" class="search-box" placeholder="Pesquise um alimento..." id="searchFood" oninput="filterFood()">
+
+  <div class="sem-group" data-sem>
+    <div class="sem-label sem-label-verde">Verde — base das suas refeições</div>
+    <div class="sem-body sem-body-verde">
+      <div class="sem-item" data-food><strong>Proteínas</strong><span>Frango, peru, peixes (dourada/dorada/orata, robalo/lubina/branzino, pescada/merluza, bacalhau, salmão), atum em lata, ovos (cozidos, mexidos, omelete simples), camarão, polvo cozido.</span></div>
+      <div class="sem-item" data-food><strong>Bases</strong><span>Arroz branco, batata (cozida, assada ou purê sem leite), mandioca/aipim, inhame, polenta simples, quinoa, massa de arroz ou milho sem glúten (porção moderada).</span></div>
+      <div class="sem-item" data-food><strong>Legumes (cozidos)</strong><span>Cenoura, abóbora, abobrinha, berinjela, chuchu, espinafre, couve, quiabo, beterraba (máximo 70 g), tomate cozido sem cebola e alho. Alface, pepino e tomate crus em pouca quantidade.</span></div>
+      <div class="sem-item" data-food><strong>Frutas</strong><span>Kiwi, laranja, tangerina/clementina, abacaxi, morango, mirtilo, uva (poucas), mamão, melão, banana pouco madura.</span></div>
+      <div class="sem-item" data-food><strong>Gorduras e temperos</strong><span>Azeite, sal, limão, manjericão, salsinha, hortelã, orégano, alecrim, tomilho, louro, cebolinha (só a parte verde), gengibre, cúrcuma.</span></div>
+      <div class="sem-item" data-food><strong>Lanches</strong><span>Amendoim, nozes, macadâmia, sementes de abóbora, chia, gergelim (cerca de 20 g). Bolachas ou tostas de arroz.</span></div>
+      <div class="sem-item" data-food><strong>Bebidas</strong><span>Água sem gás. Infusões de gengibre, capim-limão, melissa, erva-cidreira e erva-doce.</span></div>
+    </div>
+  </div>
+
+  <div class="sem-group" data-sem>
+    <div class="sem-label sem-label-amarelo">Amarelo — porção pequena, observe a resposta</div>
+    <div class="sem-body sem-body-amarelo">
+      <div class="sem-item" data-food><strong>Massa e pão de trigo</strong><span>Preferir "senza glutine" quando disponível (comum na Itália!). Se comer massa normal: meia porção, sempre com proteína, não repetir no mesmo dia. Pão: um pedaço pequeno com a refeição.</span></div>
+      <div class="sem-item" data-food><strong>Pizza</strong><span>Se quiser: meia pizza ou fatia individual. Peça sem alho, sem cebola. Preferir pizza bianca, margherita simples ou com legumes. Muitos lugares oferecem "senza glutine".</span></div>
+      <div class="sem-item" data-food><strong>Doces e sobremesas</strong><span>Uma sobremesa pequena após refeição completa, nunca de estômago vazio. Preferir sorbetto (sorvete de fruta, sem leite), frutas, ou panna cotta pequena. Não repetir no mesmo dia.</span></div>
+      <div class="sem-item" data-food><strong>Gelato</strong><span>Preferir sorbetto ou sabores de fruta. Se laticínio: uma bola pequena. Não todo dia.</span></div>
+      <div class="sem-item" data-food><strong>Queijos curados</strong><span>Parmesão (parmigiano), pecorino curado e manchego muito curado têm pouca lactose. Em moderação. Evite ricota, mozzarella fresca e requeijão em quantidade.</span></div>
+      <div class="sem-item" data-food><strong>Café</strong><span>1 xícara pequena, só depois de uma refeição, nunca em jejum. Se piorar o estômago ou o gosto amargo, suspender.</span></div>
+      <div class="sem-item" data-food><strong>Frutas cítricas, abacaxi e hortelã</strong><span>Se aparecer queimação, azia ou piora do gosto amargo, troque por banana, mamão, melão ou kiwi, e o chá de hortelã por gengibre ou melissa.</span></div>
+      <div class="sem-item" data-food><strong>Frutas mais fermentáveis</strong><span>Maçã, pera, manga, melancia, pêssego, cereja, ameixa: máximo 2 a 3 pedaços e longe de outra fruta fermentável. Se estiver com muito inchaço, deixe para outro dia.</span></div>
+      <div class="sem-item" data-food><strong>Pães e massas sem glúten</strong><span>Leia os ingredientes. Muitos levam farinha de grão-de-bico, lentilha, maçã, inulina ou mel.</span></div>
+      <div class="sem-item" data-food><strong>Molho de tomate simples</strong><span>Só se confirmarem que não leva cebola nem alho.</span></div>
+      <div class="sem-item" data-food><strong>Presunto cru</strong><span>(jamón, prosciutto) 2 a 3 fatias finas, geralmente sem alho. Rico em sal e gordura, não exagere.</span></div>
+      <div class="sem-item" data-food><strong>Azeitonas, sorbet de limão ou laranja</strong><span>Poucas azeitonas; uma bola pequena de sorbet. Observe a resposta.</span></div>
+      <div class="sem-item" data-food><strong>Pimentão, páprica e pimenta</strong><span>Estômago sensível: prefira a páprica doce (pimentón dulce) e evite o picante.</span></div>
+    </div>
+  </div>
+
+  <div class="sem-group" data-sem>
+    <div class="sem-label sem-label-vermelho">Vermelho — evitar nesta viagem</div>
+    <div class="sem-body sem-body-vermelho">
+      <div class="sem-item" data-food><strong>Alho e cebola</strong><span>Em qualquer forma: refogado (sofrito, soffritto), caldo, molho, marinada, tempero em pó. Também alho-poró e chalota. Este é o gatilho que não negocia.</span></div>
+      <div class="sem-item" data-food><strong>Leite e derivados frescos em excesso</strong><span>Leite, iogurte, queijos frescos ou cremosos (mozzarella, ricota, requeijão), nata e creme de leite, molhos cremosos, cappuccino. Queijos muito curados (parmesão, manchego) ficam no amarelo.</span></div>
+      <div class="sem-item" data-food><strong>Leguminosas</strong><span>Feijão, lentilha, grão-de-bico, ervilha, fava, e pratos que levam isso (sopas, cocido, fabada, ribollita, feijoada).</span></div>
+      <div class="sem-item" data-food><strong>Outros vegetais</strong><span>Cogumelos, couve-flor, aspargos, alcachofra.</span></div>
+      <div class="sem-item" data-food><strong>Embutidos</strong><span>Chouriço, chorizo, linguiça, salame, mortadela.</span></div>
+      <div class="sem-item" data-food><strong>Adoçantes e fermentáveis</strong><span>Mel, xarope de agave, xilitol, sorbitol, manitol, maltitol (chicletes, balas e barrinhas "sem açúcar"), inulina e raiz de chicória.</span></div>
+      <div class="sem-item" data-food><strong>Bebidas</strong><span>Álcool (vinho, cerveja, espumante), refrigerante e água com gás, suco de maçã e sucos concentrados.</span></div>
+      <div class="sem-item" data-food><strong>Outros</strong><span>Frituras em excesso, pratos muito gordurosos, frutas secas, caju e pistache, sopas e caldos industriais, molhos prontos.</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <strong>Dica de rótulo:</strong> em supermercados, leia os ingredientes. Evite: alho, cebola, trigo (se tiver opção), leite, lactose, soro de leite, mel, edulcorantes, inulina. Siglas de polióis: E420 (sorbitol), E421 (manitol), E965 (maltitol), E966 (lactitol), E967 (xilitol). "Aromas" e "temperos" podem esconder cebola e alho.
+  </div>
+
+  <table class="rotulo-table">
+    <thead><tr><th>Português</th><th>Italiano</th><th>Español</th><th>English</th></tr></thead>
+    <tbody>
+      <tr><td>alho, cebola</td><td>aglio, cipolla</td><td>ajo, cebolla</td><td>garlic, onion</td></tr>
+      <tr><td>trigo, glúten</td><td>frumento, glutine</td><td>trigo, gluten</td><td>wheat, gluten</td></tr>
+      <tr><td>leite, lactose</td><td>latte, lattosio, siero di latte</td><td>leche, lactosa, suero de leche</td><td>milk, lactose, whey</td></tr>
+      <tr><td>mel, inulina</td><td>miele, inulina</td><td>miel, inulina</td><td>honey, inulin</td></tr>
+      <tr><td>edulcorantes, sorbitol, xilitol</td><td>dolcificanti, sorbitolo, xilitolo</td><td>edulcorantes, sorbitol, xilitol</td><td>sweeteners, sorbitol, xylitol</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- O QUE PEDIR -->
+<section id="pedir">
+  <h2>O que pedir em cada país</h2>
+  <p style="margin-bottom:12px;">Pratos e ingredientes comuns em cada cozinha. Peça sempre sem alho e sem cebola, grelhado simples, molho à parte. As frases estão na seção seguinte.</p>
+
+  <div class="country-tab-bar">
+    <button class="country-tab active" onclick="showCountry('it')">Itália</button>
+    <button class="country-tab" onclick="showCountry('pt')">Portugal</button>
+    <button class="country-tab" onclick="showCountry('es')">Espanha</button>
+  </div>
+
+  <div id="country-it" class="country-content active">
+    <h3 style="margin-top:0;">Itália</h3>
+    <div class="meal-row"><span class="meal-label">Café (hotel)</span><span class="meal-desc">Ovos (uova strapazzate ou sode), fruta, tisana ou chá. Se quiser: <strong>um cornetto</strong> é o item amarelo do dia (a maioria leva manteiga e trigo). Evitar cappuccino (leite); pedir <strong>caffè</strong> (espresso) após a refeição.</span></div>
+    <div class="meal-row"><span class="meal-label">Almoço e jantar</span><span class="meal-desc"><strong>Opção segura:</strong> <em>Riso in bianco</em> (arroz branco com azeite), peixe <em>alla griglia</em> ou <em>al cartoccio</em> (branzino, orata), frango, carne com legumes cozidos (zucchine, carote, spinaci). Polenta simples. Ovos.<br><strong>Dia de aventura:</strong> <em>Pasta senza glutine</em> — na Itália é comum encontrar opção sem glúten! Pergunte "<em>Avete pasta senza glutine?</em>". Ou meia porção de massa normal com molho simples (pomodoro, olio e sale). Pedir "<em>senza aglio e sem cipolla</em>".</span></div>
+    <div class="meal-row"><span class="meal-label">Lanche</span><span class="meal-desc">Fruta, castanhas, gallette di riso (tostas de arroz). Um <strong>sorbetto</strong> (sorvete de fruta, sem leite) é geralmente seguro. Se quiser gelato: uma bola, não todo dia.</span></div>
+    <div class="meal-row"><span class="meal-label">Armadilhas</span><span class="meal-desc"><strong>Soffritto</strong> (cebola e/ou alho refogados) é a base de quase tudo: molhos, ragù, risotto, sopas. Pergunte sempre. Também: <em>pesto</em> (alho), <em>aglio e olio</em> (alho), <em>carbonara</em> (queijo + ovos — sem alho, mas cremoso), <em>cacio e pepe</em> (queijo), <em>risotto</em> (geralmente leva cebola), <em>minestrone</em> e <em>ribollita</em> (feijão e cebola), <em>burrata</em> e <em>caprese</em> (laticínio fresco), <em>gelato</em> cremoso em excesso, <em>pizza</em> com muito queijo, <em>tiramisù</em> (mascarpone + café), salame.</span></div>
+    <div class="card-tip">
+      <strong>Dica Itália:</strong> "Senza glutine" é bem entendido na Itália — por lei, todo estabelecimento deve oferecer ou informar sobre opções para celíacos. Você vai encontrar massa, pizza e pão sem glúten em muitos restaurantes. Pergunte!
+    </div>
+  </div>
+
+  <div id="country-pt" class="country-content">
+    <h3 style="margin-top:0;">Portugal</h3>
+    <div class="meal-row"><span class="meal-label">Café (hotel)</span><span class="meal-desc">Ovos cozidos ou mexidos (peça com azeite), fruta fresca (banana, kiwi, laranja, mamão), chá de gengibre ou capim-limão. Pão, pastelaria e iogurte ficam de fora.</span></div>
+    <div class="meal-row"><span class="meal-label">Almoço e jantar</span><span class="meal-desc">Peixe grelhado (dourada, robalo, pescada) com batata cozida e legumes cozidos; <strong>bacalhau cozido</strong> com batata e ovo, <strong>sem grão-de-bico</strong> e sem molho de alho; frango grelhado simples; polvo cozido com batata e azeite; arroz branco; ovos. Peça o "prato do dia" e adapte.</span></div>
+    <div class="meal-row"><span class="meal-label">Lanche</span><span class="meal-desc">Fruta, castanhas, tostas ou bolachas de arroz, ovos cozidos.</span></div>
+    <div class="meal-row"><span class="meal-label">Armadilhas</span><span class="meal-desc">Caldo verde (cebola, alho, chouriço); bacalhau à Brás, à Gomes de Sá, com natas e à lagareiro (cebola, alho ou creme); arroz de tomate (refogado); frango no churrasco (marinada de alho e limão); pastel de nata. O <strong>couvert</strong> (pão, queijo, enchidos, azeitonas) chega à mesa e é cobrado se for usado: pode recusar.</span></div>
+  </div>
+
+  <div id="country-es" class="country-content">
+    <h3 style="margin-top:0;">Espanha</h3>
+    <div class="meal-row"><span class="meal-label">Café (hotel)</span><span class="meal-desc">Huevos revueltos ou cocidos, <strong>tortilla francesa</strong> (omelete simples), fruta, infusión de menta ou gengibre. Evite tostada con tomate (pode ter alho), churros con chocolate e bollería.</span></div>
+    <div class="meal-row"><span class="meal-label">Almoço e jantar</span><span class="meal-desc"><strong>Pescado a la plancha</strong> (merluza, dorada, lubina) com patatas cocidas ou arroz blanco e verduras cocidas (calabacín, berenjena, zanahoria), pedindo "sin ajo"; pollo a la plancha; <strong>pulpo a la gallega</strong> (polvo, batata, azeite, sal e pimentão: peça pimentón dulce); gambas a la plancha sem alho. O <strong>menú del día</strong> (almoço com preço fixo) permite escolher: escolha o grelhado, o arroz branco ou a batata e a fruta de sobremesa.</span></div>
+    <div class="meal-row"><span class="meal-label">Lanche</span><span class="meal-desc">Fruta, castanhas, tortitas de arroz.</span></div>
+    <div class="meal-row"><span class="meal-label">Armadilhas</span><span class="meal-desc">Tortilla de patatas (cebola), paella e arroces caldosos (sofrito de cebola e alho), gazpacho e salmorejo (alho, pão), gambas al ajillo (alho), croquetas, patatas bravas (molho), cocido, fabada e lentejas (leguminosas e embutidos), chorizo e morcilla, pan con tomate, sangría, vermú e vinho.</span></div>
+  </div>
+</section>
+
+<!-- CARTÃO DO GARÇOM -->
+<section id="cartao">
+  <h2>Cartão para mostrar ao garçom</h2>
+  <p style="margin-bottom:12px;">Mostre na tela do celular. Escolha o idioma do país onde você está.</p>
+
+  <div class="lang-tabs">
+    <button class="lang-tab" onclick="showLang('ptpt')">PT-PT</button>
+    <button class="lang-tab active" onclick="showLang('it2')">Italiano</button>
+    <button class="lang-tab" onclick="showLang('es2')">Español</button>
+    <button class="lang-tab" onclick="showLang('en2')">English</button>
+  </div>
+
+  <div id="lang-ptpt" class="lang-content">
+    <div class="waiter-card">
+      Tenho restrições alimentares por motivo de saúde. <strong>Não posso comer:</strong> alho, cebola, feijão, grão-de-bico, lentilha, cogumelos. <strong>Prefiro evitar:</strong> trigo e glúten, leite e lactose. <strong>Posso comer:</strong> carne e peixe grelhados ou cozidos, ovos, arroz branco, batata e legumes cozidos, com azeite e sal. Pode preparar sem alho e sem cebola? Obrigada!
+    </div>
+  </div>
+
+  <div id="lang-it2" class="lang-content active">
+    <div class="waiter-card">
+      Ho delle restrizioni alimentari per motivi di salute. <strong>Non posso mangiare:</strong> aglio, cipolla, fagioli, ceci, lenticchie, funghi. <strong>Preferisco evitare:</strong> glutine e lattosio. <strong>Avete opzioni senza glutine?</strong> <strong>Posso mangiare:</strong> carne e pesce alla griglia o lessati, uova, riso in bianco, patate e verdure cotte, con olio d'oliva e sale. Potete prepararlo senza aglio e senza cipolla? Grazie!
+    </div>
+  </div>
+
+  <div id="lang-es2" class="lang-content">
+    <div class="waiter-card">
+      Tengo restricciones alimentarias por motivos de salud. <strong>No puedo comer:</strong> ajo, cebolla, alubias, garbanzos, lentejas, setas. <strong>Prefiero evitar:</strong> trigo, gluten, leche y lactosa. <strong>Sí puedo comer:</strong> carne y pescado a la plancha o cocidos, huevos, arroz blanco, patatas y verduras cocidas, con aceite de oliva y sal. ¿Pueden prepararlo sin ajo ni cebolla? ¡Gracias!
+    </div>
+  </div>
+
+  <div id="lang-en2" class="lang-content">
+    <div class="waiter-card">
+      I have dietary restrictions for medical reasons. <strong>I cannot eat:</strong> garlic, onion, beans, chickpeas, lentils, mushrooms. <strong>I prefer to avoid:</strong> wheat and gluten, milk and lactose. <strong>Do you have gluten-free options?</strong> <strong>I can eat:</strong> grilled or boiled meat and fish, eggs, plain white rice, potatoes and cooked vegetables, with olive oil and salt. Could you prepare it without garlic and onion? Thank you!
+    </div>
+  </div>
+</section>
+
+<!-- FRASES -->
+<section id="frases">
+  <h2>Frases úteis</h2>
+  <p style="margin-bottom:8px;">Mostre o celular ou leia em voz alta. Em Portugal use a coluna de português europeu.</p>
+
+  <div style="overflow-x:auto;">
+    <table class="phrase-table">
+      <thead><tr><th>Português (PT)</th><th>Italiano</th><th>Español</th><th>English</th></tr></thead>
+      <tbody>
+        <tr><td>Sem alho e sem cebola</td><td>Senza aglio e senza cipolla</td><td>Sin ajo y sin cebolla</td><td>No garlic and no onion</td></tr>
+        <tr><td>Sem glúten (trigo)</td><td>Senza glutine (grano)</td><td>Sin gluten (trigo)</td><td>Gluten-free (wheat)</td></tr>
+        <tr><td>Sem leite e lactose</td><td>Senza latte e senza lattosio</td><td>Sin leche ni lactosa</td><td>No milk or lactose</td></tr>
+        <tr><td>Têm opção sem glúten?</td><td>Avete opzioni senza glutine?</td><td>¿Tienen opciones sin gluten?</td><td>Do you have gluten-free options?</td></tr>
+        <tr><td>Molho à parte?</td><td>Può servire la salsa a parte?</td><td>¿Puede servir la salsa aparte?</td><td>Sauce on the side?</td></tr>
+        <tr><td>Grelhado simples</td><td>Alla griglia, solo con olio e sale</td><td>A la plancha, solo aceite y sal</td><td>Grilled, just olive oil and salt</td></tr>
+        <tr><td>Que ingredientes leva?</td><td>Quali ingredienti contiene?</td><td>¿Qué ingredientes lleva?</td><td>What ingredients does this contain?</td></tr>
+        <tr><td>Arroz branco ou batata?</td><td>Avete riso in bianco o patate lesse?</td><td>¿Tiene arroz blanco o patatas cocidas?</td><td>Plain rice or boiled potatoes?</td></tr>
+        <tr><td>Porção pequena</td><td>Una porzione piccola, per favore</td><td>Una ración pequeña, por favor</td><td>A small portion, please</td></tr>
+        <tr><td>Meia porção de massa</td><td>Mezza porzione di pasta, per favore</td><td>Media ración de pasta, por favor</td><td>Half portion of pasta, please</td></tr>
+        <tr><td>Água sem gás</td><td>Acqua naturale, per favore</td><td>Agua sin gas, por favor</td><td>Still water, please</td></tr>
+        <tr><td>Chá de gengibre</td><td>Una tisana allo zenzero, per favore</td><td>Una infusión de jengibre, por favor</td><td>Ginger tea, please</td></tr>
+        <tr><td>Enzimas digestivas, por favor</td><td>Vorrei enzimi digestivi con lattasi, per favore</td><td>Quiero enzimas digestivas con lactasa, por favor</td><td>Digestive enzymes with lactase, please</td></tr>
+        <tr><td>Onde fica a farmácia?</td><td>Dov'è la farmacia più vicina?</td><td>¿Dónde está la farmacia más cercana?</td><td>Where is the nearest pharmacy?</td></tr>
+        <tr><td>Preciso de ajuda médica</td><td>Ho bisogno di aiuto medico. Chiami il 112.</td><td>Necesito ayuda médica. Llame al 112.</td><td>I need medical help. Please call 112.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- VOO E TRANSPORTE -->
+<section>
+  <h2>Voo longo, trens e passeios</h2>
+  <h3>Voo longo</h3>
+  <ul style="padding-left:20px;margin:8px 0;">
+    <li><strong>Por que o inchaço piora no avião:</strong> a cabine é pressurizada e os gases do intestino se expandem. Vá com roupa confortável (cós folgado) e evite uma refeição grande antes do embarque.</li>
+    <li><strong>Antes de embarcar:</strong> faça uma refeição simples do seu cardápio 2 a 3 horas antes. Não vá em jejum longo e não experimente nada novo no aeroporto.</li>
+    <li><strong>A bordo:</strong> beba água em goles, de hora em hora. Evite álcool, refrigerante, suco de caixinha e café. Na refeição de bordo, fique com arroz, frango ou peixe e legumes cozidos; deixe de lado pão, queijo, molhos cremosos, sobremesa e salada crua com cebola.</li>
+    <li><strong>Mexa-se:</strong> levante e caminhe a cada 1 a 2 horas e movimente os tornozelos. Ajuda o intestino e a circulação. Prefira o assento no corredor.</li>
+    <li><strong>Lanche na bolsa:</strong> amendoim ou nozes, tostas de arroz, uma banana ou clementina que você <strong>compre depois da imigração</strong>.</li>
+  </ul>
+
+  <h3 style="margin-top:16px;">Fuso e horários</h3>
+  <p>Em novembro, Portugal fica 3 horas à frente de Brasília; Espanha e Itália ficam 4 horas à frente. Assim que chegar, ajuste as refeições ao horário local, mantendo 4 a 5 horas entre elas. A primeira refeição no destino deve ser simples: ovos, arroz e batata e fruta.</p>
+
+  <h3 style="margin-top:16px;">Trens, ônibus e passeios longos</h3>
+  <ul style="padding-left:20px;margin:8px 0;">
+    <li>Vá ao banheiro antes de embarcar e leve água e o lanche do kit.</li>
+    <li>Programe a hora da refeição antes de sair. Passar o dia sem comer e depois comer muito é pior do que comer pouco e com regularidade.</li>
+    <li>Jantares tarde: na Espanha é comum jantar às 21h ou depois; na Itália e em Portugal, por volta das 19h30 a 21h. Faça sua refeição mais completa no almoço e jante leve, tentando deixar 2 a 3 horas antes de deitar.</li>
+    <li>Tapas e petiscos: escolha 1 ou 2 opções simples e pare. Beliscar a noite inteira é o oposto do que o intestino precisa.</li>
+  </ul>
+
+  <div class="card-warn">
+    <strong>Alimentos na bagagem:</strong> As regras sanitárias da UE restringem a entrada de <strong>carnes, embutidos, queijos, leite e vegetais frescos</strong> vindos de fora do bloco. Leve do Brasil apenas itens <strong>industrializados, selados e de origem vegetal</strong> (castanhas, tostas de arroz, chás). Frutas e itens frescos: compre lá. Em caso de dúvida, declare ou deixe.
+  </div>
+</section>
+
+<!-- KIT DE BOLSO -->
+<section id="kit">
+  <h2>Kit de bolso</h2>
+
+  <h3>Do Brasil (itens industrializados e selados)</h3>
+  <ul class="checklist">
+    <li>Garrafa reutilizável (leve vazia na segurança do aeroporto).</li>
+    <li>Chás em sachê: gengibre, capim-limão, melissa ou erva-cidreira.</li>
+    <li>Castanhas em porções de cerca de 20 g: amendoim, nozes, macadâmia. Evite caju e pistache.</li>
+    <li>Tostas ou bolachas de arroz (ou compre lá).</li>
+    <li>Barrinhas só se o rótulo estiver limpo: sem inulina, raiz de chicória, mel, xilitol ou sorbitol.</li>
+    <li>Remédios e suplementos da prescrição, na embalagem original, bolsa de mão, com receita ou carta.</li>
+    <li>Cartão do garçom e frases úteis (impressos e no celular).</li>
+    <li>Ficha de saúde da próxima seção preenchida, mais cópia do exame e do resumo da sua médica.</li>
+    <li>Saquinhos com zíper, lenços umedecidos, álcool em gel e papel higiênico de bolso.</li>
+    <li>Roupas de cós folgado. Reposição de líquidos <strong>apenas</strong> se a sua médica orientar qual produto e quando.</li>
+  </ul>
+
+  <h3 style="margin-top:16px;">Enzima digestiva (levar do Brasil)</h3>
+  <p>Você vai levar a sua enzima digestiva (<strong>Complexo de Enzimas Digestivas — Oficial Farma</strong>) no pote, na bolsa de mão. Contém bromelina, papaína, protease, lipase, pancreatina e amilase — ajuda a digerir proteínas, gorduras e amido das refeições mais pesadas.</p>
+  <ul class="checklist">
+    <li>Tome <strong>antes</strong> das refeições "aventura" (massa, pizza, laticínio, refeição mais pesada).</li>
+    <li>A dose é a que a Isa combinou com você.</li>
+    <li>Enzima não é passe livre. Ajuda a digerir melhor, mas não anula o gatilho. Continue com a estratégia do dia.</li>
+    <li>Se o pote acabar durante a viagem: em qualquer <strong>farmacia</strong> (cruz verde na Itália, farmácia em Portugal, farmacia na Espanha) você encontra enzimas digestivas sem receita. Peça "<em>enzimi digestivi</em>" na Itália.</li>
+  </ul>
+
+  <h3 style="margin-top:16px;">No destino (supermercado ou mercado)</h3>
+  <ul class="checklist">
+    <li>Frutas: banana pouco madura, clementinas ou tangerinas, kiwi, laranja, morangos ou mirtilos.</li>
+    <li>Ovos cozidos embalados (nem sempre há), atum em lata (ao natural ou em azeite).</li>
+    <li>Arroz branco pronto em sachê para micro-ondas, quando houver. Batata cozida embalada: leia o rótulo.</li>
+    <li>Tostas de arroz (gallette di riso), tortitas de arroz, crackers de arroz.</li>
+    <li>Redes comuns: Portugal (Pingo Doce, Continente, Auchan, Lidl), Itália (Conad, Coop, Esselunga, Carrefour), Espanha (Mercadona, Carrefour, Dia). Confirme a loja mais próxima na hora.</li>
+  </ul>
+</section>
+
+<!-- DIAS DIFÍCEIS -->
+<section id="dificeis">
+  <h2>Dias difíceis: o que fazer</h2>
+
+  <div class="card" style="margin-bottom:12px;">
+    <h3 style="margin-top:0;">Inchaço ou desconforto, sem sinais de alerta</h3>
+    <p>Faça uma refeição bem simples e menor (arroz branco, batata ou mandioca cozida, frango ou peixe, cenoura ou abóbora cozida). Chá de gengibre e água em goles. Caminhada leve de 10 a 15 minutos. Evite gordura, fritura, café, álcool, refrigerante e doces. Não fique em jejum longo. Anote no diário.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <h3 style="margin-top:0;">Intestino preso</h3>
+    <p>Mais água, kiwi, mamão ou laranja, caminhada. Evite aumentar fibra sem aumentar líquido. Sobre o Peg-lax, siga a regra combinada com a sua médica.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <h3 style="margin-top:0;">Diarreia (fezes tipo 6 ou 7)</h3>
+    <p>Repor líquidos, comer arroz, batata, frango ou peixe cozido, banana prata ou maçã, evitar fibras extras, café e álcool. Avise a sua médica sobre o Peg-lax e a mim sobre o magnésio. <strong>Se forem 3 ou mais evacuações líquidas em 24 horas, ou se durar mais de 24 a 48 horas, procure atendimento</strong>, principalmente por ter usado antibiótico há poucos dias.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <h3 style="margin-top:0;">Azia, queimação ou gosto amargo</h3>
+    <p>Refeições menores, sem deitar nas 2 horas seguintes, cabeceira da cama um pouco elevada, e trocar café, cítricos fortes e hortelã por banana, mamão e melissa ou gengibre. Siga o omeprazol conforme a receita.</p>
+  </div>
+
+  <div class="card" style="margin-bottom:12px;">
+    <h3 style="margin-top:0;">Dor ou náusea</h3>
+    <p>Não trate sozinha e não use nenhum medicamento sem a orientação da sua médica. Confira os sinais de alerta abaixo.</p>
+  </div>
+</section>
+
+<!-- SINAIS DE ALERTA -->
+<section id="alerta">
+  <h2>Sinais de alerta</h2>
+
+  <div class="alert-red">
+    <h3>Ligue 112 (ou vá a um pronto-socorro) se houver:</h3>
+    <ul>
+      <li>falta de ar, inchaço do rosto ou da boca, coceira pelo corpo todo com manchas;</li>
+      <li>dor abdominal muito forte, contínua, ou abdome duro;</li>
+      <li>vômitos com sangue ou fezes pretas, como borra de café, ou com sangue vivo;</li>
+      <li>inchaço intenso com vômitos e sem conseguir soltar gases nem evacuar;</li>
+      <li>desmaio, confusão ou muita fraqueza.</li>
+    </ul>
+  </div>
+
+  <a href="tel:112" class="btn-112">LIGAR 112 — EMERGÊNCIA</a>
+  <p style="font-size:0.8rem;text-align:center;opacity:0.7;margin-bottom:16px;">112 funciona em Portugal, Espanha e Itália. "Urgências" em Portugal e na Espanha, "pronto soccorso" na Itália.</p>
+
+  <div class="alert-yellow">
+    <h3>Procure atendimento no mesmo dia se houver:</h3>
+    <ul>
+      <li>diarreia líquida (3 ou mais vezes em 24 horas) ou que passa de 24 a 48 horas;</li>
+      <li>febre de 38 °C ou mais;</li>
+      <li>vômitos repetidos ou não conseguir beber líquidos;</li>
+      <li>sinais de desidratação: muita sede, urina escura ou pouca, tontura;</li>
+      <li>pele ou olhos amarelados, ou urina muito escura;</li>
+      <li>dor que piora ao longo do dia ou que acorda você à noite.</li>
+    </ul>
+  </div>
+
+  <div class="card-warn">
+    Se houver sinal de alerta, <strong>não espere resposta por mensagem</strong>: procure atendimento médico.
+  </div>
+
+  <h3 style="margin-top:20px;">Ficha de saúde (em inglês — leve na bolsa)</h3>
+  <div class="health-card">
+    <div class="health-row"><span class="health-label">Name</span><span>Daniela Leonel de Carvalho</span></div>
+    <div class="health-row"><span class="health-label">Date of birth</span><span>13/08/1975</span></div>
+    <div class="health-row"><span class="health-label">Diagnoses</span><span>SIBO (positive lactulose breath test, 16 Oct 2026). H. pylori: antibiotic treatment completed on 6 Nov 2026.</span></div>
+    <div class="health-row"><span class="health-label">Allergies</span><span>_______________</span></div>
+    <div class="health-row"><span class="health-label">Current medicines</span><span>_______________</span></div>
+    <div class="health-row"><span class="health-label">Doctor / phone</span><span>_______________</span></div>
+  </div>
+  <p style="font-size:0.85rem;margin-top:4px;">Preencha os campos em branco e leve na bolsa junto com a receita dos medicamentos.</p>
+</section>
+
+<!-- DIÁRIO -->
+<section id="diario">
+  <h2>Diário intestinal da viagem</h2>
+  <p style="margin-bottom:12px;">Preencha uma vez por dia, de preferência à noite. Leva menos de 2 minutos. Escala de 0 (nada) a 10 (o pior que você já sentiu). Tire uma foto da tela e envie para mim, ou copie o modelo de mensagem abaixo.</p>
+
+  <div id="diary-container"></div>
+
+  <h3 style="margin-top:20px;">Escala de Bristol</h3>
+  <div class="card">
+    <p><strong>1-2</strong> = fezes duras e em bolinhas (prisão de ventre)</p>
+    <p><strong>3-4</strong> = formadas e macias (ideal)</p>
+    <p><strong>5</strong> = bolas moles</p>
+    <p><strong>6</strong> = pastosas</p>
+    <p><strong>7</strong> = líquidas (diarreia)</p>
+  </div>
+
+  <h3 style="margin-top:16px;">Modelo de mensagem para o check-in</h3>
+  <div class="msg-modelo" id="msgModelo">Dia __ | Inchaço __/10 | Dor __/10 | Azia ou amargo __/10 | Evacuações __ (Bristol __) | Comi de diferente: _____ | Algum sinal de alerta? sim / não</div>
+  <button class="copy-btn" style="margin-top:8px;" onclick="copyMsg()">Copiar modelo</button>
+
+  <div class="card-warn" style="margin-top:16px;">
+    Se houver sinal de alerta, <strong>não espere resposta por mensagem</strong>: procure atendimento, conforme a seção anterior.
+  </div>
+</section>
+
+<!-- DEPOIS DA VIAGEM -->
+<section>
+  <h2>Depois da viagem</h2>
+  <div style="margin:8px 0;">
+    <div class="meal-row"><span class="meal-label" style="min-width:120px;">Ao voltar (27/11)</span><span class="meal-desc">Envie o último check-in e as fotos do diário. Vamos marcar a consulta de retorno para avaliar sintomas, fezes e o que funcionou ou não na viagem.</span></div>
+    <div class="meal-row"><span class="meal-label" style="min-width:120px;">A partir de 26/11</span><span class="meal-desc">A sua médica decide o início do antibiótico para a SIBO. O plano alimentar se ajusta ao que ela decidir.</span></div>
+    <div class="meal-row"><span class="meal-label" style="min-width:120px;">Controle H. pylori</span><span class="meal-desc">Cerca de 4 semanas depois do fim do antibiótico (a partir de, aproximadamente, 04/12), conforme a sua médica. Pergunte a ela se precisa pausar o omeprazol antes do exame e com que preparo.</span></div>
+    <div class="meal-row"><span class="meal-label" style="min-width:120px;">Alimentação</span><span class="meal-desc">Depois que os sintomas estiverem mais estáveis, reintroduzimos os grupos de alimentos aos poucos, um de cada vez, para descobrir o que você tolera. A restrição de agora é temporária.</span></div>
+  </div>
+
+  <div class="card-tip" style="margin-top:16px;">
+    <p>Você não precisa fazer tudo perfeito. Um dia ruim não estraga a viagem nem o tratamento. O combinado é: comer simples na maior parte do tempo, se permitir uma aventura por dia, observar e me avisar. Aproveite cada destino.</p>
+    <p style="margin-top:8px;font-style:italic;">Comida não é vilã.</p>
+  </div>
+</section>
+
+<div class="footer-bar">
+  Isabela Marçal · Nutricionista · CRN-9 37597<br>
+  @belamarcall · (31) 99450-3318<br><br>
+  Material individual, feito com base no seu quadro atual e no seu cardápio.<br>
+  Não substitui orientação médica.<br>
+  Em caso de sinais de alerta, procure atendimento. Não espere resposta por mensagem.
+</div>
+
+<script>
+// Search
+function filterFood() {
+  const q = document.getElementById('searchFood').value.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  document.querySelectorAll('[data-food]').forEach(el => {
+    const text = el.textContent.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    el.hidden = q.length > 1 && !text.includes(q);
+  });
+  document.querySelectorAll('[data-sem]').forEach(g => {
+    const items = g.querySelectorAll('[data-food]');
+    const anyVisible = Array.from(items).some(i => !i.hidden);
+    g.hidden = !anyVisible;
+  });
+}
+
+// Country tabs
+function showCountry(id) {
+  document.querySelectorAll('.country-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.country-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('country-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Language tabs
+function showLang(id) {
+  document.querySelectorAll('.lang-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('lang-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Copy message model
+function copyMsg() {
+  const text = document.getElementById('msgModelo').textContent;
+  try {
+    navigator.clipboard.writeText(text);
+    event.target.textContent = 'Copiado!';
+    setTimeout(() => event.target.textContent = 'Copiar modelo', 2000);
+  } catch(e) {
+    const range = document.createRange();
+    range.selectNodeContents(document.getElementById('msgModelo'));
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+}
+
+// Generate diary days
+const dias = [
+  {n:1,d:'11/11',w:'qua'},{n:2,d:'12/11',w:'qui'},{n:3,d:'13/11',w:'sex'},
+  {n:4,d:'14/11',w:'sáb'},{n:5,d:'15/11',w:'dom'},{n:6,d:'16/11',w:'seg'},
+  {n:7,d:'17/11',w:'ter'},{n:8,d:'18/11',w:'qua'},{n:9,d:'19/11',w:'qui'},
+  {n:10,d:'20/11',w:'sex'},{n:11,d:'21/11',w:'sáb'},{n:12,d:'22/11',w:'dom'},
+  {n:13,d:'23/11',w:'seg'},{n:14,d:'24/11',w:'ter'},{n:15,d:'25/11',w:'qua'},
+  {n:16,d:'26/11',w:'qui'}
+];
+const container = document.getElementById('diary-container');
+dias.forEach(day => {
+  const el = document.createElement('details');
+  el.className = 'diary-day';
+  el.innerHTML = `<summary style="cursor:pointer;font-weight:700;color:var(--azul-profundo);font-family:'Josefin Sans',sans-serif;">Dia ${day.n} — ${day.d} (${day.w})</summary>
+    <div class="diary-fields" style="margin-top:10px;">
+      <div class="diary-field"><label>Onde estou</label><input type="text" placeholder="Cidade"></div>
+      <div class="diary-field"><label>Inchaço 0-10</label><input type="number" min="0" max="10"></div>
+      <div class="diary-field"><label>Dor 0-10</label><input type="number" min="0" max="10"></div>
+      <div class="diary-field"><label>Azia/amargo 0-10</label><input type="number" min="0" max="10"></div>
+      <div class="diary-field"><label>Evacuações (nº)</label><input type="number" min="0"></div>
+      <div class="diary-field"><label>Bristol</label><select><option value="">-</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option></select></div>
+      <div class="diary-field full"><label>O que comi de diferente, gatilhos, observações</label><textarea placeholder="Ex: comi meia porção de pasta al pomodoro no almoço, gelato de limão à tarde"></textarea></div>
+    </div>`;
+  container.appendChild(el);
+});
+</script>
