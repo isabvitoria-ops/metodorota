@@ -1,9 +1,9 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { Navigate } from "react-router-dom";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
+import { PedidoDeViagem } from "@/central/pages/ViagemPedido";
 import type { FichaDeViagem } from "@/central/types/viagem";
 
 type Pais = "it" | "pt" | "es";
@@ -301,7 +301,8 @@ export function Viagem() {
     }
   }
 
-  if (!acesso.viagem) return <Navigate to={rotas.home} replace />;
+  // Sem o guia liberado, a tela continua sendo o aviso de viagem para a nutricionista.
+  if (!acesso.viagem) return <PedidoDeViagem />;
 
   const paisInfo = PAISES[paisAtivo];
   const cartao = CARTOES[idiomaAtivo];
