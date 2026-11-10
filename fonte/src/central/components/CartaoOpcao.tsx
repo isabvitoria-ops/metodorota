@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { OpcaoComerFora } from "@/central/types";
+import { partirSubstituicao } from "@/central/utils/protocoloDaPaciente";
 import { Icone } from "./Icone";
 import { Selo } from "./Selo";
 
@@ -32,7 +33,7 @@ export function CartaoOpcao({
   const temCorpo = Boolean(opcao.descricao) || opcao.detalhes.length > 0 || Boolean(opcao.energia?.mostrarKcal);
 
   return (
-    <article className={`c-opcao ${destacada ? "destacada" : ""}`} ref={caixa}>
+    <article className={`c-opcao c-opcao--${opcao.nivel ?? "sem-nivel"} ${destacada ? "destacada" : ""}`} ref={caixa}>
       <div className="c-opcao-topo">
         <button
           type="button"
@@ -68,16 +69,28 @@ export function CartaoOpcao({
         <div className="c-opcao-corpo">
           {opcao.descricao && <p>{opcao.descricao}</p>}
           {opcao.detalhes.length > 0 && (
-            <ul>
-              {opcao.detalhes.map((detalhe) => (
-                <li key={detalhe}>{detalhe}</li>
-              ))}
+            // "Cheeseburger — 291 kcal" vira duas colunas: o que é, e quanto.
+            // O texto é o que a nutricionista escreveu; só o travessão vira
+            // alinhamento. Sem travessão, a linha fica inteira à esquerda.
+            <ul className="c-opcao-itens">
+              {opcao.detalhes.map((detalhe) => {
+                const parte = partirSubstituicao(detalhe);
+                return (
+                  <li key={detalhe}>
+                    <span>{parte.alimento}</span>
+                    {parte.quantidade && <strong>{parte.quantidade}</strong>}
+                  </li>
+                );
+              })}
             </ul>
           )}
           {opcao.energia?.mostrarKcal && opcao.energia.kcal !== null && (
-            <p className="c-opcao-kcal">
-              Cerca de {opcao.energia.kcal} kcal
-              {opcao.energia.observacao ? ` · ${opcao.energia.observacao}` : ""}
+            <p className="c-opcao-total">
+              <span>
+                Total
+                {opcao.energia.observacao && <small>{opcao.energia.observacao}</small>}
+              </span>
+              <strong>cerca de {opcao.energia.kcal} kcal</strong>
             </p>
           )}
         </div>

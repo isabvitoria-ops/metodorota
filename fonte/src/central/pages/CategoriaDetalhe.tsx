@@ -7,7 +7,9 @@ import { CartaoOpcao } from "@/central/components/CartaoOpcao";
 import { ConteudoDaCasa } from "@/central/components/ConteudoDaCasa";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { Icone } from "@/central/components/Icone";
+import { IlustracaoComerFora } from "@/central/components/IlustracaoComerFora";
 import { Logo } from "@/central/components/Logo";
+import { desenhoDaCategoria } from "@/central/utils/comerForaVisual";
 import { rotas } from "@/central/rotas";
 
 /**
@@ -75,7 +77,16 @@ export function CategoriaDetalhe() {
       />
 
       <div className="c-conteudo">
-        {categoria.introducao && <p className="c-intro">{categoria.introducao}</p>}
+        <div className="c-cf-faixa">
+          <span className="c-cf-faixa-arte">
+            {desenhoDaCategoria(categoria.nome) === "prato" && categoria.logo ? (
+              <Logo nome={categoria.nome} logo={categoria.logo} tamanho={56} nomeVisivel={false} />
+            ) : (
+              <IlustracaoComerFora desenho={desenhoDaCategoria(categoria.nome)} tamanho={84} />
+            )}
+          </span>
+          <p>{categoria.introducao ?? categoria.resumo ?? "Escolha o lugar e veja o que pedir."}</p>
+        </div>
 
         {totalDeOpcoes === 0 && porGrupo.length === 0 && (
           <EstadoVazio
@@ -153,7 +164,7 @@ export function CategoriaDetalhe() {
               <h2>{decisao.titulo}</h2>
               {decisao.pergunta && <p className="c-decisao-pergunta">{decisao.pergunta}</p>}
               {decisao.observacoes.length > 0 && (
-                <ul className="c-observacoes">
+                <ul className="c-cf-notas">
                   {decisao.observacoes.map((nota) => (
                     <li key={nota}>{nota}</li>
                   ))}
@@ -175,11 +186,14 @@ export function CategoriaDetalhe() {
         })}
 
         {categoria.lembretes.length > 0 && (
-          <section className="c-secao c-prosa">
+          <section className="c-secao">
             <h2 className="c-secao-titulo">Para lembrar</h2>
-            <ul>
+            <ul className="c-cf-lembretes">
               {categoria.lembretes.map((lembrete) => (
-                <li key={lembrete}>{lembrete}</li>
+                <li key={lembrete}>
+                  <Icone nome="feito" tamanho={16} />
+                  <span>{lembrete}</span>
+                </li>
               ))}
             </ul>
           </section>
