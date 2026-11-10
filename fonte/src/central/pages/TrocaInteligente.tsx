@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import type { Alimento } from "@/central/types";
 import { catalogo } from "@/central/dados/catalogo";
-import { calcularTroca, destinosPossiveis, origensPossiveis } from "@/central/utils/calculoTroca";
+import { calcularTroca, destinosPossiveis, opcoesDeTroca, origensPossiveis } from "@/central/utils/calculoTroca";
 import { arredondarExibicao, daBase, rotuloUnidade, unidadesDoAlimento } from "@/central/utils/medidas";
 import { numero } from "@/central/utils/texto";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
@@ -55,17 +55,36 @@ export function TrocaInteligente() {
   const filtroGlutenServe = useMemo(() => declarado(candidatos, "semGluten"), [candidatos]);
   const filtroLactoseServe = useMemo(() => declarado(candidatos, "semLactose"), [candidatos]);
 
+  // Na busca do novo alimento, o mesmo grupo vem primeiro: quem troca arroz
+  // quer ver macarrão antes de abacaxi. A lista alfabética de tudo abria em
+  // "Abacaxi" para qualquer alimento.
   const destinos = useMemo(
     () =>
-      candidatos.filter(
-        (a) =>
-          (!semGluten || a.atributos.semGluten === true) &&
-          (!semLactose || a.atributos.semLactose === true),
-      ),
-    [candidatos, semGluten, semLactose],
+      candidatos
+        .filter(
+          (a) =>
+            (!semGluten || a.atributos.semGluten === true) &&
+            (!semLactose || a.atributos.semLactose === true),
+        )
+        .sort((a, b) => Number(b.grupoId === origem?.grupoId) - Number(a.grupoId === origem?.grupoId)),
+    [candidatos, semGluten, semLactose, origem],
   );
 
   const valor = numeroDeTexto(quantidade) ?? Number.NaN;
+
+  // As opções já com a quantidade, para ela escolher sem pesquisar: o par
+  // cadastrado e o mesmo grupo. Os outros grupos continuam na busca.
+  const [todasAsOpcoes, definirTodasAsOpcoes] = useState(false);
+  const opcoes = useMemo(
+    () =>
+      origem && !destino
+        ? opcoesDeTroca(origem, { quantidade: valor, unidadeId }, destinos).filter(
+            (o) => o.cadastrada || o.mesmoGrupo,
+          )
+        : [],
+    [origem, destino, destinos, valor, unidadeId],
+  );
+  const opcoesVisiveis = todasAsOpcoes ? opcoes : opcoes.slice(0, OPCOES_DE_INICIO);
   const resultado = useMemo(() => {
     if (!origem || !destino) return null;
     return calcularTroca({
@@ -89,6 +108,7 @@ export function TrocaInteligente() {
 
   function escolherOrigem(alimento: Alimento) {
     definirOrigem(alimento);
+    definirTodasAsOpcoes(false);
     definirDestino(null);
     definirUnidadeId(alimento.unidadeBaseId);
     definirQuantidade(textoInicial(alimento));
@@ -232,6 +252,44 @@ export function TrocaInteligente() {
           </>
         )}
 
+        {origem && !destino && opcoes.length > 0 && (
+          <section className="c-secao c-troca-opcoes" aria-label="Opções de troca">
+            <h2 className="c-secao-titulo">Opções para trocar</h2>
+            <p className="c-troca-para">
+              No lugar de {numero(valor)} {rotuloUnidade(valor, catalogo.unidade(unidadeId), unidadeId)} de{" "}
+              {origem.nome}. Toque em uma para ver os detalhes.
+            </p>
+            <ul className="c-troca-lista">
+              {opcoesVisiveis.map((opcao) => (
+                <li key={opcao.alimento.id}>
+                  <button type="button" className="c-troca-opcao" onClick={() => definirDestino(opcao.alimento)}>
+                    <span className="c-troca-opcao-nome">{opcao.alimento.nome}</span>
+                    <span className="c-troca-opcao-qtd">
+                      {numero(opcao.saida.quantidade)}{" "}
+                      {rotuloUnidade(
+                        opcao.saida.quantidade,
+                        catalogo.unidade(opcao.saida.unidadeId),
+                        opcao.saida.unidadeId,
+                      )}
+                    </span>
+                    <Icone nome="seta" tamanho={16} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+            {opcoes.length > OPCOES_DE_INICIO && (
+              <button
+                type="button"
+                className="c-troca-mais"
+                aria-expanded={todasAsOpcoes}
+                onClick={() => definirTodasAsOpcoes((v) => !v)}
+              >
+                {todasAsOpcoes ? "Mostrar menos" : `Ver as ${opcoes.length} opções do grupo`}
+              </button>
+            )}
+          </section>
+        )}
+
         {resultado?.ok && origem && destino && (
           <section className="c-resultado" aria-live="polite">
             <p className="c-resultado-rotulo">Você deve consumir</p>
@@ -368,6 +426,9 @@ function medidasCaseirasDoResultado(
 
   return resultado;
 }
+
+/** Quantas opções aparecem antes do "ver todas". */
+const OPCOES_DE_INICIO = 6;
 
 /** A quantidade já começa na porção de referência — resultado na tela sem digitar nada. */
 function textoInicial(alimento: Alimento | null): string {

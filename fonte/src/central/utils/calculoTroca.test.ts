@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Alimento, Equivalencia, GrupoAlimentar, Medida } from "@/central/types";
-import { calcularTroca, destinosPossiveis, type ContextoCalculo } from "./calculoTroca";
+import { calcularTroca, destinosPossiveis, opcoesDeTroca, type ContextoCalculo } from "./calculoTroca";
 import { combinarPorcoes, emPorcoes, medidaDePorcoes } from "./porcoes";
 import { arredondarExibicao, converter } from "./medidas";
 import { catalogo, hidratar } from "@/central/dados/catalogo";
@@ -408,4 +408,45 @@ test("a lista inteira está cadastrada com porção, exceto quem é livre", () =
     .filter((a) => !a.porcao && !a.quantidadeLivre)
     .map((a) => a.nome);
   assert.deepEqual(pendentes, [], `alimentos sem porção e sem ser livres: ${pendentes.join(", ")}`);
+});
+
+test("opções de troca: par cadastrado primeiro, depois o mesmo grupo, depois o grupo liberado", () => {
+  const grupos = [grupo("carbo", true, ["fruta"]), grupo("fruta")];
+  const arroz = alimento("arroz", { porcao: g(100) });
+  const batata = alimento("batata", { porcao: g(150) });
+  const aveia = alimento("aveia", { porcao: g(30) });
+  const banana = alimento("banana", { grupoId: "fruta", porcao: g(80) });
+  const semPorcao = alimento("misterio");
+  const cadastrada: Equivalencia = {
+    id: "e",
+    origemAlimentoId: "arroz",
+    destinoAlimentoId: "batata",
+    regra: { tipo: "proporcional", de: g(100), para: g(180) },
+    bidirecional: true,
+    fonte: null,
+    ativo: true,
+  } as Equivalencia;
+  const ctx = contexto([arroz, batata, aveia, banana, semPorcao], [cadastrada], grupos);
+
+  const opcoes = opcoesDeTroca(arroz, g(50), [banana, aveia, semPorcao, batata], ctx);
+  assert.deepEqual(
+    opcoes.map((o) => [o.alimento.id, o.saida.quantidade, o.cadastrada, o.mesmoGrupo]),
+    [
+      ["batata", 90, true, true],
+      ["aveia", 15, false, true],
+      ["banana", 40, false, false],
+    ],
+  );
+  // A quantidade de cada opção é a mesma que a conta de um par só devolve.
+  for (const o of opcoes) {
+    const r = calcularTroca({ alimentoOrigem: arroz, alimentoDestino: o.alimento, medida: g(50) }, ctx);
+    assert.ok(r.ok && r.saida.quantidade === o.saida.quantidade);
+  }
+});
+
+test("opções de troca: quantidade inválida não devolve nada", () => {
+  const grupos = [grupo("carbo")];
+  const a = alimento("a", { porcao: g(100) });
+  const b = alimento("b", { porcao: g(50) });
+  assert.deepEqual(opcoesDeTroca(a, g(Number.NaN), [b], contexto([a, b], [], grupos)), []);
 });

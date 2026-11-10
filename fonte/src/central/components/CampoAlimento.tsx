@@ -64,7 +64,7 @@ export function CampoAlimento({
             <span className="c-escolhido-nome">{selecionado.nome}</span>
             {grupo && <span className="c-escolhido-grupo">{grupo.nome}</span>}
           </span>
-          <span className="c-escolhido-trocar">Trocar</span>
+          <span className="c-escolhido-trocar">Alterar</span>
         </button>
       </div>
     );

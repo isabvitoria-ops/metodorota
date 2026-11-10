@@ -5616,6 +5616,84 @@ body:has(.central) {
   background: var(--surface);
 }
 
+/* --------------------------------------------- troca inteligente: opções
+
+   As opções do mesmo grupo, já com a quantidade — ela escolhe sem pesquisar. */
+
+.c-troca-para {
+  margin: -4px 0 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.c-troca-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.c-troca-lista li + li {
+  border-top: 1px solid var(--border);
+}
+
+.central .c-troca-opcao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 14px 10px 16px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transicao);
+}
+
+.central .c-troca-opcao:hover,
+.central .c-troca-opcao:focus-visible {
+  background: var(--primary-soft);
+}
+
+.c-troca-opcao-nome {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.c-troca-opcao-qtd {
+  flex: none;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary-dark);
+  white-space: nowrap;
+}
+
+.c-troca-opcao > svg {
+  flex: none;
+  color: var(--text-subtle);
+}
+
+.central .c-troca-mais {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+}
+
 /* ------------------------------------------- avaliação física da paciente
 
    A tela dela (c-av-*). As classes de cima continuam valendo para a área da
