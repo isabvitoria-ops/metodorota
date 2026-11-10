@@ -276,3 +276,42 @@ export function origensPossiveis(ctx: ContextoCalculo = contextoPadrao): Aliment
     .filter((a) => destinosPossiveis(a, ctx).length > 0)
     .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
 }
+
+/** Uma opção de troca já com a quantidade calculada. */
+export interface OpcaoDeTroca {
+  alimento: Alimento;
+  saida: Medida;
+  /** Do mesmo grupo do alimento de origem. */
+  mesmoGrupo: boolean;
+  /** Saiu de uma equivalência cadastrada para o par, não da porção. */
+  cadastrada: boolean;
+}
+
+/**
+ * As opções de troca de um alimento, já calculadas para a quantidade pedida.
+ *
+ * É a mesma conta de `calcularTroca`, feita para cada candidato — nenhuma
+ * regra nova. A ordem é a de quem procura: primeiro o par que a nutricionista
+ * cadastrou à mão, depois o mesmo grupo, depois os grupos que o material
+ * libera; dentro de cada faixa, alfabética. O que não fecha conta fica fora.
+ */
+export function opcoesDeTroca(
+  origem: Alimento,
+  medida: Medida,
+  candidatos: Alimento[],
+  ctx: ContextoCalculo = contextoPadrao,
+): OpcaoDeTroca[] {
+  const opcoes: OpcaoDeTroca[] = [];
+  for (const alimento of candidatos) {
+    const r = calcularTroca({ alimentoOrigem: origem, alimentoDestino: alimento, medida }, ctx);
+    if (!r.ok) continue;
+    opcoes.push({
+      alimento,
+      saida: r.saida,
+      mesmoGrupo: alimento.grupoId === origem.grupoId,
+      cadastrada: r.origem !== "porcoes",
+    });
+  }
+  const faixa = (o: OpcaoDeTroca) => (o.cadastrada ? 0 : o.mesmoGrupo ? 1 : 2);
+  return opcoes.sort((a, b) => faixa(a) - faixa(b) || a.alimento.nome.localeCompare(b.alimento.nome, "pt-BR"));
+}

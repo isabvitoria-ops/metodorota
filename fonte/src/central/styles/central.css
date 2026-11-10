@@ -725,6 +725,40 @@ body:has(.central) {
   transition: border-color var(--transicao), box-shadow var(--transicao);
 }
 
+/* Campo que leva a classe do invólucro (`c-campo`) direto no <input>: sem
+   isto ele saía com a cara crua do navegador — uma caixinha fina — no
+   check-in, nos exames, no diário de fotos e na indicação do desafio. */
+input.c-campo:not([type="file"]),
+select.c-campo,
+textarea.c-campo {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 52px;
+  padding: 0 16px;
+  border: 1px solid var(--border-campo);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: inherit;
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--transicao), box-shadow var(--transicao);
+}
+
+textarea.c-campo {
+  padding: 12px 16px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+input.c-campo:not([type="file"]):focus,
+select.c-campo:focus,
+textarea.c-campo:focus {
+  border-color: var(--primary);
+  box-shadow: var(--foco);
+}
+
 .c-input:disabled,
 .c-select:disabled,
 .c-campo > input:not([class]):disabled,
@@ -1434,6 +1468,33 @@ body:has(.central) {
 
 @media (prefers-reduced-motion: reduce) {
   .c-festejo { animation: none; }
+}
+
+/* Quanto da semana já foi marcado: um traço por marcação possível. */
+.c-semana-progresso {
+  margin-top: 10px;
+}
+
+.c-semana-barra {
+  display: flex;
+  gap: 4px;
+}
+
+.c-semana-barra span {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--border);
+}
+
+.c-semana-barra span.feita {
+  background: var(--primary);
+}
+
+.c-semana-progresso p {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .c-acoes {
@@ -5616,6 +5677,84 @@ body:has(.central) {
   background: var(--surface);
 }
 
+/* --------------------------------------------- troca inteligente: opções
+
+   As opções do mesmo grupo, já com a quantidade — ela escolhe sem pesquisar. */
+
+.c-troca-para {
+  margin: -4px 0 12px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.c-troca-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.c-troca-lista li + li {
+  border-top: 1px solid var(--border);
+}
+
+.central .c-troca-opcao {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 10px 14px 10px 16px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transicao);
+}
+
+.central .c-troca-opcao:hover,
+.central .c-troca-opcao:focus-visible {
+  background: var(--primary-soft);
+}
+
+.c-troca-opcao-nome {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  color: var(--text);
+}
+
+.c-troca-opcao-qtd {
+  flex: none;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary-dark);
+  white-space: nowrap;
+}
+
+.c-troca-opcao > svg {
+  flex: none;
+  color: var(--text-subtle);
+}
+
+.central .c-troca-mais {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 8px;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+}
+
 /* ------------------------------------------- avaliação física da paciente
 
    A tela dela (c-av-*). As classes de cima continuam valendo para a área da
@@ -6851,16 +6990,27 @@ body:has(.central) {
 /* A escala de 0 a 10 no celular: onze alvos numa faixa de 390px dariam
    botões de 30px, que o dedo erra. Então ela quebra em duas linhas em vez
    de encolher — errar o número aqui é registrar o sintoma errado. */
+/* Seis por linha, todos do mesmo tamanho: 0–5 em cima, 6–10 embaixo. Com
+   `flex-wrap`, a segunda linha saía com botões mais largos que a primeira. */
 .c-escala {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 6px;
 }
 
+@media (min-width: 640px) {
+  .c-escala {
+    grid-template-columns: repeat(11, minmax(0, 1fr));
+  }
+}
+
+.c-escala.c-escala-estrelas {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .c-escala-numero {
-  flex: 1 1 auto;
-  min-width: 44px;
-  min-height: 44px;
+  min-width: 0;
+  min-height: 48px;
   border: 1px solid var(--borda, #d8d8d2);
   border-radius: 10px;
   background: var(--papel, #fff);
@@ -7583,7 +7733,7 @@ textarea.c-campo-input,
 .c-passo {
   display: flex;
   flex-direction: column;
-  min-height: calc(100dvh - 120px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  min-height: calc(100dvh - 200px - var(--nav-altura) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   margin-top: 8px;
 }
 
@@ -7598,6 +7748,12 @@ textarea.c-campo-input,
   font-weight: 700;
   color: var(--primary);
   font-variant-numeric: tabular-nums;
+}
+
+.c-passo-retomado {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .c-passo .c-progresso {
@@ -7668,13 +7824,20 @@ textarea.c-campo-input,
   color: var(--primary);
 }
 
+/* Os botões ficam presos acima da barra de baixo: soltos no fim da página,
+   "Próxima" ficava escondida atrás da barra no celular, e nas perguntas de
+   escrever era preciso rolar para achar. */
 .c-passo-acoes {
+  position: sticky;
+  bottom: calc(var(--nav-altura) + env(safe-area-inset-bottom, 0px));
+  z-index: 5;
   display: grid;
   grid-template-columns: 1fr 2fr;
   gap: 10px;
-  margin-top: auto;
-  padding-top: 16px;
-  padding-bottom: 8px;
+  margin: auto calc(var(--gutter) * -1) 0;
+  padding: 12px var(--gutter);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
 }
 
 .c-alertas-tela {

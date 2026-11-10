@@ -7,7 +7,7 @@ import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { Icone } from "@/central/components/Icone";
 import { useDesafio } from "@/central/hooks/useDesafio";
 import { repositorio } from "@/central/dados/repositorio";
-import { fraseDoProgresso, periodoDaSemana } from "@/central/utils/desafio";
+import { fraseDoProgresso, periodoDaSemana, resumoDaSemana } from "@/central/utils/desafio";
 import { dataBonita } from "@/central/utils/situacao";
 import { rotas } from "@/central/rotas";
 import { Esqueleto } from "@/central/components/Esqueleto";
@@ -72,6 +72,7 @@ export function Desafio() {
   const temPendente = acoes.some((a) => a.envios.some((e) => e.status === "enviado"));
   const semanais = acoes.filter((a) => a.periodicidade === "semanal");
   const extras = acoes.filter((a) => a.periodicidade !== "semanal");
+  const daSemana = resumoDaSemana(acoes);
 
   return (
     <>
@@ -133,6 +134,20 @@ export function Desafio() {
             Semana {semana} de {desafio.totalDeSemanas} · {dataBonita(faixa.inicio)} —{" "}
             {dataBonita(faixa.fim)}
           </h2>
+          {daSemana.total > 0 && (
+            <div className="c-semana-progresso">
+              <div className="c-semana-barra" aria-hidden="true">
+                {Array.from({ length: daSemana.total }, (_, i) => (
+                  <span key={i} className={i < daSemana.feitas ? "feita" : undefined} />
+                ))}
+              </div>
+              <p>
+                {daSemana.feitas === daSemana.total
+                  ? "Tudo marcado nesta semana."
+                  : `${daSemana.feitas} de ${daSemana.total} marcadas nesta semana.`}
+              </p>
+            </div>
+          )}
           <div className="c-acoes">
             {semanais.map((acao) => (
               <CartaoAcao key={acao.id} acao={acao} ocupado={ocupado} aoMudar={comRecarga} />
