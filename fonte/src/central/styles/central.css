@@ -2462,6 +2462,221 @@ body:has(.central) {
 .c-vg-previa .c-vg-hero { margin-top: 0; }
 .c-vg-previa .c-vg-rodape { margin-bottom: 0; }
 
+.c-vg-nutri-modos { margin-top: 14px; }
+
+/* --- Editor do guia de viagem --- */
+.c-vg-ed { margin-top: 4px; }
+
+.c-vg-ed-dica {
+  display: block;
+  margin: 8px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.c-vg-ed-grupo {
+  min-width: 0;
+  margin: 16px 0 0;
+}
+
+.c-vg-ed-grupo > legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 6px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--primary-dark);
+}
+
+.c-vg-ed-campo { margin-top: 12px; }
+
+.c-vg-ed-duas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0 12px;
+}
+
+.c-vg-ed-blocos {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.c-vg-ed-bloco,
+.c-vg-ed-aba {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.c-vg-ed-aba {
+  margin-top: 10px;
+  background: var(--surface-2);
+}
+
+.c-vg-ed-bloco-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.c-vg-ed-bloco-topo strong {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.c-vg-ed-ordem {
+  display: inline-flex;
+  flex: none;
+  gap: 4px;
+}
+
+.central .c-vg-ed-icone {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--primary);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.central .c-vg-ed-icone:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.central .c-vg-ed-icone--perigo { color: var(--danger); }
+
+.c-vg-ed-itens {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.c-vg-ed-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.c-vg-ed-item-campos {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.c-vg-ed .c-textarea { min-height: 64px; }
+
+.c-vg-ed-novo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.c-vg-ed-novo select {
+  flex: 1;
+  min-width: 160px;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border-campo);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: inherit;
+  color: var(--text);
+}
+
+.c-vg-ed-cor {
+  margin-top: 10px;
+  padding: 2px 12px 12px;
+  border-left: 3px solid var(--border-strong);
+}
+
+.c-vg-ed-cor--verde { border-left-color: var(--success); }
+.c-vg-ed-cor--amarelo { border-left-color: var(--warning); }
+.c-vg-ed-cor--vermelho { border-left-color: var(--danger); }
+
+.c-vg-ed-tabela { overflow-x: auto; }
+
+.c-vg-ed-tabela table { border-collapse: separate; border-spacing: 4px; }
+.c-vg-ed-tabela .c-input { min-width: 130px; height: 42px; padding: 0 10px; }
+
+.c-vg-ed-produto {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.c-vg-ed-produto img,
+.c-vg-ed-sem-foto {
+  flex: none;
+  width: 84px;
+  height: 84px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  object-fit: contain;
+  background: var(--surface);
+}
+
+.c-vg-ed-sem-foto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* O campo de arquivo fica por baixo do botão: quem aparece é o botão. */
+.c-vg-ed-arquivo { position: relative; display: inline-flex; overflow: hidden; }
+.c-vg-ed-arquivo input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+.c-vg-ed-copiar {
+  margin-top: 16px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.c-vg-ed-copiar .c-botao { margin-top: 10px; }
+
+/* A barra de salvar acompanha a rolagem: o guia é longo, e o botão não pode
+   ficar lá embaixo. */
+.c-vg-ed-barra {
+  position: sticky;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-forte);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.c-vg-ed-barra > span { margin-right: auto; }
+
 /* Rodapé */
 .c-vg-rodape {
   background: var(--marca-azul-profundo);

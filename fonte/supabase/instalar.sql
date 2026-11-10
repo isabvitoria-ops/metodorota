@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql
 -- =============================================================================
 
 
@@ -22469,3 +22469,252 @@ $$;
 
 revoke all on function viagem_do_paciente(uuid) from anon, public;
 grant execute on function viagem_do_paciente(uuid) to authenticated;
+
+
+-- ###########################################################################
+-- 0088_guia_de_viagem_por_paciente.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0088 — Rota Viagem: o guia vira dado, um por paciente
+--
+-- Na 0086 o interruptor era por paciente, mas o TEXTO do guia morava no código
+-- da tela: só existia um guia, e ele ia junto no arquivo que qualquer visitante
+-- baixa. Aqui o guia inteiro passa a ser um documento gravado por paciente,
+-- que a nutricionista monta, copia de outra paciente e edita na ficha.
+--
+-- Três decisões:
+--   * A paciente não lê a tabela: só `meu_guia_viagem()`, que confere o
+--     interruptor. Desligou, o guia some — sem depender de política de leitura.
+--   * A ficha de saúde (nome completo, nascimento, diagnóstico) continua em
+--     `pacientes.viagem_ficha`, fora do guia: copiar o guia de uma paciente
+--     para outra nunca leva a identidade junto.
+--   * Não se libera guia que não existe: a porta abriria para uma tela vazia.
+--
+-- O conteúdo de cada paciente é gravado pelo app, nunca por migração.
+-- =============================================================================
+
+create table if not exists guias_viagem (
+  paciente_id   uuid primary key references pacientes(id) on delete cascade,
+  conteudo      jsonb not null check (jsonb_typeof(conteudo) = 'object'),
+  atualizado_em timestamptz not null default now()
+);
+
+alter table guias_viagem enable row level security;
+
+drop policy if exists guias_viagem_admin on guias_viagem;
+create policy guias_viagem_admin on guias_viagem
+  for all using (e_admin()) with check (e_admin());
+
+-- -----------------------------------------------------------------------------
+-- Paciente: o meu guia (e a minha ficha), só com o interruptor ligado
+-- -----------------------------------------------------------------------------
+create or replace function meu_guia_viagem()
+returns jsonb
+language sql stable security definer
+set search_path = public
+as $$
+  select jsonb_build_object('conteudo', g.conteudo, 'ficha', p.viagem_ficha)
+    from pacientes p
+    join guias_viagem g on g.paciente_id = p.id
+   where p.perfil_id = auth.uid()
+     and p.viagem_liberado;
+$$;
+
+revoke all on function meu_guia_viagem() from anon, public;
+grant execute on function meu_guia_viagem() to authenticated;
+
+-- -----------------------------------------------------------------------------
+-- Nutricionista: ver, salvar, ligar e listar para copiar
+-- -----------------------------------------------------------------------------
+-- A visão da ficha (0087) passa a trazer também o guia.
+create or replace function viagem_do_paciente(p_paciente uuid)
+returns jsonb
+language plpgsql stable security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê o Rota Viagem da paciente.' using errcode = '42501';
+  end if;
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrada.' using errcode = '22023';
+  end if;
+
+  return (
+    select jsonb_build_object(
+      'liberado', p.viagem_liberado,
+      'conteudo', g.conteudo,
+      'guiaAtualizadoEm', g.atualizado_em,
+      'ficha', p.viagem_ficha,
+      'diario', viagem_diario_json(p.id)
+    )
+      from pacientes p
+      left join guias_viagem g on g.paciente_id = p.id
+     where p.id = p_paciente
+  );
+end;
+$$;
+
+revoke all on function viagem_do_paciente(uuid) from anon, public;
+grant execute on function viagem_do_paciente(uuid) to authenticated;
+
+create or replace function salvar_guia_viagem(p_paciente uuid, p_conteudo jsonb, p_ficha jsonb)
+returns timestamptz
+language plpgsql security definer
+set search_path = public
+as $$
+declare
+  v_quando timestamptz := now();
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista salva o guia de viagem.' using errcode = '42501';
+  end if;
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrada.' using errcode = '22023';
+  end if;
+  if p_conteudo is null or jsonb_typeof(p_conteudo) <> 'object'
+     or jsonb_typeof(p_conteudo -> 'secoes') is distinct from 'array' then
+    raise exception 'O guia veio vazio ou em formato inválido.' using errcode = '22023';
+  end if;
+
+  insert into guias_viagem (paciente_id, conteudo, atualizado_em)
+  values (p_paciente, p_conteudo, v_quando)
+  on conflict (paciente_id)
+  do update set conteudo = excluded.conteudo, atualizado_em = excluded.atualizado_em;
+
+  -- Ficha vazia ou ausente grava nulo, e não um objeto de campos em branco.
+  update pacientes
+     set viagem_ficha = case
+           when p_ficha is null or jsonb_typeof(p_ficha) <> 'object' then null
+           when coalesce(p_ficha ->> 'nome', '') = ''
+            and coalesce(p_ficha ->> 'nascimento', '') = ''
+            and coalesce(p_ficha ->> 'diagnosticos', '') = '' then null
+           else jsonb_build_object(
+             'nome', p_ficha ->> 'nome',
+             'nascimento', p_ficha ->> 'nascimento',
+             'diagnosticos', p_ficha ->> 'diagnosticos')
+         end
+   where id = p_paciente;
+
+  return v_quando;
+end;
+$$;
+
+revoke all on function salvar_guia_viagem(uuid, jsonb, jsonb) from anon, public;
+grant execute on function salvar_guia_viagem(uuid, jsonb, jsonb) to authenticated;
+
+create or replace function definir_viagem_do_paciente(p_paciente uuid, p_ativo boolean)
+returns boolean
+language plpgsql security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista libera o Rota Viagem.' using errcode = '42501';
+  end if;
+  if not exists (select 1 from pacientes where id = p_paciente) then
+    raise exception 'Paciente não encontrada.' using errcode = '22023';
+  end if;
+  if coalesce(p_ativo, false)
+     and not exists (select 1 from guias_viagem where paciente_id = p_paciente) then
+    raise exception 'Monte e salve o guia antes de liberar.' using errcode = '22023';
+  end if;
+
+  update pacientes set viagem_liberado = coalesce(p_ativo, false) where id = p_paciente;
+
+  return (select viagem_liberado from pacientes where id = p_paciente);
+end;
+$$;
+
+revoke all on function definir_viagem_do_paciente(uuid, boolean) from anon, public;
+grant execute on function definir_viagem_do_paciente(uuid, boolean) to authenticated;
+
+-- Quem já tem guia, para servir de ponto de partida. Só o cabeçalho: o
+-- conteúdo é buscado depois, do guia escolhido.
+create or replace function guias_viagem_para_copiar()
+returns jsonb
+language plpgsql stable security definer
+set search_path = public
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê os guias de viagem.' using errcode = '42501';
+  end if;
+
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'pacienteId', p.id,
+             'nome', p.nome,
+             'destinos', coalesce(g.conteudo ->> 'destinos', ''),
+             'periodo', coalesce(g.conteudo ->> 'periodo', '')
+           ) order by g.atualizado_em desc)
+      from guias_viagem g
+      join pacientes p on p.id = g.paciente_id
+  ), '[]'::jsonb);
+end;
+$$;
+
+revoke all on function guias_viagem_para_copiar() from anon, public;
+grant execute on function guias_viagem_para_copiar() to authenticated;
+
+
+-- ###########################################################################
+-- 0089_fechar_auxiliares_e_funcoes_abertas.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0089 — Fechando o que a vistoria de 09/11 achou aberto
+--
+-- 1) AUXILIARES DE TREINO CHAMÁVEIS POR QUALQUER UM.
+--    `_inserir_exercicios_treino(treino, exercicios)` e
+--    `_inserir_series_sessao(sessao, series)` são `security definer`, apagam e
+--    regravam os exercícios de um treino (ou as séries de uma sessão) e NÃO
+--    conferem de quem é o treino. Estavam executáveis por conta logada e até
+--    por visitante sem login: quem soubesse o id de um treino alheio apagava
+--    os exercícios dele. O id é um uuid, difícil de adivinhar — mas uma
+--    proteção que depende de ninguém descobrir um número não é proteção.
+--
+--    Elas só são chamadas de dentro de `salvar_treino` e
+--    `registrar_sessao_treino`, que são `security definer`, conferem o dono e
+--    rodam com a permissão do dono da função. Tirar o acesso de fora não muda
+--    nenhuma tela. (`_st_inserir_ex` e `_teste_ddl` são sobras do mesmo tipo.)
+--
+-- 2) FUNÇÕES `security definer` EXECUTÁVEIS POR VISITANTE.
+--    As migrações de treino v2, Hot Slim e check-in concederam a
+--    `authenticated` sem tirar de `anon` — o mesmo defeito que a 0051 fechou
+--    em setembro. Aqui o fecho é por varredura, e não por lista: a próxima
+--    função esquecida também é pega.
+--
+-- A bateria 21_permissoes_padrao.sql confere o item 2.
+-- =============================================================================
+
+do $$
+declare
+  f record;
+begin
+  for f in
+    select p.oid::regprocedure as assinatura
+      from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+     where n.nspname = 'public'
+       and p.proname in ('_inserir_exercicios_treino', '_inserir_series_sessao', '_st_inserir_ex', '_teste_ddl')
+  loop
+    execute format('revoke all on function %s from anon, authenticated, public', f.assinatura);
+  end loop;
+
+  for f in
+    select p.oid::regprocedure as assinatura
+      from pg_proc p
+      join pg_namespace n on n.oid = p.pronamespace
+      left join pg_depend d on d.objid = p.oid and d.deptype = 'e'
+     where n.nspname = 'public'
+       and p.prosecdef
+       and d.objid is null                       -- não mexe em função de extensão
+       and has_function_privilege('anon', p.oid, 'execute')
+  loop
+    execute format('revoke all on function %s from anon, public', f.assinatura);
+    execute format('grant execute on function %s to authenticated', f.assinatura);
+  end loop;
+end;
+$$;
