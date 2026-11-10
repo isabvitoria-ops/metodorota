@@ -5924,6 +5924,132 @@ textarea.c-campo:focus {
   cursor: pointer;
 }
 
+/* A rastreabilidade na área da nutricionista. */
+
+.c-ras-config > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.c-ras-config > summary::-webkit-details-marker {
+  display: none;
+}
+
+.c-ras-config-abrir {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.c-ras-config[open] .c-ras-config-abrir {
+  display: none;
+}
+
+.c-ras-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.c-ras-tabela th,
+.c-ras-tabela td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.c-ras-tabela thead th {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  background: var(--surface-2);
+}
+
+.c-ras-tabela tbody th {
+  font-weight: 600;
+  color: var(--text);
+  white-space: normal;
+  min-width: 140px;
+}
+
+.c-ras-tabela tbody tr:last-child th,
+.c-ras-tabela tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.c-ras-tabela td.c-ras-tabela-texto {
+  white-space: normal;
+  min-width: 180px;
+}
+
+.c-ras-tabela small {
+  color: var(--text-muted);
+}
+
+.c-ras-pendente {
+  color: var(--text-subtle);
+}
+
+.c-ras-sintomas {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.c-ras-sintomas li {
+  display: grid;
+  grid-template-columns: minmax(120px, 200px) 1fr auto;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.c-ras-sintoma-nome {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.c-ras-sintoma-barra {
+  height: 10px;
+  border-radius: 5px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.c-ras-sintoma-barra > span {
+  display: block;
+  height: 100%;
+  border-radius: 5px;
+  background: var(--marca-azul-medio);
+}
+
+.c-ras-sintoma-conta {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .c-ras-sintomas li {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
 /* ------------------------------------------------- aba de cálculos (c-calc-*)
 
    A avaliação física da nutricionista, em seis passos na ordem em que ela
