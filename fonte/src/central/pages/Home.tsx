@@ -8,6 +8,7 @@ import { useState } from "react";
 import { rotas } from "@/central/rotas";
 import { useDesafio } from "@/central/hooks/useDesafio";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { useInstalacao } from "@/central/hooks/useInstalacao";
 
 /**
  * Home — a "Central do Paciente" (§3 e §33).
@@ -155,9 +156,7 @@ export function Home() {
             </h1>
             {primeiroNome && <p className="c-subtitulo">{configuracoes.fraseHome}</p>}
           </div>
-          <button type="button" className="c-favoritar" aria-label="Sair da conta" onClick={() => void sair()}>
-            <Icone nome="voltar" tamanho={17} />
-          </button>
+          <BotaoSair aoSair={() => void sair()} />
         </div>
       </header>
 
@@ -189,6 +188,8 @@ export function Home() {
             </span>
           </div>
         )}
+
+        <CardDeInstalar />
 
         <CardDeViagem temGuia={acesso.viagem} />
 
@@ -255,6 +256,95 @@ export function Home() {
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * Sair da conta, em dois toques.
+ *
+ * Era uma seta de "voltar" no canto, sem nome: quem tocava achando que
+ * voltava uma tela saía da conta. Agora o botão diz o que faz, e o primeiro
+ * toque só pergunta — o segundo, dentro de alguns segundos, é que sai.
+ */
+function BotaoSair({ aoSair }: { aoSair: () => void }) {
+  const [confirmando, definirConfirmando] = useState(false);
+  return (
+    <button
+      type="button"
+      className={`c-sair${confirmando ? " c-sair--confirmando" : ""}`}
+      onClick={() => {
+        if (confirmando) {
+          aoSair();
+          return;
+        }
+        definirConfirmando(true);
+        window.setTimeout(() => definirConfirmando(false), 4000);
+      }}
+    >
+      {confirmando ? "Sair mesmo?" : "Sair"}
+    </button>
+  );
+}
+
+/**
+ * O convite para colocar o app na tela do aparelho.
+ *
+ * Antes era um link discreto no rodapé, e teve paciente que nunca achou. Agora
+ * fica no alto da primeira tela — mas só para quem ainda abre pelo navegador:
+ * aberto pelo ícone, o cartão não existe. Quem toca em "Agora não" não o vê
+ * de novo neste aparelho; o link do rodapé continua lá para quando quiser.
+ *
+ * No Android e no computador o botão instala na hora. No iPhone não existe
+ * instalar por botão: ele leva ao passo a passo com as figuras.
+ */
+const CHAVE_INSTALAR = "central:instalar-dispensado:v1";
+
+function CardDeInstalar() {
+  const navegar = useNavigate();
+  const { podeInstalarAgora, jaInstalado, instalar } = useInstalacao();
+  const [dispensado, definirDispensado] = useState(() => {
+    try {
+      return window.localStorage.getItem(CHAVE_INSTALAR) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  if (jaInstalado || dispensado) return null;
+
+  function dispensar() {
+    definirDispensado(true);
+    try {
+      window.localStorage.setItem(CHAVE_INSTALAR, "1");
+    } catch {
+      /* sem armazenamento, o cartão volta na próxima abertura */
+    }
+  }
+
+  return (
+    <section className="c-instalar-card" aria-label="Colocar o aplicativo na tela do aparelho">
+      <span className="c-instalar-card-icone" aria-hidden="true">
+        <Icone nome="inicio" tamanho={20} />
+      </span>
+      <div className="c-instalar-card-texto">
+        <strong>Coloque o app na tela do seu celular</strong>
+        <span>Abre com um toque, como qualquer aplicativo. Leva menos de um minuto.</span>
+        <div className="c-instalar-card-acoes">
+          {podeInstalarAgora ? (
+            <button type="button" className="c-botao c-botao-pequeno" onClick={() => void instalar()}>
+              Instalar agora
+            </button>
+          ) : (
+            <button type="button" className="c-botao c-botao-pequeno" onClick={() => navegar(rotas.instalar)}>
+              Ver o passo a passo
+            </button>
+          )}
+          <button type="button" className="c-link" onClick={dispensar}>
+            Agora não
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }
 
