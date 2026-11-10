@@ -2,7 +2,6 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MinhaAvaliacao } from "@/central/types/protocolo";
 import { repositorio } from "@/central/dados/repositorio";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
-import { useImprimir } from "@/central/hooks/useImprimir";
 import { dataBonita } from "@/central/utils/situacao";
 import type { AvaliacaoNoTempo, ChaveDeSerie, SerieParaDesenhar } from "@/central/utils/evolucaoAvaliacoes";
 import {
@@ -46,7 +45,6 @@ export function AvaliacaoFisica() {
   // lançada" quando só a internet caiu faria ela achar que a avaliação sumiu.
   const [estado, definirEstado] = useState<"carregando" | "pronto" | "sem-rede">("carregando");
   const [tentativa, definirTentativa] = useState(0);
-  const { imprimindo, preparando, imprimir } = useImprimir();
 
   useEffect(() => {
     let vivo = true;
@@ -119,8 +117,7 @@ export function AvaliacaoFisica() {
           <button
             type="button"
             className="c-prot-acao"
-            disabled={preparando || imprimindo}
-            onClick={() => void imprimir()}
+            onClick={() => window.print()}
           >
             <Icone nome="documentos" tamanho={17} />
             Baixar em PDF
@@ -152,7 +149,9 @@ export function AvaliacaoFisica() {
         hoje — o que eles significam para você é conversa de consulta.
       </p>
 
-      {imprimindo && <DocumentoAvaliacao paciente={acesso.nome ?? "Paciente"} avaliacao={avaliacao} />}
+      {/* O documento fica montado fora da tela, pronto: no iPhone a tela de
+          imprimir só abre se for chamada na hora do toque. */}
+      <DocumentoAvaliacao paciente={acesso.nome ?? "Paciente"} avaliacao={avaliacao} />
     </>
   );
 }

@@ -20,7 +20,6 @@ import {
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
-import { useImprimir } from "@/central/hooks/useImprimir";
 
 /**
  * O protocolo alimentar — a tela mais aberta do aplicativo.
@@ -85,7 +84,12 @@ export function Protocolo() {
   });
   const [estado, definirEstado] = useState<Estado>("carregando");
   const [fotos, definirFotos] = useState<Record<string, string>>({});
-  const { imprimindo, preparando, imprimir } = useImprimir();
+  // O documento do PDF fica PRONTO antes do toque — montado fora da tela, com
+  // as fotos já baixadas — e o botão só chama a impressão. No iPhone, a tela
+  // de imprimir só abre se for chamada NA HORA do toque: baixar as fotos
+  // depois do toque fazia o aparelho ignorar o pedido, e o botão ficava
+  // apagado sem nada acontecer.
+  const [pdfPronto, definirPdfPronto] = useState(false);
 
   // A conversa por refeição: qual está aberta, e as "não lidas" de cada uma.
   const [conversa, definirConversa] = useState<RefeicaoProtocolo | null>(null);
@@ -116,6 +120,22 @@ export function Protocolo() {
   const conteudo = protocolo?.conteudo ?? null;
   const refeicoes = useMemo(() => conteudo?.refeicoes ?? [], [conteudo]);
   const temRefeicoes = refeicoes.length > 0;
+
+  // As fotos do PDF são baixadas assim que o protocolo chega. Foto que não
+  // abre fica de fora (`fotosDoProtocolo` nunca lança), e o botão libera do
+  // mesmo jeito.
+  useEffect(() => {
+    if (!conteudo) return;
+    let vivo = true;
+    definirPdfPronto(false);
+    void fotosDoProtocolo(conteudo)
+      .then((mapa) => vivo && definirFotos(mapa))
+      .catch(() => undefined)
+      .finally(() => vivo && definirPdfPronto(true));
+    return () => {
+      vivo = false;
+    };
+  }, [conteudo]);
   // Recalculado a cada vez que a tela é montada: a paciente abre o app na hora de comer.
   const proxima = useMemo(() => proximaRefeicao(refeicoes, minutosDeAgora()), [refeicoes]);
 
@@ -164,11 +184,11 @@ export function Protocolo() {
                 <button
                   type="button"
                   className="c-prot-acao"
-                  disabled={preparando || imprimindo}
-                  onClick={() => void imprimir(async () => definirFotos(await fotosDoProtocolo(conteudo)))}
+                  disabled={!pdfPronto}
+                  onClick={() => window.print()}
                 >
                   <Icone nome="documentos" tamanho={17} />
-                  {preparando ? "Preparando…" : "Baixar em PDF"}
+                  {pdfPronto ? "Baixar em PDF" : "Preparando…"}
                 </button>
                 {/* Só aparece quando existe uma avaliação publicada: uma porta
                     que abre vazia faz a paciente achar que perdeu alguma coisa. */}
@@ -289,7 +309,7 @@ export function Protocolo() {
         />
       )}
 
-      {imprimindo && protocolo && (
+      {protocolo && conteudo && temRefeicoes && (
         <DocumentoProtocolo paciente={acesso.nome ?? "Paciente"} protocolo={protocolo} conteudo={conteudo} fotos={fotos} />
       )}
     </>
