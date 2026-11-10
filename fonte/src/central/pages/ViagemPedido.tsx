@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Icone } from "@/central/components/Icone";
+import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { rotas } from "@/central/rotas";
 
@@ -36,7 +36,7 @@ export function PedidoDeViagem() {
 
   if (enviado) {
     return (
-      <main className="c-pagina">
+      <div className="c-conteudo">
         <div className="c-viagem-confirmacao">
           <span className="c-viagem-confirmacao-icone" aria-hidden="true">✅</span>
           <h2>Mensagem preparada!</h2>
@@ -49,22 +49,18 @@ export function PedidoDeViagem() {
             Voltar para o início
           </button>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="c-pagina">
-      <header className="c-cabecalho-pagina">
-        <button type="button" className="c-voltar" onClick={() => navegar(-1)} aria-label="Voltar">
-          <Icone nome="voltar" tamanho={20} />
-        </button>
-        <h1>Viagem programada</h1>
-      </header>
-
-      <p className="c-subtitulo" style={{ marginBottom: 20 }}>
-        Avise com antecedência para receber orientações especiais.
-      </p>
+    <>
+      <CabecalhoPagina
+        titulo="Viagem programada"
+        descricao="Avise com antecedência para receber orientações especiais."
+        voltarPara={rotas.home}
+      />
+      <div className="c-conteudo">
 
       <form onSubmit={enviar} className="c-form-viagem">
         <label className="c-campo">
@@ -105,6 +101,7 @@ export function PedidoDeViagem() {
           Enviar pelo WhatsApp
         </button>
       </form>
-    </main>
+      </div>
+    </>
   );
 }

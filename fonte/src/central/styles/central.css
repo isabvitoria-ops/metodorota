@@ -149,6 +149,31 @@ body {
   --font-display: "Fraunces", Georgia, "Times New Roman", serif;
   --font-body: "Public Sans", system-ui, -apple-system, sans-serif;
 
+  /* ---- apelidos ----
+     Várias telas foram escritas com outros nomes para as MESMAS coisas
+     (`--fonte`, `--cor-borda`, `--raio`…). Como esses nomes nunca tinham sido
+     declarados, o navegador descartava a regra inteira: cartão sem borda,
+     fundo transparente, título na letra errada. Aqui cada apelido aponta
+     para o valor de verdade, logo acima — um lugar só continua mandando. */
+  --font: var(--font-body);
+  --fonte: var(--font-body);
+  --fonte-titulo: var(--font-display);
+  --raio: var(--radius-sm);
+  --borda: var(--border-campo);
+  --cor-borda: var(--border);
+  --cor-fundo: var(--surface);
+  --surface-1: var(--surface-2);
+  --cor-primaria: var(--primary);
+  --cor-titulo: var(--primary-dark);
+  --tinta-forte: var(--primary-dark);
+  --cor-texto: var(--text);
+  --text-main: var(--text);
+  --fg: var(--text);
+  --cor-texto-sec: var(--text-muted);
+  --text-secondary: var(--text-muted);
+  --text-soft: var(--text-subtle);
+  --muted: var(--surface-2);
+
   /* ---- medidas de layout ---- */
   --gutter: 20px;
   --nav-altura: 64px;
@@ -1760,6 +1785,7 @@ body:has(.central) {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  margin-top: 20px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--raio);
@@ -6580,6 +6606,111 @@ body:has(.central) {
   padding: 10px;
 }
 
+/* O campo dentro de `c-campo-rotulo`, e o `c-campo-input` das telas mais
+   novas: os dois eram usados sem estilo de campo, e saíam com a caixinha crua
+   do navegador (exames, fotos de evolução, hidratação, aviso de viagem). */
+.c-campo-input,
+.c-campo-rotulo > input.c-campo:not([type="file"]),
+.c-campo-rotulo > select.c-campo,
+.c-campo-rotulo > textarea.c-campo {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  height: 52px;
+  padding: 0 16px;
+  border: 1px solid var(--border-campo);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font: inherit;
+  font-size: 1rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--transicao), box-shadow var(--transicao);
+}
+
+textarea.c-campo-input,
+.c-campo-rotulo > textarea.c-campo {
+  height: auto;
+  min-height: 92px;
+  padding: 12px 16px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.c-campo-input:focus,
+.c-campo-rotulo > .c-campo:focus {
+  border-color: var(--primary);
+  box-shadow: var(--foco);
+}
+
+/* O botão "Escolher arquivo" do navegador, com a cara dos botões do app. */
+.c-campo-rotulo > input[type="file"]::file-selector-button {
+  height: 42px;
+  margin-right: 12px;
+  padding: 0 16px;
+  border: 1px solid var(--primary);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Pequenas classes que as telas pediam e a folha não tinha: o erro saía em
+   preto, como texto comum, e a linha de campos empilhava. */
+.c-erro,
+.c-campo-erro,
+.c-msg-erro {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--danger);
+}
+
+.c-msg {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+
+.c-texto-muted {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.central h3.c-secao-subtitulo {
+  margin: 18px 0 8px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.c-linha-campos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+/* O campo ocupa o que sobra da linha; os botões ficam do tamanho deles. */
+.c-linha-campos > label {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+/* Botão de ação secundária dentro de um cartão: só o texto, sem moldura. */
+.central .c-botao-fantasma {
+  background: transparent;
+  border-color: transparent;
+  color: var(--primary);
+}
+
+.central .c-botao-fantasma.c-botao-perigo { color: var(--danger); }
+
+.central .c-botao-fantasma:hover { background: var(--primary-soft); }
+.central .c-botao-fantasma.c-botao-perigo:hover { background: var(--danger-soft); }
+
 /* Atalhos no topo do prontuário. `scroll-margin-top` porque o topo da área
    da nutricionista é fixo: sem ele, a seção parava escondida debaixo das abas. */
 .c-atalhos-prontuario {
@@ -8863,7 +8994,7 @@ body:has(.central) {
 }
 
 .c-marcador-resultado-ref {
-  font: 400 0.7rem/1.3 var(--fonte);
+  font: 400 0.75rem/1.3 var(--fonte);
   color: var(--cor-texto-sec);
   font-variant-numeric: tabular-nums;
 }
@@ -9045,7 +9176,7 @@ body:has(.central) {
 }
 
 .central .c-hidrata-dia-label {
-  font: 400 0.65rem/1 var(--font);
+  font: 400 0.75rem/1 var(--font);
   color: var(--text-subtle);
   font-variant-numeric: tabular-nums;
 }
@@ -9078,7 +9209,7 @@ body:has(.central) {
 
 .central .c-restricao-selo {
   display: inline-block;
-  font: 600 0.7rem/1 var(--font);
+  font: 600 0.75rem/1 var(--font);
   padding: 2px 8px;
   border-radius: 999px;
   text-transform: uppercase;
@@ -9162,7 +9293,7 @@ body:has(.central) {
   left: 0;
   right: 0;
   padding: 4px 6px;
-  font: 600 0.7rem/1.2 var(--font);
+  font: 600 0.75rem/1.2 var(--font);
   color: #fff;
   background: linear-gradient(transparent, rgba(0,0,0,.55));
   text-align: center;
@@ -9254,7 +9385,7 @@ body:has(.central) {
   z-index: 3;
   padding: 2px 8px;
   border-radius: 4px;
-  font: 600 0.7rem/1.4 var(--font);
+  font: 600 0.75rem/1.4 var(--font);
   color: #fff;
   background: rgba(0,0,0,.5);
   pointer-events: none;
