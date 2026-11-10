@@ -102,7 +102,15 @@ import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { MinhaHidratacao, HidratacaoDoPaciente, TipoLiquido } from "@/central/types/hidratacao";
 import type { RestricaoAlimentar, TipoRestricao, GravidadeRestricao } from "@/central/types/restricao";
 import type { FotoEvolucao, PoseEvolucao } from "@/central/types/fotoEvolucao";
-import type { CamposDoDiario, DiaDoDiarioDeViagem, FichaDeViagem, ViagemDoPaciente } from "@/central/types/viagem";
+import type {
+  CamposDoDiario,
+  DiaDoDiarioDeViagem,
+  FichaDeViagem,
+  GuiaDeViagem,
+  GuiaParaCopiar,
+  MeuGuiaDeViagem,
+  ViagemDoPaciente,
+} from "@/central/types/viagem";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
 import { repositorioSupabase } from "./repositorioSupabase";
@@ -945,14 +953,20 @@ export interface Repositorio {
   // Rota Viagem (0086)
   // ---------------------------------------------------------------------
 
-  /** Os dados pessoais da ficha de saúde da viagem. Nulo se não houver. */
-  minhaFichaDeViagem(): Promise<FichaDeViagem | null>;
+  /** O guia de viagem da própria paciente, com a ficha. Nulo se não houver guia ligado. */
+  meuGuiaDeViagem(): Promise<MeuGuiaDeViagem | null>;
   /** Os dias do diário da viagem que já estão no banco. */
   meuDiarioDeViagem(): Promise<DiaDoDiarioDeViagem[]>;
   /** Grava (ou substitui) um dia do diário. Dia sem nada preenchido é apagado. */
   anotarDiarioDeViagem(dia: string, campos: CamposDoDiario): Promise<void>;
-  /** Nutricionista: o Rota Viagem de uma paciente — interruptor, ficha e diário. */
+  /** Nutricionista: o Rota Viagem de uma paciente — interruptor, guia, ficha e diário. */
   viagemDoPaciente(pacienteId: string): Promise<ViagemDoPaciente>;
+  /** Nutricionista: grava o guia e a ficha de saúde da paciente. */
+  salvarGuiaDeViagem(pacienteId: string, guia: GuiaDeViagem, ficha: FichaDeViagem | null): Promise<void>;
+  /** Nutricionista: liga ou desliga o guia. Devolve o estado gravado. */
+  definirViagemDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean>;
+  /** Nutricionista: quem já tem guia, para servir de ponto de partida. */
+  guiasDeViagemParaCopiar(): Promise<GuiaParaCopiar[]>;
 
   // ---------------------------------------------------------------------
   // Fotos evolutivas (0081)

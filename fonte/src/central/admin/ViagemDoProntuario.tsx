@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { repositorio } from "@/central/dados/repositorio";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
-import { ConteudoDoGuia } from "@/central/pages/Viagem";
+import { GuiaDeViagemVisao } from "@/central/components/GuiaDeViagem";
 import type { DiaDoDiarioDeViagem, ViagemDoPaciente } from "@/central/types/viagem";
 import { camposDoServidor, type DiarioLocal } from "@/central/utils/diarioDeViagem";
 
@@ -107,9 +107,19 @@ export function ViagemDoProntuario({
         <p className="c-subtitulo">
           É a mesma tela do aplicativo dela, com a ficha de saúde preenchida. O diário aparece com o que ela já anotou.
         </p>
-        <div className="c-vg-previa">
-          <ConteudoDoGuia nome={dados.ficha?.nome ?? nome} ficha={dados.ficha} diario={diarioDaTela} comNavegacao={false} />
-        </div>
+        {dados.guia ? (
+          <div className="c-vg-previa">
+            <GuiaDeViagemVisao
+              guia={dados.guia}
+              nome={dados.ficha?.nome ?? nome}
+              ficha={dados.ficha}
+              diario={diarioDaTela}
+              comNavegacao={false}
+            />
+          </div>
+        ) : (
+          <EstadoVazio icone="info" titulo="Esta paciente ainda não tem guia" descricao="Monte o guia para ele aparecer aqui." />
+        )}
       </section>
     </>
   );

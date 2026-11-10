@@ -1944,6 +1944,33 @@ body:has(.central) {
   margin-top: 1px;
 }
 
+/* Texto corrido do guia */
+.c-vg-texto > p {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin: 8px 0;
+}
+
+.c-vg-tabela-rolagem {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+.c-vg-sem-resultado {
+  margin: 12px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Um bloco depois do outro: o respiro é do guia, não de quem escreve */
+.c-vg-secao > .c-vg-sub:not(:first-child) { margin-top: 20px; }
+.c-vg-secao > .c-vg-checklist + .c-vg-dica,
+.c-vg-secao > .c-vg-dica + .c-vg-checklist { margin-top: 12px; }
+.c-vg-secao > .c-vg-card { margin-top: 12px; }
+.c-vg-dica p + p,
+.c-vg-card p + p { margin-top: 8px; }
+.c-vg-dica em { font-style: italic; }
+
 /* Dica box */
 .c-vg-dica {
   background: var(--marca-gelo);
@@ -2021,10 +2048,8 @@ body:has(.central) {
   flex: none;
   min-width: 70px;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.86rem;
   color: var(--primary);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
 }
 
 /* Busca de alimentos */
