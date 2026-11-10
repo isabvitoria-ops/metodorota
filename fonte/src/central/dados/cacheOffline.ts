@@ -92,6 +92,20 @@ export async function lerAcessoDoCache(): Promise<Acesso | null> {
   }
 }
 
+/**
+ * Ao sair da conta, o que é DA CONTA sai do aparelho: quem ela é, a lista de
+ * pacientes e a de protocolos. Sem isto, abrir o app sem internet depois de
+ * sair voltava a mostrar a conta anterior. O catálogo de alimentos fica: não
+ * é de ninguém.
+ */
+export async function limparCacheDaConta(): Promise<void> {
+  try {
+    await db.cache.bulkDelete([CHAVE_ACESSO, CHAVE_PACIENTES, CHAVE_PROTOCOLOS]);
+  } catch {
+    /* idem */
+  }
+}
+
 export function estaOnline(): boolean {
   return typeof navigator === "undefined" || navigator.onLine !== false;
 }

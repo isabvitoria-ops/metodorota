@@ -5616,6 +5616,221 @@ body:has(.central) {
   background: var(--surface);
 }
 
+/* ------------------------------------------- avaliação física da paciente
+
+   A tela dela (c-av-*). As classes de cima continuam valendo para a área da
+   nutricionista; estas só arrumam a leitura no celular. */
+
+.c-av-capa {
+  margin-bottom: 14px;
+}
+
+/* O primeiro número ocupa a largura; os outros dividem a linha de baixo. */
+.c-av-destaques {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.c-av-destaque {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-2);
+  min-width: 0;
+}
+
+/* O rótulo de duas linhas não empurra o número: os valores ficam na mesma
+   altura nos dois cartões. */
+.c-av-destaque > div:first-child {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.c-av-destaque:first-child,
+.c-av-destaque:last-child:nth-child(even) {
+  grid-column: 1 / -1;
+}
+
+.c-av-destaque:first-child {
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.c-av-destaque:first-child .c-destaque-valor {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 500;
+}
+
+.c-av-destaque:first-child .c-variacao {
+  text-align: right;
+}
+
+.c-av-destaque .c-variacao {
+  margin-top: 0;
+}
+
+/* Qual medida ver no gráfico. */
+.c-av-series {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.central .c-av-serie {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transicao), color var(--transicao), border-color var(--transicao);
+}
+
+.central .c-av-serie--ativa {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--marca-marfim);
+}
+
+/* O desenho, com o valor escrito em cima de cada ponto. */
+.c-av-grafico {
+  padding-top: 22px;
+}
+
+.c-av-grafico-area {
+  position: relative;
+}
+
+.c-av-grafico .c-linha-tempo {
+  height: 104px;
+}
+
+.c-av-ponto {
+  position: absolute;
+  /* `top` e `left` vêm em porcentagem da área do desenho. */
+  transform: translate(-50%, calc(-100% - 9px));
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.c-av-ponto--inicio {
+  transform: translate(-6px, calc(-100% - 9px));
+}
+
+.c-av-ponto--fim {
+  transform: translate(calc(-100% + 6px), calc(-100% - 9px));
+}
+
+.c-av-frase {
+  margin: 12px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A composição em linhas: nome à esquerda, número à direita. */
+.c-av-lista {
+  margin: 12px 0 0;
+}
+
+.c-av-lista > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+}
+
+.c-av-lista > div:first-child {
+  border-top: 0;
+}
+
+.c-av-lista dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
+
+.c-av-lista dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.c-av-lista-sub dt {
+  padding-left: 20px;
+}
+
+.c-av-cor {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border-strong);
+}
+
+.c-av-cor--gorda {
+  background: var(--warning-soft);
+}
+
+.c-av-cor--magra {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+/* A tabela: o nome da medida fica parado enquanto as consultas rolam, e a
+   consulta de hoje é a que tem peso. */
+.c-av-tabela thead tr,
+.c-av-tabela tbody tr {
+  background: var(--surface-2);
+}
+
+.c-av-tabela thead th:first-child,
+.c-av-tabela tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: inherit;
+}
+
+.c-av-tabela td {
+  color: var(--text-muted);
+}
+
+.c-av-tabela td.c-av-atual {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.c-av-tabela th.c-av-atual,
+.c-av-tabela th.c-av-atual .c-coluna-ordinal {
+  color: var(--text);
+  font-weight: 600;
+}
+
 /* ---------------------------------------------------- evolução de treino
 
    Mesma paleta do resto, de propósito: um módulo com cor própria pareceria

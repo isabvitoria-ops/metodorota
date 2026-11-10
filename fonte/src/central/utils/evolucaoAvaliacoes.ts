@@ -233,3 +233,43 @@ export function pontosDaLinha(
     return { x, y, ponto };
   });
 }
+
+/** Uma série que a paciente pode escolher ver desenhada. */
+export interface SerieParaDesenhar {
+  chave: ChaveDeSerie;
+  rotulo: string;
+  unidade: string;
+  serie: PontoDaSerie[];
+}
+
+const SERIES_DA_PACIENTE: { chave: ChaveDeSerie; rotulo: string; unidade: string }[] = [
+  { chave: "peso", rotulo: "Peso", unidade: "kg" },
+  { chave: "percentualGordura", rotulo: "Gordura", unidade: "%" },
+  { chave: "massaMagra", rotulo: "Massa magra", unidade: "kg" },
+  { chave: "massaGorda", rotulo: "Massa gorda", unidade: "kg" },
+];
+
+/**
+ * O que dá para desenhar no tempo: só o que foi medido em pelo menos duas
+ * consultas. Um ponto sozinho não é evolução, e oferecer o botão para um
+ * gráfico vazio seria uma porta que não abre.
+ */
+export function seriesParaDesenhar(avaliacoes: AvaliacaoNoTempo[]): SerieParaDesenhar[] {
+  return SERIES_DA_PACIENTE.map((s) => ({ ...s, serie: serieDe(avaliacoes, s.chave) })).filter(
+    (s) => s.serie.length >= 2,
+  );
+}
+
+/**
+ * "−1,6 kg desde a primeira avaliação". Em percentual, a diferença é em
+ * PONTOS: de 12% para 10% são 2 pontos percentuais, não "2%".
+ * Nulo quando não mudou — aí não há frase para escrever.
+ */
+export function fraseDaVariacaoTotal(serie: PontoDaSerie[], unidade: string): string | null {
+  const total = variacaoTotal(serie);
+  if (!total || total.sentido === "igual") return null;
+  const sinal = total.sentido === "desceu" ? "−" : "+";
+  const medida =
+    unidade === "%" ? (total.absoluto === "1,0" ? "ponto percentual" : "pontos percentuais") : unidade;
+  return `${sinal}${total.absoluto} ${medida} desde a primeira avaliação`;
+}

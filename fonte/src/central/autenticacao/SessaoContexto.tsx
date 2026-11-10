@@ -1,10 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { apagarCopiasDoAparelho } from "@/central/utils/copiasNoAparelho";
 import type { Acesso, Configuracoes, EstadoDoTermo } from "@/central/types";
 import { MODO_DEMONSTRACAO, supabase } from "@/central/supabase/cliente";
 import { repositorio } from "@/central/dados/repositorio";
 import { hidratar } from "@/central/dados/catalogo";
 import { invalidarIndice } from "@/central/dados/indiceBusca";
-import { salvarAcessoNoCache, lerAcessoDoCache, lerCatalogoDoCache } from "@/central/dados/cacheOffline";
+import { salvarAcessoNoCache, lerAcessoDoCache, lerCatalogoDoCache, limparCacheDaConta } from "@/central/dados/cacheOffline";
 import { CONFIGURACOES_PADRAO } from "@/central/dados/mapeadores";
 import { urlDaRota } from "@/central/utils/enderecos";
 import { useFavoritos } from "@/central/hooks/useFavoritos";
@@ -264,6 +265,8 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
       async sair() {
         if (!supabase) return;
         await supabase.auth.signOut();
+        apagarCopiasDoAparelho();
+        await limparCacheDaConta();
         definirAcesso(ACESSO_VAZIO);
       },
 
