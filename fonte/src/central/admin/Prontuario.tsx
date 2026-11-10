@@ -27,6 +27,8 @@ import { Exames } from "@/central/components/Exames";
 import { MarcadoresExame } from "@/central/components/MarcadoresExame";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { AcessosDaPaciente } from "./AcessosDaPaciente";
+import { ViagemDoProntuario } from "./ViagemDoProntuario";
+import type { ViagemDoPaciente } from "@/central/types/viagem";
 import { AbaConsulta } from "./AbaConsulta";
 import { MenuMais } from "@/central/components/MenuMais";
 import { SeloSituacao } from "@/central/components/Selo";
@@ -51,7 +53,7 @@ import { FotosEvolucaoDoProntuario } from "./FotosEvolucaoDoProntuario";
  * sala: peso de agora, adesão e quantas consultas já houve. Cada um vira
  * travessão quando não há de onde sair — um zero ali seria afirmação.
  */
-type Aba = "consulta" | "resumo" | "condutas" | "diario" | "conversas" | "checkin" | "exames" | "cerebro" | "historico" | "carta" | "acessos";
+type Aba = "consulta" | "resumo" | "condutas" | "diario" | "conversas" | "checkin" | "exames" | "cerebro" | "historico" | "viagem" | "carta" | "acessos";
 
 /** As abas à vista. Carta e acessos entram pelo ⋯, porque são de vez em quando. */
 const ABAS_DA_FICHA: [Aba, string][] = [
@@ -65,7 +67,7 @@ const ABAS_DA_FICHA: [Aba, string][] = [
   ["cerebro", "Cérebro"],
   ["historico", "Histórico"],
 ];
-const ABAS_VALIDAS: Aba[] = [...ABAS_DA_FICHA.map(([v]) => v), "carta", "acessos"];
+const ABAS_VALIDAS: Aba[] = [...ABAS_DA_FICHA.map(([v]) => v), "viagem", "carta", "acessos"];
 
 const CONSULTA_VAZIA: ConsultaParaSalvar = {
   data: "",
@@ -91,6 +93,8 @@ export function Prontuario() {
   // Mensagens da paciente ainda não abertas, para a bolinha da aba "Conversas".
   const [conversasNovas, definirConversasNovas] = useState(0);
   const [editando, definirEditando] = useState<Consulta | "nova" | null>(null);
+  // O Rota Viagem só vira aba para quem tem o guia ligado.
+  const [viagem, definirViagem] = useState<ViagemDoPaciente | null>(null);
   const [parametros, definirParametros] = useSearchParams();
   const pedida = parametros.get("aba");
   const aba: Aba = ABAS_VALIDAS.includes(pedida as Aba) ? (pedida as Aba) : "consulta";
@@ -105,6 +109,21 @@ export function Prontuario() {
   useEffect(() => {
     atualizarConversasNovas();
   }, [atualizarConversasNovas]);
+
+  useEffect(() => {
+    let ativo = true;
+    definirViagem(null);
+    void repositorio
+      .viagemDoPaciente(pacienteId)
+      .then((v) => {
+        if (ativo) definirViagem(v);
+      })
+      // Sem resposta, a aba só não aparece: a ficha não pode cair por causa dela.
+      .catch(() => {});
+    return () => {
+      ativo = false;
+    };
+  }, [pacienteId]);
 
   const carregar = useCallback(async () => {
     try {
@@ -259,7 +278,7 @@ export function Prontuario() {
       </div>
 
       <nav className="c-admin-abas c-abas-prontuario" aria-label="Seções da ficha">
-        {ABAS_DA_FICHA.map(([valor, rotulo]) => (
+        {(viagem?.liberado ? [...ABAS_DA_FICHA, ["viagem", "Viagem"] as [Aba, string]] : ABAS_DA_FICHA).map(([valor, rotulo]) => (
           <button
             key={valor}
             type="button"
@@ -363,6 +382,12 @@ export function Prontuario() {
       <div hidden={aba !== "acessos"}>
         <AcessosDaPaciente pacienteId={pacienteId} />
       </div>
+
+      {viagem?.liberado && (
+        <div hidden={aba !== "viagem"}>
+          <ViagemDoProntuario pacienteId={pacienteId} nome={paciente.nome} inicial={viagem} />
+        </div>
+      )}
 
       <section className="c-secao" hidden={aba !== "historico"}>
         <h2 className="c-secao-titulo">Linha do tempo</h2>
