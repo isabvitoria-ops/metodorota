@@ -76,3 +76,24 @@ function somar(data: string, quantos: number): string {
   if (Number.isNaN(base)) return data;
   return new Date(base + quantos * 86_400_000).toISOString().slice(0, 10);
 }
+
+/**
+ * Quantas marcações da semana já foram feitas, de quantas cabem.
+ *
+ * Conta MARCAÇÃO, não ponto: os pontos só existem depois que a nutricionista
+ * confere, e quem soma é o banco. Aqui é só "das cinco coisas desta semana,
+ * marquei duas" — o envio recusado não conta, porque ela pode marcar de novo.
+ */
+export function resumoDaSemana(
+  acoes: { periodicidade: string; maxPorSemana: number; envios: { status: string }[] }[],
+): { feitas: number; total: number } {
+  let feitas = 0;
+  let total = 0;
+  for (const acao of acoes) {
+    if (acao.periodicidade !== "semanal") continue;
+    const cabem = Math.max(1, acao.maxPorSemana);
+    total += cabem;
+    feitas += Math.min(cabem, acao.envios.filter((e) => e.status !== "recusado").length);
+  }
+  return { feitas, total };
+}

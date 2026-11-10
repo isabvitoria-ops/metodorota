@@ -12,7 +12,9 @@ import { diasPendentes, lerDiarioLocal } from "./diarioDeViagem.ts";
  * apagado quando já subiu inteiro; o que ainda não subiu fica guardado e
  * segue para a nutricionista na próxima vez que ela entrar.
  */
-const COPIAS = ["central:protocolo:v1:", "central:viagem-guia:v1:"];
+// O rascunho do check-in também sai: é resposta de saúde pela metade, e quem
+// sai da conta de propósito não espera encontrá-la no aparelho depois.
+const COPIAS = ["central:protocolo:v1:", "central:viagem-guia:v1:", "central:checkin-rascunho:v1:"];
 const DIARIO_ATUAL = "central:viagem-diario:v2:";
 const DIARIO_ANTIGO = "central:viagem-diario:v1:";
 

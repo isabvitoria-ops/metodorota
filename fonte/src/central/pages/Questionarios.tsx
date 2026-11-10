@@ -12,6 +12,8 @@ import { rotas } from "@/central/rotas";
 import { naoEntendido, numeroDeTexto } from "@/central/utils/numero";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { perguntasDestaSemana } from "@/central/utils/filtroPerguntasCheckin";
+import { chaveDoRascunho, lerRascunho } from "@/central/utils/rascunhoDoCheckin";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
 
 /**
  * Onde a paciente responde o check-in da semana e os questionários.
@@ -352,22 +354,58 @@ function FormularioPassoAPasso({
   const todasPerguntas = questionario.perguntas;
   const jaEnviado = questionario.enviados.find((e) => e.periodo === questionario.periodo);
 
+  // O rascunho deste aparelho: o que ela já tinha respondido antes de sair
+  // sem enviar. Só vale enquanto o período não foi enviado.
+  const { acesso } = useSessao();
+  const chave = chaveDoRascunho(acesso.perfilId, questionario.id, questionario.periodo);
+  const [rascunho] = useState(() => {
+    if (jaEnviado) return null;
+    try {
+      return lerRascunho(window.localStorage.getItem(chave));
+    } catch {
+      return null;
+    }
+  });
+
   // Começa com o que ela já respondeu neste período, se respondeu: reabrir
   // e achar tudo em branco pareceria que a resposta se perdeu.
   const [valores, definirValores] = useState<Record<string, string>>(() => {
+    if (rascunho) return rascunho.valores;
     const inicial: Record<string, string> = {};
     for (const r of jaEnviado?.respostas ?? []) {
       inicial[r.perguntaId] = r.numero !== null ? String(r.numero) : (r.texto ?? "");
     }
     return inicial;
   });
-  const [explicacoes, definirExplicacoes] = useState<Record<string, string>>({});
-  const [indice, definirIndice] = useState(0);
+  const [explicacoes, definirExplicacoes] = useState<Record<string, string>>(() => rascunho?.explicacoes ?? {});
+  const [indice, definirIndice] = useState(() => rascunho?.indice ?? 0);
+  const [retomado, definirRetomado] = useState(rascunho !== null);
   const [enviando, definirEnviando] = useState(false);
   const [erro, definirErro] = useState<string | null>(null);
   const temporizador = useRef<number | null>(null);
 
   const perguntas = perguntasDestaSemana(todasPerguntas, questionario.periodo, valores);
+
+  // O rascunho pode apontar para uma pergunta que não existe mais (o
+  // questionário mudou desde então): volta para a última que existe.
+  useEffect(() => {
+    if (perguntas.length > 0 && indice > perguntas.length - 1) definirIndice(perguntas.length - 1);
+  }, [indice, perguntas.length]);
+
+  // Guarda a cada resposta. Sem armazenamento, o check-in segue igual — só
+  // não retoma.
+  useEffect(() => {
+    if (jaEnviado) return;
+    try {
+      if (Object.values(valores).some((v) => v.trim() !== "")) {
+        window.localStorage.setItem(chave, JSON.stringify({ valores, explicacoes, indice }));
+      } else {
+        window.localStorage.removeItem(chave);
+      }
+    } catch {
+      /* armazenamento bloqueado */
+    }
+  }, [chave, jaEnviado, valores, explicacoes, indice]);
 
   useEffect(
     () => () => {
@@ -455,6 +493,11 @@ function FormularioPassoAPasso({
         };
       });
       const alertasRecebidos = await repositorio.responderQuestionario(questionario.id, respostas);
+      try {
+        window.localStorage.removeItem(chave);
+      } catch {
+        /* armazenamento bloqueado */
+      }
       aoEnviar(alertasRecebidos);
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui enviar.");
@@ -485,6 +528,24 @@ function FormularioPassoAPasso({
       >
         <div className="c-progresso-barra" style={{ width: `${progresso}%` }} />
       </div>
+
+      {retomado && (
+        <p className="c-passo-retomado" role="status">
+          Continuando de onde você parou.{" "}
+          <button
+            type="button"
+            className="c-link"
+            onClick={() => {
+              definirValores({});
+              definirExplicacoes({});
+              definirIndice(0);
+              definirRetomado(false);
+            }}
+          >
+            Começar de novo
+          </button>
+        </p>
+      )}
 
       <div className="c-pergunta c-passo-pergunta">
         <p className="c-pergunta-texto">
@@ -591,7 +652,7 @@ function FormularioPassoAPasso({
         )}
 
         {atual.tipo === "estrelas" && (
-          <div className="c-escala" role="group" aria-label={atual.texto}>
+          <div className="c-escala c-escala-estrelas" role="group" aria-label={atual.texto}>
             {[1, 2, 3, 4, 5].map((n) => (
               <button
                 key={n}
