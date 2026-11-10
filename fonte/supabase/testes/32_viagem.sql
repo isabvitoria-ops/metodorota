@@ -1,5 +1,5 @@
 -- =============================================================================
--- Bateria do Rota Viagem (0086 e 0087)
+-- Bateria do Rota Viagem (0086, 0087 e 0088)
 --
 -- O guia de viagem traz a ficha de saude da paciente e um diario de sintomas.
 -- O que nao pode falhar:
@@ -163,13 +163,101 @@ select teste('mas a nutricionista continua lendo o que ja foi escrito',
 commit;
 
 -- -----------------------------------------------------------------------------
+-- 0088: o guia e um documento por paciente, escrito pela nutricionista
+-- (neste ponto a Lia esta desligada e a Bia ligada; nenhuma tem guia)
+-- -----------------------------------------------------------------------------
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000071a2', true);
+select teste('ligada mas sem guia, a paciente nao recebe guia nenhum', meu_guia_viagem() is null);
+select teste('a paciente nao salva guia, nem o proprio',
+  estado_de(format($$select salvar_guia_viagem(%L, '{"secoes":[]}', null)$$, bia())) = '42501');
+select teste('nem se liga sozinha',
+  estado_de(format('select definir_viagem_do_paciente(%L, true)', bia())) = '42501');
+select teste('nem lista os guias das outras',
+  estado_de('select guias_viagem_para_copiar()') = '42501');
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+select teste('nao se liga guia que nao existe',
+  estado_de(format('select definir_viagem_do_paciente(%L, true)', lia())) = '22023');
+select teste('guia sem secoes em lista e recusado',
+  estado_de(format($$select salvar_guia_viagem(%L, '{"destinos":"x"}', null)$$, lia())) = '22023');
+select teste('guia que nao e objeto e recusado',
+  estado_de(format($$select salvar_guia_viagem(%L, '[1,2]', null)$$, lia())) = '22023');
+select teste('a nutricionista salva o guia da Lia, com a ficha',
+  salvar_guia_viagem(lia(), '{"destinos":"Portugal","periodo":"3 dias","secoes":[{"id":"a","titulo":"A","blocos":[]}]}',
+                     '{"nome":"Lia Nova","nascimento":"","diagnosticos":"dx A"}') is not null);
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+select teste('e le de volta, na ficha',
+  viagem_do_paciente(lia()) -> 'conteudo' ->> 'destinos' = 'Portugal'
+  and viagem_do_paciente(lia()) -> 'ficha' ->> 'nome' = 'Lia Nova'
+  and viagem_do_paciente(lia()) ->> 'guiaAtualizadoEm' is not null);
+select teste('salvar nao liga: o guia fica guardado e desligado',
+  (viagem_do_paciente(lia()) ->> 'liberado') = 'false');
+select teste('paciente sem guia vem com o guia nulo',
+  viagem_do_paciente(bia()) -> 'conteudo' = 'null'::jsonb);
+select teste('a lista para copiar traz so quem tem guia, sem o conteudo',
+  jsonb_array_length(guias_viagem_para_copiar()) = 1
+  and guias_viagem_para_copiar() -> 0 ->> 'nome' = 'Lia Viagem'
+  and guias_viagem_para_copiar() -> 0 ->> 'destinos' = 'Portugal'
+  and not (guias_viagem_para_copiar() -> 0 ? 'conteudo'));
+select teste('agora liga, e a funcao devolve o estado gravado',
+  definir_viagem_do_paciente(lia(), true) = true);
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000071a1', true);
+select teste('ligada, a Lia recebe o guia DELA e a ficha DELA',
+  meu_guia_viagem() -> 'conteudo' ->> 'destinos' = 'Portugal'
+  and meu_guia_viagem() -> 'ficha' ->> 'nome' = 'Lia Nova');
+select teste('ela nao le a tabela dos guias direto', (select count(*) from guias_viagem) = 0);
+select teste('nem escreve nela',
+  nao_alterou($$update guias_viagem set conteudo = '{"secoes":[]}'$$));
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000071a2', true);
+select teste('a outra paciente, ligada e sem guia, continua sem ver o da Lia', meu_guia_viagem() is null);
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+select teste('salvar de novo substitui o guia, e ficha vazia vira nula',
+  salvar_guia_viagem(lia(), '{"destinos":"Italia","secoes":[]}', '{"nome":"","nascimento":"","diagnosticos":""}') is not null);
+select teste('a nutricionista desliga', definir_viagem_do_paciente(lia(), false) = false);
+commit;
+
+begin;
+select teste('ficou um guia so por paciente, com o texto novo',
+  (select count(*) from guias_viagem where paciente_id = lia()) = 1
+  and (select conteudo ->> 'destinos' from guias_viagem where paciente_id = lia()) = 'Italia');
+select teste('e a ficha vazia foi gravada como nula',
+  (select viagem_ficha from pacientes where id = lia()) is null);
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000071a1', true);
+select teste('desligada, a Lia nao recebe mais o guia', meu_guia_viagem() is null);
+commit;
+
+-- -----------------------------------------------------------------------------
 -- Quem nao entrou nao chama nada
 -- -----------------------------------------------------------------------------
 select teste('visitante nao executa ' || f,
   not has_function_privilege('anon', f::regprocedure, 'execute'))
 from unnest(array['meu_diario_de_viagem()', 'anotar_diario_de_viagem(date, jsonb)',
                   'viagem_do_paciente(uuid)', 'viagem_diario_json(uuid)',
-                  'minha_ficha_viagem()', 'viagem_liberado(uuid)']) as f;
+                  'minha_ficha_viagem()', 'viagem_liberado(uuid)',
+                  'meu_guia_viagem()', 'salvar_guia_viagem(uuid, jsonb, jsonb)',
+                  'definir_viagem_do_paciente(uuid, boolean)', 'guias_viagem_para_copiar()']) as f;
 
 select
   count(*) filter (where passou) || '/' || count(*) || ' verificacoes do Rota Viagem passaram'

@@ -121,7 +121,8 @@ import {
   paraQuestionarioDoPaciente,
   type Linha,
 } from "./mapeadores";
-import type { CamposDoDiario, DiaDoDiarioDeViagem, FichaDeViagem } from "@/central/types/viagem";
+import type { CamposDoDiario, DiaDoDiarioDeViagem, FichaDeViagem, GuiaDeViagem } from "@/central/types/viagem";
+import { normalizarGuia } from "@/central/utils/guiaViagem";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
 import {
   salvarCatalogoNoCache, lerCatalogoDoCache,
@@ -2733,11 +2734,13 @@ export const repositorioSupabase: Repositorio = {
 
   // -- Rota Viagem (0086) --
 
-  async minhaFichaDeViagem() {
+  async meuGuiaDeViagem() {
     const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("minha_ficha_viagem");
-    erro("carregar a ficha da viagem", error);
-    return paraFichaDeViagem(data);
+    const { data, error } = await sb.rpc("meu_guia_viagem");
+    erro("carregar o guia de viagem", error);
+    const l = (data ?? {}) as Linha;
+    const guia = normalizarGuia(l.conteudo);
+    return guia ? { guia, ficha: paraFichaDeViagem(l.ficha) } : null;
   },
 
   async meuDiarioDeViagem() {
@@ -2760,9 +2763,42 @@ export const repositorioSupabase: Repositorio = {
     const l = (data ?? {}) as Linha;
     return {
       liberado: l.liberado === true,
+      guia: normalizarGuia(l.conteudo),
+      guiaAtualizadoEm: textoOuNulo(l.guiaAtualizadoEm),
       ficha: paraFichaDeViagem(l.ficha),
       diario: paraDiarioDeViagem(l.diario),
     };
+  },
+
+  async salvarGuiaDeViagem(pacienteId: string, guia: GuiaDeViagem, ficha: FichaDeViagem | null) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("salvar_guia_viagem", {
+      p_paciente: pacienteId,
+      p_conteudo: guia,
+      p_ficha: ficha,
+    });
+    erro("salvar o guia de viagem", error);
+  },
+
+  async definirViagemDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("definir_viagem_do_paciente", { p_paciente: pacienteId, p_ativo: ativo });
+    erro("liberar o Rota Viagem", error);
+    return data === true;
+  },
+
+  async guiasDeViagemParaCopiar() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("guias_viagem_para_copiar");
+    erro("listar os guias de viagem", error);
+    return (Array.isArray(data) ? data : [])
+      .filter((g): g is Linha => g !== null && typeof g === "object" && typeof (g as Linha).pacienteId === "string")
+      .map((g) => ({
+        pacienteId: String(g.pacienteId),
+        nome: texto(g.nome),
+        destinos: texto(g.destinos),
+        periodo: texto(g.periodo),
+      }));
   },
 
   // -- Fotos evolutivas (0081) --

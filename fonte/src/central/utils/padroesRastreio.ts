@@ -214,7 +214,7 @@ export function lerPadroes(registros: RegistroDeReintroducao[]): LeituraDoRastre
         id: "marcador",
         texto:
           `${topo.quantidade} de ${alimentosComSintoma.size} alimentos com sintoma são ` +
-          `altos ou moderados em ${topo.valor}.`,
+          `altos em ${topo.valor}.`,
         registros: topo.quantidade,
       });
     }

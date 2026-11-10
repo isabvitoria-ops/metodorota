@@ -76,7 +76,8 @@ import type { MensagemDaRefeicao, ResumoDaConversa } from "@/central/types/conve
 import { mesmaRefeicao } from "@/central/utils/conversaDaRefeicao";
 import { caminhoDaFoto } from "@/central/utils/diarioDeFotos";
 import type { Meta } from "@/central/types/meta";
-import type { CamposDoDiario, DiaDoDiarioDeViagem } from "@/central/types/viagem";
+import type { CamposDoDiario, DiaDoDiarioDeViagem, FichaDeViagem, GuiaDeViagem } from "@/central/types/viagem";
+import { GUIA_DE_VIAGEM_DEMO } from "@/central/dados/sementes/guiaViagemDemo";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { CardioSessao, MetaSemanal, SessaoDeTreino, Treino } from "@/central/types/treino";
 import type {
@@ -310,6 +311,15 @@ function comSituacao(paciente: Paciente, alertaDias: number): Paciente {
 
 /** O diário de viagem da demonstração: vive só enquanto a aba está aberta. */
 const DIARIO_DE_VIAGEM_DEMO = new Map<string, DiaDoDiarioDeViagem>();
+
+/** Quem a nutricionista "é" quando abre a Central na demonstração. */
+const PACIENTE_DA_DEMONSTRACAO = "pac-mariana";
+
+/** Os guias de viagem da demonstração: um pronto, para dar o que ver e copiar. */
+const VIAGEM_DEMO = new Map<
+  string,
+  { liberado: boolean; guia: GuiaDeViagem | null; ficha: FichaDeViagem | null; atualizadoEm: string | null }
+>([[PACIENTE_DA_DEMONSTRACAO, { liberado: true, guia: GUIA_DE_VIAGEM_DEMO, ficha: null, atualizadoEm: null }]]);
 
 export const repositorioLocal: Repositorio = {
   async carregarCatalogo(): Promise<DadosCatalogo> {
@@ -2313,8 +2323,9 @@ export const repositorioLocal: Repositorio = {
   async minhasRestricoes() {
     return [];
   },
-  async minhaFichaDeViagem() {
-    return null;
+  async meuGuiaDeViagem() {
+    const meu = VIAGEM_DEMO.get(PACIENTE_DA_DEMONSTRACAO);
+    return meu?.liberado && meu.guia ? { guia: meu.guia, ficha: meu.ficha } : null;
   },
   async meuDiarioDeViagem() {
     return [...DIARIO_DE_VIAGEM_DEMO.values()];
@@ -2337,14 +2348,45 @@ export const repositorioLocal: Repositorio = {
       atualizadoEm: new Date().toISOString(),
     });
   },
-  // Na demonstração a nutricionista é também a paciente: o que ela anota no
-  // guia aparece na ficha de qualquer paciente de exemplo.
-  async viagemDoPaciente() {
+  async viagemDoPaciente(pacienteId: string) {
+    const v = VIAGEM_DEMO.get(pacienteId);
     return {
-      liberado: true,
-      ficha: null,
-      diario: [...DIARIO_DE_VIAGEM_DEMO.values()].sort((a, b) => a.dia.localeCompare(b.dia)),
+      liberado: v?.liberado ?? false,
+      guia: v?.guia ?? null,
+      guiaAtualizadoEm: v?.atualizadoEm ?? null,
+      ficha: v?.ficha ?? null,
+      // Na demonstração a nutricionista é também a paciente: o diário que
+      // ela anota no guia é o da primeira paciente de exemplo.
+      diario:
+        pacienteId === PACIENTE_DA_DEMONSTRACAO
+          ? [...DIARIO_DE_VIAGEM_DEMO.values()].sort((a, b) => a.dia.localeCompare(b.dia))
+          : [],
     };
+  },
+  async salvarGuiaDeViagem(pacienteId: string, guia: GuiaDeViagem, ficha: FichaDeViagem | null) {
+    const antes = VIAGEM_DEMO.get(pacienteId);
+    VIAGEM_DEMO.set(pacienteId, {
+      liberado: antes?.liberado ?? false,
+      guia: structuredClone(guia),
+      ficha,
+      atualizadoEm: new Date().toISOString(),
+    });
+  },
+  async definirViagemDoPaciente(pacienteId: string, ativo: boolean) {
+    const v = VIAGEM_DEMO.get(pacienteId);
+    if (ativo && !v?.guia) throw new Error("Monte e salve o guia antes de liberar.");
+    if (v) v.liberado = ativo;
+    return v?.liberado ?? false;
+  },
+  async guiasDeViagemParaCopiar() {
+    return [...VIAGEM_DEMO.entries()]
+      .filter(([, v]) => v.guia)
+      .map(([pacienteId, v]) => ({
+        pacienteId,
+        nome: PANORAMA_DEMO.find((p) => p.id === pacienteId)?.nome ?? "Paciente",
+        destinos: v.guia?.destinos ?? "",
+        periodo: v.guia?.periodo ?? "",
+      }));
   },
   async enviarFotoEvolucao() {
     return { id: "demo" };

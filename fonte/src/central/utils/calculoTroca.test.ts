@@ -72,6 +72,7 @@ test("o exemplo do briefing: 90 g de arroz viram 72 g de macarrão", () => {
   assert.equal(r.saida.quantidade, 72);
   assert.equal(r.saida.unidadeId, "g");
   assert.equal(r.origem, "regra-direta");
+  assert.ok(r.observacoes.includes("Calculado pela equivalência cadastrada para estes dois alimentos."));
 });
 
 test("a mesma equivalência lida ao contrário: 80 g de macarrão voltam a ser 100 g de arroz", () => {
@@ -82,6 +83,7 @@ test("a mesma equivalência lida ao contrário: 80 g de macarrão voltam a ser 1
   if (!r.ok) return;
   assert.equal(r.saida.quantidade, 100);
   assert.equal(r.origem, "regra-invertida");
+  assert.ok(r.observacoes.includes("Calculado pela equivalência cadastrada para estes dois alimentos."));
 });
 
 test("a troca escala: 45 g de arroz viram 36 g de macarrão", () => {
@@ -111,6 +113,7 @@ test("troca derivada só das porções, sem equivalência escrita", () => {
   if (!r.ok) return;
   assert.equal(r.saida.quantidade, 45);
   assert.equal(r.origem, "porcoes");
+  assert.ok(r.observacoes.includes("Calculado pela porção de referência de cada alimento."));
   assert.equal(r.porcoes, 0.9);
 });
 

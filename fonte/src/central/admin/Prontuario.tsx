@@ -93,7 +93,8 @@ export function Prontuario() {
   // Mensagens da paciente ainda não abertas, para a bolinha da aba "Conversas".
   const [conversasNovas, definirConversasNovas] = useState(0);
   const [editando, definirEditando] = useState<Consulta | "nova" | null>(null);
-  // O Rota Viagem só vira aba para quem tem o guia ligado.
+  // O Rota Viagem só vira aba para quem já tem guia; para as demais, a
+  // entrada é pelo ⋯ ("Rota Viagem"), onde o guia é montado.
   const [viagem, definirViagem] = useState<ViagemDoPaciente | null>(null);
   const [parametros, definirParametros] = useSearchParams();
   const pedida = parametros.get("aba");
@@ -251,6 +252,7 @@ export function Prontuario() {
               rotulo: "Rastreabilidade",
               aoEscolher: () => navegar(rotas.adminRastreabilidadeDe(paciente.id)),
             },
+            { rotulo: "Rota Viagem", aoEscolher: () => irPara("viagem") },
             { rotulo: "Carta de encaminhamento", separar: true, aoEscolher: () => irPara("carta") },
             { rotulo: "O que ela vê no app", aoEscolher: () => irPara("acessos") },
           ]}
@@ -278,7 +280,10 @@ export function Prontuario() {
       </div>
 
       <nav className="c-admin-abas c-abas-prontuario" aria-label="Seções da ficha">
-        {(viagem?.liberado ? [...ABAS_DA_FICHA, ["viagem", "Viagem"] as [Aba, string]] : ABAS_DA_FICHA).map(([valor, rotulo]) => (
+        {(viagem?.liberado || viagem?.guia || aba === "viagem"
+          ? [...ABAS_DA_FICHA, ["viagem", "Viagem"] as [Aba, string]]
+          : ABAS_DA_FICHA
+        ).map(([valor, rotulo]) => (
           <button
             key={valor}
             type="button"
@@ -383,11 +388,14 @@ export function Prontuario() {
         <AcessosDaPaciente pacienteId={pacienteId} />
       </div>
 
-      {viagem?.liberado && (
-        <div hidden={aba !== "viagem"}>
-          <ViagemDoProntuario pacienteId={pacienteId} nome={paciente.nome} inicial={viagem} />
-        </div>
-      )}
+      <div hidden={aba !== "viagem"}>
+        {viagem ? (
+          // A chave refaz a tela ao trocar de paciente: rascunho de uma não pode sobrar na outra.
+          <ViagemDoProntuario key={pacienteId} pacienteId={pacienteId} nome={paciente.nome} inicial={viagem} aoMudar={definirViagem} />
+        ) : (
+          aba === "viagem" && <Esqueleto />
+        )}
+      </div>
 
       <section className="c-secao" hidden={aba !== "historico"}>
         <h2 className="c-secao-titulo">Linha do tempo</h2>

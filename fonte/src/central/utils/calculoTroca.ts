@@ -234,9 +234,14 @@ function montar(
   const unidade = catalogo.unidade(aplicada.unidadeId);
   const quantidade = arredondarExibicao(aplicada.quantidade, unidade);
   const observacoes = [...aplicada.observacoes];
-  if (origemCalculo === "porcoes") {
-    observacoes.push("Calculado pela porção de referência de cada alimento.");
-  }
+  // O critério aparece SEMPRE: a paciente (e a nutricionista, conferindo) sabe
+  // se a conta veio de uma equivalência cadastrada para este par ou da
+  // comparação das porções de referência.
+  observacoes.push(
+    origemCalculo === "porcoes"
+      ? "Calculado pela porção de referência de cada alimento."
+      : "Calculado pela equivalência cadastrada para estes dois alimentos.",
+  );
   return {
     ok: true,
     entrada,
