@@ -170,6 +170,16 @@ create table if not exists storage.objects (
 
 alter table storage.objects enable row level security;
 
+-- O Supabase traz `storage.foldername()`: as pastas do caminho, sem o nome do
+-- arquivo. As políticas dos baldes usam; sem ela a migração nem aplica aqui.
+create or replace function storage.foldername(name text)
+returns text[]
+language sql immutable
+as $$
+  select (string_to_array(name, '/'))[1:greatest(array_length(string_to_array(name, '/'), 1) - 1, 0)];
+$$;
+grant execute on function storage.foldername(text) to anon, authenticated;
+
 grant usage on schema storage to anon, authenticated;
 grant select, insert, update, delete on storage.objects to authenticated;
 grant select on storage.buckets to authenticated;

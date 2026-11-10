@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql
 -- =============================================================================
 
 
@@ -19784,11 +19784,11 @@ begin
   -- Estética e Performance
   insert into questionario_perguntas (
     questionario_id, codigo, texto, tipo, opcoes, ordem, ativa, obrigatoria,
-    peso, eixo_id, cadencia, alerta, regra_exibicao
+    peso, eixo_id, cadencia, alertas_opcoes, regra_exibicao
   )
   select 'c0000000-0000-0000-0000-000000000010', p.codigo, p.texto, p.tipo,
          p.opcoes, p.ordem, p.ativa, p.obrigatoria, p.peso, p.eixo_id,
-         p.cadencia, p.alerta, p.regra_exibicao
+         p.cadencia, p.alertas_opcoes, p.regra_exibicao
     from questionario_perguntas p
    where p.questionario_id = v_src_id
      and p.codigo = any(v_codigos_ep)
@@ -19797,11 +19797,11 @@ begin
   -- Intestino
   insert into questionario_perguntas (
     questionario_id, codigo, texto, tipo, opcoes, ordem, ativa, obrigatoria,
-    peso, eixo_id, cadencia, alerta, regra_exibicao
+    peso, eixo_id, cadencia, alertas_opcoes, regra_exibicao
   )
   select 'c0000000-0000-0000-0000-000000000011', p.codigo, p.texto, p.tipo,
          p.opcoes, p.ordem, p.ativa, p.obrigatoria, p.peso, p.eixo_id,
-         p.cadencia, p.alerta, p.regra_exibicao
+         p.cadencia, p.alertas_opcoes, p.regra_exibicao
     from questionario_perguntas p
    where p.questionario_id = v_src_id
      and p.codigo = any(v_codigos_int)
@@ -19810,11 +19810,11 @@ begin
   -- GLP-1
   insert into questionario_perguntas (
     questionario_id, codigo, texto, tipo, opcoes, ordem, ativa, obrigatoria,
-    peso, eixo_id, cadencia, alerta, regra_exibicao
+    peso, eixo_id, cadencia, alertas_opcoes, regra_exibicao
   )
   select 'c0000000-0000-0000-0000-000000000012', p.codigo, p.texto, p.tipo,
          p.opcoes, p.ordem, p.ativa, p.obrigatoria, p.peso, p.eixo_id,
-         p.cadencia, p.alerta, p.regra_exibicao
+         p.cadencia, p.alertas_opcoes, p.regra_exibicao
     from questionario_perguntas p
    where p.questionario_id = v_src_id
      and p.codigo = any(v_codigos_glp)
@@ -20056,6 +20056,9 @@ end;
 $$;
 
 -- 4. Atualizar salvar_treino() para aceitar video_url
+-- O tipo de retorno muda, e o Postgres não troca retorno com `create or replace`.
+drop function if exists salvar_treino(uuid, uuid, text, text, boolean, jsonb);
+
 create or replace function salvar_treino(
   p_id       uuid,
   p_paciente uuid,
@@ -20081,7 +20084,7 @@ begin
     if v_paciente is null then
       raise exception 'Sem cadastro de paciente.';
     end if;
-    exigir_treino_liberado(v_paciente);
+    perform exigir_treino_liberado(v_paciente);
     v_origem := 'paciente';
 
     -- Paciente não pode salvar se existe treino ativo da nutricionista
@@ -20221,7 +20224,7 @@ begin
     if v_paciente is null then
       raise exception 'Sem cadastro de paciente.';
     end if;
-    exigir_treino_liberado(v_paciente);
+    perform exigir_treino_liberado(v_paciente);
   end if;
 
   if p_id is not null then
@@ -20393,6 +20396,9 @@ end;
 $$;
 
 -- Atualizar salvar_treino() para aceitar faixas (usa _st_inserir_ex)
+-- O tipo de retorno muda, e o Postgres não troca retorno com `create or replace`.
+drop function if exists salvar_treino(uuid, uuid, text, text, boolean, jsonb);
+
 create or replace function salvar_treino(
   p_id       uuid,
   p_paciente uuid,
@@ -21745,6 +21751,131 @@ $$;
 
 revoke all on function apagar_foto_evolucao(uuid) from anon, public;
 grant execute on function apagar_foto_evolucao(uuid) to authenticated;
+
+
+-- ###########################################################################
+-- 0082a_hotslim_tabelas_e_funcoes.sql
+-- ###########################################################################
+
+-- =============================================================================
+-- 0082a — Desafio Hot Slim: tabelas, funções e políticas
+--
+-- ESTA MIGRAÇÃO JÁ ESTAVA EM PRODUÇÃO (aplicada em 27/10/2026 com o nome
+-- `hotslim_tables_and_functions`) e nunca tinha sido salva aqui. Sem ela, a
+-- 0083 — que usa `e_hotslim()` e `hotslim_participantes` — não aplica num banco
+-- limpo, e a bateria de testes do banco parava ali.
+--
+-- O conteúdo é o que rodou em produção, só reescrito para poder rodar de novo
+-- sem erro (`if not exists`, `drop ... if exists`). O `meu_acesso()` que vinha
+-- junto não é repetido: a 0083 o redefine logo em seguida.
+-- =============================================================================
+
+-- 1. O papel 'hotslim' passa a ser aceito
+alter table perfis drop constraint if exists perfis_papel_check;
+alter table perfis add constraint perfis_papel_check
+  check (papel = any (array['admin'::text, 'paciente'::text, 'hotslim'::text]));
+
+-- 2. Participantes do desafio
+create table if not exists hotslim_participantes (
+  id              uuid primary key references perfis(id) on delete cascade,
+  nome            text not null,
+  email           text not null,
+  telefone        text,
+  data_inicio     date not null default hoje_sp(),
+  data_fim        date not null default (hoje_sp() + 10),
+  fases_liberadas int[] not null default '{}',
+  ativo           boolean not null default true,
+  criado_em       timestamptz not null default now()
+);
+
+alter table hotslim_participantes enable row level security;
+
+drop policy if exists "hotslim_participante_ve_seu" on hotslim_participantes;
+create policy "hotslim_participante_ve_seu" on hotslim_participantes
+  for select using (id = auth.uid());
+
+drop policy if exists "hotslim_admin_tudo" on hotslim_participantes;
+create policy "hotslim_admin_tudo" on hotslim_participantes
+  for all using (e_admin());
+
+-- 3. Checklist diário
+create table if not exists hotslim_checklist (
+  id                 uuid primary key default gen_random_uuid(),
+  participante_id    uuid not null references hotslim_participantes(id) on delete cascade,
+  dia                date not null default hoje_sp(),
+  intestino_regulou  boolean not null default false,
+  sem_gases          boolean not null default false,
+  dormiu_bem         boolean not null default false,
+  barriga_desinchada boolean not null default false,
+  sem_compulsao      boolean not null default false,
+  energia_boa        boolean not null default false,
+  humor_estavel      boolean not null default false,
+  notas              text,
+  criado_em          timestamptz not null default now(),
+  unique (participante_id, dia)
+);
+
+alter table hotslim_checklist enable row level security;
+
+drop policy if exists "checklist_participante_ve_seu" on hotslim_checklist;
+create policy "checklist_participante_ve_seu" on hotslim_checklist
+  for select using (participante_id = auth.uid());
+
+drop policy if exists "checklist_participante_edita_seu" on hotslim_checklist;
+create policy "checklist_participante_edita_seu" on hotslim_checklist
+  for insert with check (participante_id = auth.uid());
+
+drop policy if exists "checklist_participante_atualiza_seu" on hotslim_checklist;
+create policy "checklist_participante_atualiza_seu" on hotslim_checklist
+  for update using (participante_id = auth.uid());
+
+drop policy if exists "checklist_admin_tudo" on hotslim_checklist;
+create policy "checklist_admin_tudo" on hotslim_checklist
+  for all using (e_admin());
+
+-- 4. Metas semanais
+create table if not exists hotslim_metas (
+  id               uuid primary key default gen_random_uuid(),
+  participante_id  uuid not null references hotslim_participantes(id) on delete cascade,
+  semana           int not null check (semana >= 1),
+  agua_litros      numeric,
+  sono_horas       numeric,
+  musculacao_vezes int,
+  cardio_minutos   int,
+  metas_extras     text[] not null default '{}',
+  criado_em        timestamptz not null default now(),
+  unique (participante_id, semana)
+);
+
+alter table hotslim_metas enable row level security;
+
+drop policy if exists "metas_participante_ve_seu" on hotslim_metas;
+create policy "metas_participante_ve_seu" on hotslim_metas
+  for select using (participante_id = auth.uid());
+
+drop policy if exists "metas_participante_insere_seu" on hotslim_metas;
+create policy "metas_participante_insere_seu" on hotslim_metas
+  for insert with check (participante_id = auth.uid());
+
+drop policy if exists "metas_participante_atualiza_seu" on hotslim_metas;
+create policy "metas_participante_atualiza_seu" on hotslim_metas
+  for update using (participante_id = auth.uid());
+
+drop policy if exists "metas_admin_tudo" on hotslim_metas;
+create policy "metas_admin_tudo" on hotslim_metas
+  for all using (e_admin());
+
+-- 5. É participante ativo do Hot Slim?
+create or replace function e_hotslim()
+returns boolean
+language sql stable security definer
+set search_path to 'public'
+as $$
+  select exists (
+    select 1 from hotslim_participantes
+     where id = auth.uid() and ativo = true
+  );
+$$;
 
 
 -- ###########################################################################

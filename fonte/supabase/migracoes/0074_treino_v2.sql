@@ -74,6 +74,9 @@ end;
 $$;
 
 -- 4. Atualizar salvar_treino() para aceitar video_url
+-- O tipo de retorno muda, e o Postgres não troca retorno com `create or replace`.
+drop function if exists salvar_treino(uuid, uuid, text, text, boolean, jsonb);
+
 create or replace function salvar_treino(
   p_id       uuid,
   p_paciente uuid,
@@ -99,7 +102,7 @@ begin
     if v_paciente is null then
       raise exception 'Sem cadastro de paciente.';
     end if;
-    exigir_treino_liberado(v_paciente);
+    perform exigir_treino_liberado(v_paciente);
     v_origem := 'paciente';
 
     -- Paciente não pode salvar se existe treino ativo da nutricionista
@@ -239,7 +242,7 @@ begin
     if v_paciente is null then
       raise exception 'Sem cadastro de paciente.';
     end if;
-    exigir_treino_liberado(v_paciente);
+    perform exigir_treino_liberado(v_paciente);
   end if;
 
   if p_id is not null then
