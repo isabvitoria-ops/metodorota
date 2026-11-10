@@ -104,7 +104,7 @@ const GRUPOS: { tom: Linha["tom"]; titulo: string; apoio: string }[] = [
     // frase diz isso sem mandar e sem ameaçar: a escolha é da paciente, e o
     // rastreio existe para ela escolher sabendo.
     apoio:
-      "Foram relatados três ou mais sintomas depois destes. Comer continua sendo escolha sua — " +
+      "Foram relatados vários sintomas, ou sintomas mais fortes, depois destes. Comer continua sendo escolha sua — " +
       "o rastreio serve para você saber o que costuma vir junto.",
   },
   { tom: "neutro", titulo: "Outros", apoio: "" },

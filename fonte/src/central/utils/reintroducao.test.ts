@@ -628,3 +628,45 @@ test("com tudo já na lista, o grupo fica vazio em vez de repetir", () => {
   const material = [{ id: "abacate" }];
   assert.deepEqual(doMapaQueFaltam(material, [{ alimentoId: "abacate" }]), []);
 });
+
+test("histórico vazio: com lista montada, não diz que a lista não existe", async () => {
+  const { fraseDoHistorico: frase } = await import("./reintroducao");
+  assert.equal(frase(0, 0, 4), "Quando você testar algum alimento, é só registrar aqui.");
+  assert.match(frase(0, 0, 0), /ainda não montou/);
+});
+
+test("selo do alimento: registro feito nunca aparece como “ainda não testei”", async () => {
+  const { seloDoItem } = await import("./reintroducao");
+  assert.equal(seloDoItem({ status: "nao_iniciado", totalDeRegistros: 0 }).texto, "Ainda não testei");
+  assert.equal(seloDoItem({ status: "nao_iniciado", totalDeRegistros: 2 }).texto, "Em teste");
+  assert.equal(seloDoItem({ status: "bem_tolerado", totalDeRegistros: 2 }).texto, "Bem tolerado");
+});
+
+test("sintomas por extenso: intensidade zero ou em branco não aparece", async () => {
+  const { textoDosSintomas } = await import("./reintroducao");
+  assert.equal(textoDosSintomas({ sintomas: ["nenhum"], intensidade: 0 }), "Sem sintomas");
+  assert.equal(textoDosSintomas({ sintomas: ["gases"], intensidade: 0 }), "Gases");
+  assert.equal(textoDosSintomas({ sintomas: ["gases"], intensidade: null }), "Gases");
+  assert.equal(textoDosSintomas({ sintomas: ["gases", "colica"], intensidade: 5 }), "Gases, Cólica · Moderado (5/10)");
+});
+
+test("último registro: pega o mais recente, numa linha", async () => {
+  const { resumoDoUltimoRegistro } = await import("./reintroducao");
+  assert.equal(resumoDoUltimoRegistro([]), null);
+  assert.equal(
+    resumoDoUltimoRegistro([
+      { data: "2026-11-03", sintomas: ["gases"], intensidade: 2 },
+      { data: "2026-11-10", sintomas: ["nenhum"], intensidade: 0 },
+    ]),
+    "10/11 · sem sintomas",
+  );
+});
+
+test("conferir registro: sintoma sem nome e data futura não passam", async () => {
+  const { conferirRegistro } = await import("./reintroducao");
+  const base = { teveSintoma: false, sintomas: [], data: "2026-11-10", hoje: "2026-11-10" };
+  assert.equal(conferirRegistro(base), null);
+  assert.match(conferirRegistro({ ...base, teveSintoma: true }) ?? "", /Marque qual sintoma/);
+  assert.equal(conferirRegistro({ ...base, teveSintoma: true, sintomas: ["outros"] }), null);
+  assert.match(conferirRegistro({ ...base, data: "2026-11-11" }) ?? "", /ainda não chegou/);
+});

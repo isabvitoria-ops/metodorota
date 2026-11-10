@@ -149,9 +149,13 @@ export function itensParaRegistrar(itens: ItemDeReintroducao[]): ItemDeReintrodu
  * que existe — porque "3 de 12 testados" transformaria a lista em tarefa, que
  * é exatamente o que ela pediu para não acontecer.
  */
-export function fraseDoHistorico(registros: number, alimentos: number): string {
+export function fraseDoHistorico(registros: number, alimentos: number, itensNaLista = alimentos): string {
   if (registros === 0) {
-    return alimentos === 0
+    // Com zero registros, o que decide a frase é se EXISTE lista — não em
+    // quantos alimentos ela já registrou, que é sempre zero aqui. A tela
+    // passava esse zero e dizia "sua nutricionista ainda não montou a sua
+    // lista" com a lista inteira aparecendo logo acima.
+    return itensNaLista === 0
       ? "Sua nutricionista ainda não montou a sua lista. Você já pode registrar qualquer alimento que tenha comido."
       : "Quando você testar algum alimento, é só registrar aqui.";
   }
@@ -452,4 +456,72 @@ export function doMapaQueFaltam<T extends { id: string }>(
 ): T[] {
   const jaTem = new Set(itens.map((i) => i.alimentoId).filter(Boolean));
   return material.filter((a) => !jaTem.has(a.id));
+}
+
+
+// ---------------------------------------------------------------- a tela dela
+
+/**
+ * O selo do alimento na tela da paciente.
+ *
+ * "Ainda não testei" ao lado de "2 registros" é a tela se contradizendo. O
+ * banco passa o alimento para "em teste" no primeiro registro; se por algum
+ * motivo ele ainda chegar como "não iniciado" com registro feito, o selo diz
+ * o que aconteceu de fato.
+ */
+export function seloDoItem(item: { status: StatusReintroducao; totalDeRegistros: number }): {
+  texto: string;
+  tom: "neutro" | "bom" | "atencao" | "apagado";
+} {
+  if (item.status === "nao_iniciado" && item.totalDeRegistros > 0) return { texto: "Em teste", tom: "neutro" };
+  const info = status(item.status);
+  return { texto: info.paciente, tom: info.tom };
+}
+
+/**
+ * Os sintomas de um registro, por extenso, com a intensidade quando ela foi
+ * informada. Intensidade zero ou em branco não aparece: "Gases · Nenhum
+ * (0/10)" dizia que houve sintoma e que ele não existiu, na mesma linha.
+ */
+export function textoDosSintomas(registro: {
+  sintomas: SintomaReintroducao[] | string[];
+  intensidade: number | null;
+}): string {
+  if (!temSintoma(registro)) return "Sem sintomas";
+  const nomes = registro.sintomas.filter((s) => s !== "nenhum").map(rotuloSintoma).join(", ");
+  const n = registro.intensidade;
+  return n !== null && n > 0 ? `${nomes} · ${faixaDaIntensidade(n)} (${n}/10)` : nomes;
+}
+
+/** "10/11 · sem sintomas" — o último registro de um alimento, numa linha. */
+export function resumoDoUltimoRegistro(
+  registros: { data: string; sintomas: SintomaReintroducao[] | string[]; intensidade: number | null }[],
+): string | null {
+  const ultimo = [...registros].sort((a, b) => b.data.localeCompare(a.data))[0];
+  if (!ultimo) return null;
+  const [, mes, dia] = ultimo.data.slice(0, 10).split("-");
+  return `${dia}/${mes} · ${textoDosSintomas(ultimo).toLocaleLowerCase("pt-BR")}`;
+}
+
+/**
+ * O que impede salvar um registro. Nulo quando está tudo certo.
+ *
+ * Duas coisas só, porque o resto é opcional de propósito:
+ *
+ *   * disse que teve sintoma e não marcou qual — antes isso era gravado como
+ *     "Outro" em silêncio, e a nutricionista lia um sintoma que a paciente
+ *     nunca escolheu;
+ *   * data no futuro — um registro de amanhã não é registro.
+ */
+export function conferirRegistro(r: {
+  teveSintoma: boolean;
+  sintomas: string[];
+  data: string;
+  hoje: string;
+}): string | null {
+  if (r.data > r.hoje) return "Esta data ainda não chegou. Escolha hoje ou um dia que já passou.";
+  if (r.teveSintoma && r.sintomas.length === 0) {
+    return "Marque qual sintoma você teve. Se não estiver na lista, marque “Outro”.";
+  }
+  return null;
 }
