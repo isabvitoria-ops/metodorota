@@ -5698,6 +5698,364 @@ textarea.c-campo:focus {
   color: var(--danger);
 }
 
+/* ------------------------------------------------- aba de cálculos (c-calc-*)
+
+   A avaliação física da nutricionista, em seis passos na ordem em que ela
+   trabalha: consulta, medidas, composição, gasto, macros e fechar. */
+
+.c-calc {
+  display: grid;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.c-calc-secao {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+
+.c-calc-cabeca {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.c-calc-numero {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--marca-azul-profundo);
+  color: var(--marca-marfim);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.central .c-calc-titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--text);
+}
+
+.c-calc-dica {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.central .c-calc-subtitulo {
+  margin: 20px 0 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--marca-azul-medio);
+}
+
+/* Campos numéricos em colunas iguais: quatro no computador, duas no celular. */
+.c-calc-grade {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 14px 12px;
+  margin-top: 16px;
+  align-items: start;
+}
+
+.c-calc-grade > * {
+  min-width: 0;
+}
+
+.c-calc-grade .c-campo {
+  margin-top: 0;
+}
+
+/* Rótulo de duas linhas não empurra o campo: todos os campos da fileira
+   começam na mesma altura. */
+.c-calc-grade .c-rotulo,
+.c-calc .c-linha-medidas .c-rotulo {
+  display: flex;
+  align-items: flex-end;
+  min-height: 2.7em;
+}
+
+@media (max-width: 560px) {
+  .c-calc-secao {
+    padding: 16px 14px;
+  }
+
+  .c-calc-grade {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.c-calc-calculado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 6px;
+  margin: 5px 0 0;
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.c-calc-calculado strong {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.c-calc-calculado .c-link {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.c-calc-calculado--igual {
+  color: var(--success);
+}
+
+/* Os números calculados, em destaque. */
+.c-calc-placar {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.c-calc-placar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--marca-marfim);
+  min-width: 0;
+}
+
+.c-calc-placar-rotulo {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--marca-azul-medio);
+}
+
+.c-calc-placar-valor {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.c-calc-placar-apoio {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.central .c-calc-preencher {
+  width: 100%;
+  margin-top: 12px;
+}
+
+.c-calc-espera {
+  margin: 14px 0 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+/* As fórmulas de TMB: toca na que vale para esta paciente. */
+.c-calc-formulas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.central .c-calc-formula {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transicao), border-color var(--transicao);
+}
+
+.c-calc-formula > span:first-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.c-calc-formula strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.c-calc-formula small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.c-calc-formula-valor {
+  flex: none;
+  font-size: 15px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary-dark);
+  white-space: nowrap;
+}
+
+.central .c-calc-formula--ativa {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  box-shadow: 0 0 0 1px var(--primary);
+}
+
+/* Os fatores de atividade, com o nome escrito. */
+.c-calc-fatores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.central .c-calc-fator {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transicao), color var(--transicao), border-color var(--transicao);
+}
+
+.c-calc-fator strong {
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.central .c-calc-fator--ativo {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--marca-marfim);
+}
+
+.c-calc-fator--ativo strong {
+  color: inherit;
+}
+
+/* A conta escrita por extenso, para conferir de olho. */
+.c-calc-conta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--marca-marfim);
+  font-size: 14px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.c-calc-conta strong {
+  color: var(--text);
+}
+
+/* A divisão dos macros. */
+.c-calc-macros {
+  margin-top: 16px;
+}
+
+.c-calc-macros-barra {
+  display: flex;
+  height: 14px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.c-calc-macros-barra span {
+  flex-basis: 0;
+}
+
+.c-calc-macro--ptn { background: var(--marca-azul-profundo); }
+.c-calc-macro--lip { background: var(--marca-areia); }
+.c-calc-macro--cho { background: var(--marca-azul-medio); }
+
+.c-calc-macros-tabela {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.c-calc-macros-tabela th,
+.c-calc-macros-tabela td {
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+
+.c-calc-macros-tabela th:first-child {
+  text-align: left;
+}
+
+.c-calc-macros-tabela thead th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.c-calc-macros-tabela tbody th {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.c-calc-macros-tabela tbody td:last-child {
+  font-weight: 700;
+}
+
+.c-calc-macro-cor {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-radius: 3px;
+}
+
 /* ------------------------------------------------ instalar na tela inicial */
 
 .c-instalar-card {

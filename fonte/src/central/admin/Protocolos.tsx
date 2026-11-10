@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Paciente } from "@/central/types";
 import type {
   AvaliacaoFisica,
@@ -43,6 +43,7 @@ import {
 import { hojeSaoPaulo, dataBonita as diaBonito } from "@/central/utils/situacao";
 import { reduzirFoto } from "@/central/utils/reduzirFoto";
 import { calcularTudo } from "@/central/utils/calculosAntropometricos";
+import { energiaEMacros } from "@/central/utils/calculoEnergia";
 
 /**
  * Protocolo alimentar — área da nutricionista.
@@ -1427,18 +1428,48 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
     definirDados({ ...dados, diametros: medidasPreenchidas(DIAMETROS, atuais) });
   }
 
+  // O campo e, embaixo dele, o número que a conta dá — com "usar" quando os
+  // dois diferem. Antes os calculados ficavam numa caixa à parte, longe do
+  // campo, e era preciso achar o par de cada um com os olhos.
   const campoNumero = (
     rotulo: string,
     chave: keyof DadosAvaliacao,
     dica?: string,
-  ) => (
-    <Campo rotulo={rotulo} dica={dica}>
-      <NumeroDecimal
-        valor={(dados[chave] as number | null) ?? null}
-        aoMudar={(v) => definirDados({ ...dados, [chave]: v })}
-      />
-    </Campo>
-  );
+    calculado?: number | null,
+    casas = 2,
+  ) => {
+    const atual = (dados[chave] as number | null) ?? null;
+    return (
+      <div className="c-calc-campo">
+        <Campo rotulo={rotulo} dica={dica}>
+          <NumeroDecimal valor={atual} aoMudar={(v) => definirDados({ ...dados, [chave]: v })} />
+        </Campo>
+        {calculado !== undefined && calculado !== null && (
+          <ValorCalculado
+            valor={calculado}
+            atual={atual}
+            casas={casas}
+            aoUsar={() => definirDados({ ...dados, [chave]: calculado })}
+          />
+        )}
+      </div>
+    );
+  };
+
+  const energia = energiaEMacros({
+    peso: dados.peso,
+    tmb: dados.tmb,
+    fatorAtividade: dados.fatorAtividade,
+    ajusteEnergetico: dados.ajusteEnergetico,
+    vet: dados.vet,
+    ptnGKg: dados.ptnGKg,
+    lipGKg: dados.lipGKg,
+    ptnG: dados.ptnG,
+    lipG: dados.lipG,
+    choG: dados.choG,
+  });
+  const temCalculo =
+    resultado.imc !== null || resultado.percentualGordura !== null || resultado.tmbTodas.length > 0;
 
   return (
     <>
@@ -1526,84 +1557,239 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
       )}
 
       {abertaId !== null && (
-        <div className="c-bloco">
-          <div className="c-duas-colunas">
-            <Campo rotulo="Data da avaliação">
-              <Texto valor={data} tipo="date" aoMudar={definirData} />
-            </Campo>
-            <Campo rotulo="Protocolo de dobras" dica="Escolher aqui mostra só as dobras dele, embaixo.">
-              <Selecao
-                valor={protocoloId}
-                aoMudar={escolherProtocolo}
-                opcoes={[
-                  { valor: OUTRO_METODO, rotulo: "Outro (escrever)" },
-                  ...PROTOCOLOS_DE_AVALIACAO.map((p) => ({ valor: p.id, rotulo: p.rotulo })),
-                ]}
-              />
-            </Campo>
-          </div>
+        <div className="c-calc">
+          {/* ───────────────────────────── 1 · a consulta */}
+          <SecaoDeCalculo numero={1} titulo="A consulta" dica="Quem, quando e por qual protocolo.">
+            <div className="c-duas-colunas">
+              <Campo rotulo="Data da avaliação">
+                <Texto valor={data} tipo="date" aoMudar={definirData} />
+              </Campo>
+              <Campo rotulo="Protocolo de dobras" dica="Mostra só as dobras dele, no passo 2.">
+                <Selecao
+                  valor={protocoloId}
+                  aoMudar={escolherProtocolo}
+                  opcoes={[
+                    { valor: OUTRO_METODO, rotulo: "Outro (escrever)" },
+                    ...PROTOCOLOS_DE_AVALIACAO.map((p) => ({ valor: p.id, rotulo: p.rotulo })),
+                  ]}
+                />
+              </Campo>
+            </div>
 
-          {protocoloId === OUTRO_METODO && (
-            <Campo rotulo="Método usado" dica="Ex.: Bioimpedância, ou um protocolo que não está na lista.">
-              <Texto
-                valor={dados.metodo}
-                aoMudar={(v) => definirDados({ ...dados, metodo: v })}
-              />
-            </Campo>
-          )}
+            {protocoloId === OUTRO_METODO && (
+              <Campo rotulo="Método usado" dica="Ex.: Bioimpedância, ou um protocolo que não está na lista.">
+                <Texto valor={dados.metodo} aoMudar={(v) => definirDados({ ...dados, metodo: v })} />
+              </Campo>
+            )}
 
-          <div className="c-duas-colunas">
-            <Campo rotulo="Sexo biológico" dica="Necessário para o cálculo de composição corporal.">
-              <Selecao
-                valor={dados.sexo ?? ""}
-                aoMudar={(v) => definirDados({ ...dados, sexo: (v || null) as DadosAvaliacao["sexo"] })}
-                opcoes={[
-                  { valor: "" as const, rotulo: "Selecionar…" },
-                  { valor: "feminino" as const, rotulo: "Feminino" },
-                  { valor: "masculino" as const, rotulo: "Masculino" },
-                ]}
-              />
-            </Campo>
-          </div>
+            <div className="c-calc-grade">
+              <Campo rotulo="Sexo biológico">
+                <Selecao
+                  valor={dados.sexo ?? ""}
+                  aoMudar={(v) => definirDados({ ...dados, sexo: (v || null) as DadosAvaliacao["sexo"] })}
+                  opcoes={[
+                    { valor: "" as const, rotulo: "Selecionar…" },
+                    { valor: "feminino" as const, rotulo: "Feminino" },
+                    { valor: "masculino" as const, rotulo: "Masculino" },
+                  ]}
+                />
+              </Campo>
+              {campoNumero("Peso (kg)", "peso")}
+              {campoNumero("Altura (cm)", "altura")}
+              {campoNumero("Idade", "idade")}
+            </div>
+          </SecaoDeCalculo>
 
-          <div className="c-duas-colunas">
-            {campoNumero("Peso (kg)", "peso")}
-            {campoNumero("Altura (cm)", "altura")}
-            {campoNumero("Idade", "idade")}
-          </div>
+          {/* ───────────────────────────── 2 · as medidas
+              Um campo por dobra, como na ferramenta de cálculo — ela pediu
+              assim: "não quero tudo junto, quero tipo o meu de cálculo
+              pessoal, separado". O que ela não medir fica em branco e NÃO
+              vira linha nenhuma: "não peguei dobra do peitoral, nem precisa
+              aparecer pro paciente". */}
+          <SecaoDeCalculo
+            numero={2}
+            titulo="As medidas"
+            dica="Deixe em branco o que você não mediu — não aparece para a paciente."
+          >
+            <h4 className="c-calc-subtitulo">Dobras cutâneas (mm)</h4>
+            {/* Sem protocolo escolhido, mostra as nove. Com um protocolo da
+                lista, só as dele ficam à vista; o resto vai para "Outras
+                dobras" — nada foi escondido de verdade, só tirado da frente. */}
+            <div className="c-linha-medidas">
+              {(protocoloEscolhido ? DOBRAS.filter((c) => protocoloEscolhido.dobras.includes(c.nome)) : DOBRAS).map(
+                (campo) => (
+                  <Campo rotulo={campo.nome} key={campo.nome}>
+                    <NumeroDecimal
+                      valor={numeroDeTexto(valoresDobras[campo.nome] ?? "")}
+                      aoMudar={(v) => mudarDobra(campo.nome, v)}
+                    />
+                  </Campo>
+                ),
+              )}
+            </div>
 
-          <div className="c-duas-colunas">
-            {campoNumero("Gordura (%)", "percentualGordura")}
-            {campoNumero("Massa gorda (kg)", "massaGorda")}
-            {campoNumero("Massa magra (kg)", "massaMagra")}
-          </div>
+            {protocoloEscolhido && (
+              <details className="c-sanfona" style={{ marginTop: 10 }}>
+                <summary>Outras dobras (fora deste protocolo)</summary>
+                <div className="c-linha-medidas" style={{ marginTop: 10 }}>
+                  {DOBRAS.filter((c) => !protocoloEscolhido.dobras.includes(c.nome)).map((campo) => (
+                    <Campo rotulo={campo.nome} key={campo.nome}>
+                      <NumeroDecimal
+                        valor={numeroDeTexto(valoresDobras[campo.nome] ?? "")}
+                        aoMudar={(v) => mudarDobra(campo.nome, v)}
+                      />
+                    </Campo>
+                  ))}
+                </div>
+              </details>
+            )}
 
-          <div className="c-duas-colunas">
-            {campoNumero("IMC", "imc")}
-            {campoNumero("Soma das dobras (mm)", "somaDobras", "A do protocolo usado.")}
-            {campoNumero("TMB (kcal)", "tmb", "Taxa Metabólica Basal.")}
-          </div>
+            <h4 className="c-calc-subtitulo">Circunferências (cm)</h4>
+            <div className="c-linha-medidas">
+              {CIRCUNFERENCIAS.map((campo) => (
+                <Campo rotulo={campo.nome} key={campo.nome}>
+                  <NumeroDecimal
+                    valor={numeroDeTexto(valoresCircunferencias[campo.nome] ?? "")}
+                    aoMudar={(v) => mudarCircunferencia(campo.nome, v)}
+                  />
+                </Campo>
+              ))}
+            </div>
 
-          <div className="c-duas-colunas">
-            {campoNumero("Peso ósseo (kg)", "pesoOsseo")}
-            {campoNumero("Peso residual (kg)", "pesoResidual")}
-            {campoNumero("Massa muscular (kg)", "pesoMuscular")}
-          </div>
+            <h4 className="c-calc-subtitulo">Diâmetros ósseos (cm)</h4>
+            <p className="c-dica" style={{ marginTop: 0 }}>
+              Usados no cálculo de peso ósseo (Von Döbeln) e massa muscular.
+            </p>
+            <div className="c-linha-medidas">
+              {DIAMETROS.map((campo) => (
+                <Campo rotulo={campo.nome} key={campo.nome}>
+                  <NumeroDecimal
+                    valor={numeroDeTexto(valoresDiametros[campo.nome] ?? "")}
+                    aoMudar={(v) => mudarDiametro(campo.nome, v)}
+                  />
+                </Campo>
+              ))}
+            </div>
+          </SecaoDeCalculo>
 
-          {/* ── Gasto energético ── */}
-          <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
-            Gasto energético
-          </h3>
-          <p className="c-dica" style={{ marginTop: 0 }}>
-            TMB × Fator de atividade = GET. GET ± ajuste = VET.
-          </p>
+          {/* ───────────────────────────── 3 · composição corporal */}
+          <SecaoDeCalculo
+            numero={3}
+            titulo="Composição corporal"
+            dica="O que a conta dá aparece embaixo de cada campo. O que fica salvo é o que está no campo."
+          >
+            {temCalculo ? (
+              <>
+                <div className="c-calc-placar">
+                  {resultado.imc !== null && (
+                    <Placar
+                      rotulo="IMC"
+                      valor={resultado.imc.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}
+                      apoio={resultado.classificacaoIMC}
+                    />
+                  )}
+                  {resultado.percentualGordura !== null && (
+                    <Placar
+                      rotulo="Gordura"
+                      valor={`${resultado.percentualGordura.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%`}
+                      apoio={resultado.classificacaoGordura}
+                    />
+                  )}
+                  {resultado.massaGorda !== null && (
+                    <Placar
+                      rotulo="Massa gorda"
+                      valor={`${resultado.massaGorda.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`}
+                    />
+                  )}
+                  {resultado.massaMagra !== null && (
+                    <Placar
+                      rotulo="Massa magra"
+                      valor={`${resultado.massaMagra.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`}
+                    />
+                  )}
+                  {resultado.rcq !== null && (
+                    <Placar
+                      rotulo="RCQ"
+                      valor={resultado.rcq.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}
+                      apoio={resultado.classificacaoRCQ}
+                    />
+                  )}
+                  {resultado.pesoIdealMin !== null && resultado.pesoIdealMax !== null && (
+                    <Placar
+                      rotulo="Peso ideal"
+                      valor={`${resultado.pesoIdealMin.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}–${resultado.pesoIdealMax.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg`}
+                    />
+                  )}
+                </div>
+                <button type="button" className="c-botao c-botao-secundario c-calc-preencher" onClick={aplicarCalculos}>
+                  Preencher os campos com o calculado
+                </button>
+                {resultado.avisos.map((a, i) => (
+                  <p key={i} className="c-dica" style={{ marginTop: 6, color: "var(--warning)" }}>
+                    {a}
+                  </p>
+                ))}
+              </>
+            ) : (
+              <p className="c-calc-espera">
+                Preencha sexo, peso e altura no passo 1 e as dobras no passo 2: os cálculos aparecem aqui na hora.
+              </p>
+            )}
 
-          <Campo rotulo="Fator de atividade (FA)">
-            <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
-              <NumeroDecimal
-                valor={dados.fatorAtividade}
-                aoMudar={(v) => definirDados({ ...dados, fatorAtividade: v })}
-              />
+            <div className="c-calc-grade">
+              {campoNumero("Gordura (%)", "percentualGordura", undefined, resultado.percentualGordura)}
+              {campoNumero("Massa gorda (kg)", "massaGorda", undefined, resultado.massaGorda)}
+              {campoNumero("Massa magra (kg)", "massaMagra", undefined, resultado.massaMagra)}
+              {campoNumero("IMC", "imc", undefined, resultado.imc)}
+              {campoNumero("Soma das dobras (mm)", "somaDobras", "A do protocolo usado.", resultado.somaDobras)}
+              {campoNumero("Peso ósseo (kg)", "pesoOsseo", "Von Döbeln.", resultado.pesoOsseo)}
+              {campoNumero(
+                "Peso residual (kg)",
+                "pesoResidual",
+                dados.sexo === "masculino" ? "24,1% do peso." : dados.sexo === "feminino" ? "20,9% do peso." : undefined,
+                resultado.pesoResidual,
+              )}
+              {campoNumero("Massa muscular (kg)", "pesoMuscular", undefined, resultado.pesoMuscular)}
+            </div>
+          </SecaoDeCalculo>
+
+          {/* ───────────────────────────── 4 · gasto energético */}
+          <SecaoDeCalculo numero={4} titulo="Gasto energético" dica="TMB × fator de atividade = GET. GET ± ajuste = VET.">
+            {resultado.tmbTodas.length > 0 && (
+              <div className="c-calc-formulas" role="group" aria-label="Fórmulas de TMB">
+                {resultado.tmbTodas.map((t) => {
+                  const emUso = dados.tmb === t.valor;
+                  return (
+                    <button
+                      key={t.formula}
+                      type="button"
+                      className={`c-calc-formula${emUso ? " c-calc-formula--ativa" : ""}`}
+                      aria-pressed={emUso}
+                      onClick={() => definirDados({ ...dados, tmb: t.valor })}
+                    >
+                      <span>
+                        <strong>{t.formula}</strong>
+                        <small>{t.indicacao}</small>
+                      </span>
+                      <span className="c-calc-formula-valor">{t.valor.toLocaleString("pt-BR")} kcal</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="c-calc-grade">
+              {campoNumero("TMB (kcal)", "tmb", "Toque numa fórmula acima, ou escreva.")}
+              <div className="c-calc-campo">
+                <Campo rotulo="Fator de atividade (FA)">
+                  <NumeroDecimal
+                    valor={dados.fatorAtividade}
+                    aoMudar={(v) => definirDados({ ...dados, fatorAtividade: v })}
+                  />
+                </Campo>
+              </div>
+            </div>
+            <div className="c-calc-fatores" role="group" aria-label="Fatores de atividade">
               {[
                 { v: 1.2, r: "Sedentário" },
                 { v: 1.375, r: "Leve" },
@@ -1614,308 +1800,107 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
                 <button
                   key={v}
                   type="button"
-                  className={`c-tag${dados.fatorAtividade === v ? " c-tag-ativa" : ""}`}
+                  className={`c-calc-fator${dados.fatorAtividade === v ? " c-calc-fator--ativo" : ""}`}
+                  aria-pressed={dados.fatorAtividade === v}
                   onClick={() => definirDados({ ...dados, fatorAtividade: v })}
-                  title={r}
                 >
-                  {v.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}
+                  <strong>{v.toLocaleString("pt-BR", { minimumFractionDigits: 1 })}</strong>
+                  {r}
                 </button>
               ))}
             </div>
-          </Campo>
 
-          <div className="c-duas-colunas">
-            {campoNumero("GET (kcal)", "get", "TMB × FA.")}
-            {campoNumero("Ajuste (kcal)", "ajusteEnergetico", "Positivo = superávit, negativo = déficit.")}
-            {campoNumero("VET (kcal)", "vet", "GET + ajuste.")}
-          </div>
-
-          {/* ── Macronutrientes ── */}
-          <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
-            Macronutrientes
-          </h3>
-
-          <div className="c-duas-colunas">
-            {campoNumero("PTN (g/kg)", "ptnGKg")}
-            {campoNumero("LIP (g/kg)", "lipGKg")}
-          </div>
-          <div className="c-duas-colunas">
-            {campoNumero("PTN (g/dia)", "ptnG")}
-            {campoNumero("LIP (g/dia)", "lipG")}
-            {campoNumero("CHO (g/dia)", "choG")}
-          </div>
-
-          {/* ── Resumo calculado em tempo real ── */}
-          {(resultado.imc !== null || resultado.percentualGordura !== null) && (
-            <div className="c-resumo-calculo">
-              {resultado.imc !== null && (
-                <div className="c-resumo-calculo-item">
-                  <span className="c-resumo-calculo-rotulo">IMC</span>
-                  <span className="c-resumo-calculo-valor">
-                    {resultado.imc.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}
-                  </span>
-                  {resultado.classificacaoIMC && (
-                    <span className="c-resumo-calculo-classe">{resultado.classificacaoIMC}</span>
-                  )}
-                </div>
-              )}
-              {resultado.percentualGordura !== null && (
-                <div className="c-resumo-calculo-item">
-                  <span className="c-resumo-calculo-rotulo">Gordura</span>
-                  <span className="c-resumo-calculo-valor">
-                    {resultado.percentualGordura.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
-                  </span>
-                  {resultado.classificacaoGordura && (
-                    <span className="c-resumo-calculo-classe">{resultado.classificacaoGordura}</span>
-                  )}
-                </div>
-              )}
-              {resultado.massaGorda !== null && (
-                <div className="c-resumo-calculo-item">
-                  <span className="c-resumo-calculo-rotulo">Massa gorda</span>
-                  <span className="c-resumo-calculo-valor">
-                    {resultado.massaGorda.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg
-                  </span>
-                </div>
-              )}
-              {resultado.massaMagra !== null && (
-                <div className="c-resumo-calculo-item">
-                  <span className="c-resumo-calculo-rotulo">Massa magra</span>
-                  <span className="c-resumo-calculo-valor">
-                    {resultado.massaMagra.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg
-                  </span>
-                </div>
-              )}
-              {resultado.rcq !== null && (
-                <div className="c-resumo-calculo-item">
-                  <span className="c-resumo-calculo-rotulo">RCQ</span>
-                  <span className="c-resumo-calculo-valor">
-                    {resultado.rcq.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}
-                  </span>
-                  {resultado.classificacaoRCQ && (
-                    <span className="c-resumo-calculo-classe">{resultado.classificacaoRCQ}</span>
-                  )}
-                </div>
-              )}
-              {resultado.pesoIdealMin !== null && resultado.pesoIdealMax !== null && (
-                <div className="c-resumo-calculo-item">
-                  <span className="c-resumo-calculo-rotulo">Peso ideal</span>
-                  <span className="c-resumo-calculo-valor">
-                    {resultado.pesoIdealMin.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}–
-                    {resultado.pesoIdealMax.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} kg
-                  </span>
-                </div>
-              )}
-              {resultado.pesoOsseo !== null && (
-                <div className="c-resumo-calculo-item">
-                  <span className="c-resumo-calculo-rotulo">Peso ósseo</span>
-                  <span className="c-resumo-calculo-valor">
-                    {resultado.pesoOsseo.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg
-                  </span>
-                  <span className="c-resumo-calculo-classe">Von Döbeln</span>
-                </div>
-              )}
-              {resultado.pesoResidual !== null && (
-                <div className="c-resumo-calculo-item">
-                  <span className="c-resumo-calculo-rotulo">Peso residual</span>
-                  <span className="c-resumo-calculo-valor">
-                    {resultado.pesoResidual.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg
-                  </span>
-                  <span className="c-resumo-calculo-classe">{dados.sexo === "masculino" ? "24,1%" : "20,9%"}</span>
-                </div>
-              )}
-              {resultado.pesoMuscular !== null && (
-                <div className="c-resumo-calculo-item">
-                  <span className="c-resumo-calculo-rotulo">Massa muscular</span>
-                  <span className="c-resumo-calculo-valor">
-                    {resultado.pesoMuscular.toLocaleString("pt-BR", { maximumFractionDigits: 2 })} kg
-                  </span>
-                </div>
-              )}
-              {resultado.tmbTodas.length > 0 && (
-                <>
-                  {resultado.tmbTodas.map((t) => (
-                    <div className="c-resumo-calculo-item" key={t.formula}>
-                      <span className="c-resumo-calculo-rotulo">TMB</span>
-                      <span className="c-resumo-calculo-valor">
-                        {t.valor.toLocaleString("pt-BR")} kcal
-                      </span>
-                      <span className="c-resumo-calculo-classe">
-                        {t.formula} · <em>{t.indicacao}</em>
-                        {dados.tmb !== t.valor && (
-                          <button
-                            type="button"
-                            className="c-link"
-                            style={{ marginLeft: 6, fontSize: 12 }}
-                            onClick={() => definirDados({ ...dados, tmb: t.valor })}
-                          >
-                            usar
-                          </button>
-                        )}
-                      </span>
-                    </div>
-                  ))}
-                  {dados.tmb !== null && dados.fatorAtividade !== null && (
-                    <div className="c-resumo-calculo-item">
-                      <span className="c-resumo-calculo-rotulo">GET</span>
-                      <span className="c-resumo-calculo-valor">
-                        {Math.round(dados.tmb * dados.fatorAtividade).toLocaleString("pt-BR")} kcal
-                      </span>
-                      <span className="c-resumo-calculo-classe">
-                        TMB × {dados.fatorAtividade.toLocaleString("pt-BR")}
-                      </span>
-                    </div>
-                  )}
-                  {dados.tmb !== null && dados.fatorAtividade !== null && dados.ajusteEnergetico !== null && (
-                    <div className="c-resumo-calculo-item">
-                      <span className="c-resumo-calculo-rotulo">VET</span>
-                      <span className="c-resumo-calculo-valor">
-                        {Math.round(dados.tmb * dados.fatorAtividade + dados.ajusteEnergetico).toLocaleString("pt-BR")} kcal
-                      </span>
-                      <span className="c-resumo-calculo-classe">
-                        GET {dados.ajusteEnergetico >= 0 ? "+" : ""}{dados.ajusteEnergetico.toLocaleString("pt-BR")}
-                      </span>
-                    </div>
-                  )}
-                </>
-              )}
-              {(() => {
-                const vet = dados.vet ?? (dados.tmb !== null && dados.fatorAtividade !== null && dados.ajusteEnergetico !== null
-                  ? Math.round(dados.tmb * dados.fatorAtividade + dados.ajusteEnergetico) : null);
-                if (vet === null || dados.peso === null) return null;
-                const ptnG = dados.ptnGKg !== null ? Math.round(dados.ptnGKg * dados.peso * 10) / 10 : dados.ptnG;
-                const lipG = dados.lipGKg !== null ? Math.round(dados.lipGKg * dados.peso * 10) / 10 : dados.lipG;
-                const choG = ptnG !== null && lipG !== null ? Math.round((vet - ptnG * 4 - lipG * 9) / 4 * 10) / 10 : dados.choG;
-                if (ptnG === null && lipG === null) return null;
-                return (
-                  <>
-                    {ptnG !== null && (
-                      <div className="c-resumo-calculo-item">
-                        <span className="c-resumo-calculo-rotulo">PTN</span>
-                        <span className="c-resumo-calculo-valor">{ptnG.toLocaleString("pt-BR")}g</span>
-                        <span className="c-resumo-calculo-classe">
-                          {Math.round(ptnG * 4)} kcal · {Math.round(ptnG * 4 / vet * 100)}%
-                        </span>
-                      </div>
-                    )}
-                    {lipG !== null && (
-                      <div className="c-resumo-calculo-item">
-                        <span className="c-resumo-calculo-rotulo">LIP</span>
-                        <span className="c-resumo-calculo-valor">{lipG.toLocaleString("pt-BR")}g</span>
-                        <span className="c-resumo-calculo-classe">
-                          {Math.round(lipG * 9)} kcal · {Math.round(lipG * 9 / vet * 100)}%
-                        </span>
-                      </div>
-                    )}
-                    {choG !== null && choG > 0 && (
-                      <div className="c-resumo-calculo-item">
-                        <span className="c-resumo-calculo-rotulo">CHO</span>
-                        <span className="c-resumo-calculo-valor">{choG.toLocaleString("pt-BR")}g</span>
-                        <span className="c-resumo-calculo-classe">
-                          {Math.round(choG * 4)} kcal · {Math.round(choG * 4 / vet * 100)}%
-                        </span>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-              <button
-                type="button"
-                className="c-botao c-botao-secundario"
-                style={{ marginTop: 6, fontSize: 13 }}
-                onClick={aplicarCalculos}
-              >
-                Usar estes valores nos campos
-              </button>
-              {resultado.avisos.map((a, i) => (
-                <p key={i} className="c-dica" style={{ marginTop: 4, color: "var(--warning)" }}>
-                  {a}
-                </p>
-              ))}
+            <div className="c-calc-grade">
+              {campoNumero("GET (kcal)", "get", "TMB × FA.", energia.get, 0)}
+              {campoNumero("Ajuste (kcal)", "ajusteEnergetico", "Positivo = superávit, negativo = déficit.")}
+              {campoNumero("VET (kcal)", "vet", "GET + ajuste.", energia.vet, 0)}
             </div>
-          )}
 
-          {/* Um campo por dobra, como na ferramenta de cálculo — ela pediu
-              assim: "não quero tudo junto, quero tipo o meu de cálculo
-              pessoal, separado". Antes era uma caixa de texto onde ela
-              escrevia "Tríceps = 9,6 mm" por linha, e errar o formato
-              custava a medida inteira.
-
-              O que ela não medir fica em branco e NÃO vira linha nenhuma:
-              "não peguei dobra do peitoral, nem precisa aparecer pro
-              paciente". */}
-          <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
-            Dobras cutâneas (mm)
-          </h3>
-          {/* Sem protocolo escolhido, mostra as nove — é o que já existia,
-              e continua valendo para "Outro (escrever)". Com um protocolo
-              da lista, só as dele ficam à vista; o resto vai para "Outras
-              dobras", que ela abre se precisar — nada foi escondido de
-              verdade, só tirado da frente. */}
-          <div className="c-linha-medidas">
-            {(protocoloEscolhido ? DOBRAS.filter((c) => protocoloEscolhido.dobras.includes(c.nome)) : DOBRAS).map(
-              (campo) => (
-                <Campo rotulo={campo.nome} key={campo.nome}>
-                  <NumeroDecimal
-                    valor={numeroDeTexto(valoresDobras[campo.nome] ?? "")}
-                    aoMudar={(v) => mudarDobra(campo.nome, v)}
-                  />
-                </Campo>
-              ),
+            {energia.get !== null && dados.tmb !== null && dados.fatorAtividade !== null && (
+              <p className="c-calc-conta">
+                <span>
+                  {dados.tmb.toLocaleString("pt-BR")} × {dados.fatorAtividade.toLocaleString("pt-BR")} ={" "}
+                  <strong>{energia.get.toLocaleString("pt-BR")} kcal</strong> de GET
+                </span>
+                {energia.vet !== null && dados.ajusteEnergetico !== null && (
+                  <span>
+                    {energia.get.toLocaleString("pt-BR")} {dados.ajusteEnergetico >= 0 ? "+" : "−"}{" "}
+                    {Math.abs(dados.ajusteEnergetico).toLocaleString("pt-BR")} ={" "}
+                    <strong>{energia.vet.toLocaleString("pt-BR")} kcal</strong> de VET
+                  </span>
+                )}
+              </p>
             )}
-          </div>
+          </SecaoDeCalculo>
 
-          {protocoloEscolhido && (
-            <details className="c-sanfona" style={{ marginTop: 8 }}>
-              <summary>Outras dobras (fora deste protocolo)</summary>
-              <div className="c-linha-medidas" style={{ marginTop: 10 }}>
-                {DOBRAS.filter((c) => !protocoloEscolhido.dobras.includes(c.nome)).map((campo) => (
-                  <Campo rotulo={campo.nome} key={campo.nome}>
-                    <NumeroDecimal
-                      valor={numeroDeTexto(valoresDobras[campo.nome] ?? "")}
-                      aoMudar={(v) => mudarDobra(campo.nome, v)}
-                    />
-                  </Campo>
-                ))}
+          {/* ───────────────────────────── 5 · macronutrientes */}
+          <SecaoDeCalculo
+            numero={5}
+            titulo="Macronutrientes"
+            dica="Proteína e gordura em g/kg; o carboidrato é o que sobra do VET."
+          >
+            <div className="c-calc-grade">
+              {campoNumero("PTN (g/kg)", "ptnGKg")}
+              {campoNumero("LIP (g/kg)", "lipGKg")}
+            </div>
+            <div className="c-calc-grade">
+              {campoNumero("PTN (g/dia)", "ptnG", undefined, dados.ptnGKg !== null ? energia.ptnG : null, 1)}
+              {campoNumero("LIP (g/dia)", "lipG", undefined, dados.lipGKg !== null ? energia.lipG : null, 1)}
+              {campoNumero(
+                "CHO (g/dia)",
+                "choG",
+                undefined,
+                energia.vetUsado !== null && energia.ptnG !== null && energia.lipG !== null && !energia.estourou
+                  ? energia.choG
+                  : null,
+                1,
+              )}
+            </div>
+
+            {energia.estourou && (
+              <div className="c-aviso" role="status" style={{ marginTop: 12 }}>
+                <span>
+                  Proteína e gordura, sozinhas, já passam do VET. Confira o g/kg ou o VET antes de fechar o carboidrato.
+                </span>
               </div>
-            </details>
-          )}
+            )}
 
-          <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
-            Circunferências (cm)
-          </h3>
-          <div className="c-linha-medidas">
-            {CIRCUNFERENCIAS.map((campo) => (
-              <Campo rotulo={campo.nome} key={campo.nome}>
-                <NumeroDecimal
-                  valor={numeroDeTexto(valoresCircunferencias[campo.nome] ?? "")}
-                  aoMudar={(v) => mudarCircunferencia(campo.nome, v)}
-                />
-              </Campo>
-            ))}
-          </div>
+            {energia.macros.length > 0 && energia.vetUsado !== null && (
+              <div className="c-calc-macros">
+                <div className="c-calc-macros-barra" aria-hidden="true">
+                  {energia.macros.map((m) => (
+                    <span key={m.sigla} className={`c-calc-macro--${m.sigla.toLowerCase()}`} style={{ flexGrow: m.kcal }} />
+                  ))}
+                </div>
+                <table className="c-calc-macros-tabela">
+                  <thead>
+                    <tr>
+                      <th scope="col">Sobre {energia.vetUsado.toLocaleString("pt-BR")} kcal</th>
+                      <th scope="col">g/dia</th>
+                      <th scope="col">kcal</th>
+                      <th scope="col">%</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {energia.macros.map((m) => (
+                      <tr key={m.sigla}>
+                        <th scope="row">
+                          <span className={`c-calc-macro-cor c-calc-macro--${m.sigla.toLowerCase()}`} aria-hidden="true" />
+                          {m.nome}
+                        </th>
+                        <td>{m.gramas.toLocaleString("pt-BR")}</td>
+                        <td>{m.kcal.toLocaleString("pt-BR")}</td>
+                        <td>{m.percentual}%</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </SecaoDeCalculo>
 
-          <h3 className="c-secao-titulo" style={{ marginTop: 18 }}>
-            Diâmetros ósseos (cm)
-          </h3>
-          <p className="c-dica" style={{ marginTop: 0 }}>
-            Usados no cálculo de peso ósseo (Von Döbeln) e massa muscular.
-          </p>
-          <div className="c-linha-medidas">
-            {DIAMETROS.map((campo) => (
-              <Campo rotulo={campo.nome} key={campo.nome}>
-                <NumeroDecimal
-                  valor={numeroDeTexto(valoresDiametros[campo.nome] ?? "")}
-                  aoMudar={(v) => mudarDiametro(campo.nome, v)}
-                />
-              </Campo>
-            ))}
-          </div>
-
-          <p className="c-dica">
-            Deixe em branco o que você não mediu — não aparece para a paciente.
-          </p>
-
+          {/* ───────────────────────────── 6 · fechar */}
+          <SecaoDeCalculo numero={6} titulo="Fechar" dica="Confira, escreva o recado e escolha quem vê.">
           <Campo rotulo="Observação" dica="Opcional. Aparece para a paciente.">
             <AreaTexto
               valor={dados.observacao ?? ""}
@@ -1954,6 +1939,15 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
               Quem parasse ali sairia da tela convencida de que tinha
               publicado, e a paciente não veria avaliação nenhuma. Agora cada
               botão faz a coisa inteira num clique. */}
+          {/* O erro de salvar aparece AQUI também, ao lado do botão que ela
+              apertou: no alto da seção ele ficava seis passos acima, fora da
+              tela, e parecia que o botão não tinha feito nada. */}
+          {erro && (
+            <div className="c-aviso c-aviso-erro" role="alert" style={{ marginTop: 12 }}>
+              <span>{erro}</span>
+            </div>
+          )}
+
           <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
             <button
               type="button"
@@ -2019,10 +2013,80 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
               </button>
             )}
           </div>
+          </SecaoDeCalculo>
         </div>
       )}
     </>
   );
 }
 
+/** Um passo da aba de cálculos: número, título, uma linha de apoio e o conteúdo. */
+function SecaoDeCalculo({
+  numero,
+  titulo,
+  dica,
+  children,
+}: {
+  numero: number;
+  titulo: string;
+  dica?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="c-calc-secao">
+      <header className="c-calc-cabeca">
+        <span className="c-calc-numero" aria-hidden="true">
+          {numero}
+        </span>
+        <div>
+          <h3 className="c-calc-titulo">{titulo}</h3>
+          {dica && <p className="c-calc-dica">{dica}</p>}
+        </div>
+      </header>
+      {children}
+    </section>
+  );
+}
 
+/** Um número calculado em destaque, com a classificação quando há. */
+function Placar({ rotulo, valor, apoio }: { rotulo: string; valor: string; apoio?: string | null }) {
+  return (
+    <div className="c-calc-placar-item">
+      <span className="c-calc-placar-rotulo">{rotulo}</span>
+      <span className="c-calc-placar-valor">{valor}</span>
+      {apoio && <span className="c-calc-placar-apoio">{apoio}</span>}
+    </div>
+  );
+}
+
+/**
+ * O valor que a conta dá, embaixo do campo.
+ *
+ * Igual ao que está no campo, só confirma. Diferente (ou campo vazio), mostra
+ * o número e oferece "usar" — ela decide; nada é trocado sozinho, porque o
+ * que está no campo pode ter vindo da ferramenta dela.
+ */
+function ValorCalculado({
+  valor,
+  atual,
+  casas,
+  aoUsar,
+}: {
+  valor: number;
+  atual: number | null;
+  casas: number;
+  aoUsar: () => void;
+}) {
+  const texto = valor.toLocaleString("pt-BR", { maximumFractionDigits: casas });
+  if (atual === valor) {
+    return <p className="c-calc-calculado c-calc-calculado--igual">igual ao calculado</p>;
+  }
+  return (
+    <p className="c-calc-calculado">
+      calculado: <strong>{texto}</strong>
+      <button type="button" className="c-link" onClick={aoUsar}>
+        usar
+      </button>
+    </p>
+  );
+}
