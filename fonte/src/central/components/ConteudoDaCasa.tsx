@@ -33,13 +33,26 @@ export function ConteudoDaCasa({
 
   return (
     <>
-      <div className="c-casa-topo">
-        <Logo nome={casa.nome} logo={casa.logo} tamanho={56} nomeVisivel={false} />
-        {mostrarGrupo && casa.grupo && <span className="c-contagem">{casa.grupo}</span>}
-      </div>
+      {/* A faixa da casa só existe na tela própria dela. Dentro da categoria
+          de uma casa só, a faixa da categoria já está no alto — duas seguidas
+          seriam o mesmo cartão duas vezes. */}
+      {mostrarGrupo && (
+        <div className="c-cf-faixa">
+          <Logo nome={casa.nome} logo={casa.logo} tamanho={56} nomeVisivel={false} />
+          <div>
+            {/* O nome já é o título da tela: aqui vai o que ele não diz. */}
+            <p className="c-cf-faixa-titulo">{casa.grupo ?? "O que pedir"}</p>
+            <p className="c-cf-faixa-apoio">
+              {casa.opcoes.length > 0
+                ? `${casa.opcoes.length} ${casa.opcoes.length === 1 ? "opção classificada" : "opções classificadas"}`
+                : "Opções em preparação"}
+            </p>
+          </div>
+        </div>
+      )}
 
       {casa.observacoes.length > 0 && (
-        <ul className="c-observacoes" style={{ marginTop: 16 }}>
+        <ul className="c-cf-notas">
           {casa.observacoes.map((nota) => (
             <li key={nota}>{nota}</li>
           ))}

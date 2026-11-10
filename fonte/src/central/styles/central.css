@@ -5677,6 +5677,335 @@ textarea.c-campo:focus {
   background: var(--surface);
 }
 
+/* -------------------------------------------------------- comer fora (c-cf-*)
+
+   A vitrine: capa com a busca, e um cartão ilustrado por categoria. */
+
+.c-cf-capa {
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: var(--radius);
+  background: var(--marca-azul-profundo);
+  color: var(--marca-marfim);
+}
+
+.c-cf-capa-sobre {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.c-cf-capa-regra {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  opacity: 0.88;
+}
+
+.c-cf-busca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  margin-top: 16px;
+  padding: 0 16px;
+  border-radius: var(--radius-pill);
+  background: var(--marca-marfim);
+  color: var(--marca-azul-profundo);
+}
+
+.c-cf-busca input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  border: 0;
+  background: none;
+  font: inherit;
+  /* 16px: abaixo disso o iPhone dá zoom na tela ao focar o campo. */
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+}
+
+.c-cf-busca input::placeholder {
+  color: var(--marca-azul-medio);
+}
+
+.c-cf-busca:focus-within {
+  box-shadow: 0 0 0 3px rgba(247, 238, 231, 0.45);
+}
+
+.c-cf-achado-arte {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  background: var(--marca-marfim);
+}
+
+.c-cf-grade {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .c-cf-grade {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.central .c-cf-cartao {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: left;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+
+.central .c-cf-cartao:hover,
+.central .c-cf-cartao:focus-visible {
+  box-shadow: var(--shadow-forte);
+}
+
+.central .c-cf-cartao:active {
+  transform: scale(0.985);
+}
+
+.c-cf-arte {
+  display: grid;
+  place-items: center;
+  height: 108px;
+}
+
+.c-cf-arte--marfim { background: var(--marca-marfim); }
+.c-cf-arte--gelo { background: var(--marca-gelo); }
+.c-cf-arte--areia { background: #eae6db; }
+
+.c-cf-desenho {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.c-cf-texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 14px 16px;
+}
+
+.central .c-cf-texto h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.c-cf-texto p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.c-cf-contagem {
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--marca-azul-medio);
+}
+
+.c-cf-embreve {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.c-cf-embreve li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.c-cf-embreve-arte {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  opacity: 0.6;
+}
+
+.c-cf-embreve li > span:last-child {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.c-cf-embreve strong {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* A faixa do alto de uma categoria: o desenho dela e a introdução. */
+.c-cf-faixa {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: var(--marca-marfim);
+}
+
+.c-cf-faixa-arte {
+  flex: none;
+}
+
+.c-cf-faixa p {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.c-cf-faixa > div {
+  min-width: 0;
+}
+
+.c-cf-faixa .c-cf-faixa-titulo {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.c-cf-faixa .c-cf-faixa-apoio {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* Avisos que valem para a casa ou para a decisão inteira. */
+.c-cf-notas {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  list-style: none;
+  border-left: 3px solid var(--marca-azul-medio);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--primary-soft);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--primary-dark);
+}
+
+.c-cf-lembretes {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 16px;
+  list-style: none;
+  border-radius: var(--radius);
+  background: var(--marca-marfim);
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.c-cf-lembretes li {
+  display: flex;
+  gap: 10px;
+}
+
+.c-cf-lembretes svg {
+  flex: none;
+  margin-top: 3px;
+  color: var(--marca-azul-medio);
+}
+
+/* O cartão de opção: a cor da classificação na borda, os itens em duas
+   colunas e o total fechando o cartão. */
+.c-opcao {
+  border-left-width: 4px;
+}
+
+.c-opcao--melhor { border-left-color: var(--success); }
+.c-opcao--boa { border-left-color: var(--warning); }
+.c-opcao--ocasional { border-left-color: var(--danger); }
+
+.c-opcao-corpo ul.c-opcao-itens {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.c-opcao-itens li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+}
+
+.c-opcao-itens strong {
+  flex: none;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.c-opcao-corpo p.c-opcao-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px -16px -16px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface-2);
+  font-size: 14.5px;
+  color: var(--text);
+}
+
+.c-opcao-total small {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.c-opcao-total strong {
+  flex: none;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 /* --------------------------------------------- troca inteligente: opções
 
    As opções do mesmo grupo, já com a quantidade — ela escolhe sem pesquisar. */
