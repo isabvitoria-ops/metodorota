@@ -1957,6 +1957,33 @@ body:has(.central) {
 
 .c-vg-dica p { margin: 0; }
 
+/* Produto indicado: foto + uma linha */
+.central .c-vg-produto {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.c-vg-produto img {
+  flex: none;
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+.c-vg-produto strong {
+  display: block;
+  color: var(--primary-dark);
+}
+
 /* Card genérico */
 .c-vg-card {
   background: var(--surface-2);

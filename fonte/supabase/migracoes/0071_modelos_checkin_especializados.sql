@@ -62,11 +62,11 @@ begin
   -- Estética e Performance
   insert into questionario_perguntas (
     questionario_id, codigo, texto, tipo, opcoes, ordem, ativa, obrigatoria,
-    peso, eixo_id, cadencia, alerta, regra_exibicao
+    peso, eixo_id, cadencia, alertas_opcoes, regra_exibicao
   )
   select 'c0000000-0000-0000-0000-000000000010', p.codigo, p.texto, p.tipo,
          p.opcoes, p.ordem, p.ativa, p.obrigatoria, p.peso, p.eixo_id,
-         p.cadencia, p.alerta, p.regra_exibicao
+         p.cadencia, p.alertas_opcoes, p.regra_exibicao
     from questionario_perguntas p
    where p.questionario_id = v_src_id
      and p.codigo = any(v_codigos_ep)
@@ -75,11 +75,11 @@ begin
   -- Intestino
   insert into questionario_perguntas (
     questionario_id, codigo, texto, tipo, opcoes, ordem, ativa, obrigatoria,
-    peso, eixo_id, cadencia, alerta, regra_exibicao
+    peso, eixo_id, cadencia, alertas_opcoes, regra_exibicao
   )
   select 'c0000000-0000-0000-0000-000000000011', p.codigo, p.texto, p.tipo,
          p.opcoes, p.ordem, p.ativa, p.obrigatoria, p.peso, p.eixo_id,
-         p.cadencia, p.alerta, p.regra_exibicao
+         p.cadencia, p.alertas_opcoes, p.regra_exibicao
     from questionario_perguntas p
    where p.questionario_id = v_src_id
      and p.codigo = any(v_codigos_int)
@@ -88,11 +88,11 @@ begin
   -- GLP-1
   insert into questionario_perguntas (
     questionario_id, codigo, texto, tipo, opcoes, ordem, ativa, obrigatoria,
-    peso, eixo_id, cadencia, alerta, regra_exibicao
+    peso, eixo_id, cadencia, alertas_opcoes, regra_exibicao
   )
   select 'c0000000-0000-0000-0000-000000000012', p.codigo, p.texto, p.tipo,
          p.opcoes, p.ordem, p.ativa, p.obrigatoria, p.peso, p.eixo_id,
-         p.cadencia, p.alerta, p.regra_exibicao
+         p.cadencia, p.alertas_opcoes, p.regra_exibicao
     from questionario_perguntas p
    where p.questionario_id = v_src_id
      and p.codigo = any(v_codigos_glp)

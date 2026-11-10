@@ -85,6 +85,9 @@ end;
 $$;
 
 -- Atualizar salvar_treino() para aceitar faixas (usa _st_inserir_ex)
+-- O tipo de retorno muda, e o Postgres não troca retorno com `create or replace`.
+drop function if exists salvar_treino(uuid, uuid, text, text, boolean, jsonb);
+
 create or replace function salvar_treino(
   p_id       uuid,
   p_paciente uuid,
