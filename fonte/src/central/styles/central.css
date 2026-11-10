@@ -728,7 +728,7 @@ body:has(.central) {
 /* Campo que leva a classe do invólucro (`c-campo`) direto no <input>: sem
    isto ele saía com a cara crua do navegador — uma caixinha fina — no
    check-in, nos exames, no diário de fotos e na indicação do desafio. */
-input.c-campo,
+input.c-campo:not([type="file"]),
 select.c-campo,
 textarea.c-campo {
   display: block;
@@ -752,7 +752,7 @@ textarea.c-campo {
   resize: vertical;
 }
 
-input.c-campo:focus,
+input.c-campo:not([type="file"]):focus,
 select.c-campo:focus,
 textarea.c-campo:focus {
   border-color: var(--primary);
