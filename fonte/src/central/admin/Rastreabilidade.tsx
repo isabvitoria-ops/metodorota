@@ -27,12 +27,13 @@ import {
   nivelPorExtenso,
   panoramaDeMarcadores,
   porSemana,
-  rotuloSintoma,
   semanaEm,
   status as infoStatus,
   temSintoma,
   textoDaMarcacao,
+  textoDosSintomas,
 } from "@/central/utils/reintroducao";
+import { frequenciaDeSintomas, numerosDoRastreio, resumoPorAlimento } from "@/central/utils/resumoDoRastreio";
 import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { Campo, Selecao, Texto, AreaTexto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
@@ -52,7 +53,7 @@ import { Esqueleto } from "@/central/components/Esqueleto";
  * calcula "tolerância". A leitura clínica é dela — o aplicativo só organiza o
  * que a paciente escreveu para que essa leitura seja possível.
  */
-const ABAS = ["Linha do tempo", "Lista da paciente", "Acompanhamento"] as const;
+const ABAS = ["Resumo", "Linha do tempo", "Lista da paciente", "Acompanhamento"] as const;
 type Aba = (typeof ABAS)[number];
 
 export function RastreabilidadeAdmin() {
@@ -60,7 +61,7 @@ export function RastreabilidadeAdmin() {
   const [pacientes, definirPacientes] = useState<Paciente[]>([]);
   const [escolhida, definirEscolhida] = useState<string>(pacienteId);
   const [busca, definirBusca] = useState("");
-  const [aba, definirAba] = useState<Aba>("Linha do tempo");
+  const [aba, definirAba] = useState<Aba>("Resumo");
   const [ligados, definirLigados] = useState<string[]>([]);
   const [erroLista, definirErroLista] = useState<string | null>(null);
 
@@ -199,8 +200,20 @@ function PainelDaPaciente({
 
       {/* O interruptor fica em cima de tudo e em toda aba: é a primeira coisa
           a conferir quando ela achar que "não apareceu para a paciente". */}
-      <div className="c-bloco" style={{ marginBottom: 14 }}>
-        <div className="c-bloco-topo">
+      {/* Ligado, o bloco fica recolhido numa linha: aberto, ele empurrava
+          tudo o que ela veio ler uma tela inteira para baixo, em toda aba.
+          Desligado, abre sozinho — é quando ela precisa mexer nele. */}
+      <details className="c-bloco c-ras-config" open={!ativo} style={{ marginBottom: 14 }}>
+        <summary>
+          <span className={`c-selo ${ativo ? "melhor" : "neutro"}`}>{ativo ? "Ligado" : "Desligado"}</span>
+          <span>
+            {ativo
+              ? `${paciente.nome.split(" ")[0]} vê a Rastreabilidade · semana ${dados?.semanaAtual ?? 1}`
+              : `${paciente.nome.split(" ")[0]} não vê a Rastreabilidade`}
+          </span>
+          <span className="c-ras-config-abrir">Ajustar</span>
+        </summary>
+        <div className="c-bloco-topo" style={{ marginTop: 12 }}>
           <strong style={{ fontSize: 14 }}>
             {ativo
               ? `${paciente.nome} vê a Rastreabilidade`
@@ -243,9 +256,9 @@ function PainelDaPaciente({
             aoMudar={comRecarga}
           />
         )}
-      </div>
+      </details>
 
-      {aba === "Linha do tempo" && (
+      {(aba === "Resumo" || aba === "Linha do tempo") && (
         <>
           {/* O mesmo rastreio que a paciente vê, com a mesma conta e as
               mesmas palavras. Duas leituras diferentes da mesma coisa seria
@@ -265,12 +278,25 @@ function PainelDaPaciente({
             </button>
           </div>
 
-          {/* Antes do panorama de marcadores e da escada: é a leitura mais
-              ampla, e é o que ela quer ver primeiro ao abrir a ficha. */}
-          <PadroesDoRastreio registros={dados?.registros ?? []} />
+          {aba === "Resumo" && (
+            <>
+              <ResumoDoRastreio itens={dados?.itens ?? []} registros={dados?.registros ?? []} />
 
-          <PanoramaDeMarcadores itens={dados?.itens ?? []} registros={dados?.registros ?? []} />
-          <RastreioAlimentar itens={dados?.itens ?? []} registros={dados?.registros ?? []} />
+              {/* A leitura mais ampla, depois dos números. */}
+              <PadroesDoRastreio registros={dados?.registros ?? []} />
+
+              <PanoramaDeMarcadores itens={dados?.itens ?? []} registros={dados?.registros ?? []} />
+
+              {/* O mesmo rastreio que a paciente vê, com a mesma conta e as
+                  mesmas palavras — por isso fica rotulado como a tela DELA.
+                  Solto no meio do painel, "Meu rastreio" e "se quiser comer,
+                  você come" pareciam recado para a nutricionista. */}
+              <details className="c-sanfona" style={{ marginTop: 22 }}>
+                <summary>Como {paciente.nome.split(" ")[0]} vê o rastreio dela</summary>
+                <RastreioAlimentar itens={dados?.itens ?? []} registros={dados?.registros ?? []} />
+              </details>
+            </>
+          )}
 
           {/* O MESMO documento que a paciente imprime. Uma segunda versão
               para ela divergiria da da paciente na primeira mudança — e a
@@ -282,7 +308,7 @@ function PainelDaPaciente({
             registros={dados?.registros ?? []}
             nutricionista={configuracoes.nomeNutricionista}
           />
-          <LinhaDoTempo dados={dados} />
+          {aba === "Linha do tempo" && <LinhaDoTempo dados={dados} />}
         </>
       )}
       {aba === "Lista da paciente" && (
@@ -319,6 +345,142 @@ function PainelDaPaciente({
         />
       )}
     </div>
+  );
+}
+
+// ------------------------------------------------------------------ resumo
+
+/**
+ * O resumo do rastreio: os números, uma linha por alimento e os sintomas mais
+ * relatados.
+ *
+ * É a primeira coisa que ela vê ao abrir a paciente. Antes, para saber
+ * quantas vezes a pessoa comeu um alimento e o que sentiu em cada vez, era
+ * preciso descer a linha do tempo contando registro por registro.
+ *
+ * A coluna "Pela conta" é a escada de pontos — a mesma que a paciente vê. A
+ * coluna "Sua classificação" é a que ela deu na lista. As duas ficam lado a
+ * lado de propósito: quando discordam, é ali que vale olhar.
+ */
+function ResumoDoRastreio({
+  itens,
+  registros,
+}: {
+  itens: ItemDeReintroducao[];
+  registros: RegistroDeReintroducao[];
+}) {
+  if (registros.length === 0) {
+    return (
+      <p className="c-contagem">
+        Nenhum registro ainda. Quando ela registrar — ou você lançar por ela —, o resumo aparece aqui.
+      </p>
+    );
+  }
+  const numeros = numerosDoRastreio(registros);
+  const linhas = resumoPorAlimento(itens, registros);
+  const sintomas = frequenciaDeSintomas(registros);
+  const maisRelatado = sintomas[0]?.registros ?? 1;
+
+  return (
+    <>
+      <div className="c-numeros">
+        <div className="c-numero">
+          <strong>{numeros.alimentos}</strong>
+          <span>{numeros.alimentos === 1 ? "Alimento testado" : "Alimentos testados"}</span>
+        </div>
+        <div className="c-numero">
+          <strong>{numeros.registros}</strong>
+          <span>{numeros.registros === 1 ? "Registro" : "Registros"}</span>
+        </div>
+        <div className="c-numero">
+          <strong>{numeros.comSintoma}</strong>
+          <span>Com sintoma</span>
+        </div>
+        <div className="c-numero">
+          <strong>{numeros.dias}</strong>
+          <span>{numeros.dias === 1 ? "Dia com registro" : "Dias com registro"}</span>
+        </div>
+      </div>
+
+      <section className="c-secao">
+        <h2 className="c-secao-titulo">Por alimento</h2>
+        <div className="c-tabela-rolagem">
+          <table className="c-ras-tabela">
+            <thead>
+              <tr>
+                <th scope="col">Alimento</th>
+                <th scope="col">Testes</th>
+                <th scope="col">Com sintoma</th>
+                <th scope="col">Sintomas relatados</th>
+                <th scope="col">Intens. máx.</th>
+                <th scope="col">Último</th>
+                <th scope="col">Pela conta</th>
+                <th scope="col">Sua classificação</th>
+              </tr>
+            </thead>
+            <tbody>
+              {linhas.map((l) => {
+                const classificado = l.status !== "nao_iniciado" && l.status !== "em_teste";
+                return (
+                  <tr key={l.itemId}>
+                    <th scope="row">{l.nome}</th>
+                    <td>
+                      {l.testes}
+                      {l.dias !== l.testes && (
+                        <small>
+                          {" "}
+                          em {l.dias} {l.dias === 1 ? "dia" : "dias"}
+                        </small>
+                      )}
+                    </td>
+                    <td>{l.comSintoma === 0 ? "—" : `${l.comSintoma} de ${l.testes}`}</td>
+                    <td className="c-ras-tabela-texto">
+                      {l.sintomas.length === 0
+                        ? "—"
+                        : l.sintomas.map((x) => (x.vezes > 1 ? `${x.rotulo} (${x.vezes}×)` : x.rotulo)).join(", ")}
+                    </td>
+                    <td>{l.intensidadeMaxima === null ? "—" : `${l.intensidadeMaxima}/10`}</td>
+                    <td>{dataBonita(l.ultimo)}</td>
+                    <td>
+                      <span
+                        className={`c-selo ${l.escada.tom === "bom" ? "melhor" : l.escada.tom === "atencao" ? "boa" : "ocasional"}`}
+                      >
+                        {l.escada.rotulo}
+                      </span>
+                    </td>
+                    <td>{classificado ? infoStatus(l.status).rotulo : <span className="c-ras-pendente">Ainda não classificou</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="c-dica">
+          “Pela conta” é a escada de pontos que a paciente vê (sintomas mais fortes valem dois). “Sua classificação” é
+          a que você deu na aba Lista da paciente — e é ela que vale na tela da paciente quando existe.
+        </p>
+      </section>
+
+      {sintomas.length > 0 && (
+        <section className="c-secao">
+          <h2 className="c-secao-titulo">Sintomas mais relatados</h2>
+          <ul className="c-ras-sintomas">
+            {sintomas.map((x) => (
+              <li key={x.chave}>
+                <span className="c-ras-sintoma-nome">{x.rotulo}</span>
+                <span className="c-ras-sintoma-barra" aria-hidden="true">
+                  <span style={{ width: `${Math.max(6, (x.registros / maisRelatado) * 100)}%` }} />
+                </span>
+                <span className="c-ras-sintoma-conta">
+                  {x.registros} {x.registros === 1 ? "registro" : "registros"} · {x.alimentos}{" "}
+                  {x.alimentos === 1 ? "alimento" : "alimentos"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </>
   );
 }
 
@@ -968,7 +1130,7 @@ function LinhaDoTempo({ dados }: { dados: ReturnType<typeof useReintroducao>["da
                         <strong>{r.itemNome}</strong>
                         <span className="c-acao-descricao">
                           {dataBonita(r.data)}
-                          {r.horario ? ` · ${r.horario}` : ""}
+                          {r.horario ? ` · ${r.horario.slice(0, 5)}` : ""}
                           {r.quantidade ? ` · ${r.quantidade}` : ""}
                           {r.preparo ? ` · ${r.preparo}` : ""}
                         </span>
@@ -977,14 +1139,7 @@ function LinhaDoTempo({ dados }: { dados: ReturnType<typeof useReintroducao>["da
                         {semSintoma ? "Sem sintomas" : "Sintomas registrados"}
                       </span>
                     </div>
-                    {!semSintoma && (
-                      <p className="c-dica">
-                        {r.sintomas.map(rotuloSintoma).join(", ")}
-                        {r.intensidade != null
-                          ? ` · ${faixaDaIntensidade(r.intensidade)} (${r.intensidade}/10)`
-                          : ""}
-                      </p>
-                    )}
+                    {!semSintoma && <p className="c-dica">{textoDosSintomas(r)}</p>}
                     {r.bristol != null && <p className="c-dica">Bristol tipo {r.bristol}</p>}
                     {r.observacao && <p className="c-dica">"{r.observacao}"</p>}
                     {/* Na tela da paciente a marcação só aparece com sintoma,
