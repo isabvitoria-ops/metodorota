@@ -2336,37 +2336,106 @@ body:has(.central) {
   grid-column: 1 / -1;
 }
 
-/* Modelo de mensagem e copiar */
-.c-vg-msg-modelo {
-  background: var(--surface-2);
+.c-vg-diario-marca {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--success-soft);
+  color: var(--success);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.c-vg-diario-estado {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.c-vg-diario-estado--falhou { color: var(--warning); }
+
+/* --- Rota Viagem na ficha da paciente (nutricionista) --- */
+.c-vg-nutri-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.c-vg-nutri-dias {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.c-vg-nutri-dia {
+  padding: 14px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 14px 16px;
-  font-family: monospace;
-  font-size: 0.8rem;
-  line-height: 1.6;
+  background: var(--surface);
+}
+
+.c-vg-nutri-dia header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+}
+
+.c-vg-nutri-dia header strong { color: var(--primary-dark); }
+
+.c-vg-nutri-dia header span {
+  font-size: 0.78rem;
   color: var(--text-muted);
-  margin-top: 12px;
 }
 
-.central .c-vg-copiar {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  min-height: 40px;
-  padding: 8px 16px;
-  font-size: 0.82rem;
+.c-vg-nutri-dia dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  gap: 8px;
+  margin: 12px 0 0;
+}
+
+.c-vg-nutri-dia dt {
+  font-size: 0.72rem;
   font-weight: 600;
-  border: 1px solid var(--primary);
-  border-radius: var(--radius-pill);
-  background: var(--primary);
-  color: #fff;
-  cursor: pointer;
-  transition: opacity var(--transicao);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
 }
 
-.central .c-vg-copiar:hover { opacity: 0.85; }
+.c-vg-nutri-dia dd {
+  margin: 2px 0 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.c-vg-nutri-dia p {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+/* O guia dentro da ficha, na largura de um celular. O `--gutter` é o respiro
+   que a faixa azul do topo e o rodapé usam para sangrar até a borda. */
+.c-vg-previa {
+  max-width: 440px;
+  margin-top: 14px;
+  padding: 0 var(--gutter);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.c-vg-previa .c-vg-hero { margin-top: 0; }
+.c-vg-previa .c-vg-rodape { margin-bottom: 0; }
 
 /* Rodapé */
 .c-vg-rodape {

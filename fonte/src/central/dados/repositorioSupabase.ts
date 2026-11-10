@@ -121,6 +121,7 @@ import {
   paraQuestionarioDoPaciente,
   type Linha,
 } from "./mapeadores";
+import type { CamposDoDiario, DiaDoDiarioDeViagem, FichaDeViagem } from "@/central/types/viagem";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
 import {
   salvarCatalogoNoCache, lerCatalogoDoCache,
@@ -141,6 +142,34 @@ import {
 
 function erro(contexto: string, e: { message: string } | null): void {
   if (e) throw new Error(`${contexto}: ${e.message}`);
+}
+
+function paraFichaDeViagem(dado: unknown): FichaDeViagem | null {
+  if (!dado || typeof dado !== "object" || Array.isArray(dado)) return null;
+  const ficha = dado as Record<string, unknown>;
+  return {
+    nome: textoOuNulo(ficha.nome),
+    nascimento: textoOuNulo(ficha.nascimento),
+    diagnosticos: textoOuNulo(ficha.diagnosticos),
+  };
+}
+
+function paraDiarioDeViagem(dado: unknown): DiaDoDiarioDeViagem[] {
+  if (!Array.isArray(dado)) return [];
+  const numero = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : null);
+  return dado
+    .filter((d): d is Record<string, unknown> => d !== null && typeof d === "object" && typeof (d as Linha).dia === "string")
+    .map((d) => ({
+      dia: String(d.dia).slice(0, 10),
+      onde: textoOuNulo(d.onde),
+      inchaco: numero(d.inchaco),
+      dor: numero(d.dor),
+      azia: numero(d.azia),
+      evacuacoes: numero(d.evacuacoes),
+      bristol: numero(d.bristol),
+      observacoes: textoOuNulo(d.observacoes),
+      atualizadoEm: textoOuNulo(d.atualizadoEm),
+    }));
 }
 
 export const repositorioSupabase: Repositorio = {
@@ -2708,12 +2737,31 @@ export const repositorioSupabase: Repositorio = {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("minha_ficha_viagem");
     erro("carregar a ficha da viagem", error);
-    if (!data || typeof data !== "object") return null;
-    const ficha = data as Record<string, unknown>;
+    return paraFichaDeViagem(data);
+  },
+
+  async meuDiarioDeViagem() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("meu_diario_de_viagem");
+    erro("carregar o diário da viagem", error);
+    return paraDiarioDeViagem(data);
+  },
+
+  async anotarDiarioDeViagem(dia: string, campos: CamposDoDiario) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("anotar_diario_de_viagem", { p_dia: dia, p_dados: campos });
+    erro("salvar o diário da viagem", error);
+  },
+
+  async viagemDoPaciente(pacienteId: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("viagem_do_paciente", { p_paciente: pacienteId });
+    erro("carregar o Rota Viagem da paciente", error);
+    const l = (data ?? {}) as Linha;
     return {
-      nome: textoOuNulo(ficha.nome),
-      nascimento: textoOuNulo(ficha.nascimento),
-      diagnosticos: textoOuNulo(ficha.diagnosticos),
+      liberado: l.liberado === true,
+      ficha: paraFichaDeViagem(l.ficha),
+      diario: paraDiarioDeViagem(l.diario),
     };
   },
 

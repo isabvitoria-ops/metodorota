@@ -102,7 +102,7 @@ import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { MinhaHidratacao, HidratacaoDoPaciente, TipoLiquido } from "@/central/types/hidratacao";
 import type { RestricaoAlimentar, TipoRestricao, GravidadeRestricao } from "@/central/types/restricao";
 import type { FotoEvolucao, PoseEvolucao } from "@/central/types/fotoEvolucao";
-import type { FichaDeViagem } from "@/central/types/viagem";
+import type { CamposDoDiario, DiaDoDiarioDeViagem, FichaDeViagem, ViagemDoPaciente } from "@/central/types/viagem";
 import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 import { repositorioLocal } from "./repositorioLocal";
 import { repositorioSupabase } from "./repositorioSupabase";
@@ -947,6 +947,12 @@ export interface Repositorio {
 
   /** Os dados pessoais da ficha de saúde da viagem. Nulo se não houver. */
   minhaFichaDeViagem(): Promise<FichaDeViagem | null>;
+  /** Os dias do diário da viagem que já estão no banco. */
+  meuDiarioDeViagem(): Promise<DiaDoDiarioDeViagem[]>;
+  /** Grava (ou substitui) um dia do diário. Dia sem nada preenchido é apagado. */
+  anotarDiarioDeViagem(dia: string, campos: CamposDoDiario): Promise<void>;
+  /** Nutricionista: o Rota Viagem de uma paciente — interruptor, ficha e diário. */
+  viagemDoPaciente(pacienteId: string): Promise<ViagemDoPaciente>;
 
   // ---------------------------------------------------------------------
   // Fotos evolutivas (0081)

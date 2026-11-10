@@ -4,7 +4,9 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { PedidoDeViagem } from "@/central/pages/ViagemPedido";
-import type { FichaDeViagem } from "@/central/types/viagem";
+import type { CamposDoDiario, FichaDeViagem } from "@/central/types/viagem";
+import { useDiarioDeViagem, type EstadoDeEnvio } from "@/central/hooks/useDiarioDeViagem";
+import { camposDe, temAlgoPreenchido, type DiarioLocal } from "@/central/utils/diarioDeViagem";
 import imgPincBar from "@/central/viagem-imgs/pinc-bar.webp";
 
 type Pais = "it" | "pt" | "es";
@@ -159,13 +161,25 @@ const ROTULO_TRAD = [
 ];
 
 const DIAS_VIAGEM = [
-  { n: 1, d: "11/11", w: "qua" }, { n: 2, d: "12/11", w: "qui" }, { n: 3, d: "13/11", w: "sex" },
-  { n: 4, d: "14/11", w: "sáb" }, { n: 5, d: "15/11", w: "dom" }, { n: 6, d: "16/11", w: "seg" },
-  { n: 7, d: "17/11", w: "ter" }, { n: 8, d: "18/11", w: "qua" }, { n: 9, d: "19/11", w: "qui" },
-  { n: 10, d: "20/11", w: "sex" }, { n: 11, d: "21/11", w: "sáb" }, { n: 12, d: "22/11", w: "dom" },
-  { n: 13, d: "23/11", w: "seg" }, { n: 14, d: "24/11", w: "ter" }, { n: 15, d: "25/11", w: "qua" },
-  { n: 16, d: "26/11", w: "qui" },
+  { n: 1, d: "11/11", w: "qua", iso: "2026-11-11" },
+  { n: 2, d: "12/11", w: "qui", iso: "2026-11-12" },
+  { n: 3, d: "13/11", w: "sex", iso: "2026-11-13" },
+  { n: 4, d: "14/11", w: "sáb", iso: "2026-11-14" },
+  { n: 5, d: "15/11", w: "dom", iso: "2026-11-15" },
+  { n: 6, d: "16/11", w: "seg", iso: "2026-11-16" },
+  { n: 7, d: "17/11", w: "ter", iso: "2026-11-17" },
+  { n: 8, d: "18/11", w: "qua", iso: "2026-11-18" },
+  { n: 9, d: "19/11", w: "qui", iso: "2026-11-19" },
+  { n: 10, d: "20/11", w: "sex", iso: "2026-11-20" },
+  { n: 11, d: "21/11", w: "sáb", iso: "2026-11-21" },
+  { n: 12, d: "22/11", w: "dom", iso: "2026-11-22" },
+  { n: 13, d: "23/11", w: "seg", iso: "2026-11-23" },
+  { n: 14, d: "24/11", w: "ter", iso: "2026-11-24" },
+  { n: 15, d: "25/11", w: "qua", iso: "2026-11-25" },
+  { n: 16, d: "26/11", w: "qui", iso: "2026-11-26" },
 ];
+
+const DATAS_DA_VIAGEM = DIAS_VIAGEM.map((d) => d.iso);
 
 const CHECKLIST_BRASIL = [
   "Garrafa reutilizável (leve vazia na segurança do aeroporto).",
@@ -195,35 +209,16 @@ const SECOES = [
   { id: "diario", label: "Diário" },
 ];
 
-interface DiaDoDiario {
-  onde: string;
-  inchaco: string;
-  dor: string;
-  azia: string;
-  evacuacoes: string;
-  bristol: string;
-  observacoes: string;
-}
-
-const DIA_VAZIO: DiaDoDiario = { onde: "", inchaco: "", dor: "", azia: "", evacuacoes: "", bristol: "", observacoes: "" };
-
-type Diario = Record<number, DiaDoDiario>;
-
 const EM_BRANCO = "_______________";
 
-/** O diário fica só no aparelho, separado por conta. */
-function chaveDoDiario(perfilId: string | null): string {
-  return `central:viagem-diario:v1:${perfilId ?? "anonimo"}`;
-}
-
-function lerDiario(chave: string): Diario {
-  try {
-    const bruto = window.localStorage.getItem(chave);
-    const dados: unknown = bruto ? JSON.parse(bruto) : null;
-    return dados && typeof dados === "object" && !Array.isArray(dados) ? (dados as Diario) : {};
-  } catch {
-    return {};
-  }
+/** O diário como a tela o recebe: o que está preenchido e como anda o envio. */
+export interface DiarioDaTela {
+  valores: DiarioLocal;
+  estados: Record<string, EstadoDeEnvio>;
+  /** Ausente = só leitura (a nutricionista lendo o diário da paciente). */
+  anotar?: (dia: string, campo: keyof CamposDoDiario, valor: string) => void;
+  /** Falso quando o que é digitado fica só no aparelho (conta da nutricionista). */
+  envia: boolean;
 }
 
 /** A barrinha que ela indica, com a foto do produto. */
@@ -253,14 +248,12 @@ function normalizar(t: string): string {
 }
 
 export function Viagem() {
-  const { acesso } = useSessao();
-  const [paisAtivo, definirPais] = useState<Pais>("it");
-  const [idiomaAtivo, definirIdioma] = useState<Idioma>("it2");
-  const [buscaAlimento, definirBuscaAlimento] = useState("");
-  const [copiado, definirCopiado] = useState(false);
+  const { acesso, modoDemonstracao } = useSessao();
   const [ficha, definirFicha] = useState<FichaDeViagem | null>(null);
-  const chaveDiario = chaveDoDiario(acesso.perfilId);
-  const [diario, definirDiario] = useState<Diario>(() => lerDiario(chaveDiario));
+  // A nutricionista abre o guia para conferir, mas não é paciente: o diário
+  // dela não tem para onde ir. (Na demonstração as duas são a mesma pessoa.)
+  const envia = acesso.viagem && (modoDemonstracao || acesso.papel !== "admin");
+  const diario = useDiarioDeViagem(acesso.perfilId, envia, DATAS_DA_VIAGEM);
 
   useEffect(() => {
     if (!acesso.viagem) return;
@@ -277,6 +270,42 @@ export function Viagem() {
       ativo = false;
     };
   }, [acesso.viagem]);
+
+  // Sem o guia liberado, a tela continua sendo o aviso de viagem para a nutricionista.
+  if (!acesso.viagem) return <PedidoDeViagem />;
+
+  // A nutricionista abre a tela para conferir: o nome dela não é o da paciente.
+  const nomeDaPaciente = ficha?.nome ?? (acesso.papel === "admin" ? null : acesso.nome);
+
+  return (
+    <>
+      <CabecalhoPagina titulo="Rota Viagem" voltarPara={rotas.home} />
+      <div className="c-conteudo c-viagem-guia">
+        <ConteudoDoGuia nome={nomeDaPaciente} ficha={ficha} diario={{ ...diario, envia }} />
+      </div>
+    </>
+  );
+}
+
+/**
+ * O guia em si. É o mesmo componente na tela da paciente e na ficha, onde a
+ * nutricionista lê exatamente o que a paciente vê — com o diário dela, sem
+ * poder editar.
+ */
+export function ConteudoDoGuia({
+  nome,
+  ficha,
+  diario,
+  comNavegacao = true,
+}: {
+  nome: string | null;
+  ficha: FichaDeViagem | null;
+  diario: DiarioDaTela;
+  comNavegacao?: boolean;
+}) {
+  const [paisAtivo, definirPais] = useState<Pais>("it");
+  const [idiomaAtivo, definirIdioma] = useState<Idioma>("it2");
+  const [buscaAlimento, definirBuscaAlimento] = useState("");
 
   const buscaNorm = useMemo(() => normalizar(buscaAlimento), [buscaAlimento]);
 
@@ -295,43 +324,13 @@ export function Viagem() {
   const amarelosFiltrados = filtra(AMARELO);
   const vermelhosFiltrados = filtra(VERMELHO);
 
-  function anotar(dia: number, campo: keyof DiaDoDiario, valor: string) {
-    definirDiario((anterior) => {
-      const novo = { ...anterior, [dia]: { ...DIA_VAZIO, ...anterior[dia], [campo]: valor } };
-      try {
-        window.localStorage.setItem(chaveDiario, JSON.stringify(novo));
-      } catch {
-        /* sem armazenamento, o diário vale só enquanto a tela estiver aberta */
-      }
-      return novo;
-    });
-  }
-
-  function copiarModelo() {
-    const texto = "Dia __ | Inchaço __/10 | Dor __/10 | Azia ou amargo __/10 | Evacuações __ (Bristol __) | Comi de diferente: _____ | Algum sinal de alerta? sim / não";
-    try {
-      void navigator.clipboard.writeText(texto);
-      definirCopiado(true);
-      setTimeout(() => definirCopiado(false), 2000);
-    } catch {
-      /* sem suporte, ignora */
-    }
-  }
-
-  // Sem o guia liberado, a tela continua sendo o aviso de viagem para a nutricionista.
-  if (!acesso.viagem) return <PedidoDeViagem />;
-
   const paisInfo = PAISES[paisAtivo];
   const cartao = CARTOES[idiomaAtivo];
-  // A nutricionista abre a tela para conferir: o nome dela não é o da paciente.
-  const nomeDaPaciente = ficha?.nome ?? (acesso.papel === "admin" ? null : acesso.nome);
-  const primeiroNome = nomeDaPaciente?.trim().split(" ")[0] || null;
+  const primeiroNome = nome?.trim().split(" ")[0] || null;
+  const anotar = diario.anotar;
 
   return (
     <>
-      <CabecalhoPagina titulo="Rota Viagem" voltarPara={rotas.home} />
-
-      <div className="c-conteudo c-viagem-guia">
       {/* Hero */}
       <div className="c-vg-hero">
         <p className="c-vg-hero-tag">Módulo exclusivo</p>
@@ -344,13 +343,15 @@ export function Viagem() {
       </div>
 
       {/* Nav sticky */}
-      <nav className="c-vg-nav" aria-label="Seções do guia">
-        {SECOES.map((s) => (
-          <button key={s.id} type="button" className="c-vg-nav-link" onClick={() => irParaSecao(s.id)}>
-            {s.label}
-          </button>
-        ))}
-      </nav>
+      {comNavegacao && (
+        <nav className="c-vg-nav" aria-label="Seções do guia">
+          {SECOES.map((s) => (
+            <button key={s.id} type="button" className="c-vg-nav-link" onClick={() => irParaSecao(s.id)}>
+              {s.label}
+            </button>
+          ))}
+        </nav>
+      )}
 
       {/* ESTRATÉGIA */}
       <section id="vg-estrategia" className="c-vg-secao">
@@ -623,10 +624,14 @@ export function Viagem() {
       {/* DIÁRIO */}
       <section id="vg-diario" className="c-vg-secao">
         <h2 className="c-vg-secao-titulo">Diário intestinal da viagem</h2>
-        <p className="c-vg-intro">Esse diário não é obrigatório — eu deixei aqui pra conseguir te acompanhar de longe, caso você queira. Se der pra preencher à noite, ótimo (leva 2 minutos). Se não der, tudo bem. Escala de 0 (nada) a 10 (o pior que você já sentiu). O que você anota fica guardado só neste aparelho: tire uma foto da tela e envie, ou copie o modelo abaixo.</p>
+        <p className="c-vg-intro">Esse diário não é obrigatório — eu deixei aqui pra conseguir te acompanhar de longe, caso você queira. Se der pra preencher à noite, ótimo (leva 2 minutos). Se não der, tudo bem. Escala de 0 (nada) a 10 (o pior que você já sentiu). O que você preencher aqui chega pra mim: eu acompanho você todos os dias.</p>
 
         {DIAS_VIAGEM.map((dia) => {
-          const d = diario[dia.n] ?? DIA_VAZIO;
+          const d = camposDe(diario.valores[dia.iso]);
+          const preenchido = temAlgoPreenchido(diario.valores[dia.iso]);
+          const estado = diario.estados[dia.iso];
+          const mudar = (campo: keyof CamposDoDiario) => (e: { target: { value: string } }) =>
+            anotar?.(dia.iso, campo, e.target.value);
           const escala = (rotulo: string, campo: "inchaco" | "dor" | "azia") => (
             <label className="c-vg-diario-campo">
               <span>{rotulo}</span>
@@ -637,7 +642,8 @@ export function Viagem() {
                 min={0}
                 max={10}
                 value={d[campo]}
-                onChange={(e) => anotar(dia.n, campo, e.target.value)}
+                disabled={!anotar}
+                onChange={mudar(campo)}
               />
             </label>
           );
@@ -645,6 +651,7 @@ export function Viagem() {
             <details key={dia.n} className="c-vg-diario-dia">
               <summary className="c-vg-diario-resumo">
                 Dia {dia.n} — {dia.d} ({dia.w})
+                {preenchido && <span className="c-vg-diario-marca">preenchido</span>}
               </summary>
               <div className="c-vg-diario-campos">
                 <label className="c-vg-diario-campo">
@@ -653,8 +660,10 @@ export function Viagem() {
                     type="text"
                     className="c-input"
                     placeholder="Cidade"
+                    maxLength={120}
                     value={d.onde}
-                    onChange={(e) => anotar(dia.n, "onde", e.target.value)}
+                    disabled={!anotar}
+                    onChange={mudar("onde")}
                   />
                 </label>
                 {escala("Inchaço 0-10", "inchaco")}
@@ -667,13 +676,15 @@ export function Viagem() {
                     inputMode="numeric"
                     className="c-input"
                     min={0}
+                    max={30}
                     value={d.evacuacoes}
-                    onChange={(e) => anotar(dia.n, "evacuacoes", e.target.value)}
+                    disabled={!anotar}
+                    onChange={mudar("evacuacoes")}
                   />
                 </label>
                 <label className="c-vg-diario-campo">
                   <span>Bristol</span>
-                  <select className="c-select" value={d.bristol} onChange={(e) => anotar(dia.n, "bristol", e.target.value)}>
+                  <select className="c-select" value={d.bristol} disabled={!anotar} onChange={mudar("bristol")}>
                     <option value="">-</option>
                     {[1, 2, 3, 4, 5, 6, 7].map((n) => <option key={n}>{n}</option>)}
                   </select>
@@ -684,10 +695,23 @@ export function Viagem() {
                     className="c-textarea"
                     placeholder="Ex: comi meia porção de pasta al pomodoro no almoço, gelato de limão à tarde"
                     rows={2}
+                    maxLength={2000}
                     value={d.observacoes}
-                    onChange={(e) => anotar(dia.n, "observacoes", e.target.value)}
+                    disabled={!anotar}
+                    onChange={mudar("observacoes")}
                   />
                 </label>
+                {anotar && preenchido && (
+                  <p className={`c-vg-diario-estado ${estado === "falhou" ? "c-vg-diario-estado--falhou" : ""}`} role="status">
+                    {!diario.envia
+                      ? "Na conta da nutricionista o diário fica só neste aparelho."
+                      : estado === "falhou"
+                        ? "Sem conexão agora. Fica guardado no seu celular e chega pra mim assim que a internet voltar."
+                        : estado === "salvando" || diario.valores[dia.iso]?.pendente
+                          ? "Salvando…"
+                          : "Salvo. Já chegou pra mim."}
+                  </p>
+                )}
               </div>
             </details>
           );
@@ -701,14 +725,6 @@ export function Viagem() {
           <p><strong>6</strong> = pastosas</p>
           <p><strong>7</strong> = líquidas (diarreia)</p>
         </div>
-
-        <h3 className="c-vg-sub" style={{ marginTop: 16 }}>Modelo de mensagem para o check-in</h3>
-        <div className="c-vg-msg-modelo">
-          Dia __ | Inchaço __/10 | Dor __/10 | Azia ou amargo __/10 | Evacuações __ (Bristol __) | Comi de diferente: _____ | Algum sinal de alerta? sim / não
-        </div>
-        <button type="button" className="c-vg-copiar" onClick={copiarModelo}>
-          {copiado ? "Copiado!" : "Copiar modelo"}
-        </button>
 
         <div className="c-vg-alerta-amarelo" style={{ marginTop: 16 }}>
           Se houver sinal de alerta, <strong>não espere resposta por mensagem</strong>: procure atendimento, conforme a seção anterior.
@@ -735,7 +751,6 @@ export function Viagem() {
         Não substitui orientação médica.<br />
         Em caso de sinais de alerta, procure atendimento. Não espere resposta por mensagem.
       </footer>
-      </div>
     </>
   );
 }

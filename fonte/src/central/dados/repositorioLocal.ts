@@ -76,6 +76,7 @@ import type { MensagemDaRefeicao, ResumoDaConversa } from "@/central/types/conve
 import { mesmaRefeicao } from "@/central/utils/conversaDaRefeicao";
 import { caminhoDaFoto } from "@/central/utils/diarioDeFotos";
 import type { Meta } from "@/central/types/meta";
+import type { CamposDoDiario, DiaDoDiarioDeViagem } from "@/central/types/viagem";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { CardioSessao, MetaSemanal, SessaoDeTreino, Treino } from "@/central/types/treino";
 import type {
@@ -306,6 +307,9 @@ function comSituacao(paciente: Paciente, alertaDias: number): Paciente {
     diasRestantes: diasEntre(hojeSaoPaulo(), paciente.dataFim),
   };
 }
+
+/** O diário de viagem da demonstração: vive só enquanto a aba está aberta. */
+const DIARIO_DE_VIAGEM_DEMO = new Map<string, DiaDoDiarioDeViagem>();
 
 export const repositorioLocal: Repositorio = {
   async carregarCatalogo(): Promise<DadosCatalogo> {
@@ -2311,6 +2315,36 @@ export const repositorioLocal: Repositorio = {
   },
   async minhaFichaDeViagem() {
     return null;
+  },
+  async meuDiarioDeViagem() {
+    return [...DIARIO_DE_VIAGEM_DEMO.values()];
+  },
+  async anotarDiarioDeViagem(dia: string, campos: CamposDoDiario) {
+    const numero = (v: string) => (v.trim() === "" ? null : Number(v));
+    if (Object.values(campos).every((v) => v.trim() === "")) {
+      DIARIO_DE_VIAGEM_DEMO.delete(dia);
+      return;
+    }
+    DIARIO_DE_VIAGEM_DEMO.set(dia, {
+      dia,
+      onde: campos.onde.trim() || null,
+      inchaco: numero(campos.inchaco),
+      dor: numero(campos.dor),
+      azia: numero(campos.azia),
+      evacuacoes: numero(campos.evacuacoes),
+      bristol: numero(campos.bristol),
+      observacoes: campos.observacoes.trim() || null,
+      atualizadoEm: new Date().toISOString(),
+    });
+  },
+  // Na demonstração a nutricionista é também a paciente: o que ela anota no
+  // guia aparece na ficha de qualquer paciente de exemplo.
+  async viagemDoPaciente() {
+    return {
+      liberado: true,
+      ficha: null,
+      diario: [...DIARIO_DE_VIAGEM_DEMO.values()].sort((a, b) => a.dia.localeCompare(b.dia)),
+    };
   },
   async enviarFotoEvolucao() {
     return { id: "demo" };
