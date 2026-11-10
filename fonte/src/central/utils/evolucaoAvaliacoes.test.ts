@@ -4,8 +4,10 @@ import { AVALIACAO_VAZIA } from "@/central/types/protocolo";
 import type { AvaliacaoNoTempo } from "./evolucaoAvaliacoes";
 import {
   emOrdemDeData,
+  fraseDaVariacaoTotal,
   pontosDaLinha,
   serieDe,
+  seriesParaDesenhar,
   tabelaDeMedidas,
   variacaoRecente,
   variacaoTotal,
@@ -172,4 +174,27 @@ test("um ponto só fica no meio, e nenhum ponto não quebra", () => {
   const um = pontosDaLinha(serieDe([tres[0]!], "peso"), 100, 40);
   assert.equal(um[0]?.x, 50);
   assert.equal(um[0]?.y, 20);
+});
+
+test("séries para desenhar: só entra o que foi medido em duas consultas ou mais", () => {
+  const historico = [
+    av("b", "2026-06-02", { peso: 60, percentualGordura: 22, massaMagra: 46.8 }),
+    av("a", "2026-05-01", { peso: 62, percentualGordura: null, massaMagra: 46 }),
+  ];
+  assert.deepEqual(
+    seriesParaDesenhar(historico).map((s) => s.chave),
+    ["peso", "massaMagra"],
+  );
+  assert.deepEqual(seriesParaDesenhar([av("a", "2026-05-01", { peso: 62 })]), []);
+});
+
+test("variação total em frase: quilo é quilo, percentual é ponto percentual", () => {
+  const serie = (a: number, b: number) => [
+    { data: "2026-05-01", valor: a },
+    { data: "2026-06-02", valor: b },
+  ];
+  assert.equal(fraseDaVariacaoTotal(serie(62, 60.4), "kg"), "−1,6 kg desde a primeira avaliação");
+  assert.equal(fraseDaVariacaoTotal(serie(20, 22.5), "%"), "+2,5 pontos percentuais desde a primeira avaliação");
+  assert.equal(fraseDaVariacaoTotal(serie(21, 20), "%"), "−1,0 ponto percentual desde a primeira avaliação");
+  assert.equal(fraseDaVariacaoTotal(serie(60, 60.02), "kg"), null);
 });

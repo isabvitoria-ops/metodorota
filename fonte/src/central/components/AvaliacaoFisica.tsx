@@ -1,16 +1,22 @@
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MinhaAvaliacao } from "@/central/types/protocolo";
 import { repositorio } from "@/central/dados/repositorio";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { useImprimir } from "@/central/hooks/useImprimir";
 import { dataBonita } from "@/central/utils/situacao";
-import type { AvaliacaoNoTempo, ChaveDeSerie } from "@/central/utils/evolucaoAvaliacoes";
+import type { AvaliacaoNoTempo, ChaveDeSerie, SerieParaDesenhar } from "@/central/utils/evolucaoAvaliacoes";
 import {
+  fraseDaVariacaoTotal,
   pontosDaLinha,
   serieDe,
+  seriesParaDesenhar,
   tabelaDeMedidas,
   variacaoRecente,
-  variacaoTotal,
 } from "@/central/utils/evolucaoAvaliacoes";
+import { DocumentoAvaliacao } from "@/central/components/DocumentoAvaliacao";
 import { Esqueleto } from "@/central/components/Esqueleto";
+import { EstadoVazio } from "@/central/components/EstadoVazio";
+import { Icone } from "@/central/components/Icone";
 
 /**
  * A avaliação física da paciente, e a evolução dela no tempo.
@@ -34,30 +40,48 @@ import { Esqueleto } from "@/central/components/Esqueleto";
  *   * não fala de bioimpedância. Ela não faz, e o app não inventa exame.
  */
 export function AvaliacaoFisica() {
+  const { acesso } = useSessao();
   const [avaliacao, definirAvaliacao] = useState<MinhaAvaliacao | null>(null);
-  const [carregando, definirCarregando] = useState(true);
+  // "sem-rede" é diferente de "não tem avaliação": dizer "ainda não foi
+  // lançada" quando só a internet caiu faria ela achar que a avaliação sumiu.
+  const [estado, definirEstado] = useState<"carregando" | "pronto" | "sem-rede">("carregando");
+  const [tentativa, definirTentativa] = useState(0);
+  const { imprimindo, preparando, imprimir } = useImprimir();
 
   useEffect(() => {
     let vivo = true;
+    definirEstado("carregando");
     void repositorio
       .minhaAvaliacao()
-      .then((a) => vivo && definirAvaliacao(a))
-      .catch(() => vivo && definirAvaliacao(null))
-      .finally(() => vivo && definirCarregando(false));
+      .then((a) => {
+        if (!vivo) return;
+        definirAvaliacao(a);
+        definirEstado("pronto");
+      })
+      .catch(() => vivo && definirEstado("sem-rede"));
     return () => {
       vivo = false;
     };
-  }, []);
+  }, [tentativa]);
 
-  if (carregando) return <Esqueleto />;
+  if (estado === "carregando") return <Esqueleto />;
+  if (estado === "sem-rede") {
+    return (
+      <div className="c-aviso c-aviso-erro" role="alert">
+        <span>Não consegui abrir a sua avaliação agora. Confira a internet e tente de novo.</span>
+        <button type="button" className="c-botao c-botao-pequeno" onClick={() => definirTentativa((n) => n + 1)}>
+          Tentar de novo
+        </button>
+      </div>
+    );
+  }
   if (!avaliacao) {
     return (
-      <div className="c-bloco">
-        <p className="c-item-protocolo-nome">Sua avaliação aparece aqui</p>
-        <p className="c-dica" style={{ marginTop: 6 }}>
-          Assim que sua nutricionista lançar a primeira avaliação física, ela fica nesta tela.
-        </p>
-      </div>
+      <EstadoVazio
+        icone="balanca"
+        titulo="Sua avaliação aparece aqui"
+        descricao="Assim que sua nutricionista lançar a primeira avaliação física, ela fica nesta tela."
+      />
     );
   }
 
@@ -76,17 +100,37 @@ export function AvaliacaoFisica() {
 
   return (
     <>
-      <p className="c-dica">
-        Avaliação de {dataBonita(avaliacao.data)}
-        {d.metodo ? ` · ${d.metodo}` : ""}
-        {avaliacao.total > 1 && avaliacao.inicio
-          ? ` · ${avaliacao.total}ª avaliação, desde ${dataBonita(avaliacao.inicio)}`
-          : " · primeira avaliação, seu ponto de partida"}
-      </p>
+      <header className="c-prot-capa c-av-capa">
+        <p className="c-prot-capa-sobre">
+          {avaliacao.total > 1 ? `${avaliacao.total}ª avaliação` : "Primeira avaliação"}
+        </p>
+        <h2 className="c-prot-capa-titulo">Avaliação de {dataBonita(avaliacao.data)}</h2>
+        <p className="c-prot-capa-meta">
+          {[
+            avaliacao.total > 1 && avaliacao.inicio
+              ? `Acompanhando desde ${dataBonita(avaliacao.inicio)}`
+              : "Seu ponto de partida",
+            d.metodo,
+          ]
+            .filter(Boolean)
+            .join(" · ")}
+        </p>
+        <div className="c-prot-capa-acoes">
+          <button
+            type="button"
+            className="c-prot-acao"
+            disabled={preparando || imprimindo}
+            onClick={() => void imprimir()}
+          >
+            <Icone nome="documentos" tamanho={17} />
+            Baixar em PDF
+          </button>
+        </div>
+      </header>
 
       <Destaques historico={historico} />
 
-      {temEvolucao && <LinhaDoPeso historico={historico} />}
+      {temEvolucao && <Evolucao historico={historico} />}
 
       <Composicao avaliacao={avaliacao} />
 
@@ -107,6 +151,8 @@ export function AvaliacaoFisica() {
         Medidas feitas e calculadas pela sua nutricionista. Os números mostram onde você está
         hoje — o que eles significam para você é conversa de consulta.
       </p>
+
+      {imprimindo && <DocumentoAvaliacao paciente={acesso.nome ?? "Paciente"} avaliacao={avaliacao} />}
     </>
   );
 }
@@ -155,15 +201,20 @@ function Destaques({ historico }: { historico: AvaliacaoNoTempo[] }) {
   const visiveis = DESTAQUES.filter((x) => numero(ultima[x.chave]) !== null);
   if (visiveis.length === 0) return null;
 
+  // O primeiro número ocupa a largura toda; os outros dividem a linha de
+  // baixo. Três colunas num celular quebravam "Gordura corporal" em duas
+  // linhas e a variação em três.
   return (
-    <div className="c-bloco c-destaques">
+    <div className="c-av-destaques">
       {visiveis.map(({ chave, rotulo, unidade }) => (
-        <div key={chave}>
-          <span className="c-destaque-rotulo">{rotulo}</span>
-          <span className="c-destaque-valor">
-            {numero(ultima[chave])}
-            <span className="c-destaque-unidade">{unidade}</span>
-          </span>
+        <div className="c-av-destaque" key={chave}>
+          <div>
+            <span className="c-destaque-rotulo">{rotulo}</span>
+            <span className="c-destaque-valor">
+              {numero(ultima[chave])}
+              <span className="c-destaque-unidade">{unidade}</span>
+            </span>
+          </div>
           <Variacao chave={chave} historico={historico} unidade={unidade} />
         </div>
       ))}
@@ -172,7 +223,8 @@ function Destaques({ historico }: { historico: AvaliacaoNoTempo[] }) {
 }
 
 /**
- * O peso desenhado no tempo, como no PDF dela.
+ * A evolução desenhada no tempo, como no PDF dela — o peso primeiro, e as
+ * outras medidas que tiverem duas consultas ou mais, uma de cada vez.
  *
  * SVG à mão, sem biblioteca de gráfico: são poucos pontos e uma linha, e
  * uma dependência nova custaria mais no carregamento do celular dela do que
@@ -182,24 +234,55 @@ function Destaques({ historico }: { historico: AvaliacaoNoTempo[] }) {
  * quem usa leitor de tela recebe a mesma informação em palavras, e não um
  * "gráfico" sem conteúdo.
  */
-function LinhaDoPeso({ historico }: { historico: AvaliacaoNoTempo[] }) {
-  const serie = serieDe(historico, "peso");
-  if (serie.length < 2) return null;
-
-  const largura = 280;
-  const altura = 64;
-  const margem = 10;
-  const pontos = pontosDaLinha(serie, largura, altura);
-  const caminho = pontos.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
-
-  const primeiro = pontos[0];
-  const ultimo = pontos[pontos.length - 1];
-  const total = variacaoTotal(serie);
+function Evolucao({ historico }: { historico: AvaliacaoNoTempo[] }) {
+  const series = seriesParaDesenhar(historico);
+  const [escolhida, definirEscolhida] = useState<ChaveDeSerie>("peso");
+  const atual = series.find((s) => s.chave === escolhida) ?? series[0];
+  if (!atual) return null;
 
   return (
     <section className="c-secao">
-      <h2 className="c-secao-titulo">Seu peso ao longo do tempo</h2>
+      <h2 className="c-secao-titulo">Sua evolução</h2>
       <div className="c-bloco">
+        {series.length > 1 && (
+          <div className="c-av-series" role="group" aria-label="O que ver no gráfico">
+            {series.map((s) => (
+              <button
+                key={s.chave}
+                type="button"
+                className={`c-av-serie${s.chave === atual.chave ? " c-av-serie--ativa" : ""}`}
+                aria-pressed={s.chave === atual.chave}
+                onClick={() => definirEscolhida(s.chave)}
+              >
+                {s.rotulo}
+              </button>
+            ))}
+          </div>
+        )}
+        <Linha atual={atual} />
+      </div>
+    </section>
+  );
+}
+
+function Linha({ atual }: { atual: SerieParaDesenhar }) {
+  const largura = 280;
+  const altura = 64;
+  const margem = 10;
+  const pontos = pontosDaLinha(atual.serie, largura, altura);
+  const caminho = pontos.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const primeiro = pontos[0];
+  const ultimo = pontos[pontos.length - 1];
+  const frase = fraseDaVariacaoTotal(atual.serie, atual.unidade);
+
+  // O valor escrito em cima de cada ponto — até cinco consultas. Com mais do
+  // que isso os números se atropelam, e ficam só o primeiro e o último.
+  const comValor = pontos.length <= 5 ? pontos : [primeiro, ultimo];
+
+  return (
+    <>
+      <div className="c-av-grafico">
+       <div className="c-av-grafico-area">
         <svg
           className="c-linha-tempo"
           viewBox={`${-margem} ${-margem} ${largura + margem * 2} ${altura + margem * 2}`}
@@ -212,24 +295,39 @@ function LinhaDoPeso({ historico }: { historico: AvaliacaoNoTempo[] }) {
             <circle key={i} cx={p.x} cy={p.y} r={3.5} />
           ))}
         </svg>
-
-        <div className="c-linha-tempo-pontas">
-          <span>
-            {dataBonita(primeiro?.ponto.data ?? null)} · {numero(primeiro?.ponto.valor)} kg
-          </span>
-          <span>
-            {dataBonita(ultimo?.ponto.data ?? null)} · {numero(ultimo?.ponto.valor)} kg
-          </span>
-        </div>
-
-        {total && total.sentido !== "igual" && (
-          <p className="c-item-protocolo-trocas" style={{ marginTop: 10 }}>
-            {total.sentido === "desceu" ? "−" : "+"}
-            {total.absoluto} kg desde a primeira avaliação, em {dataBonita(total.desde)}.
-          </p>
+        {comValor.map((p, i) =>
+          p ? (
+            <span
+              key={i}
+              aria-hidden="true"
+              className={`c-av-ponto${p === primeiro ? " c-av-ponto--inicio" : ""}${p === ultimo ? " c-av-ponto--fim" : ""}`}
+              style={{
+                left: `${((p.x + margem) / (largura + margem * 2)) * 100}%`,
+                top: `${((p.y + margem) / (altura + margem * 2)) * 100}%`,
+              }}
+            >
+              {numero(p.ponto.valor)}
+            </span>
+          ) : null,
         )}
+       </div>
       </div>
-    </section>
+
+      <div className="c-linha-tempo-pontas">
+        <span>
+          {dataBonita(primeiro?.ponto.data ?? null)} · {numero(primeiro?.ponto.valor)} {atual.unidade}
+        </span>
+        <span>
+          {dataBonita(ultimo?.ponto.data ?? null)} · {numero(ultimo?.ponto.valor)} {atual.unidade}
+        </span>
+      </div>
+
+      {frase && (
+        <p className="c-av-frase">
+          {frase}, em {dataBonita(primeiro?.ponto.data ?? null)}.
+        </p>
+      )}
+    </>
   );
 }
 
@@ -253,23 +351,50 @@ function Composicao({ avaliacao }: { avaliacao: MinhaAvaliacao }) {
   return (
     <section className="c-secao">
       <h2 className="c-secao-titulo">Do que o seu peso é feito</h2>
-      <div className="c-barra-corpo" aria-hidden="true">
-        <span className="c-barra-gorda" style={{ width: `${porcentoGorda}%` }} />
-        <span className="c-barra-magra" />
+      <div className="c-bloco">
+        <div className="c-barra-corpo" aria-hidden="true">
+          <span className="c-barra-gorda" style={{ width: `${porcentoGorda}%` }} />
+          <span className="c-barra-magra" />
+        </div>
+        <dl className="c-av-lista">
+          <div>
+            <dt>
+              <span className="c-av-cor c-av-cor--gorda" aria-hidden="true" />
+              Massa gorda
+            </dt>
+            <dd>{numero(d.massaGorda)} kg</dd>
+          </div>
+          <div>
+            <dt>
+              <span className="c-av-cor c-av-cor--magra" aria-hidden="true" />
+              Massa livre de gordura
+            </dt>
+            <dd>{numero(d.massaMagra)} kg</dd>
+          </div>
+          {temFracionamento && (
+            <>
+              <div className="c-av-lista-sub">
+                <dt>Muscular</dt>
+                <dd>{numero(d.pesoMuscular)} kg</dd>
+              </div>
+              <div className="c-av-lista-sub">
+                <dt>Ósseo</dt>
+                <dd>{numero(d.pesoOsseo)} kg</dd>
+              </div>
+              <div className="c-av-lista-sub">
+                <dt>Residual</dt>
+                <dd>{numero(d.pesoResidual)} kg</dd>
+              </div>
+            </>
+          )}
+          {d.tmb !== null && d.tmb !== undefined && (
+            <div>
+              <dt>Taxa metabólica basal</dt>
+              <dd>{d.tmb.toLocaleString("pt-BR")} kcal/dia</dd>
+            </div>
+          )}
+        </dl>
       </div>
-      <p className="c-item-protocolo-trocas" style={{ marginTop: 8 }}>
-        Massa gorda {numero(d.massaGorda)} kg · massa livre de gordura {numero(d.massaMagra)} kg
-      </p>
-      {temFracionamento && (
-        <p className="c-item-protocolo-trocas" style={{ marginTop: 4 }}>
-          Muscular {numero(d.pesoMuscular)} kg · ósseo {numero(d.pesoOsseo)} kg · residual {numero(d.pesoResidual)} kg
-        </p>
-      )}
-      {d.tmb !== null && d.tmb !== undefined && (
-        <p className="c-item-protocolo-trocas" style={{ marginTop: 4 }}>
-          Taxa metabólica basal: {d.tmb.toLocaleString("pt-BR")} kcal/dia
-        </p>
-      )}
     </section>
   );
 }
@@ -305,17 +430,26 @@ function TabelaComparativa({
   tabela: ReturnType<typeof tabelaDeMedidas>;
 }) {
   const umaSo = tabela.colunas.length === 1;
+  const ultima = tabela.colunas.length - 1;
+
+  // A tabela abre mostrando a consulta MAIS RECENTE. Rolando de lado a partir
+  // do começo, a coluna de hoje — a que ela veio ver — ficava fora da tela.
+  const rolagem = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const caixa = rolagem.current;
+    if (caixa) caixa.scrollLeft = caixa.scrollWidth;
+  }, [tabela.colunas.length]);
 
   return (
     <section className="c-secao">
       <h2 className="c-secao-titulo">{titulo}</h2>
-      <div className="c-tabela-rolagem">
-        <table className="c-tabela-medidas">
+      <div className="c-tabela-rolagem" ref={rolagem}>
+        <table className="c-tabela-medidas c-av-tabela">
           <thead>
             <tr>
               <th scope="col">Medida</th>
-              {tabela.colunas.map((c) => (
-                <th scope="col" key={c.id}>
+              {tabela.colunas.map((c, i) => (
+                <th scope="col" key={c.id} className={!umaSo && i === ultima ? "c-av-atual" : undefined}>
                   {!umaSo && <span className="c-coluna-ordinal">{c.ordinal}</span>}
                   <span className="c-coluna-data">{dataBonita(c.data)}</span>
                 </th>
@@ -327,7 +461,7 @@ function TabelaComparativa({
               <tr key={linha.nome}>
                 <th scope="row">{linha.nome}</th>
                 {linha.valores.map((v, i) => (
-                  <td key={i}>
+                  <td key={i} className={!umaSo && i === ultima ? "c-av-atual" : undefined}>
                     {v ?? (
                       <>
                         <span aria-hidden="true">—</span>
