@@ -5,6 +5,7 @@ import {
   estaEmNavegadorInterno,
   type Plataforma,
 } from "@/central/utils/plataforma";
+import { useInstalacao } from "@/central/hooks/useInstalacao";
 
 /**
  * "Coloque na tela do seu celular" — o passo a passo ilustrado.
@@ -227,9 +228,33 @@ export function InstalarNaTela({
   const interno = useMemo(() => estaEmNavegadorInterno(navigator.userAgent), []);
   const [plataforma, definirPlataforma] = useState<Plataforma>(detectada);
   const passos = PASSOS[plataforma];
+  const { podeInstalarAgora, jaInstalado, instalar } = useInstalacao();
 
   return (
     <div className="c-instalar">
+      {jaInstalado && (
+        <div className="c-aviso" role="status">
+          <span>
+            <strong>Você já está usando o aplicativo instalado.</strong> Não precisa fazer mais nada — os passos abaixo
+            ficam aqui para quando trocar de celular.
+          </span>
+        </div>
+      )}
+
+      {/* Quando o navegador deixa instalar por botão, o botão vem antes do
+          passo a passo: um toque resolve o que três figuras explicam. */}
+      {!jaInstalado && podeInstalarAgora && plataforma !== "ios" && (
+        <div className="c-instalar-atalho">
+          <p>
+            <strong>Neste aparelho dá para instalar com um toque.</strong>
+          </p>
+          <button type="button" className="c-botao" onClick={() => void instalar()}>
+            Instalar agora
+          </button>
+          <p className="c-dica">Se preferir, o passo a passo está logo abaixo.</p>
+        </div>
+      )}
+
       <div role="tablist" aria-label="Seu aparelho" className="c-instalar-abas">
         {(Object.keys(ROTULOS) as Plataforma[]).map((p) => (
           <button
@@ -268,7 +293,13 @@ export function InstalarNaTela({
         ))}
       </ol>
 
-      <p className="c-dica">Depois é só tocar no ícone {NOME_DO_ICONE} da sua tela, como em qualquer aplicativo. Os seus dados e a sua senha continuam os mesmos.</p>
+      <div className="c-instalar-depois">
+        <strong>Como saber se deu certo</strong>
+        <p>
+          Feche esta página e procure o ícone {NOME_DO_ICONE} na tela do aparelho, junto dos outros aplicativos. Toque
+          nele: o app abre em tela cheia, sem a barra de endereço. Os seus dados e a sua senha continuam os mesmos.
+        </p>
+      </div>
 
       <button type="button" className="c-botao" onClick={aoConcluir}>
         {rotuloDoBotao}

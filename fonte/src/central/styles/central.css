@@ -5677,6 +5677,103 @@ textarea.c-campo:focus {
   background: var(--surface);
 }
 
+.central .c-sair {
+  flex: none;
+  white-space: nowrap;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--transicao), color var(--transicao), border-color var(--transicao);
+}
+
+.central .c-sair--confirmando {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* ------------------------------------------------ instalar na tela inicial */
+
+.c-instalar-card {
+  display: flex;
+  gap: 14px;
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--marca-marfim);
+}
+
+.c-instalar-card-icone {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--marca-azul-profundo);
+  color: var(--marca-marfim);
+}
+
+.c-instalar-card-texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
+.c-instalar-card-texto strong {
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.c-instalar-card-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  margin-top: 8px;
+}
+
+.c-instalar-atalho {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--primary-soft);
+}
+
+.c-instalar-atalho p {
+  margin: 0;
+}
+
+.c-instalar-depois {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--marca-marfim);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.c-instalar-depois p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+}
+
 /* -------------------------------------------------------- comer fora (c-cf-*)
 
    A vitrine: capa com a busca, e um cartão ilustrado por categoria. */
