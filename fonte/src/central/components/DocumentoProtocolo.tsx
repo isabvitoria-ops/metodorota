@@ -1,4 +1,5 @@
 import type { ConteudoProtocolo, Protocolo } from "@/central/types/protocolo";
+import { partirSubstituicao } from "@/central/utils/protocoloDaPaciente";
 import { dataBonita } from "@/central/utils/situacao";
 import { FolhaDeDocumento } from "./FolhaDeDocumento";
 import { Marca } from "./Marca";
@@ -75,11 +76,15 @@ export function DocumentoProtocolo({
         // demais para uma página é que quebram — e aí não há o que fazer.
         <section className="doc-secao doc-refeicao" key={`${refeicao.nome}-${i}`}>
           <h2 className="doc-titulo doc-titulo-refeicao">
-            {refeicao.nome}
+            <span>{refeicao.nome}</span>
             {refeicao.horario && <span className="doc-horario">{refeicao.horario}</span>}
           </h2>
 
-          {refeicao.opcoes.map((opcao, j) => (
+          {refeicao.opcoes.map((opcao, j) => {
+            // Coluna de trocas só quando ALGUM item da opção tem troca: três
+            // travessões seguidos não dizem nada a quem está na cozinha.
+            const temTrocas = opcao.itens.some((item) => item.substituicoes.length > 0);
+            return (
             <div className="doc-opcao" key={j}>
               {/* "Opção 2" só aparece quando HÁ uma segunda: num protocolo
                   de opção única, o rótulo seria ruído. */}
@@ -87,12 +92,12 @@ export function DocumentoProtocolo({
                 <p className="doc-opcao-rotulo">{opcao.rotulo || `Opção ${j + 1}`}</p>
               )}
 
-              <table className="doc-tabela doc-tabela-protocolo">
+              <table className={`doc-tabela doc-tabela-protocolo${temTrocas ? "" : " doc-tabela-sem-trocas"}`}>
                 <thead>
                   <tr>
                     <th scope="col">Alimento</th>
                     <th scope="col">Quantidade</th>
-                    <th scope="col">Posso trocar por</th>
+                    {temTrocas && <th scope="col">Posso trocar por</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -113,10 +118,29 @@ export function DocumentoProtocolo({
                           </span>
                         )}
                       </th>
-                      <td className="doc-data">{item.quantidade}</td>
-                      <td>
-                        {item.substituicoes.length > 0 ? item.substituicoes.join(" · ") : "—"}
-                      </td>
+                      <td className="doc-data doc-quantidade">{item.quantidade}</td>
+                      {temTrocas && (
+                        <td>
+                          {item.substituicoes.length > 0 ? (
+                            // Uma troca por linha, com a quantidade alinhada à
+                            // direita — as palavras são as que ela escreveu.
+                            <ul className="doc-trocas">
+                              {item.substituicoes.map((texto, m) => {
+                                const troca = partirSubstituicao(texto);
+                                return (
+                                  <li key={m}>
+                                    <span>{troca.alimento}</span>
+                                    {troca.quantidade && <i className="doc-trocas-guia" aria-hidden="true" />}
+                                    {troca.quantidade && <strong>{troca.quantidade}</strong>}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -132,20 +156,29 @@ export function DocumentoProtocolo({
                 </ul>
               )}
             </div>
-          ))}
+            );
+          })}
         </section>
       ))}
 
-      {conteudo.secoes.map((secao, i) => (
-        <section className="doc-secao doc-refeicao" key={`${secao.titulo}-${i}`}>
-          <h2 className="doc-titulo">{secao.titulo}</h2>
-          {secao.paragrafos.map((p, j) => (
-            <p className="doc-paragrafo" key={j}>
-              <TextoComLinks texto={p} />
-            </p>
+      {conteudo.secoes.length > 0 && (
+        // As orientações de rotina formam UMA seção, com um bloco por tema —
+        // como no app. Um cartão com título grande para cada tema gastava
+        // meia folha em três frases.
+        <section className="doc-secao">
+          <h2 className="doc-titulo">Orientações de rotina</h2>
+          {conteudo.secoes.map((secao, i) => (
+            <div className="doc-rotina" key={`${secao.titulo}-${i}`}>
+              <h3 className="doc-rotina-titulo">{secao.titulo}</h3>
+              {secao.paragrafos.map((p, j) => (
+                <p className="doc-paragrafo" key={j}>
+                  <TextoComLinks texto={p} />
+                </p>
+              ))}
+            </div>
           ))}
         </section>
-      ))}
+      )}
 
       </article>
     </FolhaDeDocumento>

@@ -452,11 +452,20 @@
     color: #263d52;
   }
 
+  .doc-titulo-refeicao {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 5mm;
+  }
+
   .doc-horario {
+    flex: none;
     font-family: "Lato", system-ui, sans-serif;
     font-size: 10pt;
     font-weight: 400;
     letter-spacing: 0;
+    text-transform: none;
     color: #263d52;
   }
 
@@ -479,9 +488,93 @@
     color: #38546c;
   }
 
+  /* O protocolo é lido em pé, na cozinha: a letra é a do texto do
+     documento, não a de tabela de consulta. */
+  .doc-tabela-protocolo {
+    font-size: 10.5pt;
+  }
+
   .doc-tabela-protocolo tbody th,
   .doc-tabela-protocolo tbody td {
     vertical-align: top;
+  }
+
+  .doc-tabela-protocolo tbody tr {
+    break-inside: avoid;
+  }
+
+  .doc-tabela-protocolo tbody tr:last-child th,
+  .doc-tabela-protocolo tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  .doc-quantidade {
+    font-weight: 700;
+    color: #263d52;
+  }
+
+  /* Sem coluna de trocas, as duas que sobram dividem a largura. */
+  .doc-tabela-sem-trocas th:nth-child(1),
+  .doc-tabela-sem-trocas td:nth-child(1) {
+    width: 60% !important;
+  }
+
+  .doc-tabela-sem-trocas th:nth-child(2),
+  .doc-tabela-sem-trocas td:nth-child(2) {
+    width: 40% !important;
+  }
+
+  /* Uma troca por linha: alimento à esquerda, quantidade à direita. */
+  .doc-trocas {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .doc-trocas li {
+    display: flex;
+    align-items: baseline;
+    gap: 2mm;
+  }
+
+  /* O pontilhado leva o olho do alimento até a quantidade, como em cardápio. */
+  .doc-trocas-guia {
+    flex: 1;
+    min-width: 4mm;
+    border-bottom: 0.25mm dotted #c9bcac;
+    transform: translateY(-1mm);
+  }
+
+  .doc-trocas li + li {
+    margin-top: 1.2mm;
+  }
+
+  .doc-trocas strong {
+    flex: none;
+    font-weight: 700;
+    color: #263d52;
+  }
+
+  /* Orientações de rotina: um bloco por tema, dentro de uma seção só. */
+  .doc-rotina {
+    margin-top: 5mm;
+    padding-left: 4mm;
+    border-left: 0.6mm solid #c9bcac;
+    break-inside: avoid;
+  }
+
+  .doc-rotina-titulo {
+    margin: 0 0 1.5mm;
+    font-family: "Lato", system-ui, sans-serif;
+    font-size: 10pt;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #38546c;
+  }
+
+  .doc-rotina .doc-paragrafo:last-child {
+    margin-bottom: 0;
   }
 
   .doc-tabela-protocolo th:nth-child(1),
