@@ -1,85 +1,125 @@
 import { Link } from "react-router-dom";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { Icone, type NomeIcone } from "@/central/components/Icone";
 import { Marca } from "@/central/components/Marca";
+import { rotas } from "@/central/rotas";
+
+/**
+ * A entrada do desafio de 21 dias.
+ *
+ * Responde três perguntas de um olhar: em que dia eu estou, em que fase, e o
+ * que eu faço agora. O dia e a fase ficam na capa; o "agora" é o checklist de
+ * hoje; a jornada inteira aparece embaixo, em três fases, no lugar de vinte e
+ * uma caixinhas iguais.
+ *
+ * As frases de cada fase são as que já estavam nesta tela ("Como funciona");
+ * só mudaram de lugar.
+ */
+const TOTAL = 21;
+
+const FASES = [
+  { nome: "Repouso digestivo", curto: "Repouso", de: 1, ate: 6, texto: "Alimentos de fácil digestão." },
+  { nome: "Teste", curto: "Teste", de: 7, ate: 14, texto: "Reintrodução guiada de alimentos." },
+  { nome: "Autonomia", curto: "Autonomia", de: 15, ate: 21, texto: "Consolidação dos resultados." },
+] as const;
+
+const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; apoio: string }[] = [
+  { rota: "/hotslim/protocolo", icone: "lista", titulo: "Método Rota", apoio: "Repouso digestivo — 6 dias" },
+  { rota: "/hotslim/cardapio", icone: "almoco", titulo: "Cardápio", apoio: "Ideias de refeições" },
+  { rota: "/hotslim/lista-compras", icone: "mercado", titulo: "Lista de compras", apoio: "O que levar do supermercado" },
+  { rota: "/hotslim/reintroducao", icone: "folha", titulo: "Reintrodução", apoio: "Semana por semana" },
+  { rota: "/hotslim/metas", icone: "evolucao", titulo: "Minhas metas", apoio: "Objetivos semanais" },
+  { rota: "/hotslim/faq", icone: "info", titulo: "Dúvidas", apoio: "Perguntas sobre o desafio" },
+];
 
 export function HotSlimHome() {
   const { acesso } = useSessao();
-  const diaAtual = acesso.hotslimDiaAtual ?? 1;
-  const progresso = Math.min(100, Math.round((diaAtual / 21) * 100));
+  const diaAtual = Math.max(1, acesso.hotslimDiaAtual ?? 1);
+  const concluido = diaAtual > TOTAL;
+  const dia = Math.min(diaAtual, TOTAL);
+  const progresso = Math.round((dia / TOTAL) * 100);
+  const faseAtual = FASES.find((f) => dia >= f.de && dia <= f.ate) ?? FASES[2];
 
   return (
     <div className="hs-pagina">
-      <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <Marca altura={28} />
-        <h1 className="hs-titulo" style={{ marginTop: 12 }}>Método Rota — 21 Dias</h1>
-        <p className="hs-texto" style={{ maxWidth: 340, margin: "4px auto 0" }}>
-          21 dias para desinchar, regular o intestino e se sentir leve
+      <div className="hs-topo">
+        <Link to={rotas.home} className="hs-voltar">
+          <Icone nome="voltar" tamanho={16} />
+          Voltar ao app
+        </Link>
+        <Marca altura={24} />
+      </div>
+
+      <section className="hs-capa" aria-label="Onde você está no desafio">
+        <p className="hs-capa-sobre">Método Rota · 21 dias</p>
+        <p className="hs-capa-dia">
+          {concluido ? "Desafio concluído" : <>Dia {dia}<span> de {TOTAL}</span></>}
         </p>
-      </div>
+        <p className="hs-capa-fase">
+          {concluido ? "Você passou pelos 21 dias." : `${faseAtual.nome} · ${faseAtual.texto}`}
+        </p>
+        <div
+          className="hs-capa-barra"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={TOTAL}
+          aria-valuenow={dia}
+          aria-label="Dias do desafio"
+        >
+          <span style={{ width: `${progresso}%` }} />
+        </div>
+        <Link to="/hotslim/checklist" className="hs-capa-acao">
+          <Icone nome="feito" tamanho={17} />
+          Checklist de hoje
+        </Link>
+      </section>
 
-      <div className="hs-progresso">
-        <div className="hs-progresso-label">
-          <span>Dia {diaAtual} de 21</span>
-          <span className="hs-tag hs-tag-accent">{progresso}%</span>
-        </div>
-        <div className="hs-progresso-barra">
-          <div className="hs-progresso-fill" style={{ width: `${progresso}%` }} />
-        </div>
-        <div className="hs-progresso-dias">
-          <span>Início</span>
-          <span>{diaAtual <= 6 ? "Repouso" : diaAtual <= 14 ? "Teste" : "Autonomia"}</span>
-          <span>Fim</span>
-        </div>
-      </div>
-
-      <div className="c-secao">
+      <section className="c-secao">
         <h2 className="c-secao-titulo">Seus 21 dias</h2>
-        <div className="hs-cronograma">
-          {Array.from({ length: 21 }, (_, i) => {
-            const dia = i + 1;
-            const classe = dia < diaAtual ? "concluido" : dia === diaAtual ? "ativo" : "";
-            const fase = dia <= 6 ? "Repouso" : dia <= 14 ? "Teste" : "Auto";
+        <ol className="hs-jornada">
+          {FASES.map((fase) => {
+            const estado = dia > fase.ate ? "feita" : dia >= fase.de ? "atual" : "depois";
             return (
-              <div key={dia} className={`hs-dia ${classe}`}>
-                <span className="hs-dia-num">{dia}</span>
-                {fase}
-              </div>
+              <li key={fase.nome} className={`hs-jornada-fase hs-jornada-fase--${estado}`}>
+                <div className="hs-jornada-cabeca">
+                  <strong>{fase.nome}</strong>
+                  <span>
+                    Dias {fase.de}–{fase.ate}
+                  </span>
+                </div>
+                <p>{fase.texto}</p>
+                <div className="hs-jornada-dias" aria-hidden="true">
+                  {Array.from({ length: fase.ate - fase.de + 1 }, (_, i) => {
+                    const n = fase.de + i;
+                    return (
+                      <span key={n} className={n < dia ? "feito" : n === dia && !concluido ? "hoje" : undefined}>
+                        {n}
+                      </span>
+                    );
+                  })}
+                </div>
+              </li>
             );
           })}
-        </div>
-      </div>
+        </ol>
+      </section>
 
-      <div className="c-secao">
-        <h2 className="c-secao-titulo">Acesso rápido</h2>
+      <section className="c-secao">
+        <h2 className="c-secao-titulo">Tudo do desafio</h2>
         <div className="hs-atalhos">
-          <Link to="/hotslim/protocolo" className="hs-atalho">Método Rota</Link>
-          <Link to="/hotslim/checklist" className="hs-atalho">Checklist do dia</Link>
-          <Link to="/hotslim/lista-compras" className="hs-atalho">Lista de Compras</Link>
-          <Link to="/hotslim/cardapio" className="hs-atalho">Cardápio</Link>
-          <Link to="/hotslim/reintroducao" className="hs-atalho">Reintrodução</Link>
-          <Link to="/hotslim/metas" className="hs-atalho">Minhas Metas</Link>
+          {ATALHOS.map((atalho) => (
+            <Link key={atalho.rota} to={atalho.rota} className="hs-atalho">
+              <span className="hs-atalho-icone">
+                <Icone nome={atalho.icone} tamanho={19} />
+              </span>
+              <span className="hs-atalho-texto">
+                <strong>{atalho.titulo}</strong>
+                <span>{atalho.apoio}</span>
+              </span>
+            </Link>
+          ))}
         </div>
-      </div>
-
-      <div className="c-secao">
-        <h2 className="c-secao-titulo">Como funciona</h2>
-        <div className="c-card" style={{ padding: 18 }}>
-          <ul className="hs-lista">
-            <li>
-              <span className="hs-lista-num">1</span>
-              <span><strong>Dias 1–6:</strong> Repouso digestivo — alimentos de fácil digestão</span>
-            </li>
-            <li>
-              <span className="hs-lista-num">2</span>
-              <span><strong>Dias 7–14:</strong> Teste — reintrodução guiada de alimentos</span>
-            </li>
-            <li>
-              <span className="hs-lista-num">3</span>
-              <span><strong>Dias 15–21:</strong> Autonomia — consolidação dos resultados</span>
-            </li>
-          </ul>
-        </div>
-      </div>
+      </section>
     </div>
   );
 }

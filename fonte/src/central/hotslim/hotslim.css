@@ -675,3 +675,361 @@
   min-height: 60px;
 }
 .hs-textarea:focus { outline: none; border-color: var(--hs-accent); }
+
+/* ══ Repaginação ═══════════════════════════════════════════════
+   Entrada com capa, jornada em três fases, atalhos com ícone, barra de
+   baixo com ícone e listas mais enxutas. Tudo pelos tokens --hs-*, para o
+   tema escuro continuar valendo. */
+
+.hs-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.hs-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--hs-border-strong);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hs-fg-soft);
+  text-decoration: none;
+}
+
+.hs-capa {
+  padding: 22px 20px 20px;
+  border-radius: var(--hs-radius);
+  background: #38546c;
+  color: #f7eee7;
+}
+
+.hs-capa-sobre {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.78;
+}
+
+.hs-capa-dia {
+  margin: 6px 0 0;
+  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-size: 2.5rem;
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.hs-capa-dia span {
+  font-size: 1.125rem;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+.hs-capa-fase {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+
+.hs-capa-barra {
+  height: 8px;
+  margin-top: 16px;
+  border-radius: 4px;
+  background: rgba(247, 238, 231, 0.22);
+  overflow: hidden;
+}
+
+.hs-capa-barra span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: #f7eee7;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hs-capa-acao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  margin-top: 18px;
+  border-radius: 999px;
+  background: #f7eee7;
+  color: #38546c;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* A jornada: três fases, cada uma com os seus dias. */
+.hs-jornada {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hs-jornada-fase {
+  padding: 14px 16px;
+  border: 1px solid var(--hs-border);
+  border-radius: var(--hs-radius);
+  background: var(--hs-surface);
+}
+
+.hs-jornada-fase--atual {
+  border-color: var(--hs-accent);
+  box-shadow: 0 0 0 1px var(--hs-accent);
+}
+
+.hs-jornada-fase--depois {
+  background: var(--hs-surface-alt);
+}
+
+.hs-jornada-cabeca {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.hs-jornada-cabeca strong {
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+.hs-jornada-cabeca span {
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--hs-fg-soft);
+}
+
+.hs-jornada-fase p {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+  color: var(--hs-fg-soft);
+}
+
+.hs-jornada-dias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.hs-jornada-dias span {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--hs-border-strong);
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--hs-fg-soft);
+}
+
+.hs-jornada-dias span.feito {
+  border-color: var(--hs-green);
+  background: var(--hs-green-soft);
+  color: var(--hs-green);
+}
+
+.hs-jornada-dias span.hoje {
+  border-color: var(--hs-accent);
+  background: var(--hs-accent);
+  color: var(--hs-bg);
+}
+
+/* Atalhos com ícone e uma linha de apoio. */
+.hs-atalho {
+  align-items: flex-start;
+  padding: 14px;
+}
+
+.hs-atalho-icone {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--hs-accent-soft);
+  color: var(--hs-accent);
+}
+
+.hs-atalho-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.hs-atalho-texto strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.hs-atalho-texto span {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  color: var(--hs-fg-soft);
+}
+
+/* Barra de baixo com ícone. */
+.hs-nav a {
+  flex: 1;
+  gap: 3px;
+  padding: 6px 4px;
+}
+
+.hs-nav a svg {
+  display: block;
+}
+
+/* Sanfona: sem o vão entre o título e o conteúdo. */
+.hs-accordion .hs-accordion-body {
+  padding: 4px 18px 12px;
+}
+
+.hs-accordion-body .hs-lista {
+  margin: 0;
+}
+
+.hs-accordion-body .c-card {
+  margin-top: 10px;
+  border: 0;
+  border-radius: var(--hs-radius-sm);
+  background: var(--hs-surface-alt);
+  box-shadow: none;
+}
+
+.hs-accordion-body .c-card .hs-texto {
+  margin: 0;
+}
+
+.hs-accordion-body .hs-regra:first-child {
+  margin-top: 10px;
+}
+
+/* Listas só de nomes (temperos, preparos) viram etiquetas: catorze linhas
+   de 44 px para catorze palavras era rolagem sem leitura. */
+.hs-list-card:has(> .hs-list-item.static):not(:has(.hs-list-item-detail, .hs-regra-num, .hs-label)) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px;
+}
+
+.hs-list-card:has(> .hs-list-item.static):not(:has(.hs-list-item-detail, .hs-regra-num, .hs-label)) > .hs-list-item {
+  min-height: 0;
+  padding: 7px 13px;
+  border: 1px solid var(--hs-border-strong);
+  border-radius: 999px;
+  font-size: 14px;
+  gap: 7px;
+}
+
+.hs-list-card:has(> .hs-list-item.static):not(:has(.hs-list-item-detail, .hs-regra-num, .hs-label)) > .hs-list-item.evitar {
+  border-color: transparent;
+  background: var(--hs-danger-soft);
+}
+
+/* O campo de anotações passava da largura da tela (a borda e o respiro
+   somavam por fora dos 100%). */
+.hs-textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+  /* 16px: abaixo disso o iPhone dá zoom na tela ao focar o campo. */
+  font-size: 16px;
+}
+
+/* A lista de compras, de marcar. */
+.hs-compras-resumo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  margin: 4px 0 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hs-fg);
+}
+
+.hotslim .hs-compras-limpar {
+  flex: none;
+  min-height: 40px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--hs-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.hs-compras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hotslim .hs-compra {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 14px 8px 10px;
+  border: 1px solid var(--hs-border-strong);
+  border-radius: 999px;
+  background: var(--hs-surface);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--hs-fg);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.hs-compra-marca {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--hs-border-strong);
+  border-radius: 50%;
+  color: var(--hs-bg);
+}
+
+.hotslim .hs-compra.pego {
+  border-color: var(--hs-green);
+  background: var(--hs-green-soft);
+  color: var(--hs-fg-soft);
+  text-decoration: line-through;
+}
+
+.hs-compra.pego .hs-compra-marca {
+  border-color: var(--hs-green);
+  background: var(--hs-green);
+}
