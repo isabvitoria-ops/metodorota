@@ -5,6 +5,7 @@ import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { PedidoDeViagem } from "@/central/pages/ViagemPedido";
 import type { FichaDeViagem } from "@/central/types/viagem";
+import imgPincBar from "@/central/viagem-imgs/pinc-bar.webp";
 
 type Pais = "it" | "pt" | "es";
 type Idioma = "ptpt" | "it2" | "es2" | "en2";
@@ -32,7 +33,7 @@ const ESTRATEGIAS = [
   },
   {
     titulo: "Água: pelo menos 1,5 litro por dia.",
-    texto: "Água sem gás, ao longo do dia, entre as refeições. Vai beber vinho? Beba. Mas intercale: cada taça de vinho, um copo de água. Evite cerveja e drinks com açúcar ou gás.",
+    texto: "Água sem gás, ao longo do dia, entre as refeições. Vai beber vinho? Beba. Mas intercale: cada taça de vinho, um copo de água.",
   },
   {
     titulo: "Chás digestivos: pelo menos 2 por dia.",
@@ -40,7 +41,7 @@ const ESTRATEGIAS = [
   },
   {
     titulo: "Diário (opcional).",
-    texto: "A Isa colocou uma aba de diário nesta página pra conseguir te acompanhar de longe, em tempo real. Mas não é obrigatório. Se puder anotar, ajuda. Se não puder, tudo bem — aproveite a viagem.",
+    texto: "Eu coloquei uma aba de diário nesta página pra conseguir te acompanhar de longe, em tempo real. Mas não é obrigatório. Se puder anotar, ajuda. Se não puder, tudo bem — aproveite a viagem.",
   },
 ];
 
@@ -60,7 +61,7 @@ const VERDE: AlimentoSemaforo[] = [
 ];
 
 const AMARELO: AlimentoSemaforo[] = [
-  { nome: "Massa e pão de trigo", detalhe: "O trigo europeu (especialmente italiano) é diferente do brasileiro e tende a causar menos desconforto. Você vai comer massa e pão — enzima antes. Na Itália, prefira sem glúten quando disponível (é muito comum!), ou mescle: uma refeição com glúten, a próxima sem." },
+  { nome: "Massa e pão de trigo", detalhe: "O trigo europeu (especialmente italiano) é diferente do brasileiro e tende a causar menos desconforto. Você vai comer massa e pão — enzima antes. Na Itália, prefira sem glúten quando disponível (é muito comum!), ou mescle: uma refeição com glúten, a próxima sem. Você não precisa se prender a comer sem glúten: é apenas uma sugestão de consumo e alternância." },
   { nome: "Pizza", detalhe: "Escolha a pizza que quiser. Enzima antes. Se tiver opção senza glutine, é uma boa. Peça sem alho ou com menos alho quando possível." },
   { nome: "Gelato e doces", detalhe: "Coma o sabor que quiser — pistache, cookies, stracciatella, o que der vontade. Melhor depois de uma refeição completa do que de estômago vazio. Gelato leva leite: enzima antes ajuda." },
   { nome: "Alho e cebola", detalhe: 'O maior gatilho para SIBO. Quando puder, peça sem ou com menos ("senza aglio" / "con meno aglio"). Não precisa entrar em pânico se vier no prato — só não escolha pratos onde são o ingrediente principal (aglio e olio, sopa de cebola).' },
@@ -84,7 +85,7 @@ const PAISES: Record<Pais, { nome: string; refeicoes: { periodo: string; desc: s
     nome: "Itália",
     refeicoes: [
       { periodo: "Café da manhã", desc: "Chá digestivo. Cornetto, pão, geleia, fruta, ovos se tiver. Enzima antes. Um caffè (espresso) depois — não em jejum. Cappuccino tem leite, mas é um por dia, não o fim do mundo." },
-      { periodo: "Almoço e jantar", desc: "Enzima antes. Massa, pizza, risotto, peixe, carne, polenta — o que der vontade. Na Itália tem muita opção senza glutine, e a Isa gostaria que você preferisse quando disponível — ajuda bastante na digestão. Mas não é obrigação: mescle, uma com glúten, uma sem. Peça sem alho ou com menos quando possível. Alterne: se almoçou massa, janta mais leve (peixe, carne, legumes); se almoçou leve, janta o que quiser. Inclua legumes em pelo menos uma refeição." },
+      { periodo: "Almoço e jantar", desc: "Enzima antes. Massa, pizza, risotto, peixe, carne, polenta — o que der vontade. Na Itália tem muita opção senza glutine, e eu gostaria que você preferisse quando disponível — ajuda bastante na digestão. Mas não é obrigação: mescle, uma com glúten, uma sem. Peça sem alho ou com menos quando possível. Alterne: se almoçou massa, janta mais leve (peixe, carne, legumes); se almoçou leve, janta o que quiser. Inclua legumes em pelo menos uma refeição." },
       { periodo: "Lanche", desc: "Gelato do sabor que quiser, um doce local, um café com algo. Melhor depois de uma refeição completa — gelato de estômago vazio pesa mais. Fruta pro hotel." },
       { periodo: "Muito alho/cebola", desc: "Soffritto é a base de quase tudo (molhos, ragù, risotto, sopas). Pergunte se pode vir com menos. Pratos com muito: aglio e olio, pesto (alho). Sem leguminosas: minestrone, ribollita (feijão e cebola), pasta e fagioli." },
     ],
@@ -96,7 +97,7 @@ const PAISES: Record<Pais, { nome: string; refeicoes: { periodo: string; desc: s
       { periodo: "Café da manhã", desc: "Chá digestivo. Pão, manteiga, geleia, fruta, ovos se tiver. Uma empada ou um bolo típico? Vai. Enzima antes. Café depois de comer." },
       { periodo: "Almoço e jantar", desc: "Enzima antes. Peixe grelhado (dourada, robalo, pescada) com batata e legumes; bacalhau cozido com batata e ovo (sem grão-de-bico); polvo com batata e azeite; frango; arroz. Vinho: Portugal sem vinho não existe — intercale cada taça com um copo de água. Inclua legumes em pelo menos uma refeição." },
       { periodo: "Lanche", desc: "Pastel de nata, doce local, gelado, fruta. Enzima antes do doce. Aproveite." },
-      { periodo: "Muito alho/cebola", desc: "Caldo verde (cebola, alho, chouriço); bacalhau à Brás, à Gomes de Sá, com natas (cebola, alho, creme); arroz de tomate (refogado de cebola); frango no churrasco (marinada de alho). O couvert (pão, queijo, enchidos, azeitonas) chega à mesa e é cobrado se usado." },
+      { periodo: "Muito alho/cebola", desc: "Caldo verde (cebola, alho, chouriço); bacalhau à Brás, à Gomes de Sá, com natas (cebola, alho, creme); arroz de tomate (refogado de cebola); frango no churrasco (marinada de alho)." },
     ],
     gatilhos: "",
   },
@@ -105,7 +106,7 @@ const PAISES: Record<Pais, { nome: string; refeicoes: { periodo: string; desc: s
     refeicoes: [
       { periodo: "Café da manhã", desc: "Chá digestivo. Pão, tortilla francesa, fruta, o que tiver. Churros con chocolate? Vai. Enzima antes. Café depois de comer." },
       { periodo: "Almoço e jantar", desc: 'Enzima antes. Pescado a la plancha, pollo a la plancha, pulpo a la gallega (polvo, batata, azeite, pimentón dulce), gambas a la plancha, tapas. O menú del día é ótimo pra escolher. Peça sem alho ou com menos ("sin ajo o con poco ajo") quando possível. Vinho com a refeição: intercale com água. Inclua legumes em pelo menos uma refeição.' },
-      { periodo: "Lanche", desc: "Helado (sorvete), doce local, fruta, o que aparecer. Enzima antes. Tapas à noite contam como refeição — enzima antes também." },
+      { periodo: "Lanche", desc: "Helado (sorvete), doce local, fruta, o que aparecer. Enzima antes." },
       { periodo: "Muito alho/cebola", desc: "Tortilla de patatas (muita cebola), paella (sofrito de cebola e alho), gazpacho e salmorejo (alho), gambas al ajillo (muito alho), patatas bravas (molho). Sem leguminosas: cocido, fabada, lentejas." },
     ],
     gatilhos: "",
@@ -141,13 +142,12 @@ const CARTOES: Record<Idioma, { label: string; texto: string; destaque1: string;
 
 const FRASES = [
   ["Sem alho e sem cebola", "Senza aglio e senza cipolla", "Sin ajo y sin cebolla", "No garlic and no onion"],
+  ["Com menos alho e com menos cebola", "Con meno aglio e meno cipolla", "Con menos ajo y menos cebolla", "With less garlic and less onion"],
   ["Sem glúten (trigo)", "Senza glutine (grano)", "Sin gluten (trigo)", "Gluten-free (wheat)"],
   ["Sem leite e lactose", "Senza latte e senza lattosio", "Sin leche ni lactosa", "No milk or lactose"],
   ["Têm opção sem glúten?", "Avete opzioni senza glutine?", "¿Tienen opciones sin gluten?", "Do you have gluten-free options?"],
   ["Molho à parte?", "Può servire la salsa a parte?", "¿Puede servir la salsa aparte?", "Sauce on the side?"],
-  ["Grelhado simples", "Alla griglia, solo con olio e sale", "A la plancha, solo aceite y sal", "Grilled, just olive oil and salt"],
   ["Chá de gengibre", "Una tisana allo zenzero, per favore", "Una infusión de jengibre, por favor", "Ginger tea, please"],
-  ["Enzimas digestivas, por favor", "Vorrei enzimi digestivi, per favore", "Quiero enzimas digestivas, por favor", "Digestive enzymes, please"],
 ];
 
 const ROTULO_TRAD = [
@@ -171,7 +171,6 @@ const CHECKLIST_BRASIL = [
   "Garrafa reutilizável (leve vazia na segurança do aeroporto).",
   "Chás em sachê: gengibre, capim-limão, melissa ou erva-cidreira.",
   "Castanhas em porções de cerca de 20 g: amendoim, nozes, macadâmia, pistache. Evite caju.",
-  "Tostas ou bolachas de arroz (ou compre lá).",
   "Barrinhas só se o rótulo estiver limpo: sem inulina, raiz de chicória, mel, xilitol ou sorbitol.",
   "Remédios e suplementos da prescrição, na embalagem original, bolsa de mão, com receita ou carta.",
   "Ficha de saúde preenchida, mais cópia do exame e do resumo da sua médica.",
@@ -225,6 +224,24 @@ function lerDiario(chave: string): Diario {
   } catch {
     return {};
   }
+}
+
+/** A barrinha que ela indica, com a foto do produto. */
+function PincBar() {
+  return (
+    <a
+      className="c-vg-produto"
+      href="https://pincbar.com.br/products/pinc-bar-variedades-10-unidades"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      <img src={imgPincBar} alt="Caixa de Pinc Bar com as barrinhas de vários sabores" width={520} height={520} loading="lazy" />
+      <span>
+        <strong>Pinc Bar</strong>
+        Uma opção incrível de lanche: feita com tâmara, sem adoçantes e com zero desconforto.
+      </span>
+    </a>
+  );
 }
 
 function irParaSecao(id: string) {
@@ -352,7 +369,7 @@ export function Viagem() {
 
         <h3 className="c-vg-sub">Como um dia de verdade vai ser</h3>
         <div className="c-vg-refeicoes">
-          <div className="c-vg-refeicao"><span className="c-vg-refeicao-label">Manhã</span><span>Chá digestivo antes de sair. No café do hotel: croissant, pão, geleia, fruta, o que tiver. Coma com calma, sem pressa. <strong>Enzima antes se for pesado.</strong> Um cafezinho depois, não em jejum.</span></div>
+          <div className="c-vg-refeicao"><span className="c-vg-refeicao-label">Manhã</span><span>Chá digestivo antes de sair. No café do hotel: croissant, pão, geleia, fruta, o que tiver e o que for da sua vontade. Coma com calma, sem pressa. <strong>Enzima antes, sem negociação.</strong> Um cafezinho coado ou espresso depois, nunca em jejum.</span></div>
           <div className="c-vg-refeicao"><span className="c-vg-refeicao-label">Almoço</span><span><strong>Enzima antes.</strong> Massa, pizza, prato local — o que der vontade. Peça sem alho e cebola (ou com menos). Se o almoço for mais pesado, o jantar compensa sendo mais leve. Caminhada de 10 a 15 minutos depois.</span></div>
           <div className="c-vg-refeicao"><span className="c-vg-refeicao-label">Lanche</span><span>Gelato, fruta, um doce local — o que aparecer. Se já tomou gelato no almoço, uma fruta ou castanhas agora equilibra.</span></div>
           <div className="c-vg-refeicao"><span className="c-vg-refeicao-label">Jantar</span><span><strong>Enzima antes.</strong> Se almoçou pesado: peixe, arroz, legumes, algo mais leve. Se almoçou mais simples: pode explorar outro prato local. Vinho? Intercale com água. Chá digestivo antes de dormir.</span></div>
@@ -510,19 +527,12 @@ export function Viagem() {
           <li><strong>Antes de embarcar:</strong> faça uma refeição simples 2 a 3 horas antes. Não vá em jejum longo.</li>
           <li><strong>A bordo:</strong> beba água em goles, de hora em hora. <strong>Evite refrigerante, suco de caixinha e café a bordo</strong> — fermentam e pioram o inchaço na altitude. Vinho pode, com moderação e intercalando com água. Na refeição de bordo, fique com arroz, frango ou peixe e legumes cozidos; deixe de lado molhos cremosos e salada crua com cebola.</li>
           <li><strong>Mexa-se:</strong> levante e caminhe a cada 1 a 2 horas e movimente os tornozelos. Ajuda o intestino e a circulação.</li>
-          <li><strong>Lanche na bolsa:</strong> castanhas, uma fruta e uma garrafinha de água. Compre tudo <strong>depois da imigração</strong>, na loja do embarque.</li>
+          <li><strong>Lanche na bolsa:</strong> castanhas, uma fruta, barrinha sem adoçantes e uma garrafinha de água. Compre tudo <strong>depois da imigração</strong>, na loja do embarque.</li>
         </ul>
+        <PincBar />
 
         <h3 className="c-vg-sub" style={{ marginTop: 16 }}>Fuso e horários</h3>
         <p>Em novembro, Portugal fica 3 horas à frente de Brasília; Espanha e Itália ficam 4 horas à frente. Assim que chegar, ajuste as refeições ao horário local, mantendo cerca de 3 horas entre elas.</p>
-
-        <h3 className="c-vg-sub" style={{ marginTop: 16 }}>Trens, ônibus e passeios longos</h3>
-        <ul className="c-vg-lista">
-          <li>Vá ao banheiro antes de embarcar e leve água e o lanche do kit.</li>
-          <li>Programe a hora da refeição antes de sair. Passar o dia sem comer e depois comer muito é pior do que comer pouco e com regularidade.</li>
-          <li>Tente comer a última refeição pelo menos 2 horas antes de deitar.</li>
-          <li>Tapas e petiscos: escolha 1 ou 2 opções simples e pare. Beliscar a noite inteira é o oposto do que o intestino precisa.</li>
-        </ul>
 
         <div className="c-vg-alerta-amarelo" style={{ marginTop: 12 }}>
           <strong>Alimentos na bagagem:</strong> As regras sanitárias da UE restringem a entrada de <strong>carnes, embutidos, queijos, leite e vegetais frescos</strong> vindos de fora do bloco. Leve do Brasil apenas itens <strong>industrializados, selados e de origem vegetal</strong> (castanhas, chás). Frutas e itens frescos: compre lá.
@@ -536,6 +546,7 @@ export function Viagem() {
         <ul className="c-vg-checklist">
           {CHECKLIST_BRASIL.map((item, i) => <li key={i}>{item}</li>)}
         </ul>
+        <PincBar />
 
         <h3 className="c-vg-sub" style={{ marginTop: 16 }}>Enzima digestiva (levar do Brasil)</h3>
         <p>Você vai levar a sua enzima digestiva (<strong>Complexo de Enzimas Digestivas — Oficial Farma</strong>) no pote, na bolsa de mão. Contém bromelina, papaína, protease, lipase, pancreatina e amilase — ajuda a digerir proteínas, gorduras e amido das refeições mais pesadas.</p>
@@ -580,8 +591,7 @@ export function Viagem() {
             <li>falta de ar, inchaço do rosto ou da boca, coceira pelo corpo todo com manchas;</li>
             <li>dor abdominal muito forte, contínua, ou abdome duro;</li>
             <li>vômitos com sangue ou fezes pretas, como borra de café, ou com sangue vivo;</li>
-            <li>inchaço intenso com vômitos e sem conseguir soltar gases nem evacuar;</li>
-            <li>desmaio, confusão ou muita fraqueza.</li>
+            <li>inchaço intenso com vômitos e sem conseguir soltar gases nem evacuar.</li>
           </ul>
         </div>
 
@@ -613,7 +623,7 @@ export function Viagem() {
       {/* DIÁRIO */}
       <section id="vg-diario" className="c-vg-secao">
         <h2 className="c-vg-secao-titulo">Diário intestinal da viagem</h2>
-        <p className="c-vg-intro">Esse diário não é obrigatório — a Isa deixou aqui pra conseguir te acompanhar de longe, caso você queira. Se der pra preencher à noite, ótimo (leva 2 minutos). Se não der, tudo bem. Escala de 0 (nada) a 10 (o pior que você já sentiu). O que você anota fica guardado só neste aparelho: tire uma foto da tela e envie, ou copie o modelo abaixo.</p>
+        <p className="c-vg-intro">Esse diário não é obrigatório — eu deixei aqui pra conseguir te acompanhar de longe, caso você queira. Se der pra preencher à noite, ótimo (leva 2 minutos). Se não der, tudo bem. Escala de 0 (nada) a 10 (o pior que você já sentiu). O que você anota fica guardado só neste aparelho: tire uma foto da tela e envie, ou copie o modelo abaixo.</p>
 
         {DIAS_VIAGEM.map((dia) => {
           const d = diario[dia.n] ?? DIA_VAZIO;
@@ -709,9 +719,6 @@ export function Viagem() {
       <section className="c-vg-secao">
         <h2 className="c-vg-secao-titulo">Depois da viagem</h2>
         <div className="c-vg-refeicoes">
-          <div className="c-vg-refeicao"><span className="c-vg-refeicao-label">Ao voltar (27/11)</span><span>Envie o último check-in e as fotos do diário. Vamos marcar a consulta de retorno para avaliar sintomas, fezes e o que funcionou ou não na viagem.</span></div>
-          <div className="c-vg-refeicao"><span className="c-vg-refeicao-label">A partir de 26/11</span><span>A sua médica decide o início do antibiótico para a SIBO. O plano alimentar se ajusta ao que ela decidir.</span></div>
-          <div className="c-vg-refeicao"><span className="c-vg-refeicao-label">Controle H. pylori</span><span>Cerca de 4 semanas depois do fim do antibiótico (a partir de, aproximadamente, 04/12), conforme a sua médica. Pergunte a ela se precisa pausar o omeprazol antes do exame e com que preparo.</span></div>
           <div className="c-vg-refeicao"><span className="c-vg-refeicao-label">Alimentação</span><span>Depois que os sintomas estiverem mais estáveis, reintroduzimos os grupos de alimentos aos poucos, um de cada vez, para descobrir o que você tolera. A restrição de agora é temporária.</span></div>
         </div>
         <div className="c-vg-dica" style={{ marginTop: 16 }}>
