@@ -191,7 +191,7 @@ export function Desafio() {
               ))}
             </div>
             <p className="c-dica">
-              O número grande são os pontos deste mês; o pequeno é o acumulado deste mês e dos 3
+              O número grande são os pontos deste mês; o pequeno é o acumulado deste mês e dos 6
               anteriores. O ranking mostra sua constância no desafio, não o seu valor nem o seu
               resultado corporal.
             </p>
