@@ -33,25 +33,25 @@ create or replace function des_lim(p_nome text) returns uuid language sql stable
 grant execute on function cam(), dani(), mes_rel(integer), des_lim(text) to anon, authenticated;
 
 -- Desafios como RASCUNHO (a trava de sobreposicao so vale para os publicados; o
--- historico e o acumulado nao olham o status): atual, -1, -2, -4 e -5 meses.
+-- historico e o acumulado nao olham o status): atual, -1, -2, -7 e -8 meses.
 insert into desafios (nome, data_inicio, data_fim, status) values
   ('Lim Atual', mes_rel(0), (mes_rel(0) + interval '1 month - 1 day')::date, 'rascunho'),
   ('Lim M1', mes_rel(1), (mes_rel(1) + interval '1 month - 1 day')::date, 'rascunho'),
   ('Lim M2', mes_rel(2), (mes_rel(2) + interval '1 month - 1 day')::date, 'rascunho'),
-  ('Lim M4', mes_rel(4), (mes_rel(4) + interval '1 month - 1 day')::date, 'rascunho'),
-  ('Lim M5', mes_rel(5), (mes_rel(5) + interval '1 month - 1 day')::date, 'rascunho');
+  ('Lim M7', mes_rel(7), (mes_rel(7) + interval '1 month - 1 day')::date, 'rascunho'),
+  ('Lim M8', mes_rel(8), (mes_rel(8) + interval '1 month - 1 day')::date, 'rascunho');
 
--- Camila: 100 este mes, 200 no mes passado, 50 ha dois meses, 400 ha 4 meses (antigo),
--- 30 ha 5 meses (antigo) e um resgate de 60 este mes. Dani: 10 este mes e 70 antigos.
+-- Camila: 100 este mes, 200 no mes passado, 50 ha dois meses, 400 ha 7 meses (antigo),
+-- 30 ha 8 meses (antigo) e um resgate de 60 este mes. Dani: 10 este mes e 70 antigos.
 insert into pontos_lancamentos (paciente_id, desafio_id, pontos, tipo, descricao) values
   (cam(), des_lim('Lim Atual'), 100, 'acao', 'a'),
   (cam(), des_lim('Lim M1'), 200, 'acao', 'b'),
   (cam(), des_lim('Lim M2'), 50, 'acao', 'c'),
-  (cam(), des_lim('Lim M4'), 400, 'acao', 'antigo 1'),
-  (cam(), des_lim('Lim M5'), 30, 'acao', 'antigo 2'),
+  (cam(), des_lim('Lim M7'), 400, 'acao', 'antigo 1'),
+  (cam(), des_lim('Lim M8'), 30, 'acao', 'antigo 2'),
   (cam(), des_lim('Lim Atual'), -60, 'resgate', 'kit'),
   (dani(), des_lim('Lim Atual'), 10, 'acao', 'd'),
-  (dani(), des_lim('Lim M4'), 70, 'acao', 'antigo 3');
+  (dani(), des_lim('Lim M7'), 70, 'acao', 'antigo 3');
 
 -- Indicacao pela nutricionista ----------------------------------------------------------------
 begin;
@@ -101,9 +101,9 @@ set local search_path = public;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
 select teste('ranking do mes atual: Camila 40 pontos no desafio (100 - 60 do resgate lancado nele)',
   (select pontos = 40 from ranking_do_desafio(des_lim('Lim Atual')) where paciente_id = cam()));
-select teste('acumulado de Camila: 100 + 200 + 50 (+ a indicacao validada, que e outro desafio) = a soma dos 4 meses, SEM o resgate e sem os 4/5 meses atras',
+select teste('acumulado de Camila: 100 + 200 + 50 (+ a indicacao validada, que e outro desafio) = a soma dos 4 meses, SEM o resgate e sem os 7/8 meses atras',
   (select acumulado >= 350 and acumulado < 750 from ranking_do_desafio(des_lim('Lim Atual')) where paciente_id = cam()));
-select teste('o antigo (4 e 5 meses atras) NAO entra no acumulado de Dani: so os 10 deste mes',
+select teste('o antigo (7 e 8 meses atras) NAO entra no acumulado de Dani: so os 10 deste mes',
   (select acumulado = 10 from ranking_do_desafio(des_lim('Lim Atual')) where paciente_id = dani()));
 commit;
 
@@ -122,7 +122,7 @@ select teste('a previa conta so o antigo (3 linhas: 400 + 30 da Camila e 70 da D
   (:'previa'::jsonb ->> 'linhas')::int = 3 and (:'previa'::jsonb ->> 'pontos')::int = 500
   and (:'previa'::jsonb ->> 'pacientes')::int = 2);
 select teste('a previa NAO apaga nada', :'antes_n'::int = 3 and (select count(*) from pontos_arquivo) = 0);
-select teste('o corte e o 1o dia do mes de hoje - 3 meses', (:'previa'::jsonb ->> 'corte')::date = mes_rel(3));
+select teste('o corte e o 1o dia do mes de hoje - 6 meses', (:'previa'::jsonb ->> 'corte')::date = mes_rel(6));
 select teste('a previa diz que nao apagou', (:'previa'::jsonb ->> 'apagou')::boolean = false);
 
 begin;

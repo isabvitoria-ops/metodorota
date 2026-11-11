@@ -121,11 +121,17 @@ select teste('três alimentos no mesmo dia ficaram registrados',
   (select count(*) from reintroducao_registros where paciente_id = meu_paciente_id()) = 3);
 
 -- O mesmo alimento acompanhado por vários dias, sem exigir um terceiro.
-select teste('o mesmo alimento pode ser registrado de novo no dia seguinte',
+-- (Era "no dia seguinte", com a data de amanhã — que a 0090 passou a recusar.)
+select teste('o mesmo alimento pode ser registrado de novo em outro dia',
   registrar_reintroducao(
     p_item := current_setting('teste.abacate')::uuid,
-    p_data := hoje_sp() + 1, p_horario := '10:00',
+    p_data := hoje_sp() - 1, p_horario := '10:00',
     p_quantidade := '60g', p_sintomas := array['nenhum']) is not null);
+
+select teste('registro com a data de amanhã é recusado (0090)',
+  recusou($sql$ select registrar_reintroducao(
+    p_item := current_setting('teste.abacate')::uuid,
+    p_data := hoje_sp() + 1, p_sintomas := array['nenhum']) $sql$));
 
 select teste('o abacate tem dois registros, e nenhum terceiro é exigido',
   (select count(*) from reintroducao_registros
