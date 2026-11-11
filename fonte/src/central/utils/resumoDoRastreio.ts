@@ -1,6 +1,6 @@
 import type { ItemDeReintroducao, RegistroDeReintroducao, StatusReintroducao } from "@/central/types";
 import { rotuloSintoma, temSintoma } from "./reintroducao";
-import { classificar } from "./rastreio";
+import { contaDaEscada, depoisDoUltimoSintoma, type ParcelaDaEscada } from "./rastreio";
 
 /**
  * O resumo do rastreio para a nutricionista: uma linha por alimento.
@@ -24,7 +24,12 @@ export interface LinhaPorAlimento {
   intensidadeMaxima: number | null;
   /** A data do registro mais recente. */
   ultimo: string;
-  escada: { tom: "bom" | "atencao" | "grave"; rotulo: string };
+  /** A escada, com a conta aberta: os pontos e de quais sintomas eles vieram. */
+  escada: { tom: "bom" | "atencao" | "grave"; rotulo: string; pontos: number; parcelas: ParcelaDaEscada[] };
+  /** A data do último teste com sintoma; nulo se nunca houve. */
+  ultimoComSintoma: string | null;
+  /** Quantos testes sem sintoma vieram depois do último com sintoma. */
+  semSintomaDepois: number;
 }
 
 export function resumoPorAlimento(
@@ -58,7 +63,8 @@ export function resumoPorAlimento(
         .sort((a, b) => b.vezes - a.vezes || a.rotulo.localeCompare(b.rotulo, "pt-BR")),
       intensidadeMaxima,
       ultimo: meus.map((r) => r.data).sort().at(-1) ?? "",
-      escada: classificar(meus),
+      escada: contaDaEscada(meus),
+      ...depoisDoUltimoSintoma(meus),
     });
   }
   return linhas.sort(

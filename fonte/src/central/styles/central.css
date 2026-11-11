@@ -5998,6 +5998,18 @@ textarea.c-campo:focus {
   color: var(--text-muted);
 }
 
+.c-ras-tabela small.c-ras-conta {
+  display: block;
+  margin-top: 4px;
+  white-space: normal;
+  min-width: 170px;
+  line-height: 1.35;
+}
+
+.c-ras-tabela small.c-ras-conta-depois {
+  color: var(--text);
+}
+
 .c-ras-lista-conta {
   display: flex;
   flex-wrap: wrap;

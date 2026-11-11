@@ -71,18 +71,39 @@ select teste('e a faixa programada fica gravada',
 select teste('a ordem dos exercícios é a que ela escreveu',
   (treinos_do_paciente(dani()) -> 0 -> 'exercicios' -> 0 ->> 'nome') = 'Agachamento'
   and (treinos_do_paciente(dani()) -> 0 -> 'exercicios' -> 1 ->> 'nome') = 'Leg press');
+commit;
 
--- Um segundo treino ativo tem que desativar o primeiro: dois ativos fariam
--- a tela dela escolher um em silêncio, e o outro nunca apareceria.
+-- Outra transação de propósito: `criado_em` é a hora em que a transação
+-- começou, e dois treinos nascidos na mesma teriam a mesma hora — a ordem
+-- entre eles viraria sorteio.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+
+-- A divisão da semana (0076): a profissional deixa VÁRIOS treinos ativos, e
+-- salvar o segundo não pode tirar o primeiro de cena.
 select salvar_treino(null, dani(), 'Treino B — superiores', null, true,
-  jsonb_build_array(jsonb_build_object('nome', 'Remada', 'seriesPlanejadas', '4')));
+  jsonb_build_array(jsonb_build_object('nome', 'Remada', 'seriesPlanejadas', '4')), 'Terça');
 
-select teste('um treino ativo por paciente: o novo ativa e o anterior desativa',
-  (select count(*) from treinos where paciente_id = dani() and ativo) = 1
-  and (select nome from treinos where paciente_id = dani() and ativo) = 'Treino B — superiores');
-select teste('mas o treino antigo continua existindo, com os exercícios dele',
-  (select count(*) from treinos where paciente_id = dani()) = 2
-  and (select count(*) from treino_exercicios) = 3);
+select teste('vários treinos ativos: o novo ativa e o anterior continua ativo',
+  (select count(*) from treinos where paciente_id = dani() and ativo) = 2);
+select teste('e o rótulo do dia fica gravado',
+  (select rotulo from treinos where paciente_id = dani() and nome = 'Treino B — superiores') = 'Terça');
+
+-- Um treino guardado, fora de cena: a paciente não pode enxergar.
+select salvar_treino(null, dani(), 'Treino C — guardado', null, false,
+  jsonb_build_array(jsonb_build_object('nome', 'Rosca', 'seriesPlanejadas', '')));
+
+select teste('treino salvo como inativo nasce inativo, e os ativos não mudam',
+  (select count(*) from treinos where paciente_id = dani() and ativo) = 2
+  and (select count(*) from treinos where paciente_id = dani()) = 3);
+select teste('número em branco no exercício fica NULO, não derruba a gravação',
+  (select series_planejadas from treino_exercicios where nome = 'Rosca') is null);
+select teste('cada treino guarda os exercícios dele',
+  (select count(*) from treino_exercicios) = 4);
+select teste('a profissional vê os três, ativos primeiro',
+  jsonb_array_length(treinos_do_paciente(dani())) = 3
+  and (treinos_do_paciente(dani()) -> 2 ->> 'nome') = 'Treino C — guardado');
 commit;
 
 -- -----------------------------------------------------------------------------
@@ -92,15 +113,23 @@ begin;
 set local role authenticated;
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000d1', true);
 
-select teste('ela recebe o treino ATIVO', (meu_treino() ->> 'nome') = 'Treino B — superiores');
+select teste('ela recebe os DOIS treinos ativos, na ordem em que foram montados',
+  jsonb_array_length(meus_treinos()) = 2
+  and (meus_treinos() -> 0 ->> 'nome') = 'Treino A — inferiores'
+  and (meus_treinos() -> 1 ->> 'nome') = 'Treino B — superiores');
 select teste('com os exercícios dentro',
-  (meu_treino() -> 'exercicios' -> 0 ->> 'nome') = 'Remada');
+  (meus_treinos() -> 1 -> 'exercicios' -> 0 ->> 'nome') = 'Remada');
+select teste('nenhum deles é editável por ela',
+  not (meus_treinos() -> 0 ->> 'podeEditar')::boolean
+  and not (meus_treinos() -> 1 ->> 'podeEditar')::boolean);
+select teste('a forma antiga, de um treino só, devolve o ativo mais novo',
+  (meu_treino() ->> 'nome') = 'Treino B — superiores');
 select teste('e o atalho aparece no acesso dela', (meu_acesso() ->> 'treino')::boolean);
 
 select teste('ela NÃO vê o treino inativo',
-  (select count(*) from treinos) = 1);
+  (select count(*) from treinos) = 2);
 select teste('ela NÃO vê os exercícios do treino inativo',
-  (select count(*) from treino_exercicios) = 1);
+  (select count(*) from treino_exercicios) = 3);
 
 -- "Não pode editar o treino prescrito pelo profissional."
 select teste('ela não altera o plano', nao_alterou('update treinos set nome = ''Meu treino'''));
@@ -215,6 +244,12 @@ select teste('a profissional lança na ficha da paciente que ela escolheu',
   jsonb_array_length(sessoes_de_treino(dani())) = 5
   and (sessoes_de_treino(dani()) -> 0 ->> 'observacao') = 'Contou na consulta');
 select teste('e a da B não mudou', jsonb_array_length(sessoes_de_treino(bia())) = 1);
+select teste('registrar devolve o id da sessão, para a tela poder editar em seguida',
+  (registrar_sessao_treino(null, bia(), null, hoje_sp() - 1, null,
+     jsonb_build_array(jsonb_build_object('exercicioNome', 'Remada', 'carga', '22,5', 'repeticoes', '8')))
+   ->> 'id') is not null);
+select teste('e carga com vírgula é lida como número',
+  (sessoes_de_treino(bia()) -> 1 -> 'series' -> 0 ->> 'carga')::numeric = 22.5);
 commit;
 
 -- -----------------------------------------------------------------------------
