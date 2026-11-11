@@ -5998,6 +5998,38 @@ textarea.c-campo:focus {
   color: var(--text-muted);
 }
 
+.c-ras-lista-conta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+
+.c-ras-evidencia {
+  margin-top: 4px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--marca-marfim);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.c-ras-evidencia p {
+  margin: 0;
+}
+
+.c-ras-evidencia p + p {
+  margin-top: 4px;
+}
+
+.c-ras-evidencia strong {
+  color: var(--text);
+}
+
 .c-ras-pendente {
   color: var(--text-subtle);
 }
