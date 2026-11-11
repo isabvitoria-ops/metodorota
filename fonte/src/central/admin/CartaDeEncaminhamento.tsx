@@ -3,6 +3,7 @@ import type { DadosDaCarta, ResumoObjetivo } from "@/central/components/Document
 import { DocumentoEncaminhamento } from "@/central/components/DocumentoEncaminhamento";
 import { AreaTexto, Campo, Texto } from "@/central/admin/componentes/Campos";
 import { hojeSaoPaulo } from "@/central/utils/situacao";
+import { abrirImpressao } from "@/central/utils/impressao";
 
 /**
  * A carta de encaminhamento — no prontuário, escrita por ela.
@@ -56,7 +57,7 @@ export function CartaDeEncaminhamento({
         };
         const prazo = setTimeout(limpar, 60_000);
         window.addEventListener("afterprint", limpar);
-        window.print();
+        abrirImpressao();
       });
     });
   }

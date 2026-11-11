@@ -12,6 +12,7 @@ import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { Esqueleto } from "@/central/components/Esqueleto";
+import { abrirImpressao } from "@/central/utils/impressao";
 
 /**
  * Meus documentos — a central de onde saem os PDFs.
@@ -115,7 +116,7 @@ export function Documentos() {
         };
         const prazo = setTimeout(limpar, 60_000);
         window.addEventListener("afterprint", limpar);
-        window.print();
+        abrirImpressao();
       });
     });
   }

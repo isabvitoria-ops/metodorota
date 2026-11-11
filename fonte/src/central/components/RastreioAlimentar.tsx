@@ -3,6 +3,7 @@ import type { ItemDeReintroducao, RegistroDeReintroducao } from "@/central/types
 import { faixaDaIntensidade, rotuloSintoma, status as infoStatus, temSintoma } from "@/central/utils/reintroducao";
 import { classificar, fraseDo } from "@/central/utils/rastreio";
 import { dataBonita } from "@/central/utils/situacao";
+import { abrirImpressao } from "@/central/utils/impressao";
 
 /**
  * Rastreio Alimentar — o material que a paciente vai juntando.
@@ -251,7 +252,7 @@ export function RastreioAlimentar({
         type="button"
         className="c-botao c-botao-secundario c-sem-impressao"
         style={{ width: "100%", marginTop: 14 }}
-        onClick={() => window.print()}
+        onClick={() => abrirImpressao()}
       >
         Salvar meu rastreio em PDF
       </button>

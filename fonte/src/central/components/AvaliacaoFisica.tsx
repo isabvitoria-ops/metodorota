@@ -16,6 +16,7 @@ import { DocumentoAvaliacao } from "@/central/components/DocumentoAvaliacao";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { Icone } from "@/central/components/Icone";
+import { abrirImpressao } from "@/central/utils/impressao";
 
 /**
  * A avaliação física da paciente, e a evolução dela no tempo.
@@ -117,7 +118,7 @@ export function AvaliacaoFisica() {
           <button
             type="button"
             className="c-prot-acao"
-            onClick={() => window.print()}
+            onClick={() => abrirImpressao()}
           >
             <Icone nome="documentos" tamanho={17} />
             Baixar em PDF
