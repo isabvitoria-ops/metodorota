@@ -39,6 +39,7 @@ import {
   resumoPorAlimento,
   type LinhaPorAlimento,
 } from "@/central/utils/resumoDoRastreio";
+import { fraseDaConta } from "@/central/utils/rastreio";
 import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { Campo, Selecao, Texto, AreaTexto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
@@ -370,6 +371,21 @@ function PainelDaPaciente({
  * coluna "Sua classificação" é a que ela deu na lista. As duas ficam lado a
  * lado de propósito: quando discordam, é ali que vale olhar.
  */
+/**
+ * "3 testes sem sintoma depois do último sintoma (12 de setembro)".
+ *
+ * Só o fato. A escada soma os sintomas de todos os testes, e não é a tela
+ * que decide quando um sintoma antigo deixa de contar.
+ */
+function fraseDoDepois(l: Pick<LinhaPorAlimento, "semSintomaDepois" | "ultimoComSintoma">): string {
+  const n = l.semSintomaDepois;
+  return `${n} ${n === 1 ? "teste" : "testes"} sem sintoma depois do último sintoma (${dataBonita(l.ultimoComSintoma ?? "")})`;
+}
+
+function primeiraMaiuscula(texto: string): string {
+  return texto.charAt(0).toLocaleUpperCase("pt-BR") + texto.slice(1);
+}
+
 function ResumoDoRastreio({
   itens,
   registros,
@@ -455,6 +471,10 @@ function ResumoDoRastreio({
                       >
                         {l.escada.rotulo}
                       </span>
+                      <small className="c-ras-conta">{fraseDaConta(l.escada)}</small>
+                      {l.semSintomaDepois > 0 && l.ultimoComSintoma && (
+                        <small className="c-ras-conta c-ras-conta-depois">{fraseDoDepois(l)}</small>
+                      )}
                     </td>
                     <td>{classificado ? infoStatus(l.status).rotulo : <span className="c-ras-pendente">Ainda não classificou</span>}</td>
                   </tr>
@@ -464,7 +484,10 @@ function ResumoDoRastreio({
           </table>
         </div>
         <p className="c-dica">
-          “Pela conta” é a escada de pontos que a paciente vê (sintomas mais fortes valem dois). “Sua classificação” é
+          “Pela conta” é a escada de pontos que a paciente vê: cada sintoma diferente vale 1 ponto, e diarreia,
+          urgência, náusea, refluxo e manchas valem 2; até 2 pontos é “Comer com atenção”, 3 ou mais é “Não
+          tolerado”. A conta soma todos os testes do alimento, inclusive os antigos — por isso, quando há testes sem
+          sintoma depois do último sintoma, eles aparecem logo abaixo. “Sua classificação” é
           a que você deu na aba Lista da paciente — e é ela que vale na tela da paciente quando existe.
         </p>
       </section>
@@ -1344,7 +1367,8 @@ function ListaDaPaciente({
                   <span>
                     {linha.comSintoma === 0
                       ? `Sem sintoma em ${linha.testes} ${linha.testes === 1 ? "teste" : "testes"}`
-                      : `${linha.comSintoma} de ${linha.testes} com sintoma · ${linha.sintomas.map((x) => x.rotulo).join(", ")}`}
+                      : `${linha.comSintoma} de ${linha.testes} com sintoma · ${fraseDaConta(linha.escada)}`}
+                    {linha.semSintomaDepois > 0 && linha.ultimoComSintoma ? ` · ${fraseDoDepois(linha)}` : ""}
                   </span>
                 </p>
               )}
@@ -1679,7 +1703,14 @@ function ModalClassificar({
             )}
             <p>
               Pela conta de pontos: <strong>{linha.escada.rotulo}</strong>
+              {linha.escada.pontos > 0 ? ` — ${fraseDaConta(linha.escada)}` : ""}
             </p>
+            {linha.semSintomaDepois > 0 && linha.ultimoComSintoma && (
+              <p>
+                <strong>{primeiraMaiuscula(fraseDoDepois(linha))}.</strong> A conta não esquece sintoma antigo; quem
+                relê é você.
+              </p>
+            )}
           </>
         ) : (
           <p>Ela ainda não registrou este alimento.</p>

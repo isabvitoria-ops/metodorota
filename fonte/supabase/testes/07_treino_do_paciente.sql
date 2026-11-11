@@ -172,6 +172,9 @@ select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000007a01
 select teste('agora meu_treino() é o da nutricionista',
   (meu_treino() ->> 'nome') = 'Programa da nutri');
 select teste('e ela NÃO pode editar esse', not (meu_treino() ->> 'podeEditar')::boolean);
+select teste('na lista de treinos dela só aparece o da profissional',
+  jsonb_array_length(meus_treinos()) = 1
+  and (meus_treinos() -> 0 ->> 'origem') = 'nutricionista');
 select teste('o banco explica por que ela não pode escrever',
   (posso_escrever_treino() ->> 'pode')::boolean is false
   and (posso_escrever_treino() ->> 'motivo') = 'treino_da_nutricionista');
@@ -231,6 +234,10 @@ select teste('sem plano ativo, ela volta a poder escrever',
   (posso_escrever_treino() ->> 'pode')::boolean);
 select teste('e o treino que ela tinha escrito volta a aparecer',
   meu_treino() is not null and (meu_treino() ->> 'origem') = 'paciente');
+select teste('também na lista de treinos, e editável',
+  jsonb_array_length(meus_treinos()) = 1
+  and (meus_treinos() -> 0 ->> 'origem') = 'paciente'
+  and (meus_treinos() -> 0 ->> 'podeEditar')::boolean);
 
 select salvar_treino((meu_treino() ->> 'id')::uuid, null, 'De volta ao meu', null, true,
   jsonb_build_array(jsonb_build_object('nome', 'Afundo', 'seriesPlanejadas', '3')));
@@ -262,6 +269,39 @@ select teste('ela registra a sessão contra o treino que ela mesma escreveu',
   jsonb_array_length(sessoes_de_treino()) = 1);
 select teste('e a série ficou ligada ao exercício do treino dela',
   (sessoes_de_treino() -> 0 -> 'series' -> 0 ->> 'exercicioNome') = 'Supino');
+commit;
+
+-- -----------------------------------------------------------------------------
+-- Treino GUARDADO da profissional não vira treino da paciente
+--
+-- Sem plano ativo, a paciente pode escrever. Mas um treino que a
+-- profissional montou e deixou desativado continua sendo da profissional:
+-- salvar por cima dele, sabendo o id, tem de ser recusado. Na versão 0076
+-- isto passava, e o treino saía marcado como escrito pela paciente.
+-- -----------------------------------------------------------------------------
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+select salvar_treino(null, carla(), 'Guardado da nutri', null, false,
+  jsonb_build_array(jsonb_build_object('nome', 'Stiff', 'seriesPlanejadas', '3')));
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-000000007a01', true);
+select teste('ela não salva por cima de um treino guardado da profissional',
+  estado_de(format('select salvar_treino(%L, null, ''Agora é meu'', null, true, ''[]''::jsonb)',
+    treino_de(carla(), 'nutricionista'))) = '42501');
+select teste('nem apaga',
+  estado_de(format('select excluir_treino(%L)', treino_de(carla(), 'nutricionista'))) = '42501');
+select teste('e o treino dela continua sendo o que ela escreveu',
+  (meu_treino() ->> 'nome') = 'Rotina');
+commit;
+
+begin;
+select teste('o treino guardado continua da profissional, com o nome que ela deu',
+  (select origem || ' · ' || nome from treinos where id = treino_de(carla(), 'nutricionista'))
+  = 'nutricionista · Guardado da nutri');
 commit;
 
 -- -----------------------------------------------------------------------------

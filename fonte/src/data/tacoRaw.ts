@@ -8,6 +8,22 @@
  * exatamente os mesmos 591 valores sem risco de erro de transcrição.
  * A forma tipada (`Alimento[]`) usada pelo resto do app é derivada disto
  * em `./taco.ts` — não importe este arquivo fora dali.
+ *
+ * A TACO tem 597 códigos; aqui há 591, e os seis que faltam faltam DE
+ * PROPÓSITO, porque a própria tabela não publica energia nem macronutrientes
+ * para eles:
+ *
+ *   450  Iogurte, sabor abacaxi           ("*" — valor em reavaliação)
+ *   457  Leite, de vaca, desnatado, UHT   ("*")
+ *   458  Leite, de vaca, integral         ("*")
+ *   591  Coco, verde, cru                 ("*")
+ *   516  Sal, dietético                   ("NA" — não se aplica)
+ *   517  Sal, grosso                      ("NA")
+ *
+ * Não preencha esses valores com outra fonte dentro desta base: um número de
+ * rótulo ou de outra tabela aqui dentro passaria a constar como "TACO".
+ * Leite integral e desnatado, se forem necessários, entram como alimento à
+ * parte, com a fonte escrita ao lado.
  */
 export type LinhaTaco = [
   codigo: number,
