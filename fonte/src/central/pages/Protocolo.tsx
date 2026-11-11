@@ -20,6 +20,7 @@ import {
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { abrirImpressao } from "@/central/utils/impressao";
 
 /**
  * O protocolo alimentar — a tela mais aberta do aplicativo.
@@ -90,6 +91,7 @@ export function Protocolo() {
   // depois do toque fazia o aparelho ignorar o pedido, e o botão ficava
   // apagado sem nada acontecer.
   const [pdfPronto, definirPdfPronto] = useState(false);
+  const [pediuPdf, definirPediuPdf] = useState(false);
 
   // A conversa por refeição: qual está aberta, e as "não lidas" de cada uma.
   const [conversa, definirConversa] = useState<RefeicaoProtocolo | null>(null);
@@ -185,7 +187,10 @@ export function Protocolo() {
                   type="button"
                   className="c-prot-acao"
                   disabled={!pdfPronto}
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    abrirImpressao();
+                    definirPediuPdf(true);
+                  }}
                 >
                   <Icone nome="documentos" tamanho={17} />
                   {pdfPronto ? "Baixar em PDF" : "Preparando…"}
@@ -199,6 +204,18 @@ export function Protocolo() {
                   </button>
                 )}
               </div>
+              {/* Depois do toque, e só depois: o caminho de reserva. Não dá
+                  para saber, de dentro da página, se a tela de salvar abriu —
+                  então a frase é condicional, e leva ao mesmo PDF. */}
+              {pediuPdf && (
+                <p className="c-prot-capa-reserva" role="status">
+                  Se a tela de salvar não abrir, o mesmo PDF está em{" "}
+                  <button type="button" onClick={() => navegar(rotas.documentos)}>
+                    Meus documentos
+                  </button>
+                  .
+                </p>
+              )}
             </header>
 
             {estado === "sem-rede" && (

@@ -11,6 +11,7 @@ import {
 import { hojeSaoPaulo } from "@/central/utils/situacao";
 import { AreaTexto, Campo, Selecao } from "./componentes/Campos";
 import { Esqueleto } from "@/central/components/Esqueleto";
+import { abrirImpressao } from "@/central/utils/impressao";
 
 /**
  * O placar de cada mês, para a nutricionista.
@@ -157,7 +158,7 @@ function PlacarParaComunidade({
         };
         const prazo = setTimeout(limpar, 60_000);
         window.addEventListener("afterprint", limpar);
-        window.print();
+        abrirImpressao();
       });
     });
   }

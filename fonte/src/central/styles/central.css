@@ -1964,6 +1964,24 @@ textarea.c-campo:focus {
   cursor: default;
 }
 
+.c-prot-capa-reserva {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  opacity: 0.9;
+}
+
+.central .c-prot-capa-reserva button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--marca-marfim);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
 .c-prot-offline {
   margin: 12px 0 0;
   font-size: 13px;

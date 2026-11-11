@@ -44,6 +44,7 @@ import { hojeSaoPaulo, dataBonita as diaBonito } from "@/central/utils/situacao"
 import { reduzirFoto } from "@/central/utils/reduzirFoto";
 import { calcularTudo } from "@/central/utils/calculosAntropometricos";
 import { energiaEMacros } from "@/central/utils/calculoEnergia";
+import { abrirImpressao } from "@/central/utils/impressao";
 
 /**
  * Protocolo alimentar — área da nutricionista.
@@ -305,7 +306,7 @@ function EditorDoProtocolo({
         };
         const prazo = setTimeout(limpar, 60_000);
         window.addEventListener("afterprint", limpar);
-        window.print();
+        abrirImpressao();
       });
     });
   }
