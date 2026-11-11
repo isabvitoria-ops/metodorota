@@ -33,7 +33,12 @@ import {
   textoDaMarcacao,
   textoDosSintomas,
 } from "@/central/utils/reintroducao";
-import { frequenciaDeSintomas, numerosDoRastreio, resumoPorAlimento } from "@/central/utils/resumoDoRastreio";
+import {
+  frequenciaDeSintomas,
+  numerosDoRastreio,
+  resumoPorAlimento,
+  type LinhaPorAlimento,
+} from "@/central/utils/resumoDoRastreio";
 import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { Campo, Selecao, Texto, AreaTexto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
@@ -53,7 +58,9 @@ import { Esqueleto } from "@/central/components/Esqueleto";
  * calcula "tolerância". A leitura clínica é dela — o aplicativo só organiza o
  * que a paciente escreveu para que essa leitura seja possível.
  */
-const ABAS = ["Resumo", "Linha do tempo", "Lista da paciente", "Acompanhamento"] as const;
+// A última aba chamava-se "Acompanhamento" e guardava uma coisa só: o recado
+// que a paciente lê no alto da tela dela. O nome agora diz o que tem dentro.
+const ABAS = ["Resumo", "Linha do tempo", "Lista da paciente", "Recado"] as const;
 type Aba = (typeof ABAS)[number];
 
 export function RastreabilidadeAdmin() {
@@ -315,6 +322,7 @@ function PainelDaPaciente({
         <ListaDaPaciente
           paciente={paciente}
           itens={dados?.itens ?? []}
+          registros={dados?.registros ?? []}
           material={material}
           ocupado={ocupado}
           aoMudar={comRecarga}
@@ -335,7 +343,7 @@ function PainelDaPaciente({
         />
       )}
 
-      {aba === "Acompanhamento" && (
+      {aba === "Recado" && (
         <Acompanhamento
           paciente={paciente}
           inicio={dados?.inicio ?? null}
@@ -1168,9 +1176,12 @@ function LinhaDoTempo({ dados }: { dados: ReturnType<typeof useReintroducao>["da
 
 // ----------------------------------------------------------- lista e status
 
+type FiltroDaLista = "todos" | "classificar" | "com" | "sem";
+
 function ListaDaPaciente({
   paciente,
   itens,
+  registros,
   material,
   ocupado,
   aoMudar,
@@ -1178,11 +1189,27 @@ function ListaDaPaciente({
 }: {
   paciente: Paciente;
   itens: ItemDeReintroducao[];
+  registros: RegistroDeReintroducao[];
   material: AlimentoDoMaterial[];
   ocupado: boolean;
   aoMudar: (acao: () => Promise<void>) => Promise<boolean>;
   aoLancar: (alimento?: string) => void;
 }) {
+  // O que foi registrado em cada alimento, para ela classificar com o dado
+  // na frente — e não de memória, ou indo e voltando da linha do tempo.
+  const resumo = new Map(resumoPorAlimento(itens, registros).map((l) => [l.itemId, l]));
+  const aClassificar = (i: ItemDeReintroducao) =>
+    resumo.has(i.id) && (i.status === "nao_iniciado" || i.status === "em_teste");
+  const [filtro, definirFiltro] = useState<FiltroDaLista>("todos");
+  const filtros: { chave: FiltroDaLista; rotulo: string; quantos: number }[] = [
+    { chave: "todos", rotulo: "Todos", quantos: itens.length },
+    { chave: "classificar", rotulo: "A classificar", quantos: itens.filter(aClassificar).length },
+    { chave: "com", rotulo: "Com registro", quantos: itens.filter((i) => resumo.has(i.id)).length },
+    { chave: "sem", rotulo: "Sem registro", quantos: itens.filter((i) => !resumo.has(i.id)).length },
+  ];
+  const visiveis = itens.filter((i) =>
+    filtro === "todos" ? true : filtro === "classificar" ? aClassificar(i) : filtro === "com" ? resumo.has(i.id) : !resumo.has(i.id),
+  );
   const [adicionando, definirAdicionando] = useState(false);
   const [classificando, definirClassificando] = useState<ItemDeReintroducao | null>(null);
   const [ligando, definirLigando] = useState<ItemDeReintroducao | null>(null);
@@ -1236,9 +1263,37 @@ function ListaDaPaciente({
         </p>
       )}
 
+      {itens.length > 0 && (
+        <div className="c-chips" style={{ marginBottom: 12 }}>
+          {filtros.map((f) => (
+            <button
+              key={f.chave}
+              type="button"
+              className="c-chip"
+              aria-pressed={filtro === f.chave}
+              onClick={() => definirFiltro(f.chave)}
+            >
+              {f.rotulo} ({f.quantos})
+            </button>
+          ))}
+        </div>
+      )}
+
+      {itens.length > 0 && visiveis.length === 0 && (
+        <p className="c-contagem">
+          {filtro === "classificar"
+            ? "Nada para classificar agora: todo alimento com registro já tem a sua leitura."
+            : "Nenhum alimento neste filtro."}
+        </p>
+      )}
+
       <div className="c-acoes">
-        {itens.map((item) => {
+        {visiveis.map((item) => {
           const info = infoStatus(item.status);
+          const linha = resumo.get(item.id);
+          // "Não iniciado" ao lado de "2 registros" é a tela se contradizendo.
+          const rotuloDoStatus =
+            item.status === "nao_iniciado" && linha ? infoStatus("em_teste").rotulo : info.rotulo;
           return (
             <article className="c-acao" key={item.id}>
               <div className="c-acao-topo">
@@ -1277,29 +1332,48 @@ function ListaDaPaciente({
                   )}
                   {item.notaNutri && <span className="c-acao-descricao">"{item.notaNutri}"</span>}
                 </span>
-                <span className={`c-selo ${seloDoTom(info.tom)}`}>{info.rotulo}</span>
+                <span className={`c-selo ${seloDoTom(info.tom)}`}>{rotuloDoStatus}</span>
               </div>
+              {linha && (
+                <p className="c-ras-lista-conta">
+                  <span
+                    className={`c-selo ${linha.escada.tom === "bom" ? "melhor" : linha.escada.tom === "atencao" ? "boa" : "ocasional"}`}
+                  >
+                    Pela conta: {linha.escada.rotulo}
+                  </span>
+                  <span>
+                    {linha.comSintoma === 0
+                      ? `Sem sintoma em ${linha.testes} ${linha.testes === 1 ? "teste" : "testes"}`
+                      : `${linha.comSintoma} de ${linha.testes} com sintoma · ${linha.sintomas.map((x) => x.rotulo).join(", ")}`}
+                  </span>
+                </p>
+              )}
               <div className="c-acao-estado">
                 {/* Primeiro botão de cada alimento, e de propósito: ela
                     disse "eu sei que ela não vai fazer", então registrar
                     pela paciente é o caminho comum, não a exceção. Clicar
                     no alimento e lançar o sintoma dele é o que ela tentou
                     fazer sozinha antes de me perguntar. */}
+                {/* O botão cheio é o próximo passo DESTE alimento: classificar,
+                    quando há registro esperando a leitura dela; lançar
+                    registro, quando ainda não há nada. Antes "Registrar
+                    sintoma" era o cheio em todos, e a classificação — que é o
+                    trabalho dela aqui — ficava sempre em segundo plano. */}
                 <button
                   type="button"
-                  className="c-botao c-botao-pequeno"
-                  disabled={ocupado}
-                  onClick={() => aoLancar(`item:${item.id}`)}
-                >
-                  Registrar sintoma
-                </button>
-                <button
-                  type="button"
-                  className="c-botao c-botao-secundario c-botao-pequeno"
+                  className={`c-botao c-botao-pequeno${aClassificar(item) ? "" : " c-botao-secundario"}`}
                   disabled={ocupado}
                   onClick={() => definirClassificando(item)}
                 >
-                  Classificar
+                  {aClassificar(item) ? "Classificar" : linha ? "Rever classificação" : "Classificar"}
+                </button>
+                <button
+                  type="button"
+                  className={`c-botao c-botao-pequeno${linha ? " c-botao-secundario" : ""}`}
+                  disabled={ocupado}
+                  onClick={() => aoLancar(`item:${item.id}`)}
+                >
+                  Lançar registro
                 </button>
                 {item.doCatalogo ? (
                   // Só onde há ligação feita por ela para desfazer. Num
@@ -1334,7 +1408,7 @@ function ListaDaPaciente({
                   disabled={ocupado}
                   onClick={() => definirMarcando(item)}
                 >
-                  {item.marcacaoDaNutri ? "Editar marcação" : "Marcar por mim"}
+                  {item.marcacaoDaNutri ? "Editar marcadores" : "Definir marcadores"}
                 </button>
                 {item.totalDeRegistros === 0 && (
                   <button
@@ -1367,6 +1441,7 @@ function ListaDaPaciente({
       {classificando && (
         <ModalClassificar
           item={classificando}
+          linha={resumo.get(classificando.id) ?? null}
           aoFechar={() => definirClassificando(null)}
           aoSalvar={aoMudar}
         />
@@ -1562,16 +1637,20 @@ function ModalAdicionar({
 /** A classificação é dela. Nenhum destes valores sai de uma conta automática. */
 function ModalClassificar({
   item,
+  linha,
   aoFechar,
   aoSalvar,
 }: {
   item: ItemDeReintroducao;
+  /** O que foi registrado neste alimento; nulo se ainda não há registro. */
+  linha: LinhaPorAlimento | null;
   aoFechar: () => void;
   aoSalvar: (acao: () => Promise<void>) => Promise<boolean>;
 }) {
   const [status, definirStatus] = useState<StatusReintroducao>(item.status);
   const [nota, definirNota] = useState(item.notaNutri ?? "");
   const [salvando, definirSalvando] = useState(false);
+  const [falhou, definirFalhou] = useState(false);
 
   return (
     <Modal titulo={item.nome} aoFechar={aoFechar}>
@@ -1580,16 +1659,58 @@ function ModalClassificar({
         material lembra que a quantidade costuma ser o que muda a resposta.
       </p>
 
-      <Campo rotulo="Como está este alimento para ela">
-        <Selecao
-          valor={status}
-          aoMudar={definirStatus}
-          opcoes={STATUS.map((s) => ({ valor: s.chave, rotulo: s.rotulo }))}
-        />
-      </Campo>
+      {/* O registro na frente de quem classifica. */}
+      <div className="c-ras-evidencia">
+        {linha ? (
+          <>
+            <p>
+              <strong>
+                {linha.testes} {linha.testes === 1 ? "teste" : "testes"}
+              </strong>
+              {linha.dias !== linha.testes ? ` em ${linha.dias} ${linha.dias === 1 ? "dia" : "dias"}` : ""} ·{" "}
+              {linha.comSintoma === 0 ? "nenhum com sintoma" : `${linha.comSintoma} com sintoma`} · último em{" "}
+              {dataBonita(linha.ultimo)}
+            </p>
+            {linha.sintomas.length > 0 && (
+              <p>
+                {linha.sintomas.map((x) => (x.vezes > 1 ? `${x.rotulo} (${x.vezes}×)` : x.rotulo)).join(", ")}
+                {linha.intensidadeMaxima !== null ? ` · intensidade até ${linha.intensidadeMaxima}/10` : ""}
+              </p>
+            )}
+            <p>
+              Pela conta de pontos: <strong>{linha.escada.rotulo}</strong>
+            </p>
+          </>
+        ) : (
+          <p>Ela ainda não registrou este alimento.</p>
+        )}
+      </div>
+
+      <div className="c-campo">
+        <span className="c-rotulo">Como está este alimento para ela</span>
+        <div className="c-chips" role="group" aria-label="Classificação do alimento">
+          {STATUS.map((s) => (
+            <button
+              key={s.chave}
+              type="button"
+              className="c-chip"
+              aria-pressed={status === s.chave}
+              onClick={() => definirStatus(s.chave)}
+            >
+              {s.rotulo}
+            </button>
+          ))}
+        </div>
+      </div>
       <Campo rotulo="Recado (a paciente vê)" dica="Opcional.">
         <AreaTexto valor={nota} aoMudar={definirNota} linhas={2} />
       </Campo>
+
+      {falhou && (
+        <div className="c-aviso c-aviso-erro" role="alert">
+          <span>Não consegui salvar a classificação. Feche esta janela para ver o motivo, ou tente de novo.</span>
+        </div>
+      )}
 
       <div className="c-modal-acoes">
         <button type="button" className="c-botao c-botao-secundario" onClick={aoFechar}>
@@ -1601,11 +1722,15 @@ function ModalClassificar({
           disabled={salvando}
           onClick={() => {
             definirSalvando(true);
+            definirFalhou(false);
             void aoSalvar(() =>
               repositorio.definirStatusReintroducao(item.id, status, nota.trim() || null),
             ).then((deuCerto) => {
               definirSalvando(false);
               if (deuCerto) aoFechar();
+              // O motivo aparece na tela de trás, coberta por esta janela:
+              // sem este aviso aqui, parecia que o botão não tinha feito nada.
+              else definirFalhou(true);
             });
           }}
         >
@@ -1831,7 +1956,7 @@ function Acompanhamento({
           ).then((deuCerto) => definirFeito(deuCerto));
         }}
       >
-        Salvar acompanhamento
+        Salvar recado
       </button>
     </>
   );
