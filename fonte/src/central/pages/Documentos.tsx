@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import type { ConteudoProtocolo, MinhaAvaliacao, Protocolo } from "@/central/types/protocolo";
 import type { ItemDeReintroducao, RegistroDeReintroducao } from "@/central/types";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
@@ -13,6 +14,7 @@ import { rotas } from "@/central/rotas";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { abrirImpressao } from "@/central/utils/impressao";
+import { pedidoDePdf } from "@/central/utils/pedidoDePdf";
 
 /**
  * Meus documentos — a central de onde saem os PDFs.
@@ -37,6 +39,12 @@ import { abrirImpressao } from "@/central/utils/impressao";
  */
 type Qual = "protocolo" | "avaliacao" | "rastreio";
 
+const NOME_DO_DOCUMENTO: Record<Qual, string> = {
+  protocolo: "Protocolo Alimentar",
+  avaliacao: "Avaliação Física",
+  rastreio: "Rastreabilidade Alimentar",
+};
+
 interface Dados {
   protocolo: Protocolo | null;
   conteudo: ConteudoProtocolo | null;
@@ -52,6 +60,13 @@ export function Documentos() {
   const [carregando, definirCarregando] = useState(true);
   const [imprimindo, definirImprimindo] = useState<Qual | null>(null);
   const [fotos, definirFotos] = useState<Record<string, string>>({});
+  // O pedido que veio de outra tela ("Baixar em PDF" no protocolo ou na
+  // avaliação). Lido UMA vez, na chegada: voltar a esta tela ou recarregar
+  // não abre a tela de imprimir de novo.
+  const local = useLocation();
+  const navegar = useNavigate();
+  const [pedido] = useState<Qual | null>(() => pedidoDePdf(local.state));
+  const pedidoCumprido = useRef(false);
 
   useEffect(() => {
     let vivo = true;
@@ -121,6 +136,25 @@ export function Documentos() {
     });
   }
 
+  // Cumpre o pedido assim que os dados chegam — pelo MESMO `gerar` do botão
+  // desta tela, que é o caminho que abre a tela de salvar no iPhone. Se o
+  // aparelho não abrir sozinho, o cartão fica destacado com o botão ao lado.
+  const podeCumprir =
+    !carregando &&
+    pedido !== null &&
+    ((pedido === "protocolo" && Boolean(dados?.conteudo && dados.conteudo.refeicoes.length > 0)) ||
+      (pedido === "avaliacao" && Boolean(dados?.avaliacao)) ||
+      (pedido === "rastreio" && (dados?.registros.length ?? 0) > 0));
+  useEffect(() => {
+    if (!podeCumprir || pedido === null || pedidoCumprido.current) return;
+    pedidoCumprido.current = true;
+    // Tira o pedido do histórico: o "voltar" do aparelho não deve repeti-lo.
+    navegar(".", { replace: true, state: null });
+    void gerar(pedido);
+    // `gerar` lê `dados`, que já chegou quando `podeCumprir` vira verdadeiro.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [podeCumprir, pedido]);
+
   const paciente = acesso.nome ?? "Paciente";
   const nutri = configuracoes.nomeNutricionista;
 
@@ -151,7 +185,16 @@ export function Documentos() {
 
         {!carregando && (
           <>
+            {pedido && podeCumprir && (
+              <div className="c-aviso c-aviso-ok c-doc-pedido" role="status">
+                <span>
+                  Abrindo o PDF de <strong>{NOME_DO_DOCUMENTO[pedido]}</strong>. Se a tela de salvar não aparecer,
+                  toque em “Gerar PDF” logo abaixo.
+                </span>
+              </div>
+            )}
             <Cartao
+              destaque={pedido === "protocolo"}
               icone="lista"
               titulo="Protocolo Alimentar"
               descricao={
@@ -163,6 +206,7 @@ export function Documentos() {
               aoGerar={() => void gerar("protocolo")}
             />
             <Cartao
+              destaque={pedido === "avaliacao"}
               icone="balanca"
               titulo="Avaliação Física"
               descricao={
@@ -174,6 +218,7 @@ export function Documentos() {
               aoGerar={() => void gerar("avaliacao")}
             />
             <Cartao
+              destaque={pedido === "rastreio"}
               icone="folha"
               titulo="Rastreabilidade Alimentar"
               descricao={
@@ -234,7 +279,10 @@ function Cartao({
   descricao,
   disponivel,
   aoGerar,
+  destaque = false,
 }: {
+  /** Veio de outra tela pedindo este documento: o cartão fica marcado. */
+  destaque?: boolean;
   icone: string;
   titulo: string;
   descricao: string;
@@ -242,7 +290,7 @@ function Cartao({
   aoGerar: () => void;
 }) {
   return (
-    <div className={`c-bloco c-doc-cartao${disponivel ? "" : " c-doc-vazio"}`}>
+    <div className={`c-bloco c-doc-cartao${disponivel ? "" : " c-doc-vazio"}${destaque && disponivel ? " c-doc-destaque" : ""}`}>
       <div className="c-doc-linha">
         <span className="c-atalho-icone">
           <Icone nome={icone} tamanho={20} />

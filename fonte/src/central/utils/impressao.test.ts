@@ -2,36 +2,12 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { abrirImpressao } from "./impressao.ts";
 
-function alvo(execCommand: () => boolean) {
-  const chamadas: string[] = [];
-  return {
-    chamadas,
-    documento: {
-      execCommand: (comando: string) => {
-        chamadas.push(`comando:${comando}`);
-        return execCommand();
-      },
-    },
-    janela: { print: () => void chamadas.push("window.print") },
-  };
-}
-
-test("impressão: onde o comando abre a tela, o window.print não é chamado (não abre duas vezes)", () => {
-  const a = alvo(() => true);
-  abrirImpressao(a);
-  assert.deepEqual(a.chamadas, ["comando:print"]);
-});
-
-test("impressão: onde o comando não existe, o window.print assume", () => {
-  const a = alvo(() => false);
-  abrirImpressao(a);
-  assert.deepEqual(a.chamadas, ["comando:print", "window.print"]);
-});
-
-test("impressão: comando que estoura também cai no window.print", () => {
-  const a = alvo(() => {
-    throw new Error("não suportado");
-  });
-  abrirImpressao(a);
-  assert.deepEqual(a.chamadas, ["comando:print", "window.print"]);
+// Este teste existe por causa de um defeito que foi ao ar: trocar o
+// `window.print()` pelo comando de edição "print" fez o iPhone parar de abrir
+// a tela de salvar em TODOS os PDFs. A função chama `window.print()`, uma vez,
+// e nada além dele.
+test("impressão: chama window.print uma vez, e só ele", () => {
+  let vezes = 0;
+  abrirImpressao({ print: () => void (vezes += 1) });
+  assert.equal(vezes, 1);
 });

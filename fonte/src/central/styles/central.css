@@ -1964,24 +1964,6 @@ textarea.c-campo:focus {
   cursor: default;
 }
 
-.c-prot-capa-reserva {
-  margin: 12px 0 0;
-  font-size: 13px;
-  line-height: 1.45;
-  opacity: 0.9;
-}
-
-.central .c-prot-capa-reserva button {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--marca-marfim);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  cursor: pointer;
-}
-
 .c-prot-offline {
   margin: 12px 0 0;
   font-size: 13px;
@@ -4915,6 +4897,15 @@ textarea.c-campo:focus {
 /* O documento que ainda não existe fica visível e apagado, em vez de sumir:
    ver que ele vai existir é informação — some, e a paciente acha que o
    aplicativo não tem. */
+.c-doc-destaque {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--marca-gelo);
+}
+
+.c-doc-pedido {
+  margin-bottom: 12px;
+}
+
 .c-doc-vazio {
   opacity: 0.62;
 }
