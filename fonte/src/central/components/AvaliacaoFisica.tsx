@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MinhaAvaliacao } from "@/central/types/protocolo";
 import { repositorio } from "@/central/dados/repositorio";
-import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { useNavigate } from "react-router-dom";
+import { rotas } from "@/central/rotas";
 import { dataBonita } from "@/central/utils/situacao";
 import type { AvaliacaoNoTempo, ChaveDeSerie, SerieParaDesenhar } from "@/central/utils/evolucaoAvaliacoes";
 import {
@@ -12,11 +13,10 @@ import {
   tabelaDeMedidas,
   variacaoRecente,
 } from "@/central/utils/evolucaoAvaliacoes";
-import { DocumentoAvaliacao } from "@/central/components/DocumentoAvaliacao";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { Icone } from "@/central/components/Icone";
-import { abrirImpressao } from "@/central/utils/impressao";
+import { pedirPdf } from "@/central/utils/pedidoDePdf";
 
 /**
  * A avaliação física da paciente, e a evolução dela no tempo.
@@ -40,7 +40,7 @@ import { abrirImpressao } from "@/central/utils/impressao";
  *   * não fala de bioimpedância. Ela não faz, e o app não inventa exame.
  */
 export function AvaliacaoFisica() {
-  const { acesso } = useSessao();
+  const navegar = useNavigate();
   const [avaliacao, definirAvaliacao] = useState<MinhaAvaliacao | null>(null);
   // "sem-rede" é diferente de "não tem avaliação": dizer "ainda não foi
   // lançada" quando só a internet caiu faria ela achar que a avaliação sumiu.
@@ -118,7 +118,7 @@ export function AvaliacaoFisica() {
           <button
             type="button"
             className="c-prot-acao"
-            onClick={() => abrirImpressao()}
+            onClick={() => navegar(rotas.documentos, { state: pedirPdf("avaliacao") })}
           >
             <Icone nome="documentos" tamanho={17} />
             Baixar em PDF
@@ -149,10 +149,6 @@ export function AvaliacaoFisica() {
         Medidas feitas e calculadas pela sua nutricionista. Os números mostram onde você está
         hoje — o que eles significam para você é conversa de consulta.
       </p>
-
-      {/* O documento fica montado fora da tela, pronto: no iPhone a tela de
-          imprimir só abre se for chamada na hora do toque. */}
-      <DocumentoAvaliacao paciente={acesso.nome ?? "Paciente"} avaliacao={avaliacao} />
     </>
   );
 }
