@@ -218,6 +218,10 @@
   .doc-capa-inteira .doc-marca {
     height: 16mm !important;
     margin-bottom: 0;
+    /* A capa inteira é uma coluna que estica os filhos na largura. Sem isto,
+       a logo ocupava a largura toda com 16 mm de altura — esticada quatro
+       vezes, que é exatamente o que a marca proíbe. */
+    align-self: flex-start;
   }
 
   .doc-capa-inteira .doc-nome {
