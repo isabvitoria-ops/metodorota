@@ -173,7 +173,7 @@ export function HotSlimReintroducao() {
 
       <div className="hs-dica" style={{ marginBottom: 20 }}>
         <strong>Atenção:</strong> Após os 6 dias de repouso, começa a reintrodução guiada.
-        Cada semana libera novos alimentos. Sua nutricionista desbloqueia as fases conforme
+        Cada semana libera novos alimentos. Sua nutricionista libera as fases conforme
         seu progresso.
       </div>
 

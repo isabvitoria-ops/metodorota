@@ -118,7 +118,7 @@ export interface Desafio {
  *
  * `pontosNoMes` e `saldoAcumulado` são coisas diferentes de propósito: o
  * primeiro alimenta o ranking do mês, o segundo é o saldo do programa, que
- * não expira e não diminui quando uma recompensa é alcançada.
+ * não diminui quando uma recompensa é alcançada — só na limpeza de 6 em 6 meses.
  */
 export interface MeuDesafio {
   temDesafio: boolean;

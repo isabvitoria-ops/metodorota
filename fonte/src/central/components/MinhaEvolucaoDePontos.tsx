@@ -10,8 +10,8 @@ import { hojeSaoPaulo } from "@/central/utils/situacao";
  * gráfico de zeros dizendo que ela não fez nada.
  *
  * Em cima, a frase do mês que acabou (pontos e posição), para ela saber por que
- * recebe o presente. Mostra o mês atual e os 6 anteriores. Os pontos mais antigos continuam no
- * saldo; só saem desta lista.
+ * recebe o presente. Mostra o mês atual e os 6 anteriores. Os pontos mais antigos saem desta
+ * lista sozinhos; do saldo, saem quando a nutricionista faz a limpeza de 6 em 6 meses.
  */
 export function MinhaEvolucaoDePontos() {
   const [meses, definirMeses] = useState<MesDaMinhaEvolucao[]>([]);
@@ -48,7 +48,7 @@ export function MinhaEvolucaoDePontos() {
           </div>
         ))}
       </div>
-      <p className="c-dica">Pontos que você fez em cada mês. O saldo acumulado continua somando tudo.</p>
+      <p className="c-dica">Pontos que você fez em cada mês, do atual aos 6 anteriores.</p>
     </section>
   );
 }
