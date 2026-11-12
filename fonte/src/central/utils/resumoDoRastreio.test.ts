@@ -32,11 +32,12 @@ test("por alimento: testes, dias, sintomas, intensidade máxima e a escada", () 
     { nome: "Pêra", testes: 3, dias: 3, comSintoma: 2, max: 7, ultimo: "2026-11-10" },
   );
   assert.deepEqual(pera?.sintomas.map((s) => [s.rotulo, s.vezes]), [["Gases", 2], ["Diarreia", 1]]);
-  // gases (1) + diarreia (2) = 3 pontos: a mesma conta que a paciente vê.
-  assert.equal(pera?.escada.rotulo, "Não tolerado");
+  // gases (1) + diarreia (2) = 3 pontos. Mas o último sintoma foi no dia 8 e
+  // depois dele veio um teste tranquilo: a conta não dá veredito, e a
+  // paciente vê "Rever na consulta" até a nutricionista classificar.
   assert.equal(pera?.escada.pontos, 3);
-  // O último sintoma foi no dia 8; depois dele veio um teste tranquilo. É fato
-  // para a nutricionista reler — a escada continua "Não tolerado".
+  assert.equal(pera?.escada.rotulo, "Rever na consulta");
+  assert.equal(pera?.escada.tom, "atencao");
   assert.deepEqual(
     { ultimo: pera?.ultimoComSintoma, depois: pera?.semSintomaDepois },
     { ultimo: "2026-11-08", depois: 1 },

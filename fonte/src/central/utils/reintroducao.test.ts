@@ -670,3 +670,14 @@ test("conferir registro: sintoma sem nome e data futura não passam", async () =
   assert.equal(conferirRegistro({ ...base, teveSintoma: true, sintomas: ["outros"] }), null);
   assert.match(conferirRegistro({ ...base, data: "2026-11-11" }) ?? "", /ainda não chegou/);
 });
+
+// "Não tolerado" é o único estado vermelho, e só a nutricionista o dá: a
+// conta automática já usava o nome, mas a classificação dela só conseguia
+// abrandar. O sistema continua sem atribuir status por causa de sintoma.
+test("status: a nutricionista pode marcar Não tolerado, e é o único vermelho", () => {
+  const graves = STATUS.filter((s) => s.tom === "grave").map((s) => s.chave);
+  assert.deepEqual(graves, ["nao_tolerado"]);
+  const info = STATUS.find((s) => s.chave === "nao_tolerado");
+  assert.equal(info?.rotulo, "Não tolerado");
+  assert.equal(info?.paciente, "Não tolerado");
+});

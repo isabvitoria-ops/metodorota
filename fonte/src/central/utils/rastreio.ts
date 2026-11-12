@@ -19,15 +19,23 @@ import { rotuloSintoma, temSintoma } from "./reintroducao";
 export function fraseDo(registros: RegistroDeReintroducao[]): string {
   const comSintoma = registros.filter(temSintoma);
   if (comSintoma.length === 0) return "Sem sintomas observados.";
+  const depois = depoisDoUltimoSintoma(registros).semSintomaDepois > 0;
 
   const sintomas = [...new Set(comSintoma.flatMap((r) => r.sintomas.filter((s) => s !== "nenhum")))];
-  if (sintomas.length === 0) return "Você relatou desconforto após o consumo.";
+  if (sintomas.length === 0) {
+    return depois
+      ? "Você relatou desconforto em um teste anterior. No último teste, ficou bem."
+      : "Você relatou desconforto após o consumo.";
+  }
 
   const nomes = sintomas.map((s) => rotuloSintoma(s).toLocaleLowerCase("pt-BR"));
   const lista =
     nomes.length === 1
       ? nomes[0]
       : `${nomes.slice(0, -1).join(", ")} e ${nomes[nomes.length - 1]}`;
+  // O último teste foi tranquilo: a frase conta as duas coisas, na ordem em
+  // que aconteceram. Dizer só o sintoma esconderia a parte boa.
+  if (depois) return `Seu corpo apresentou ${lista} em um teste anterior. No último teste, você ficou bem.`;
   return `Seu corpo apresentou ${lista} após o consumo.`;
 }
 
@@ -53,6 +61,22 @@ const PESO_DOBRADO = new Set(["diarreia", "urgencia", "nausea", "refluxo", "manc
  * Os dois exemplos dela batem: abacate só com gases dá 1 ponto (amarelo);
  * gases + distensão + diarreia dá 1+1+2 = 4 (vermelho). E uma diarreia
  * sozinha já vale 2 — fica amarelo, não verde.
+ *
+ * UMA EXCEÇÃO, decidida em 12/11 (ela deixou a decisão comigo): quando houve
+ * sintoma em testes anteriores e o ÚLTIMO teste foi sem sintoma nenhum, a
+ * conta não dá veredito — o alimento fica amarelo, como "Rever na consulta".
+ *
+ *   * Por quê: a soma nunca esquece. Um alimento que caiu mal uma vez
+ *     ficava "Não tolerado" para sempre, mesmo com os testes seguintes
+ *     tranquilos — o contrário do que o rastreio existe para mostrar.
+ *   * Por que não verde: um teste bom não desfaz um ruim. Pode ter sido a
+ *     quantidade, o preparo, o dia. Quem decide é a consulta.
+ *   * Por que sem número ("3 testes bons"): seria um limite clínico
+ *     inventado. "O último foi bom" é fato, não limite.
+ *
+ * A intensidade (1 a 10) continua fora da conta, como ela definiu em 17/09.
+ * E a classificação que a nutricionista dá ganha de tudo isto — inclusive
+ * "Não tolerado", que ela agora pode marcar.
  */
 export function classificar(registros: RegistroDeReintroducao[]): {
   tom: "bom" | "atencao" | "grave";
@@ -85,6 +109,8 @@ export function contaDaEscada(registros: RegistroDeReintroducao[]): {
   rotulo: string;
   pontos: number;
   parcelas: ParcelaDaEscada[];
+  /** Houve sintoma antes e o último teste foi tranquilo: sem veredito. */
+  emRevisao: boolean;
 } {
   const sintomas = new Set(
     registros.flatMap((r) => (temSintoma(r) ? r.sintomas.filter((x) => x !== "nenhum") : [])),
@@ -98,10 +124,16 @@ export function contaDaEscada(registros: RegistroDeReintroducao[]): {
     .sort((a, b) => b.peso - a.peso || a.rotulo.localeCompare(b.rotulo, "pt-BR"));
   const pontos = parcelas.reduce((soma, p) => soma + p.peso, 0);
 
-  if (pontos === 0) return { tom: "bom", rotulo: "Bem tolerado", pontos, parcelas };
-  if (pontos <= 2) return { tom: "atencao", rotulo: "Comer com atenção", pontos, parcelas };
-  return { tom: "grave", rotulo: "Não tolerado", pontos, parcelas };
+  if (pontos === 0) return { tom: "bom", rotulo: "Bem tolerado", pontos, parcelas, emRevisao: false };
+  if (depoisDoUltimoSintoma(registros).semSintomaDepois > 0) {
+    return { tom: "atencao", rotulo: ROTULO_EM_REVISAO, pontos, parcelas, emRevisao: true };
+  }
+  if (pontos <= 2) return { tom: "atencao", rotulo: "Comer com atenção", pontos, parcelas, emRevisao: false };
+  return { tom: "grave", rotulo: "Não tolerado", pontos, parcelas, emRevisao: false };
 }
+
+/** O selo de quando a conta não dá veredito. Sem gênero: há pacientes homens. */
+export const ROTULO_EM_REVISAO = "Rever na consulta";
 
 /** "4 pontos: Diarreia (2) + Distensão (1) + Gases (1)". Sem ponto, "0 ponto". */
 export function fraseDaConta(conta: { pontos: number; parcelas: ParcelaDaEscada[] }): string {

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type {
   ItemDeReintroducao,
   NovoRegistroDeReintroducao,
@@ -36,8 +36,7 @@ import { rotas } from "@/central/rotas";
 import { lerPreenchimento, type PreenchimentoDaRastreabilidade } from "@/central/utils/conversaDaRefeicao";
 import { normalizar } from "@/central/utils/texto";
 import { RastreioAlimentar } from "@/central/components/RastreioAlimentar";
-import { DocumentoRastreio } from "@/central/components/DocumentoRastreio";
-import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { pedirPdf } from "@/central/utils/pedidoDePdf";
 import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
@@ -59,7 +58,7 @@ import { Esqueleto } from "@/central/components/Esqueleto";
  */
 export function Rastreabilidade() {
   const { dados, carregando, erro, ocupado, comRecarga, definirErro } = useReintroducao();
-  const { acesso, configuracoes } = useSessao();
+  const navegar = useNavigate();
   /**
    * `false` fechado; `true` aberto sem alimento escolhido; um id quando ela
    * veio pelo atalho de um alimento da lista.
@@ -298,21 +297,16 @@ export function Rastreabilidade() {
         {/* ------------------------------------------------ o rastreio dela */}
         {aba === "rastreio" && (
           <section className="c-ras-painel">
-            <RastreioAlimentar itens={itens} registros={registros} />
+            {/* O PDF não é gerado nesta tela: no celular (iPhone e Android)
+                a tela de salvar não abria daqui. Sai por Meus documentos, o
+                mesmo caminho do protocolo e da avaliação. */}
+            <RastreioAlimentar
+              itens={itens}
+              registros={registros}
+              aoPedirPdf={() => navegar(rotas.documentos, { state: pedirPdf("rastreio") })}
+            />
           </section>
         )}
-
-        {/* O documento, que só existe no papel. Não é a tela impressa: tem
-            layout próprio, três tabelas, o mapa de tolerância e espaço para
-            os próximos testes. Fica montado em qualquer aba, para o PDF sair
-            inteiro. Ver `DocumentoRastreio`. */}
-        <DocumentoRastreio
-          paciente={acesso.nome ?? "Paciente"}
-          semana={dados?.semanaAtual ?? 1}
-          itens={itens}
-          registros={registros}
-          nutricionista={configuracoes.nomeNutricionista}
-        />
 
         {/* ----------------------------------------------------- histórico */}
         {aba === "historico" && (
@@ -517,9 +511,13 @@ const ABAS: { chave: Aba; rotulo: string }[] = [
   { chave: "historico", rotulo: "Histórico" },
 ];
 
+// As mesmas três cores do "Meu rastreio": verde, amarelo e vermelho. O
+// amarelo saía vermelho aqui, e o mesmo alimento mudava de cor de uma aba
+// para a outra.
 function seloDoTom(tom: string): string {
   if (tom === "bom") return "melhor";
-  if (tom === "atencao") return "ocasional";
+  if (tom === "atencao") return "boa";
+  if (tom === "grave") return "ocasional";
   return "neutro";
 }
 

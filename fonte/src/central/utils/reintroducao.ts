@@ -39,16 +39,22 @@ export function rotuloSintoma(chave: string): string {
 /**
  * Os estados possíveis de um alimento.
  *
- * Todos neutros, de propósito: o app mostra o que foi registrado, e quem
- * interpreta é a nutricionista. "Sintomas observados" é um registro do que
- * aconteceu — não é diagnóstico, e não vira exclusão.
+ * O app mostra o que foi registrado, e quem interpreta é a nutricionista.
+ * "Sintomas observados" é um registro do que aconteceu — não é diagnóstico,
+ * e não vira exclusão.
+ *
+ * "Não tolerado" entrou em 12/11: a conta automática já usava esse nome
+ * (regra dela de 17/09), mas a nutricionista não tinha como marcá-lo — a
+ * classificação dela só conseguia abrandar a conta, nunca firmar. É o único
+ * estado vermelho, e só existe pela mão dela: o sistema continua sem
+ * atribuir status nenhum por causa de sintoma.
  */
 export const STATUS: {
   chave: StatusReintroducao;
   rotulo: string;
   /** Como a paciente lê aquele estado, sem jargão e sem susto. */
   paciente: string;
-  tom: "neutro" | "bom" | "atencao" | "apagado";
+  tom: "neutro" | "bom" | "atencao" | "grave" | "apagado";
 }[] = [
   { chave: "nao_iniciado", rotulo: "Não iniciado", paciente: "Ainda não testei", tom: "neutro" },
   { chave: "em_teste", rotulo: "Em teste", paciente: "Em teste", tom: "neutro" },
@@ -65,6 +71,7 @@ export const STATUS: {
     paciente: "Sintomas registrados",
     tom: "atencao",
   },
+  { chave: "nao_tolerado", rotulo: "Não tolerado", paciente: "Não tolerado", tom: "grave" },
   {
     chave: "necessita_reavaliacao",
     rotulo: "Necessita reavaliação",
@@ -471,7 +478,7 @@ export function doMapaQueFaltam<T extends { id: string }>(
  */
 export function seloDoItem(item: { status: StatusReintroducao; totalDeRegistros: number }): {
   texto: string;
-  tom: "neutro" | "bom" | "atencao" | "apagado";
+  tom: "neutro" | "bom" | "atencao" | "grave" | "apagado";
 } {
   if (item.status === "nao_iniciado" && item.totalDeRegistros > 0) return { texto: "Em teste", tom: "neutro" };
   const info = status(item.status);

@@ -147,8 +147,54 @@ test("depois do último sintoma: conta os testes tranquilos que vieram depois", 
     ultimoComSintoma: "2026-09-01",
     semSintomaDepois: 3,
   });
-  // A regra dela não muda por causa disso: a escada continua somando tudo.
-  assert.equal(classificar(registros).tom, "grave");
+  // Os pontos continuam somados (a conta não esquece), mas com o último
+  // teste tranquilo ela não dá veredito.
+  const conta = contaDaEscada(registros);
+  assert.equal(conta.pontos, 3);
+  assert.equal(conta.emRevisao, true);
+  assert.deepEqual(classificar(registros), { tom: "atencao", rotulo: "Rever na consulta" });
+});
+
+// ---------------------------------------------------------------------------
+// Sintoma antes, último teste tranquilo: sem veredito (decisão de 12/11)
+// ---------------------------------------------------------------------------
+test("rever na consulta: nunca vira verde por causa de um teste bom", () => {
+  const registros = [em("2026-09-01", ["diarreia", "gases", "distensao"]), em("2026-09-08", ["nenhum"])];
+  const r = classificar(registros);
+  assert.notEqual(r.tom, "bom");
+  assert.equal(r.rotulo, "Rever na consulta");
+});
+
+test("rever na consulta: vale também para quem estava no amarelo", () => {
+  assert.deepEqual(classificar([em("2026-09-01", ["gases"]), em("2026-09-08", ["nenhum"])]), {
+    tom: "atencao",
+    rotulo: "Rever na consulta",
+  });
+});
+
+test("rever na consulta: sintoma no ÚLTIMO teste devolve o veredito da conta", () => {
+  const registros = [
+    em("2026-09-01", ["diarreia", "gases"]),
+    em("2026-09-08", ["nenhum"]),
+    em("2026-09-15", ["gases"]),
+  ];
+  assert.deepEqual(classificar(registros), { tom: "grave", rotulo: "Não tolerado" });
+  assert.equal(contaDaEscada(registros).emRevisao, false);
+});
+
+test("rever na consulta: a ordem é a das datas, não a da lista", () => {
+  // O teste tranquilo veio ANTES do sintoma: não há o que rever.
+  const registros = [em("2026-09-08", ["diarreia", "gases"]), em("2026-09-01", ["nenhum"])];
+  assert.equal(classificar(registros).rotulo, "Não tolerado");
+});
+
+test("frase: conta o sintoma de antes e o teste bom de depois, nessa ordem", () => {
+  assert.equal(
+    fraseDo([em("2026-09-01", ["gases", "diarreia"]), em("2026-09-08", ["nenhum"])]),
+    "Seu corpo apresentou gases e diarreia em um teste anterior. No último teste, você ficou bem.",
+  );
+  // Sem teste bom depois, a frase de sempre.
+  assert.equal(fraseDo([em("2026-09-01", ["gases"])]), "Seu corpo apresentou gases após o consumo.");
 });
 
 test("depois do último sintoma: teste tranquilo ANTES do sintoma não conta", () => {

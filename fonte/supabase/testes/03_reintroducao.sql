@@ -207,6 +207,30 @@ select teste('voltando para não iniciado',
     where id = current_setting('teste.brocolis')::uuid) = 'nao_iniciado');
 commit;
 
+-- "Não tolerado" (0094): só a nutricionista marca, e um status que não está
+-- na lista continua recusado. A classificação volta ao que era, para o resto
+-- da bateria não depender deste bloco.
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000a1', true);
+select definir_status_reintroducao(current_setting('teste.brocolis')::uuid, 'nao_tolerado', null);
+select teste('a nutricionista marca um alimento como não tolerado',
+  (select status from reintroducao_itens
+    where id = current_setting('teste.brocolis')::uuid) = 'nao_tolerado');
+select teste('um status fora da lista continua recusado',
+  recusou(format('select definir_status_reintroducao(%L, ''proibido'', null)',
+    current_setting('teste.brocolis'))));
+select definir_status_reintroducao(current_setting('teste.brocolis')::uuid, 'nao_iniciado', null);
+commit;
+
+begin;
+set local role authenticated;
+select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-0000000000e1', true);
+select teste('a paciente não marca "não tolerado" por conta própria',
+  recusou(format('select definir_status_reintroducao(%L, ''nao_tolerado'', null)',
+    current_setting('teste.brocolis'))));
+commit;
+
 -- Mas ela não desfaz uma classificação clínica da nutricionista.
 begin;
 set local role authenticated;
