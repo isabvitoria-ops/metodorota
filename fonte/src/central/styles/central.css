@@ -4897,6 +4897,41 @@ textarea.c-campo:focus {
 /* O documento que ainda não existe fica visível e apagado, em vez de sumir:
    ver que ele vai existir é informação — some, e a paciente acha que o
    aplicativo não tem. */
+.c-doc-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* O arquivo pronto ocupa a linha de baixo do cartão inteira: são os botões
+   que a pessoa veio buscar. */
+.c-doc-pronto {
+  flex: 1 1 100%;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.c-doc-pronto-titulo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--success);
+}
+
+.c-doc-recado {
+  flex: 1 1 100%;
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--danger);
+}
+
+.central a.c-botao {
+  text-decoration: none;
+}
+
 .c-doc-destaque {
   border-color: var(--primary);
   box-shadow: 0 0 0 2px var(--marca-gelo);

@@ -15,6 +15,8 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { abrirImpressao } from "@/central/utils/impressao";
 import { pedidoDePdf } from "@/central/utils/pedidoDePdf";
+import { gerarPdfDoDocumento } from "@/central/utils/pdf/gerarPdfDoDocumento";
+import { CRN_DA_NUTRICIONISTA, INSTAGRAM_DA_MARCA, TELEFONE_DA_MARCA } from "@/central/utils/marcaDosDocumentos";
 
 /**
  * Meus documentos — a central de onde saem os PDFs.
@@ -39,6 +41,49 @@ import { pedidoDePdf } from "@/central/utils/pedidoDePdf";
  */
 type Qual = "protocolo" | "avaliacao" | "rastreio";
 
+/**
+ * O arquivo PDF de um documento, do pedido até ficar pronto para salvar.
+ *
+ * O aplicativo MONTA o arquivo, em vez de abrir a tela de imprimir do
+ * aparelho: no iPhone, com o app instalado na tela inicial, essa tela não
+ * existe — o toque não fazia nada, em tela nenhuma.
+ */
+type Pdf =
+  | { qual: Qual; estado: "montando"; pagina: number; total: number }
+  | { qual: Qual; estado: "pronto"; arquivo: File; url: string }
+  | { qual: Qual; estado: "erro" };
+
+/** Espera o documento entrar na página (ele é montado em dois tempos). */
+function esperarDocumento(prazoMs = 4000): Promise<HTMLElement | null> {
+  return new Promise((resolver) => {
+    const inicio = Date.now();
+    const olhar = () => {
+      const folha = document.querySelector<HTMLElement>(".folha-documento");
+      if (folha?.querySelector(".doc")) return resolver(folha);
+      if (Date.now() - inicio > prazoMs) return resolver(null);
+      requestAnimationFrame(olhar);
+    };
+    olhar();
+  });
+}
+
+/** O aparelho sabe entregar um arquivo pela tela de compartilhar? */
+function podeCompartilhar(arquivo: File): boolean {
+  try {
+    return typeof navigator.share === "function" && navigator.canShare?.({ files: [arquivo] }) === true;
+  } catch {
+    return false;
+  }
+}
+
+/** App aberto pelo ícone da tela inicial: ali a tela de imprimir não existe. */
+function appInstalado(): boolean {
+  return (
+    window.matchMedia?.("(display-mode: standalone)").matches === true ||
+    (navigator as Navigator & { standalone?: boolean }).standalone === true
+  );
+}
+
 const NOME_DO_DOCUMENTO: Record<Qual, string> = {
   protocolo: "Protocolo Alimentar",
   avaliacao: "Avaliação Física",
@@ -60,6 +105,13 @@ export function Documentos() {
   const [carregando, definirCarregando] = useState(true);
   const [imprimindo, definirImprimindo] = useState<Qual | null>(null);
   const [fotos, definirFotos] = useState<Record<string, string>>({});
+  const [pdf, definirPdf] = useState<Pdf | null>(null);
+  // O endereço do arquivo pronto ocupa memória até ser solto.
+  const urlDoPdf = pdf?.estado === "pronto" ? pdf.url : null;
+  useEffect(() => {
+    if (!urlDoPdf) return;
+    return () => URL.revokeObjectURL(urlDoPdf);
+  }, [urlDoPdf]);
   // O pedido que veio de outra tela ("Baixar em PDF" no protocolo ou na
   // avaliação). Lido UMA vez, na chegada: voltar a esta tela ou recarregar
   // não abre a tela de imprimir de novo.
@@ -152,9 +204,44 @@ export function Documentos() {
     });
   }
 
-  // Cumpre o pedido assim que os dados chegam — pelo MESMO `gerar` do botão
-  // desta tela, que é o caminho que abre a tela de salvar no iPhone. Se o
-  // aparelho não abrir sozinho, o cartão fica destacado com o botão ao lado.
+  /**
+   * Monta o arquivo PDF do documento escolhido.
+   *
+   * O documento é montado na página (invisível), copiado e desenhado folha a
+   * folha — ver `gerarPdfDoDocumento`. Não precisa do toque da pessoa para
+   * começar: por isso o "Baixar em PDF" das outras telas pode trazer para cá
+   * e o arquivo já vai sendo montado. Entregar o arquivo, sim, é com um
+   * toque dela (os botões do cartão), que é o que o aparelho exige.
+   */
+  async function montarPdf(qual: Qual) {
+    if (pdf?.estado === "montando") return;
+    definirPdf({ qual, estado: "montando", pagina: 0, total: 0 });
+    try {
+      if (qual === "protocolo") definirFotos(await fotosDoProtocolo(dados?.conteudo ?? null));
+      definirImprimindo(qual);
+      const folha = await esperarDocumento();
+      if (!folha) throw new Error("O documento não ficou pronto.");
+      const nome = `${NOME_DO_DOCUMENTO[qual]} — ${acesso.nome ?? "Paciente"}`;
+      const blob = await gerarPdfDoDocumento({
+        folha,
+        titulo: nome,
+        assinatura: [
+          `${configuracoes.nomeNutricionista || "Isabela Marçal"} · Nutricionista`,
+          `${CRN_DA_NUTRICIONISTA} · ${INSTAGRAM_DA_MARCA} · ${TELEFONE_DA_MARCA}`,
+        ],
+        aoAvancar: (pagina, total) => definirPdf({ qual, estado: "montando", pagina, total }),
+      });
+      const arquivo = new File([blob], `${nome.replace(" — ", " - ")}.pdf`, { type: "application/pdf" });
+      definirPdf({ qual, estado: "pronto", arquivo, url: URL.createObjectURL(arquivo) });
+    } catch {
+      definirPdf({ qual, estado: "erro" });
+    } finally {
+      definirImprimindo(null);
+    }
+  }
+
+  // Cumpre o pedido que veio de outra tela assim que os dados chegam: o
+  // arquivo começa a ser montado sozinho, e o cartão fica destacado.
   const podeCumprir =
     !carregando &&
     pedido !== null &&
@@ -166,8 +253,8 @@ export function Documentos() {
     pedidoCumprido.current = true;
     // Tira o pedido do histórico: o "voltar" do aparelho não deve repeti-lo.
     navegar(".", { replace: true, state: null });
-    void gerar(pedido);
-    // `gerar` lê `dados`, que já chegou quando `podeCumprir` vira verdadeiro.
+    void montarPdf(pedido);
+    // `montarPdf` lê `dados`, que já chegou quando `podeCumprir` vira verdadeiro.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [podeCumprir, pedido]);
 
@@ -204,8 +291,8 @@ export function Documentos() {
             {pedido && podeCumprir && (
               <div className="c-aviso c-aviso-ok c-doc-pedido" role="status">
                 <span>
-                  Abrindo o PDF de <strong>{NOME_DO_DOCUMENTO[pedido]}</strong>. Se a tela de salvar não aparecer,
-                  toque em “Gerar PDF” logo abaixo.
+                  Montando o PDF de <strong>{NOME_DO_DOCUMENTO[pedido]}</strong>. Quando ficar pronto, os botões
+                  para salvar aparecem no cartão logo abaixo.
                 </span>
               </div>
             )}
@@ -219,7 +306,10 @@ export function Documentos() {
                   : "Aparece aqui quando sua nutricionista publicar."
               }
               disponivel={temProtocolo}
-              aoGerar={() => void gerar("protocolo")}
+              pdf={pdf?.qual === "protocolo" ? pdf : null}
+              ocupado={pdf?.estado === "montando"}
+              aoGerar={() => void montarPdf("protocolo")}
+              aoImprimir={appInstalado() ? null : () => void gerar("protocolo")}
             />
             <Cartao
               destaque={pedido === "avaliacao"}
@@ -231,7 +321,10 @@ export function Documentos() {
                   : "Aparece aqui quando sua nutricionista lançar a primeira."
               }
               disponivel={temAvaliacao}
-              aoGerar={() => void gerar("avaliacao")}
+              pdf={pdf?.qual === "avaliacao" ? pdf : null}
+              ocupado={pdf?.estado === "montando"}
+              aoGerar={() => void montarPdf("avaliacao")}
+              aoImprimir={appInstalado() ? null : () => void gerar("avaliacao")}
             />
             <Cartao
               destaque={pedido === "rastreio"}
@@ -243,13 +336,16 @@ export function Documentos() {
                   : "Aparece aqui depois do seu primeiro registro."
               }
               disponivel={temRastreio}
-              aoGerar={() => void gerar("rastreio")}
+              pdf={pdf?.qual === "rastreio" ? pdf : null}
+              ocupado={pdf?.estado === "montando"}
+              aoGerar={() => void montarPdf("rastreio")}
+              aoImprimir={appInstalado() ? null : () => void gerar("rastreio")}
             />
 
             <p className="c-dica" style={{ marginTop: 18 }}>
-              No iPhone, escolha “Salvar em Arquivos” na tela que abrir. No computador, “Salvar
-              como PDF”. Deixe “Cabeçalhos e rodapés” desmarcado: é o que tira o endereço do
-              site da folha.
+              O PDF é montado aqui mesmo, no seu aparelho. No celular, toque em “Salvar ou
+              compartilhar” e escolha “Salvar em Arquivos”, ou mande para onde quiser. No
+              computador, “Baixar”.
             </p>
           </>
         )}
@@ -295,6 +391,9 @@ function Cartao({
   descricao,
   disponivel,
   aoGerar,
+  aoImprimir,
+  pdf,
+  ocupado,
   destaque = false,
 }: {
   /** Veio de outra tela pedindo este documento: o cartão fica marcado. */
@@ -304,7 +403,26 @@ function Cartao({
   descricao: string;
   disponivel: boolean;
   aoGerar: () => void;
+  /** A tela de imprimir do navegador. Nula no app instalado, onde ela não existe. */
+  aoImprimir: (() => void) | null;
+  /** O PDF DESTE documento, se está sendo montado ou já ficou pronto. */
+  pdf: Pdf | null;
+  /** Algum PDF está sendo montado (deste ou de outro cartão): um de cada vez. */
+  ocupado: boolean;
 }) {
+  const [recado, definirRecado] = useState<string | null>(null);
+
+  async function compartilhar(arquivo: File) {
+    definirRecado(null);
+    try {
+      await navigator.share({ files: [arquivo], title: titulo });
+    } catch (e) {
+      // Fechar a tela de compartilhar sem escolher nada não é erro.
+      if (e instanceof DOMException && e.name === "AbortError") return;
+      definirRecado("Não consegui abrir a tela de compartilhar. Use “Baixar”.");
+    }
+  }
+
   return (
     <div className={`c-bloco c-doc-cartao${disponivel ? "" : " c-doc-vazio"}${destaque && disponivel ? " c-doc-destaque" : ""}`}>
       <div className="c-doc-linha">
@@ -318,10 +436,57 @@ function Cartao({
           </p>
         </div>
       </div>
-      {disponivel && (
-        <button type="button" className="c-botao c-botao-pequeno" onClick={aoGerar}>
-          Gerar PDF
-        </button>
+
+      {disponivel && pdf?.estado !== "pronto" && (
+        <div className="c-doc-acoes">
+          <button type="button" className="c-botao c-botao-pequeno" disabled={ocupado} onClick={aoGerar}>
+            {pdf?.estado === "montando"
+              ? pdf.total > 0
+                ? `Montando… página ${pdf.pagina} de ${pdf.total}`
+                : "Montando o PDF…"
+              : pdf?.estado === "erro"
+                ? "Tentar de novo"
+                : "Gerar PDF"}
+          </button>
+          {aoImprimir && pdf?.estado !== "montando" && (
+            <button type="button" className="c-botao c-botao-pequeno c-botao-secundario" disabled={ocupado} onClick={aoImprimir}>
+              Imprimir
+            </button>
+          )}
+        </div>
+      )}
+
+      {pdf?.estado === "erro" && (
+        <p className="c-doc-recado" role="alert">
+          Não consegui montar o PDF agora. Tente de novo.
+        </p>
+      )}
+
+      {pdf?.estado === "pronto" && (
+        <div className="c-doc-pronto" role="status">
+          <p className="c-doc-pronto-titulo">
+            <Icone nome="feito" tamanho={16} /> PDF pronto
+          </p>
+          <div className="c-doc-acoes">
+            {podeCompartilhar(pdf.arquivo) && (
+              <button type="button" className="c-botao c-botao-pequeno" onClick={() => void compartilhar(pdf.arquivo)}>
+                Salvar ou compartilhar
+              </button>
+            )}
+            <a
+              className={`c-botao c-botao-pequeno${podeCompartilhar(pdf.arquivo) ? " c-botao-secundario" : ""}`}
+              href={pdf.url}
+              download={pdf.arquivo.name}
+            >
+              Baixar
+            </a>
+          </div>
+          {recado && (
+            <p className="c-doc-recado" role="alert">
+              {recado}
+            </p>
+          )}
+        </div>
       )}
     </div>
   );
