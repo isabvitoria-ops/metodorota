@@ -88,7 +88,7 @@ export function FotosEvolucao() {
     <>
       <CabecalhoPagina
         titulo="Fotos evolutivas"
-        descricao="Registre suas fotos e acompanhe a transformação."
+        descricao="Registre suas fotos e acompanhe sua evolução."
         voltarPara={rotas.home}
       />
 

@@ -434,8 +434,8 @@ function AvisoDePrevia() {
 // ------------------------------------------------------- escada de indicação
 
 /**
- * Quanto mais ela indica, mais ganha. O total não zera no fim do mês: é a
- * mesma regra dos pontos, que também não expiram.
+ * Quanto mais ela indica, mais ganha. O total não zera no fim do mês, e a
+ * limpeza de pontos de 6 em 6 meses também não mexe nas indicações.
  */
 const SITUACAO_INDICACAO: Record<IndicacaoDaPaciente["status"], string> = {
   registrada: "Aguardando ela começar",
@@ -516,7 +516,7 @@ function PontoDeVirada({
       <h2 className="c-secao-titulo">Ponto de Virada</h2>
       <p className="c-contagem">
         Seu saldo acumulado: <strong>{saldo}</strong> {saldo === 1 ? "ponto" : "pontos"}. Os pontos
-        não expiram.
+        valem por 6 meses: de tempos em tempos, os mais antigos saem do saldo.
       </p>
 
       {proxima && (

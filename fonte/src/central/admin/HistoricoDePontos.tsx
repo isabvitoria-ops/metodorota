@@ -21,7 +21,7 @@ import { abrirImpressao } from "@/central/utils/impressao";
  * de memória: vem do livro de pontos, mês a mês.
  *
  * A JANELA É DE 6 MESES (o atual e os 6 anteriores). O que é mais antigo sai
- * da tela sozinho; os pontos continuam valendo no saldo de cada paciente.
+ * da tela sozinho; do saldo de cada paciente, só sai na limpeza (abaixo).
  */
 export function HistoricoDePontos() {
   const [meses, definirMeses] = useState<MesDoHistorico[] | null>(null);
@@ -58,8 +58,8 @@ export function HistoricoDePontos() {
     <>
       <p className="c-dica" style={{ marginTop: 0 }}>
         Quantos pontos cada paciente fez em cada mês, para você dar os presentes. Mostra o mês
-        atual e os 6 anteriores; os mais antigos saem da tela sozinhos, mas os pontos continuam
-        valendo no saldo de cada uma. O “saldo” é o acumulado até o fim daquele mês.
+        atual e os 6 anteriores; os mais antigos saem da tela sozinhos, e continuam no saldo de
+        cada uma até você fazer a limpeza, logo abaixo. O “saldo” é o acumulado até o fim daquele mês.
       </p>
 
       {aviso && (
@@ -221,8 +221,8 @@ function PlacarParaComunidade({
 }
 
 /**
- * A limpeza de 6 em 6 meses. Em outubro, sai de abril para trás e ficam maio,
- * junho, julho, agosto, setembro e outubro. Primeiro MOSTRA o que sairia; só apaga depois de
+ * A limpeza de 6 em 6 meses. Ficam o mês atual e os 6 anteriores: em outubro,
+ * sai de março para trás e ficam de abril a outubro (é o corte do banco). Primeiro MOSTRA o que sairia; só apaga depois de
  * uma confirmação, e as linhas vão para um arquivo antes de saírem do saldo.
  */
 function LimpezaDosAntigos() {

@@ -295,7 +295,7 @@ export function calcularRCQ(
   const buscar = (nome: string) => {
     const m = circunferencias.find((c) => c.nome === nome);
     if (!m) return null;
-    const n = parseFloat(m.valor.replace(",", ".").replace(/[^\d.\-]/g, ""));
+    const n = parseFloat(m.valor.replace(",", ".").replace(/[^\d.-]/g, ""));
     return Number.isFinite(n) && n > 0 ? n : null;
   };
   const cintura = buscar("Cintura");
@@ -348,7 +348,7 @@ export function cunningham(massaMagra: number | null): number | null {
 function lerDiametro(diametros: { nome: string; valor: string }[], nome: string): number | null {
   const m = diametros.find((d) => d.nome === nome);
   if (!m) return null;
-  const n = parseFloat(m.valor.replace(",", ".").replace(/[^\d.\-]/g, ""));
+  const n = parseFloat(m.valor.replace(",", ".").replace(/[^\d.-]/g, ""));
   return Number.isFinite(n) && n > 0 ? n : null;
 }
 
@@ -442,7 +442,7 @@ export function calcularTudo(params: {
     if (!nomeCentral) return null;
     const m = dobras.find((d) => d.nome === nomeCentral);
     if (!m) return null;
-    const n = parseFloat(m.valor.replace(",", ".").replace(/[^\d.\-]/g, ""));
+    const n = parseFloat(m.valor.replace(",", ".").replace(/[^\d.-]/g, ""));
     return Number.isFinite(n) && n > 0 ? n : null;
   };
 
@@ -486,7 +486,18 @@ export function calcularTudo(params: {
               percentualGordura = CONVERSOES[proto.conversao](d);
             } else if (proto.usaIdade && !idade) {
               avisos.push("Preencha a idade — este protocolo precisa dela para o cálculo.");
+            } else if (proto.usaIdade) {
+              // Tem idade e mesmo assim não saiu densidade: a equação não
+              // cobre esta idade (Durnin & Womersley começa aos 17 anos).
+              avisos.push("Este protocolo não tem equação publicada para esta idade.");
             }
+          }
+
+          // Percentual zero ou negativo não existe em gente: é dobra digitada
+          // errado (ou em outra unidade). Melhor nenhum número que um absurdo.
+          if (percentualGordura !== null && percentualGordura <= 0) {
+            percentualGordura = null;
+            avisos.push("O resultado saiu zero ou negativo — confira as dobras digitadas (em milímetros).");
           }
 
           if (percentualGordura !== null) {
