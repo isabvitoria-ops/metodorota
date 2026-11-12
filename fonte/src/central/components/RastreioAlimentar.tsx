@@ -123,9 +123,16 @@ const CLASSE_DO_TOM: Record<Linha["tom"], string> = {
 export function RastreioAlimentar({
   itens,
   registros,
+  aoPedirPdf,
 }: {
   itens: ItemDeReintroducao[];
   registros: RegistroDeReintroducao[];
+  /**
+   * Na tela da PACIENTE, o PDF sai por Meus documentos: no celular, a tela
+   * de salvar não abre daqui. Sem esta função (a prévia na área da
+   * nutricionista, no computador), o botão imprime no lugar.
+   */
+  aoPedirPdf?: () => void;
 }) {
   const [filtro, definirFiltro] = useState<Filtro>("todos");
   const [aberto, definirAberto] = useState<string | null>(null);
@@ -252,13 +259,14 @@ export function RastreioAlimentar({
         type="button"
         className="c-botao c-botao-secundario c-sem-impressao"
         style={{ width: "100%", marginTop: 14 }}
-        onClick={() => abrirImpressao()}
+        onClick={() => (aoPedirPdf ? aoPedirPdf() : abrirImpressao())}
       >
         Salvar meu rastreio em PDF
       </button>
       <p className="c-dica c-sem-impressao">
-        No iPhone, escolha “Salvar em Arquivos” na tela que abrir. No computador, “Salvar como
-        PDF”.
+        {aoPedirPdf
+          ? "Abre em Meus documentos, onde ficam todos os seus PDFs."
+          : "No computador, escolha “Salvar como PDF” na tela que abrir."}
       </p>
 
     </section>

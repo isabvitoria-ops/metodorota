@@ -486,8 +486,9 @@ function ResumoDoRastreio({
         <p className="c-dica">
           “Pela conta” é a escada de pontos que a paciente vê: cada sintoma diferente vale 1 ponto, e diarreia,
           urgência, náusea, refluxo e manchas valem 2; até 2 pontos é “Comer com atenção”, 3 ou mais é “Não
-          tolerado”. A conta soma todos os testes do alimento, inclusive os antigos — por isso, quando há testes sem
-          sintoma depois do último sintoma, eles aparecem logo abaixo. “Sua classificação” é
+          tolerado”. A conta soma todos os testes do alimento, inclusive os antigos. Quando houve sintoma antes e o
+          último teste foi tranquilo, a conta não dá veredito: a paciente vê “Rever na consulta”, em amarelo, até
+          você classificar. “Sua classificação” é
           a que você deu na aba Lista da paciente — e é ela que vale na tela da paciente quando existe.
         </p>
       </section>
@@ -1492,9 +1493,13 @@ function ListaDaPaciente({
   );
 }
 
+// As mesmas três cores do "Meu rastreio": verde, amarelo e vermelho. O
+// amarelo saía vermelho aqui, e o mesmo alimento mudava de cor de uma aba
+// para a outra.
 function seloDoTom(tom: string): string {
   if (tom === "bom") return "melhor";
-  if (tom === "atencao") return "ocasional";
+  if (tom === "atencao") return "boa";
+  if (tom === "grave") return "ocasional";
   return "neutro";
 }
 
@@ -1707,8 +1712,8 @@ function ModalClassificar({
             </p>
             {linha.semSintomaDepois > 0 && linha.ultimoComSintoma && (
               <p>
-                <strong>{primeiraMaiuscula(fraseDoDepois(linha))}.</strong> A conta não esquece sintoma antigo; quem
-                relê é você.
+                <strong>{primeiraMaiuscula(fraseDoDepois(linha))}.</strong> Por isso a paciente vê “Rever na
+                consulta” até você classificar.
               </p>
             )}
           </>

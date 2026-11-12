@@ -131,7 +131,23 @@ export function Documentos() {
         };
         const prazo = setTimeout(limpar, 60_000);
         window.addEventListener("afterprint", limpar);
-        abrirImpressao();
+        // Os dois quadros bastam quando o pedido vem de um toque nesta tela.
+        // Quando vem de OUTRA tela (o "Baixar em PDF" do protocolo, da
+        // avaliação ou do rastreio), o documento pode levar mais um ou dois
+        // quadros para entrar na página — e imprimir antes disso dá folha em
+        // branco. Então: se ele ainda não está lá, espera mais um pouco.
+        let tentativas = 0;
+        const imprimirQuandoMontado = () => {
+          const montado = document.querySelector(".folha-documento .doc") !== null;
+          if (montado || tentativas >= 90) {
+            if (montado && tentativas > 0) requestAnimationFrame(() => abrirImpressao());
+            else abrirImpressao();
+            return;
+          }
+          tentativas += 1;
+          requestAnimationFrame(imprimirQuandoMontado);
+        };
+        imprimirQuandoMontado();
       });
     });
   }

@@ -37,6 +37,7 @@ export type StatusReintroducao =
   | "bem_tolerado"
   | "tolerancia_parcial"
   | "sintomas_observados"
+  | "nao_tolerado"
   | "necessita_reavaliacao"
   | "pausado"
   | "nao_relevante";
