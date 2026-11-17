@@ -20,6 +20,7 @@ import { Treinos } from "./Treinos";
 import { CerebroDoNutri } from "./Cerebro";
 import { Condutas } from "./Condutas";
 import { HotSlimAdmin } from "./HotSlimAdmin";
+import { Calculos } from "./Calculos";
 import { MenuMais } from "@/central/components/MenuMais";
 
 /**
@@ -55,6 +56,7 @@ const ABAS = [
 const MAIS = [
   { rota: rotas.adminCondutas, rotulo: "Condutas" },
   { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
+  { rota: rotas.adminCalculos, rotulo: "Cálculos" },
   { rota: rotas.adminMetas, rotulo: "Metas" },
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
   { rota: rotas.adminDesafios, rotulo: "Desafio" },
@@ -164,6 +166,7 @@ export function AdminApp() {
               <Route path="desafios" element={<Desafios />} />
               <Route path="protocolos" element={<Protocolos />} />
               <Route path="protocolos/:pacienteId" element={<Protocolos />} />
+              <Route path="calculos" element={<Calculos />} />
               <Route path="treinos" element={<Treinos />} />
               <Route path="treinos/:pacienteId" element={<Treinos />} />
               <Route path="metas" element={<Metas />} />
