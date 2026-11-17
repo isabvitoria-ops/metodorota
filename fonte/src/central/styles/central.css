@@ -6508,6 +6508,30 @@ textarea.c-campo:focus {
   border-radius: 3px;
 }
 
+/* Cálculos: a ferramenta de cálculo dentro da área da nutricionista. */
+.c-calculos-cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.c-calculos-cabeca > div {
+  min-width: 0;
+}
+
+.c-calculos-quadro {
+  display: block;
+  width: 100%;
+  height: calc(100dvh - 210px);
+  min-height: 560px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #f6f8fa;
+}
+
 /* Partes que vieram da ferramenta de cálculo: meta de peso, divisão em
    percentual e faixas de referência. */
 .c-calc-bloco {

@@ -12,7 +12,8 @@ import type {
   ResumoProtocolo,
 } from "@/central/types/protocolo";
 import { AVALIACAO_VAZIA, CONTEUDO_VAZIO } from "@/central/types/protocolo";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { rotas } from "@/central/rotas";
 import { repositorio } from "@/central/dados/repositorio";
 import { fotosDoProtocolo } from "@/central/utils/fotosDoProtocolo";
 import { DocumentoProtocolo } from "@/central/components/DocumentoProtocolo";
@@ -1511,7 +1512,9 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
       </h2>
       <p className="c-dica" style={{ marginTop: 0 }}>
         Preencha peso, altura, sexo e as dobras do protocolo — os cálculos aparecem na hora.
-        A paciente vê a última avaliação publicada, num atalho dentro do Protocolo dela.
+        A paciente vê a última avaliação publicada, num atalho dentro do Protocolo dela. A ferramenta
+        completa (dieta, composição corporal, macros e gasto) fica em{" "}
+        <Link to={rotas.adminCalculos}>Cálculos</Link>.
       </p>
 
       {aviso && (
