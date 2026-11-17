@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { rotas } from "@/central/rotas";
 import { useSessao } from "./SessaoContexto";
+import { useInstalacao } from "@/central/hooks/useInstalacao";
 import { CampoTexto, TelaConta } from "./TelaConta";
 
 /**
@@ -20,6 +21,11 @@ export function DefinirSenha() {
   const [repetida, escreverRepetida] = useState("");
   const [erro, definirErro] = useState<string | null>(null);
   const [salvando, definirSalvando] = useState(false);
+  const { jaInstalado } = useInstalacao();
+  // O link do e-mail abre no navegador, que guarda o login separado do app
+  // instalado na tela do celular. Quem já tem o app precisa entrar nele com a
+  // senha nova — sem este aviso, ela abria o ícone e achava que estava sem acesso.
+  const [salvaNoNavegador, definirSalvaNoNavegador] = useState(false);
 
   async function enviar(evento: FormEvent) {
     evento.preventDefault();
@@ -36,12 +42,30 @@ export function DefinirSenha() {
     try {
       await salvar(senha);
       await recarregar();
-      navegar(rotas.home, { replace: true });
+      if (jaInstalado) navegar(rotas.home, { replace: true });
+      else definirSalvaNoNavegador(true);
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não foi possível salvar a senha.");
     } finally {
       definirSalvando(false);
     }
+  }
+
+  if (salvaNoNavegador) {
+    return (
+      <TelaConta
+        titulo="Senha salva"
+        descricao="Se você já colocou o app na tela do celular, abra pelo ícone e entre lá com o seu e-mail e esta senha. O link do e-mail abre no navegador, que é separado do app."
+        aoEnviar={(e) => {
+          e.preventDefault();
+          navegar(rotas.home, { replace: true });
+        }}
+      >
+        <button type="submit" className="c-botao">
+          Continuar aqui
+        </button>
+      </TelaConta>
+    );
   }
 
   if (pronto && !acesso.autenticado) {
