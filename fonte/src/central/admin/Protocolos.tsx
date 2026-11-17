@@ -44,6 +44,8 @@ import { hojeSaoPaulo, dataBonita as diaBonito } from "@/central/utils/situacao"
 import { reduzirFoto } from "@/central/utils/reduzirFoto";
 import { calcularTudo } from "@/central/utils/calculosAntropometricos";
 import { energiaEMacros } from "@/central/utils/calculoEnergia";
+import { percentuaisDosGramas, type Percentuais } from "@/central/utils/planejamentoDeMacros";
+import { DivisaoPorPercentual, FaixasDeReferencia, MetaDePesoNoCalculo } from "./componentes/PlanejamentoNoCalculo";
 import { abrirImpressao } from "@/central/utils/impressao";
 
 /**
@@ -1268,6 +1270,8 @@ function GruposDeAlimentos({
 function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
   const [lista, definirLista] = useState<AvaliacaoFisica[]>([]);
   const [abertaId, definirAberta] = useState<string | null>(null);
+  // Passo 5: dividir por g/kg (o jeito de sempre) ou em percentual, como na ferramenta de cálculo.
+  const [modoMacros, definirModoMacros] = useState<"gkg" | "percentual">("gkg");
   const [data, definirData] = useState(hojeSaoPaulo());
   const [dados, definirDados] = useState<DadosAvaliacao>(AVALIACAO_VAZIA);
   // Separado de `dados.metodo` de propósito: enquanto ela digita um método
@@ -1471,6 +1475,34 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
   });
   const temCalculo =
     resultado.imc !== null || resultado.percentualGordura !== null || resultado.tmbTodas.length > 0;
+
+  // A divisão dos macros que está nos campos, em percentual (para as faixas
+  // de referência e para começar o modo "percentual" de onde ela está).
+  const percentuaisAtuais = percentuaisDosGramas(energia.ptnG, energia.lipG, energia.estourou ? null : energia.choG);
+
+  /** Leva uma divisão em percentual para os campos de g/kg e de g/dia. */
+  function usarDivisao(pct: Percentuais) {
+    const vet = energia.vetUsado;
+    if (vet === null || vet <= 0) return;
+    const ptnG = Math.round(((vet * pct.proteina) / 100 / 4) * 10) / 10;
+    const lipG = Math.round(((vet * pct.lipideo) / 100 / 9) * 10) / 10;
+    const peso = dados.peso;
+    const ptnGKg = peso && peso > 0 ? Math.round((ptnG / peso) * 100) / 100 : null;
+    const lipGKg = peso && peso > 0 ? Math.round((lipG / peso) * 100) / 100 : null;
+    const conta = energiaEMacros({
+      peso,
+      tmb: dados.tmb,
+      fatorAtividade: dados.fatorAtividade,
+      ajusteEnergetico: dados.ajusteEnergetico,
+      vet: dados.vet,
+      ptnGKg,
+      lipGKg,
+      ptnG,
+      lipG,
+      choG: null,
+    });
+    definirDados({ ...dados, ptnGKg, lipGKg, ptnG: conta.ptnG, lipG: conta.lipG, choG: conta.choG });
+  }
 
   return (
     <>
@@ -1832,14 +1864,55 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
                 )}
               </p>
             )}
+
+            <MetaDePesoNoCalculo
+              pesoAtual={dados.peso}
+              get={energia.get}
+              aoUsarAjuste={(ajuste) =>
+                definirDados({
+                  ...dados,
+                  ajusteEnergetico: ajuste,
+                  // O VET acompanha o ajuste novo; sem isto o campo ficava com o VET antigo.
+                  vet: energia.get !== null ? Math.round(energia.get + ajuste) : dados.vet,
+                })
+              }
+            />
           </SecaoDeCalculo>
 
           {/* ───────────────────────────── 5 · macronutrientes */}
           <SecaoDeCalculo
             numero={5}
             titulo="Macronutrientes"
-            dica="Proteína e gordura em g/kg; o carboidrato é o que sobra do VET."
+            dica="Proteína e gordura em g/kg (o carboidrato é o que sobra do VET), ou a divisão em percentual."
           >
+            <div className="c-calc-fatores" role="group" aria-label="Como dividir">
+              {(
+                [
+                  ["gkg", "Proteína e gordura em g/kg"],
+                  ["percentual", "Divisão em percentual"],
+                ] as const
+              ).map(([modo, rotulo]) => (
+                <button
+                  key={modo}
+                  type="button"
+                  className={`c-calc-fator${modoMacros === modo ? " c-calc-fator--ativo" : ""}`}
+                  aria-pressed={modoMacros === modo}
+                  onClick={() => definirModoMacros(modo)}
+                >
+                  {rotulo}
+                </button>
+              ))}
+            </div>
+
+            {modoMacros === "percentual" && (
+              <DivisaoPorPercentual
+                vet={energia.vetUsado}
+                peso={dados.peso}
+                inicial={percentuaisAtuais}
+                aoUsar={usarDivisao}
+              />
+            )}
+
             <div className="c-calc-grade">
               {campoNumero("PTN (g/kg)", "ptnGKg")}
               {campoNumero("LIP (g/kg)", "lipGKg")}
@@ -1898,6 +1971,8 @@ function AvaliacoesDaPaciente({ paciente }: { paciente: Paciente }) {
                 </table>
               </div>
             )}
+
+            {modoMacros === "gkg" && percentuaisAtuais && <FaixasDeReferencia percentuais={percentuaisAtuais} />}
           </SecaoDeCalculo>
 
           {/* ───────────────────────────── 6 · fechar */}

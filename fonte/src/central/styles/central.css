@@ -6508,6 +6508,63 @@ textarea.c-campo:focus {
   border-radius: 3px;
 }
 
+/* Partes que vieram da ferramenta de cálculo: meta de peso, divisão em
+   percentual e faixas de referência. */
+.c-calc-bloco {
+  margin-top: 18px;
+}
+
+.c-calc-subtitulo {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+
+.c-calc-grade--tres {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.c-calc-soma {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.c-calc-soma--aberta {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.c-calc-rolagem {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.c-calc-faixas {
+  margin-top: 0;
+  font-size: 13px;
+}
+
+.c-calc-faixas td {
+  white-space: nowrap;
+}
+
+.c-calc-faixas td.c-calc-faixa--dentro {
+  color: var(--success);
+}
+
+.c-calc-faixas td.c-calc-faixa--fora {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.c-calc-faixas tbody td:last-child {
+  font-weight: inherit;
+}
+
 /* ------------------------------------------------ instalar na tela inicial */
 
 .c-instalar-card {
