@@ -66,6 +66,13 @@ body {
 }
 
 .central {
+  /* A Central só tem tema claro: fundo branco, decisão dela. Com o celular no
+     modo escuro, regras soltas de "modo escuro" pintavam pedaços de preto
+     (a coluna da data no check-in) e deixavam alertas com texto rosa-claro
+     sobre fundo branco. Foram tiradas; esta linha mantém também os campos,
+     caixas de marcar e barras de rolagem do sistema no claro. */
+  color-scheme: light;
+
   /* ---- cores ---- */
 
   /* A PALETA É A DA MARCA, e não foi inventada aqui: vem do manual de identidade
@@ -8407,14 +8414,6 @@ textarea.c-campo:focus {
   color: var(--primary);
 }
 
-@media (prefers-color-scheme: dark) {
-  .c-carinha.nivel-muito-baixo { background: #4a2a2a; }
-  .c-carinha.nivel-baixo       { background: #4a3a26; }
-  .c-carinha.nivel-medio       { background: #45412a; }
-  .c-carinha.nivel-alto        { background: #2b3d2c; }
-  .c-carinha.nivel-muito-alto  { background: #24402a; }
-}
-
 /* -----------------------------------------------------------------------
    Check-in: tabela de respostas (estilo DietSystem)
    ----------------------------------------------------------------------- */
@@ -8633,18 +8632,6 @@ textarea.c-campo:focus {
 }
 
 /* Dark mode */
-@media (prefers-color-scheme: dark) {
-  .c-checkin-td-nota.nota-critica strong { color: #f06060; }
-  .c-checkin-td-nota.nota-baixa strong   { color: #d89040; }
-  .c-checkin-td-nota.nota-media strong   { color: #c0b030; }
-  .c-checkin-td-nota.nota-alta strong    { color: #50a050; }
-  .c-checkin-td-nota.nota-otima strong   { color: #40b040; }
-
-  .c-checkin-td-fixo { background: var(--carta, #1a1a1a); }
-  .c-checkin-tabela tbody tr:hover .c-checkin-td-fixo { background: var(--carta, #1a1a1a); }
-  .c-checkin-popup-fundo { background: rgba(0, 0, 0, 0.5); }
-}
-
 /* -----------------------------------------------------------------------
    Exames
    ----------------------------------------------------------------------- */
@@ -9140,42 +9127,6 @@ textarea.c-campo-input,
   letter-spacing: 0.04em;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .c-alerta-card--vermelho {
-    background: rgba(220, 38, 38, 0.12);
-    border-color: rgba(220, 38, 38, 0.3);
-    color: #fca5a5;
-  }
-  :root:not([data-theme="light"]) .c-alerta-card--amarelo {
-    background: rgba(217, 119, 6, 0.12);
-    border-color: rgba(217, 119, 6, 0.3);
-    color: #fde68a;
-  }
-  :root:not([data-theme="light"]) .c-alerta-emergencia {
-    background: rgba(220, 38, 38, 0.12);
-    border-color: rgba(220, 38, 38, 0.3);
-    color: #fca5a5;
-  }
-  :root:not([data-theme="light"]) .c-alerta-card--vermelho .c-alerta-card-indicador { color: #f87171; }
-  :root:not([data-theme="light"]) .c-alerta-card--amarelo .c-alerta-card-indicador { color: #fbbf24; }
-}
-:root[data-theme="dark"] .c-alerta-card--vermelho {
-  background: rgba(220, 38, 38, 0.12);
-  border-color: rgba(220, 38, 38, 0.3);
-  color: #fca5a5;
-}
-:root[data-theme="dark"] .c-alerta-card--amarelo {
-  background: rgba(217, 119, 6, 0.12);
-  border-color: rgba(217, 119, 6, 0.3);
-  color: #fde68a;
-}
-:root[data-theme="dark"] .c-alerta-emergencia {
-  background: rgba(220, 38, 38, 0.12);
-  border-color: rgba(220, 38, 38, 0.3);
-  color: #fca5a5;
-}
-:root[data-theme="dark"] .c-alerta-card--vermelho .c-alerta-card-indicador { color: #f87171; }
-:root[data-theme="dark"] .c-alerta-card--amarelo .c-alerta-card-indicador { color: #fbbf24; }
 
 /* --- Painel de alertas (admin) --- */
 
@@ -9318,27 +9269,6 @@ textarea.c-campo-input,
   resize: vertical;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .c-cartao-alerta--vermelho {
-    background: rgba(220, 38, 38, 0.08);
-  }
-  :root:not([data-theme="light"]) .c-cartao-alerta--amarelo {
-    background: rgba(217, 119, 6, 0.08);
-  }
-  :root:not([data-theme="light"]) .c-painel-alertas-cabecalho {
-    background: rgba(143, 64, 52, 0.15);
-  }
-}
-
-:root[data-theme="dark"] .c-cartao-alerta--vermelho {
-  background: rgba(220, 38, 38, 0.08);
-}
-:root[data-theme="dark"] .c-cartao-alerta--amarelo {
-  background: rgba(217, 119, 6, 0.08);
-}
-:root[data-theme="dark"] .c-painel-alertas-cabecalho {
-  background: rgba(143, 64, 52, 0.15);
-}
 
 .c-envio {
   border: 1px solid var(--border);
@@ -10972,21 +10902,6 @@ textarea.c-campo-input,
   color: var(--cor-texto-sec);
 }
 
-@media (prefers-color-scheme: dark) {
-  .central .c-bristol-faixa-constipacao {
-    background: rgba(239, 68, 68, 0.12);
-    color: #fca5a5;
-  }
-  .central .c-bristol-faixa-normal {
-    background: rgba(34, 197, 94, 0.12);
-    color: #86efac;
-  }
-  .central .c-bristol-faixa-diarreia {
-    background: rgba(249, 115, 22, 0.12);
-    color: #fdba74;
-  }
-}
-
 /* ================================================================
    Marcadores de exame
    ================================================================ */
@@ -11920,25 +11835,3 @@ textarea.c-campo-input,
 }
 
 /* Dark mode */
-@media (prefers-color-scheme: dark) {
-  .c-corredor-conteudo {
-    background: #1e2a35;
-  }
-  .c-corredor-dica {
-    background: #263D52;
-    color: #C8DAE4;
-  }
-  .c-produto-card {
-    background: #263D52;
-    border-color: #38546C;
-  }
-  .c-produto-nome {
-    color: #F7EEE7;
-  }
-  .c-produto-ver-mais {
-    color: #5A7A8F;
-  }
-  .c-mercado-intro {
-    color: #C9BCAC;
-  }
-}
