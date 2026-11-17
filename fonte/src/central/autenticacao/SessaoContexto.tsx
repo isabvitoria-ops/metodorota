@@ -333,7 +333,11 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
 
       async sair() {
         if (!supabase) return;
-        await supabase.auth.signOut();
+        // Sai SÓ deste aparelho. O padrão da biblioteca é sair de todos: quem
+        // tocava em "Sair" no navegador (ou a nutricionista, depois de abrir a
+        // conta da paciente no aparelho dela) derrubava junto o app instalado
+        // no celular da paciente, que voltava pedindo senha.
+        await supabase.auth.signOut({ scope: "local" });
         apagarCopiasDoAparelho();
         await limparCacheDaConta();
         definirAcesso(ACESSO_VAZIO);
