@@ -1,14 +1,20 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { apagarCopiasDoAparelho } from "@/central/utils/copiasNoAparelho";
 import type { Acesso, Configuracoes, EstadoDoTermo } from "@/central/types";
 import { MODO_DEMONSTRACAO, supabase } from "@/central/supabase/cliente";
 import { repositorio } from "@/central/dados/repositorio";
 import { hidratar } from "@/central/dados/catalogo";
 import { invalidarIndice } from "@/central/dados/indiceBusca";
-import { salvarAcessoNoCache, lerAcessoDoCache, lerCatalogoDoCache, limparCacheDaConta } from "@/central/dados/cacheOffline";
+import { salvarAcessoNoCache, lerAcessoDoCache, lerCatalogoDoCache, limparCacheDaConta, estaOnline } from "@/central/dados/cacheOffline";
 import { CONFIGURACOES_PADRAO } from "@/central/dados/mapeadores";
 import { urlDaRota } from "@/central/utils/enderecos";
 import { useFavoritos } from "@/central/hooks/useFavoritos";
+import { dentroDoPrazo, idDaContaGuardadaNoAparelho, pareceFalhaDeRede, pareceLoginVencido } from "./conexao";
+
+/** Quanto a abertura espera a internet antes de usar o que ficou guardado. */
+const PRAZO_DA_REDE_MS = 6000;
+/** Enquanto aberto sem conexão, de quanto em quanto tempo tenta o banco de novo. */
+const NOVA_TENTATIVA_MS = 60_000;
 
 /**
  * Quem está usando o app, e o que pode ver.
@@ -115,24 +121,69 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
   const [configuracoes, definirConfiguracoes] = useState<Configuracoes>(CONFIGURACOES_PADRAO);
   const [termo, definirTermo] = useState<EstadoDoTermo | null>(null);
 
+  // Ligado quando a tela abriu com o que estava guardado no aparelho porque a
+  // internet falhou. Enquanto estiver ligado, a volta da conexão (ou a
+  // renovação do login, que só acontece com rede) refaz a consulta ao banco.
+  const semConexaoRef = useRef(false);
+
+  /**
+   * Abre com a última resposta guardada neste aparelho, se ela for da conta
+   * que continua logada aqui. Devolve falso quando não há o que usar.
+   */
+  const abrirComOQueFicouGuardado = useCallback(async (): Promise<boolean> => {
+    const acessoSalvo = await lerAcessoDoCache();
+    const contaGuardada = idDaContaGuardadaNoAparelho();
+    if (!acessoSalvo || !contaGuardada || acessoSalvo.perfilId !== contaGuardada) return false;
+    definirAcesso(acessoSalvo);
+    const catalogoSalvo = await lerCatalogoDoCache();
+    if (catalogoSalvo) {
+      hidratar(catalogoSalvo);
+      invalidarIndice();
+      definirConfiguracoes(catalogoSalvo.configuracoes);
+    }
+    semConexaoRef.current = true;
+    return true;
+  }, []);
+
   const resolver = useCallback(async () => {
     definirCarregando(true);
     try {
       let atual = ACESSO_DEMONSTRACAO;
 
       if (!MODO_DEMONSTRACAO && supabase) {
-        const { data: sessao } = await supabase.auth.getSession();
+        // Com o login vencido, ler a sessão significa renovar pela internet —
+        // e, com sinal ruim, a biblioteca insiste por até meio minuto, com a
+        // tela parada em "Carregando…". Passado o prazo, abre com o que ficou
+        // guardado e deixa a renovação terminar por baixo.
+        const pedidoDaSessao = supabase.auth.getSession();
+        const leituraRapida = await dentroDoPrazo(pedidoDaSessao, PRAZO_DA_REDE_MS);
+        if (leituraRapida === null && (await abrirComOQueFicouGuardado())) return;
+        const { data: sessao, error: erroDaSessao } = leituraRapida ?? (await pedidoDaSessao);
         if (!sessao.session) {
+          // Sem sessão pode ser "saiu da conta" ou "o login venceu e não deu
+          // para renovar porque a internet falhou" (viagem, roaming, sinal
+          // fraco). No segundo caso a conta continua guardada no aparelho, e
+          // mandar a paciente para a tela de login — onde ela também não
+          // consegue entrar sem internet — era o mesmo que trancar o app.
+          if ((pareceFalhaDeRede(erroDaSessao) || !estaOnline()) && (await abrirComOQueFicouGuardado())) return;
           definirAcesso(ACESSO_VAZIO);
-          definirCarregando(false);
-          definirPronto(true);
           return;
         }
-        const { data, error } = await supabase.rpc("meu_acesso");
+        const pedidoDoAcesso = Promise.resolve(supabase.rpc("meu_acesso"));
+        const respostaRapida = await dentroDoPrazo(pedidoDoAcesso, PRAZO_DA_REDE_MS);
+        if (respostaRapida === null && (await abrirComOQueFicouGuardado())) return;
+        let { data, error } = respostaRapida ?? (await pedidoDoAcesso);
+        if (error && pareceLoginVencido(error)) {
+          // O token venceu entre a leitura da sessão e a consulta: renova e
+          // tenta uma vez mais, em vez de devolver a paciente ao login.
+          await supabase.auth.refreshSession();
+          ({ data, error } = await supabase.rpc("meu_acesso"));
+        }
         if (error) throw error;
         atual = data as Acesso;
       }
 
+      semConexaoRef.current = false;
       definirAcesso(atual);
       if (!MODO_DEMONSTRACAO) void salvarAcessoNoCache(atual);
 
@@ -160,28 +211,23 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
       } else {
         useFavoritos.getState().limpar();
       }
-    } catch {
-      if (!MODO_DEMONSTRACAO && !navigator.onLine) {
-        const acessoSalvo = await lerAcessoDoCache();
-        if (acessoSalvo) {
-          definirAcesso(acessoSalvo);
-          const catalogoSalvo = await lerCatalogoDoCache();
-          if (catalogoSalvo) {
-            hidratar(catalogoSalvo);
-            invalidarIndice();
-            definirConfiguracoes(catalogoSalvo.configuracoes);
-          }
-        } else {
-          definirAcesso(ACESSO_VAZIO);
-        }
-      } else {
-        definirAcesso(MODO_DEMONSTRACAO ? ACESSO_DEMONSTRACAO : ACESSO_VAZIO);
+    } catch (erro) {
+      if (MODO_DEMONSTRACAO) {
+        definirAcesso(ACESSO_DEMONSTRACAO);
+      } else if (pareceFalhaDeRede(erro) || !estaOnline()) {
+        // A internet caiu no meio do caminho (o celular pode até dizer que
+        // está conectado: Wi-Fi de hotel, roaming, sinal fraco). Abre com o
+        // que ficou guardado; sem nada guardado, só resta a tela de entrar.
+        // Se a tela já estava aberta assim, continua como está.
+        if (!semConexaoRef.current && !(await abrirComOQueFicouGuardado())) definirAcesso(ACESSO_VAZIO);
+      } else if (!semConexaoRef.current) {
+        definirAcesso(ACESSO_VAZIO);
       }
     } finally {
       definirCarregando(false);
       definirPronto(true);
     }
-  }, []);
+  }, [abrirComOQueFicouGuardado]);
 
   useEffect(() => {
     void resolver();
@@ -189,10 +235,33 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
     const { data } = supabase.auth.onAuthStateChange((evento) => {
       // TOKEN_REFRESHED não muda quem é a pessoa nem o que ela pode ver;
       // recarregar o catálogo a cada renovação de token seria desperdício.
-      if (evento === "TOKEN_REFRESHED") return;
+      // A exceção é quando a tela abriu sem conexão: a renovação só acontece
+      // com internet, então é a hora de buscar o que está atualizado.
+      if (evento === "TOKEN_REFRESHED" && !semConexaoRef.current) return;
       void resolver();
     });
-    return () => data.subscription.unsubscribe();
+    // Aberto sem conexão: tenta de novo quando a internet volta, quando ela
+    // volta para o app e, enquanto isso, a cada minuto — uma tentativa por vez.
+    let tentando = false;
+    const tentarDeNovo = () => {
+      if (!semConexaoRef.current || tentando) return;
+      tentando = true;
+      void resolver().finally(() => {
+        tentando = false;
+      });
+    };
+    const aoVoltarParaATela = () => {
+      if (document.visibilityState === "visible") tentarDeNovo();
+    };
+    window.addEventListener("online", tentarDeNovo);
+    document.addEventListener("visibilitychange", aoVoltarParaATela);
+    const relogio = window.setInterval(tentarDeNovo, NOVA_TENTATIVA_MS);
+    return () => {
+      data.subscription.unsubscribe();
+      window.removeEventListener("online", tentarDeNovo);
+      document.removeEventListener("visibilitychange", aoVoltarParaATela);
+      window.clearInterval(relogio);
+    };
   }, [resolver]);
 
   const valor = useMemo<ValorSessao>(
@@ -301,3 +370,4 @@ function traduzir(mensagem: string): string {
   if (texto.includes("should be different from the old password")) return "A nova senha precisa ser diferente da anterior.";
   return mensagem;
 }
+

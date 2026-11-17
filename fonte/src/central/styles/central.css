@@ -3687,17 +3687,22 @@ textarea.c-campo:focus {
   color: #2c4c3b;
 }
 
+/* A faixa fica fora do `.central` (vale para todas as telas), onde as
+   variáveis de cor e de letra não existem: por isso os valores vão escritos
+   aqui, iguais a --warning-soft, --warning e --font-body. */
 .c-aviso-offline {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 9999;
-  padding: 8px 16px;
-  background: var(--warning-soft);
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 16px 8px;
+  background: #f6eeda;
   border-bottom: 1px solid rgba(168, 124, 40, 0.22);
-  color: #7a5b1a;
+  color: #7d5c14;
+  font-family: "Public Sans", system-ui, -apple-system, sans-serif;
   font-size: 13px;
+  line-height: 1.4;
   text-align: center;
 }
 

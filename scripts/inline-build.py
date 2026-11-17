@@ -23,10 +23,17 @@ js_content = js_files[0].read_text()
 # Read the existing root index.html to extract the custom head (meta tags, icons, etc.)
 existing = root_html.read_text()
 
-# Extract everything between <head> and the first <script or <link rel="stylesheet"
-# from the existing file - this has the custom meta tags, icon, manifest link, etc.
-head_match = re.search(r'<head>(.*?)(?=<script|<link rel="stylesheet")', existing, re.DOTALL)
+# Extract the custom head (meta tags, icon, manifest link, etc.) from the existing
+# file: everything between <head> and the first <title>, <style>, <script> or
+# stylesheet link. Stopping only at <script> carried the previous build's
+# <title> and <style> along, so every deploy stacked one more full copy of the
+# CSS (fonts included) on top of the last: 56 copies and 32 MB by Nov 2026.
+head_match = re.search(r'<head>(.*?)(?=<title|<style|<script|<link rel="stylesheet")', existing, re.DOTALL)
 custom_head = head_match.group(1).strip() if head_match else ""
+for leftover in ("<title", "<style", "<script"):
+    if leftover in custom_head:
+        print(f"ERROR: custom head still contains {leftover}", file=sys.stderr)
+        sys.exit(1)
 
 # Update the version timestamp
 now = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M UTC")
@@ -51,6 +58,10 @@ output = f"""<!doctype html>
   </body>
 </html>
 """
+
+if output.count("<style>") != 1 or output.count("<title>") != 1:
+    print("ERROR: output must have exactly one <style> and one <title>", file=sys.stderr)
+    sys.exit(1)
 
 root_html.write_text(output)
 print(f"Written {len(output):,} bytes to {root_html}")
