@@ -30,7 +30,7 @@ export function macrosDaOpcao(opcao: OpcaoCardapio): Macros {
 /** "130 g", "200 ml", ou a medida caseira quando ajuda. */
 export function textoDaQuantidade(item: ItemCardapio): string {
   const a = alimento(item.alimento);
-  const liquido = a.grupo === "laticinio" && (a.id.startsWith("leite") || a.id.startsWith("bebida"));
+  const liquido = a.grupo === "bebida";
   return `${Math.round(item.g)} ${liquido ? "ml" : "g"}`;
 }
 
@@ -51,7 +51,7 @@ export interface Troca {
 
 export function trocasDe(item: ItemCardapio, semana: number): Troca[] {
   const base = alimento(item.alimento);
-  if (base.grupo === "gordura" || base.grupo === "laticinio") return [];
+  if (base.grupo === "gordura" || base.grupo === "bebida") return [];
   const kcalAlvo = macrosDoItem(item).kcal;
   return liberadosNaSemana(semana)
     .filter((a) => a.grupo === base.grupo && a.id !== base.id && a.por100[0] > 0)
@@ -67,7 +67,7 @@ export function trocasDe(item: ItemCardapio, semana: number): Troca[] {
 export function listaDeCompras(cardapio: CardapioEtapa): { secao: SecaoCompra; itens: AlimentoHS[] }[] {
   const usados = new Set<string>();
   for (const opcoes of Object.values(cardapio)) for (const o of opcoes) for (const i of o.itens) usados.add(i.alimento);
-  const ordem: SecaoCompra[] = ["Proteínas", "Sem lactose e bebidas vegetais", "Carboidratos", "Frutas", "Legumes e verduras", "Gorduras e sementes"];
+  const ordem: SecaoCompra[] = ["Proteínas", "Bebidas vegetais", "Carboidratos", "Frutas", "Legumes e verduras", "Gorduras e sementes"];
   return ordem
     .map((secao) => ({ secao, itens: ALIMENTOS.filter((a) => a.secao === secao && usados.has(a.id)) }))
     .filter((s) => s.itens.length > 0);

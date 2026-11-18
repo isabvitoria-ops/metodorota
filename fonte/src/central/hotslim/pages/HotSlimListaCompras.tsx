@@ -60,7 +60,7 @@ export function HotSlimListaCompras() {
       </div>
 
       <div className="hs-dica">
-        <strong>Leia o rótulo:</strong> nada de trigo, cevada, malte, leite com lactose, açúcar, alho, cebola ou
+        <strong>Leia o rótulo:</strong> nada de trigo, cevada, malte, leite e derivados (inclusive sem lactose), açúcar, alho, cebola ou
         adoçante que não seja stevia ou taumatina.
       </div>
 

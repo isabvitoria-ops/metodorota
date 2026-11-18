@@ -57,7 +57,7 @@ export interface Etapa {
 }
 
 export const ETAPAS: Etapa[] = [
-  { numero: 1, nome: "Repouso digestivo", dias: { de: 1, ate: 7 }, resumo: "Tudo cozido, low FODMAP, sem glúten e sem lactose. O intestino trabalha menos para você sentir a diferença.", revisada: true },
+  { numero: 1, nome: "Repouso digestivo", dias: { de: 1, ate: 7 }, resumo: "Tudo cozido, low FODMAP, sem glúten e sem laticínios. O intestino trabalha menos para você sentir a diferença.", revisada: true },
   { numero: 2, nome: "Ampliação", dias: { de: 8, ate: 14 }, resumo: "Entram crus, folhas e carne vermelha, ainda low FODMAP.", revisada: false },
   { numero: 3, nome: "Reintrodução", dias: { de: 15, ate: 21 }, resumo: "Teste guiado de um grupo FODMAP por vez, para descobrir os seus liberados.", revisada: false },
 ];
@@ -72,7 +72,7 @@ export const REGRAS_ETAPA_1: { titulo: string; texto: string }[] = [
   { titulo: "Só o que está no cardápio", texto: "Cada opção já soma as calorias certas para você chegar perto de 1.600 kcal. Troque só pelas trocas da própria tela." },
   { titulo: "Tudo cozido", texto: "Legumes cozidos, assados ou refogados. Folhas e legumes crus ficam para a Etapa 2. Frutas podem ser cruas, sempre na porção indicada." },
   { titulo: "Sem carne vermelha", texto: "Frango, peixe, camarão e ovos. Carne bovina e suína voltam na Etapa 2." },
-  { titulo: "Sem glúten e sem lactose", texto: "Nada de trigo, centeio, cevada e malte. Lácteos só na versão sem lactose. Os dois voltam, testados, nas próximas etapas." },
+  { titulo: "Sem glúten e sem laticínios", texto: "Nada de trigo, centeio, cevada e malte. Nada de leite, iogurte, queijo, manteiga ou ghee, nem na versão sem lactose. Os dois voltam, testados, nas próximas etapas." },
   { titulo: "Sem açúcar", texto: "Para adoçar, só stevia ou taumatina, e na versão pura: sem eritritol, xilitol, maltitol ou sorbitol na fórmula." },
   { titulo: "Cafeína até 100 mg por dia", texto: "É mais ou menos 1 xícara de café coado. O último café é até as 16h. Chá verde e chá preto também contam." },
   { titulo: "Jejum noturno de 10 a 12 horas", texto: "Da última refeição do dia até o café da manhã. É o seu sono mais o tempo depois do jantar, não é jejum intermitente." },
@@ -90,7 +90,7 @@ export const ADOCANTES_PROIBIDOS = ["eritritol", "xilitol", "maltitol", "sorbito
 /** Fora durante toda a Etapa 1 (com o motivo, que aparece na tela). */
 export const FORA_ETAPA_1: { item: string; motivo: string }[] = [
   { item: "Trigo, centeio, cevada e malte", motivo: "Glúten e frutanos" },
-  { item: "Leite, iogurte e queijos comuns", motivo: "Lactose. A versão sem lactose pode." },
+  { item: "Leite, iogurte, queijos, manteiga e ghee", motivo: "Laticínios, inclusive os sem lactose. A lactose é testada na reintrodução." },
   { item: "Açúcar, mel, melado, açúcar de coco, tâmara e xarope de agave", motivo: "Açúcar e excesso de frutose" },
   { item: "Maçã, pera, manga, melancia, ameixa (fresca ou seca) e damasco", motivo: "Frutose e polióis (sorbitol)" },
   { item: "Alho, cebola, alho-poró e cebolinha (parte branca)", motivo: "Frutanos" },
@@ -111,7 +111,7 @@ export const AVISOS_DE_ROTULO: { item: string; aviso: string }[] = [
   { item: "Granola", aviso: "Costuma ter castanha de caju, mel ou adoçantes polióis (eritritol, xilitol, maltitol). Com qualquer um deles, não entra." },
   { item: "Banana", aviso: "Só firme, casca amarela sem pintas. A madura tem mais frutanos." },
   { item: "Bebida de aveia", aviso: "No máximo 100 ml por refeição." },
-  { item: "Bebidas vegetais e iogurtes", aviso: "Sem inulina, chicória, polidextrose ou açúcar." },
+  { item: "Bebidas vegetais", aviso: "Sem inulina, chicória, polidextrose ou açúcar." },
   { item: "Adoçante", aviso: "Stevia ou taumatina puras. Muitas misturas de stevia levam eritritol." },
   { item: "Colágeno", aviso: "Sem sabor, ou adoçado só com stevia ou taumatina." },
 ];

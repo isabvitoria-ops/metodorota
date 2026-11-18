@@ -147,7 +147,7 @@ export const FAQ: Pergunta[] = [
   { pergunta: "Posso pular uma refeição?", resposta: "Não. O Hot Slim não é jejum intermitente. São 4 refeições por dia, e o único jejum é o da noite, de 10 a 12 horas." },
   { pergunta: "Quanto café posso tomar?", resposta: `Até ${CAFEINA_MAX_MG} mg de cafeína por dia, cerca de 1 xícara de café coado, até as ${CAFE_ATE}. Chá verde, chá preto e pré-treino entram na conta.` },
   { pergunta: "Qual adoçante posso usar?", resposta: "Só stevia ou taumatina, puras. Confira o rótulo: muitas misturas de stevia levam eritritol, que fica de fora." },
-  { pergunta: "Por que sem lactose, e não sem leite?", resposta: "O que fermenta é a lactose. Leite, iogurte e queijo na versão sem lactose podem. A lactose é testada depois, na reintrodução." },
+  { pergunta: "Leite sem lactose pode?", resposta: "Não. Na Etapa 1 saem todos os laticínios, inclusive os sem lactose, a manteiga e o ghee. Para o mingau e o chocolate quente, use bebida de amêndoas. A lactose é testada depois, na reintrodução." },
   { pergunta: "Posso comer fruta crua?", resposta: "Sim, na porção indicada no cardápio. O que fica cozido na Etapa 1 são os legumes e as folhas." },
   { pergunta: "Posso usar whey?", resposta: "Não durante o desafio. O colágeno pode, sem sabor ou adoçado só com stevia ou taumatina." },
   { pergunta: "E os outros suplementos?", resposta: "Os que você já usa com prescrição, mantenha. Se tiverem sabor, confira se não levam polióis nem açúcar." },

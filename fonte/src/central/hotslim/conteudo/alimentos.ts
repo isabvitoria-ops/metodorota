@@ -34,7 +34,7 @@
 
 export type GrupoHS =
   | "proteina"
-  | "laticinio"
+  | "bebida"
   | "carboidrato"
   | "fruta"
   | "legume"
@@ -42,7 +42,7 @@ export type GrupoHS =
 
 export type SecaoCompra =
   | "Proteínas"
-  | "Sem lactose e bebidas vegetais"
+  | "Bebidas vegetais"
   | "Carboidratos"
   | "Frutas"
   | "Legumes e verduras"
@@ -85,11 +85,8 @@ export const ALIMENTOS: AlimentoHS[] = [
   { id: "lombo", nome: "Lombo suíno assado", grupo: "proteina", por100: [210.2, 35.7, 0, 6.4, 0], fonte: "TACO 4ª ed., cód. 432", fodmapId: "carne-suina", limiteG: null, semana: 2, secao: "Proteínas" },
 
 
-  // ── Sem lactose (lácteos com lactose ficam para a reintrodução) ─────────
-  { id: "iogurte-sl", nome: "Iogurte natural sem lactose", grupo: "laticinio", por100: [51.5, 4.1, 1.9, 3.0, 0], fonte: "TACO 4ª ed., cód. 448 (iogurte natural)", fodmapId: "iogurte-sem-lactose", limiteG: 170, semana: 1, medida: "1 pote ≈ 170 g", aviso: "Natural, sem açúcar e sem polidextrose ou inulina.", secao: "Sem lactose e bebidas vegetais" },
-  { id: "leite-sl", nome: "Leite desnatado sem lactose", grupo: "laticinio", por100: [34, 3.4, 4.9, 0.1, 0], fonte: "USDA FDC 1085 (leite desnatado)", fodmapId: "leite-sem-lactose", limiteG: 250, semana: 1, medida: "1 copo ≈ 200 ml", secao: "Sem lactose e bebidas vegetais" },
-  { id: "mucarela", nome: "Muçarela", grupo: "laticinio", por100: [329.9, 22.6, 3.0, 25.2, 0], fonte: "TACO 4ª ed., cód. 463", fodmapId: "queijo-mucarela", limiteG: 40, semana: 1, medida: "1 fatia ≈ 20 g", secao: "Sem lactose e bebidas vegetais" },
-  { id: "bebida-aveia", nome: "Bebida de aveia", grupo: "laticinio", por100: [45, 1.0, 7.0, 1.5, 0.8], fonte: "Rótulo médio de bebidas de aveia sem açúcar", fodmapId: "leite-aveia", limiteG: 100, semana: 1, medida: "no máximo 100 ml por refeição", aviso: "Acima de 100 ml entram frutanos e GOS.", secao: "Sem lactose e bebidas vegetais" },
+  // ── Bebidas vegetais (laticínios ficam fora do desafio) ─────────────────
+  { id: "bebida-aveia", nome: "Bebida de aveia", grupo: "bebida", por100: [45, 1.0, 7.0, 1.5, 0.8], fonte: "Rótulo médio de bebidas de aveia sem açúcar", fodmapId: "leite-aveia", limiteG: 100, semana: 1, medida: "no máximo 100 ml por refeição", aviso: "Acima de 100 ml entram frutanos e GOS.", secao: "Bebidas vegetais" },
 
   // ── Carboidratos ─────────────────────────────────────────────────────────
   { id: "arroz", nome: "Arroz branco cozido", grupo: "carboidrato", por100: [128.3, 2.5, 28.1, 0.2, 1.6], fonte: "TACO 4ª ed., cód. 3", fodmapId: "arroz-branco", limiteG: null, semana: 1, medida: "1 colher de servir ≈ 50 g", secao: "Carboidratos" },
@@ -134,11 +131,10 @@ export const ALIMENTOS: AlimentoHS[] = [
 
   // ── Gorduras e sementes ──────────────────────────────────────────────────
   { id: "azeite", nome: "Azeite de oliva extravirgem", grupo: "gordura", por100: [884, 0, 0, 100, 0], fonte: "TACO 4ª ed., cód. 260", fodmapId: "azeite", limiteG: null, semana: 1, medida: "1 colher de sopa ≈ 8 g", secao: "Gorduras e sementes" },
-  { id: "ghee", nome: "Manteiga ghee", grupo: "gordura", por100: [876, 0.3, 0, 99.5, 0], fonte: "USDA FDC 1003 (gordura de manteiga anidra)", fodmapId: null, notaFodmap: "Gordura pura, sem lactose e praticamente sem caseína. Manteiga comum não entra.", limiteG: null, semana: 1, medida: "1 colher de chá ≈ 5 g", secao: "Gorduras e sementes" },
   { id: "pasta-amendoim", nome: "Pasta de amendoim (só amendoim)", grupo: "gordura", por100: [598, 22.2, 22.3, 51.4, 5.0], fonte: "USDA FDC 16398", fodmapId: "amendoim", limiteG: 28, semana: 1, medida: "1 colher de sopa ≈ 15 g", secao: "Gorduras e sementes" },
   { id: "chia", nome: "Chia", grupo: "gordura", por100: [486, 16.5, 42.1, 30.7, 34.4], fonte: "USDA FDC 12006", fodmapId: "chia", limiteG: 24, semana: 1, medida: "1 colher de sopa ≈ 12 g", secao: "Gorduras e sementes" },
   { id: "cacau", nome: "Cacau 100% em pó", grupo: "gordura", por100: [228, 19.6, 57.9, 13.7, 37.0], fonte: "USDA FDC 19165", fodmapId: null, notaFodmap: "Cacau em pó é baixo em FODMAP até 2 colheres de chá (Monash).", limiteG: 8, semana: 1, medida: "1 colher de chá ≈ 4 g", secao: "Gorduras e sementes" },
-  { id: "leite-amendoa", nome: "Bebida de amêndoas sem açúcar", grupo: "laticinio", por100: [15, 0.6, 0.3, 1.2, 0], fonte: "USDA FDC 14091", fodmapId: "leite-amendoa", limiteG: 240, semana: 1, medida: "1 copo ≈ 200 ml", aviso: "Sem inulina, chicória ou açúcar nos ingredientes.", secao: "Sem lactose e bebidas vegetais" },
+  { id: "leite-amendoa", nome: "Bebida de amêndoas sem açúcar", grupo: "bebida", por100: [15, 0.6, 0.3, 1.2, 0], fonte: "USDA FDC 14091", fodmapId: "leite-amendoa", limiteG: 240, semana: 1, medida: "1 copo ≈ 200 ml", aviso: "Sem inulina, chicória ou açúcar nos ingredientes.", secao: "Bebidas vegetais" },
 ];
 
 const POR_ID = new Map(ALIMENTOS.map((a) => [a.id, a]));
