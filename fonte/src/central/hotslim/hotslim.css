@@ -35,54 +35,11 @@
   min-height: 100dvh;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  .hotslim:not([data-theme="light"]) {
-    --hs-bg: #0f1419;
-    --hs-fg: #e8ecf0;
-    --hs-fg-soft: #8b99a6;
-    --hs-surface: #1a2028;
-    --hs-surface-alt: #222a33;
-    --hs-border: #2e3842;
-    --hs-border-strong: #3a4550;
-    --hs-accent: #7eacc4;
-    --hs-accent-hover: #9ec2d6;
-    --hs-accent-soft: #1a2a36;
-    --hs-gold: #b8a48c;
-    --hs-gold-soft: #2a2418;
-    --hs-green: #6aae7e;
-    --hs-green-soft: #1a2e22;
-    --hs-blue: #7eacc4;
-    --hs-danger: #c47060;
-    --hs-danger-soft: #2e1a16;
-    --hs-locked: #5a6a78;
-    --hs-locked-bg: #1a2028;
-    color-scheme: dark;
-  }
-}
-.hotslim[data-theme="dark"] {
-  --hs-bg: #0f1419;
-  --hs-fg: #e8ecf0;
-  --hs-fg-soft: #8b99a6;
-  --hs-surface: #1a2028;
-  --hs-surface-alt: #222a33;
-  --hs-border: #2e3842;
-  --hs-border-strong: #3a4550;
-  --hs-accent: #7eacc4;
-  --hs-accent-hover: #9ec2d6;
-  --hs-accent-soft: #1a2a36;
-  --hs-gold: #b8a48c;
-  --hs-gold-soft: #2a2418;
-  --hs-green: #6aae7e;
-  --hs-green-soft: #1a2e22;
-  --hs-blue: #7eacc4;
-  --hs-danger: #c47060;
-  --hs-danger-soft: #2e1a16;
-  --hs-locked: #5a6a78;
-  --hs-locked-bg: #1a2028;
-  color-scheme: dark;
-}
+/* Sempre claro, como o resto do app: o fundo escuro automático (quando o
+   celular está no modo escuro) saiu a pedido dela. */
 
 /* ── Layout ─────────────────────────────────────────────────── */
 .hs-casca {
