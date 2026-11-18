@@ -3,10 +3,13 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { alimento } from "../conteudo/alimentos.ts";
 import { CARDAPIO_ETAPA_1 } from "../conteudo/cardapio.ts";
 import { macrosDaOpcao, textoDaQuantidade, trocasDe } from "../conteudo/calculo.ts";
-import { ETAPAS, META_KCAL, REFEICOES, etapaDoDia } from "../conteudo/regras.ts";
+import { ETAPAS, REFEICOES, etapaDoDia } from "../conteudo/regras.ts";
 
 /**
  * Cardápio do Hot Slim.
+ *
+ * As calorias ficam só com a nutricionista (pedido dela): a conta continua na
+ * base e no teste, mas a participante não vê número de kcal.
  *
  * Tudo nesta tela sai da base única (conteudo/): opções, gramas, calorias e
  * trocas. Nada é digitado aqui. Por isso o cardápio não consegue contradizer
@@ -39,8 +42,8 @@ export function HotSlimCardapio() {
       )}
 
       <div className="hs-dica">
-        <strong>Como usar:</strong> escolha 1 opção de cada refeição. Qualquer combinação dá perto de{" "}
-        {META_KCAL.toLocaleString("pt-BR")} kcal. Pese depois de pronto (carnes, arroz, batata) e cru o que é seco
+        <strong>Como usar:</strong> escolha 1 opção de cada refeição. Todas já vêm montadas e equilibradas para o
+        seu dia. Pese depois de pronto (carnes, arroz, batata) e cru o que é seco
         (aveia, tapioca, flocão). Toque numa opção para ver as trocas.
       </div>
 
@@ -49,7 +52,7 @@ export function HotSlimCardapio() {
           <div className="hs-refeicao-header">
             <span>{ref.nome}</span>
             <span style={{ marginLeft: "auto", color: "var(--hs-fg-soft)", fontSize: 13 }}>
-              {ref.horario} · ~{ref.kcal} kcal
+              {ref.horario}
             </span>
           </div>
           <div className="hs-refeicao-body">
@@ -80,7 +83,7 @@ export function HotSlimCardapio() {
                       <strong>{op.nome}</strong>
                       <br />
                       <span className="hs-list-item-detail">
-                        {Math.round(m.kcal)} kcal · {Math.round(m.proteina)} g proteína · {m.fibra.toFixed(0)} g fibra
+                        {Math.round(m.proteina)} g proteína · {m.fibra.toFixed(0)} g fibra
                       </span>
                     </span>
                     <span style={{ marginLeft: "auto", color: "var(--hs-fg-soft)" }}>{expandida ? "▾" : "▸"}</span>
@@ -128,7 +131,7 @@ export function HotSlimCardapio() {
       ))}
 
       <p className="hs-texto" style={{ fontSize: 12, marginTop: 16 }}>
-        Calorias pela TACO (4ª ed.) e pela USDA FoodData Central. Porções low FODMAP conforme a Monash University.
+        Composição dos alimentos pela TACO (4ª ed.) e pela USDA FoodData Central. Porções low FODMAP conforme a Monash University.
       </p>
     </div>
   );

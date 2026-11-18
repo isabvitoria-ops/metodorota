@@ -23,7 +23,7 @@ const FASES = ETAPAS.map((e) => ({ nome: e.nome, curto: e.nome, de: e.dias.de, a
 
 const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; apoio: string }[] = [
   { rota: "/hotslim/protocolo", icone: "lista", titulo: "Método Rota", apoio: "Regras, rotina e sintomas" },
-  { rota: "/hotslim/cardapio", icone: "almoco", titulo: "Cardápio", apoio: "Opções de 1.600 kcal" },
+  { rota: "/hotslim/cardapio", icone: "almoco", titulo: "Cardápio", apoio: "Opções para cada refeição" },
   { rota: "/hotslim/lista-compras", icone: "mercado", titulo: "Lista de compras", apoio: "O que levar do supermercado" },
   { rota: "/hotslim/reintroducao", icone: "folha", titulo: "Reintrodução", apoio: "Etapa 3, dias 15 a 21" },
   { rota: "/hotslim/metas", icone: "evolucao", titulo: "Minhas metas", apoio: "Objetivos semanais" },
