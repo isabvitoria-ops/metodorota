@@ -53,7 +53,7 @@ export interface NumerosDaReceita {
   fontes: string[];
   calculadoEm: string;
   /**
-   * Números POR PORÇÃO digitados pela nutricionista (de um e-book, do rótulo,
+   * Números POR PORÇÃO digitados pela nutricionista (do rótulo,
    * de uma conta dela). Quando existe, vale no lugar da soma pelos gramas,
    * e a tela mostra `origem` embaixo — o número continua tendo de onde veio.
    */
