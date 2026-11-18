@@ -1,92 +1,20 @@
 import { useState } from "react";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { Icone } from "@/central/components/Icone";
+import { CARDAPIO_ETAPA_1 } from "../conteudo/cardapio.ts";
+import { listaDeCompras } from "../conteudo/calculo.ts";
+import { AVISOS_DE_ROTULO, CHAS_ETAPA_1, TEMPEROS_ETAPA_1 } from "../conteudo/regras.ts";
 interface SecaoLista {
   titulo: string;
   itens: string[];
 }
 
+// A lista é montada do cardápio (conteudo/calculo.ts → listaDeCompras): só
+// entra o que alguma opção da Etapa 1 usa. Temperos e chás vêm de regras.ts.
 const SECOES: SecaoLista[] = [
-  {
-    titulo: "Proteínas",
-    itens: [
-      "Frango (peito, coxa, sobrecoxa)",
-      "Peixe (tilápia, salmão, atum em lata ao natural)",
-      "Ovos",
-      "Carne bovina magra (patinho, alcatra, músculo)",
-      "Carne suína (lombo)",
-    ],
-  },
-  {
-    titulo: "Carboidratos",
-    itens: [
-      "Arroz branco ou integral",
-      "Batata inglesa",
-      "Aipim / mandioca",
-      "Cuscuz de milho",
-      "Tapioca (goma)",
-      "Macarrão de arroz",
-    ],
-  },
-  {
-    titulo: "Gorduras boas",
-    itens: [
-      "Azeite de oliva extravirgem",
-      "Óleo de coco",
-      "Manteiga ghee",
-    ],
-  },
-  {
-    titulo: "Vegetais",
-    itens: [
-      "Abobrinha",
-      "Cenoura",
-      "Chuchu",
-      "Vagem",
-      "Pepino",
-      "Beterraba",
-      "Abóbora",
-      "Tomate (sem semente e sem casca)",
-    ],
-  },
-  {
-    titulo: "Frutas",
-    itens: [
-      "Banana",
-      "Maçã (sem casca)",
-      "Morango",
-      "Melão",
-      "Kiwi",
-      "Mamão",
-    ],
-  },
-  {
-    titulo: "Temperos e ervas",
-    itens: [
-      "Sal",
-      "Pimenta-do-reino",
-      "Salsinha, coentro",
-      "Manjericão",
-      "Cúrcuma",
-      "Gengibre",
-      "Limão",
-    ],
-  },
-  {
-    titulo: "Extras",
-    itens: [
-      "Café (coado, moderado)",
-      "Chás (camomila, erva-doce, hortelã)",
-      "Água de coco (sem açúcar)",
-    ],
-  },
-];
-
-const DICAS = [
-  "Comece pelas frutas e vegetais — isso ocupa o carrinho de coisas boas primeiro",
-  "Evite corredores de biscoitos, salgadinhos e doces — se não comprar, não come",
-  "Prefira produtos com lista de ingredientes curta e legível",
-  "Leve uma lista e siga ela — supermercado com fome é cilada",
+  ...listaDeCompras(CARDAPIO_ETAPA_1).map((s) => ({ titulo: s.secao, itens: s.itens.map((a) => a.nome) })),
+  { titulo: "Temperos", itens: TEMPEROS_ETAPA_1 },
+  { titulo: "Chás", itens: CHAS_ETAPA_1.map((c) => (c.nome.startsWith("Chá") ? c.nome : `Chá de ${c.nome.toLowerCase()}`)) },
 ];
 
 const TOTAL_DE_ITENS = SECOES.reduce((soma, secao) => soma + secao.itens.length, 0);
@@ -98,7 +26,7 @@ const TOTAL_DE_ITENS = SECOES.reduce((soma, secao) => soma + secao.itens.length,
  */
 export function HotSlimListaCompras() {
   const { acesso } = useSessao();
-  const chave = `central:hotslim-compras:v1:${acesso.perfilId ?? "anonimo"}`;
+  const chave = `central:hotslim-compras:v2:${acesso.perfilId ?? "anonimo"}`;
   const [marcados, definirMarcados] = useState<string[]>(() => {
     try {
       const guardado: unknown = JSON.parse(window.localStorage.getItem(chave) ?? "[]");
@@ -128,12 +56,12 @@ export function HotSlimListaCompras() {
     <div className="hs-pagina">
       <div style={{ marginBottom: 20 }}>
         <h1 className="hs-titulo">Lista de Compras</h1>
-        <p className="hs-texto">O que levar do supermercado para o desafio</p>
+        <p className="hs-texto">Etapa 1 · tudo o que o cardápio usa, e nada além disso</p>
       </div>
 
       <div className="hs-dica">
-        <strong>Dica:</strong> Leia sempre os ingredientes dos produtos! Se tiver mais de 5
-        ingredientes ou nomes que você não reconhece, devolva pra prateleira.
+        <strong>Leia o rótulo:</strong> nada de trigo, cevada, malte, leite com lactose, açúcar, alho, cebola ou
+        adoçante que não seja stevia ou taumatina.
       </div>
 
       <div className="hs-compras-resumo" role="status">
@@ -177,12 +105,14 @@ export function HotSlimListaCompras() {
       ))}
 
       <div className="hs-list-section">
-        <div className="hs-list-header">Dicas no Supermercado</div>
+        <div className="hs-list-header">Atenção no rótulo</div>
         <div className="hs-list-card">
-          {DICAS.map((dica, i) => (
-            <div className="hs-list-item static" key={i}>
-              <span className="hs-regra-num" style={{ width: 20, height: 20, fontSize: 11 }}>{i + 1}</span>
-              <span className="hs-list-item-name">{dica}</span>
+          {AVISOS_DE_ROTULO.map((a) => (
+            <div className="hs-list-item static" key={a.item}>
+              <span className="hs-list-item-name">
+                <strong>{a.item}</strong>
+                <span className="hs-list-item-detail">{a.aviso}</span>
+              </span>
             </div>
           ))}
         </div>

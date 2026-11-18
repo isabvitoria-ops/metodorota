@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AGUA_ML_POR_KG } from "../conteudo/regras.ts";
 import { repositorioHotSlim, type MetaSemanal } from "../dados/repositorioHotSlim";
 
 const SEMANAS = [1, 2, 3];
@@ -79,7 +80,7 @@ export function HotSlimMetas() {
         <div className="hs-meta-row">
           <div className="hs-meta-info">
             <div className="hs-meta-label">Água por dia</div>
-            <div className="hs-meta-hint">Meta: 40ml × seu peso (kg)</div>
+            <div className="hs-meta-hint">Meta: {AGUA_ML_POR_KG} ml × seu peso (kg)</div>
           </div>
           <input
             type="number"
