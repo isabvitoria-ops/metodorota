@@ -9,6 +9,7 @@ import { rotas } from "@/central/rotas";
 import { useDesafio } from "@/central/hooks/useDesafio";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { useInstalacao } from "@/central/hooks/useInstalacao";
+import { useMinhaCozinha } from "@/central/hooks/useMinhaCozinha";
 
 /**
  * Home — a "Central do Paciente" (§3 e §33).
@@ -111,6 +112,13 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     descricao: "Substitua alimentos mantendo a quantidade adequada.",
   },
   {
+    rota: rotas.cozinha,
+    grupo: "ferramentas",
+    icone: "receita",
+    titulo: "Cozinha",
+    descricao: "Receitas da sua nutricionista, com as calorias de cada porção.",
+  },
+  {
     rota: rotas.habitos,
     grupo: "ferramentas",
     icone: "sono",
@@ -129,7 +137,7 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     grupo: "ferramentas",
     icone: "documentos",
     titulo: "Meus documentos",
-    descricao: "Protocolo, avaliação e rastreio para imprimir e guardar.",
+    descricao: "Plano, trocas, mercado da semana, avaliação e rastreio para guardar.",
   },
 ];
 
@@ -137,6 +145,7 @@ export function Home() {
   const navegar = useNavigate();
   const [consulta, definirConsulta] = useState("");
   const { acesso, configuracoes, sair } = useSessao();
+  const { cozinha } = useMinhaCozinha();
 
   const primeiroNome = acesso.nome?.trim().split(" ")[0] ?? null;
   const vencendo =
@@ -215,7 +224,9 @@ export function Home() {
               (atalho.rota !== rotas.hotslim || (acesso.hotslim && acesso.papel !== "admin")) &&
               // Sem treino ativo e sem nenhuma sessão registrada, a porta não
               // existe — em vez de abrir uma evolução sem o que mostrar.
-              (atalho.rota !== rotas.treino || acesso.treino),
+              (atalho.rota !== rotas.treino || acesso.treino) &&
+              // A Cozinha só aparece quando há receita para ela abrir.
+              (atalho.rota !== rotas.cozinha || (cozinha?.receitas.length ?? 0) > 0),
           );
           if (portas.length === 0) return null;
           return (

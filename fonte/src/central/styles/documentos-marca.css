@@ -895,3 +895,65 @@
     margin-top: 9mm;
   }
 }
+
+/* =========================================================================
+   DOCUMENTOS NOVOS (receita, pedido de exames, mercado da semana, trocas).
+   O topo é o mesmo do plano (doc-pa-topo); estas regras são do miolo.
+   ========================================================================= */
+@media print {
+  .doc-novo-titulo { font-size: 26pt; }
+  .doc-novo-intro { margin: 5mm 0 6mm; font-size: 10pt; line-height: 1.5; color: #263d52; }
+  .doc-caixa {
+    flex: none; display: inline-flex; align-items: center; justify-content: center;
+    width: 3.6mm; height: 3.6mm; border: 0.3mm solid #38546c; border-radius: 0.8mm;
+    font-size: 7pt; color: #38546c;
+  }
+
+  /* Receita */
+  .doc-rc-colunas { display: grid; grid-template-columns: 1fr 1.3fr; gap: 8mm; margin-top: 6mm; }
+  .doc-rc-lista { margin: 0; padding-left: 4mm; display: grid; gap: 1.8mm; font-size: 10pt; color: #263d52; }
+  .doc-rc-lista--numerada { padding-left: 5mm; }
+  .doc-rc-dica { margin-top: 5mm; }
+  .doc-rc-numeros { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 8mm; break-inside: avoid; }
+  .doc-rc-numeros > div { display: flex; flex-direction: column; gap: 1mm; padding: 4mm 5mm; border-radius: 3mm; border: 0.3mm solid #c9bcac; }
+  .doc-rc-numeros strong { font-family: "Josefin Sans", system-ui, sans-serif; font-size: 20pt; font-weight: 600; color: #38546c; }
+  .doc-rc-numeros small { font-size: 8.5pt; color: #263d52; }
+  .doc-rc-numeros .doc-rc-numeros-porcao { background: #38546c; border-color: #38546c; }
+  .doc-rc-numeros-porcao .doc-pa-rotulo, .doc-rc-numeros-porcao strong, .doc-rc-numeros-porcao small { color: #f7eee7; }
+  .doc-rc-fonte { margin: 3mm 0 0; font-size: 8pt; color: #38546c; }
+
+  /* Pedido de exames */
+  .doc-ex-grupos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6mm 7mm; }
+  .doc-ex-grupo { break-inside: avoid; }
+  .doc-ex-grupo ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1.8mm; }
+  .doc-ex-grupo li { display: flex; align-items: center; gap: 2mm; font-size: 9.5pt; font-weight: 700; color: #263d52; }
+  .doc-ex-orientacao { margin-top: 8mm; }
+  .doc-assinatura { margin: 18mm 0 0 auto; width: 70mm; display: flex; flex-direction: column; align-items: center; gap: 1mm; font-size: 9pt; color: #38546c; break-inside: avoid; }
+  .doc-assinatura strong { font-size: 10.5pt; color: #263d52; }
+  .doc-assinatura-linha { width: 100%; border-top: 0.3mm solid #263d52; margin-bottom: 1.5mm; }
+
+  /* Mercado da semana */
+  .doc-cp-secao { margin-top: 5mm; break-inside: avoid; }
+  .doc-cp-secao ul { list-style: none; margin: 0; padding: 0; }
+  .doc-cp-secao li {
+    display: grid; grid-template-columns: 5mm 1fr auto; grid-template-areas: "c n q" ". k q";
+    column-gap: 2mm; padding: 2mm 0; border-bottom: 0.2mm solid #c9bcac; break-inside: avoid;
+  }
+  .doc-cp-secao .doc-caixa { grid-area: c; margin-top: 0.6mm; }
+  .doc-cp-nome { grid-area: n; font-weight: 700; font-size: 10pt; color: #263d52; }
+  .doc-cp-conta { grid-area: k; font-size: 8.5pt; color: #5a7a8f; }
+  .doc-cp-total { grid-area: q; align-self: center; font-size: 11pt; color: #38546c; }
+  .doc-cp-semconta { margin: 0 0 2mm; }
+
+  /* Minhas trocas */
+  .doc-tr-refeicao { margin-top: 5mm; }
+  .doc-tabela { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9.5pt; color: #263d52; }
+  .doc-tabela th { text-align: left; padding: 2mm 2.5mm; background: #c8dae4; font-size: 8pt; letter-spacing: 0.06em; text-transform: uppercase; color: #263d52; }
+  .doc-tabela th:nth-child(1) { width: 38%; }
+  .doc-tabela th:nth-child(2) { width: 22%; }
+  .doc-tabela td { padding: 2.2mm 2.5mm; border-bottom: 0.2mm solid #c9bcac; vertical-align: top; }
+  .doc-tabela tr { break-inside: avoid; }
+  .doc-tr-opcao { display: block; font-size: 8pt; color: #5a7a8f; }
+  .doc-tr-troca { display: block; }
+  .doc-tr-troca b { color: #38546c; }
+}

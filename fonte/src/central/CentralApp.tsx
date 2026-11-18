@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { Cozinha, ReceitaDetalhe } from "./pages/Cozinha";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { NavPrincipal } from "./components/NavPrincipal";
 import { Home } from "./pages/Home";
@@ -53,6 +54,8 @@ export function CentralApp() {
         <Routes>
           <Route index element={<Home />} />
           <Route path="protocolo" element={<Protocolo />} />
+          <Route path="cozinha" element={<Cozinha />} />
+          <Route path="cozinha/:receitaId" element={<ReceitaDetalhe />} />
           {/* Rolê no Mercado — escondido até as fotos individuais ficarem prontas */}
           {/* <Route path="mercado" element={<Mercado />} /> */}
           <Route path="avaliacao" element={<Avaliacao />} />

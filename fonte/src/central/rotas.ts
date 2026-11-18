@@ -25,6 +25,8 @@ export const rotas = {
   // porque não há para onde mandar: cai no `*` e volta para a tela inicial,
   // que é o destino certo para um link que não existe mais.
   protocolo: "/protocolo",
+  cozinha: "/cozinha",
+  receita: (receitaId: string) => `/cozinha/${encodeURIComponent(receitaId)}`,
   mercado: "/mercado",
   avaliacao: "/avaliacao",
   treino: "/evolucao",
@@ -77,6 +79,9 @@ export const rotas = {
   adminRastreabilidade: "/admin/rastreabilidade",
   adminProtocolos: "/admin/protocolos",
   adminCalculos: "/admin/calculos",
+  adminReceitas: "/admin/receitas",
+  adminEstilo: "/admin/estilo",
+  adminExames: "/admin/exames",
   adminProtocolo: (pacienteId: string) => `/admin/protocolos/${pacienteId}`,
   adminTreinos: "/admin/treinos",
   adminMetas: "/admin/metas",

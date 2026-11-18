@@ -12492,3 +12492,185 @@ textarea.c-campo-input,
 }
 
 /* Dark mode */
+
+/* =========================================================================
+   COZINHA (receitas) — tela da paciente, atalho no Protocolo e cadastro.
+   Só tokens da marca (skill marca-isa).
+   ========================================================================= */
+.c-cz-chips { margin-top: 14px; }
+.c-cz-filtros, .c-cz-etiquetas { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.c-cz-filtro, .central button.c-cz-filtro {
+  display: inline-flex; align-items: center; gap: 4px; min-height: 30px;
+  padding: 4px 11px; border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong); background: var(--surface);
+  font: inherit; font-size: 12.5px; color: var(--marca-nanquim); cursor: pointer;
+}
+.c-cz-filtro:focus-visible { outline: none; box-shadow: var(--foco); }
+.c-cz-filtro[aria-pressed="true"], .central button.c-cz-filtro[aria-pressed="true"] { background: var(--marca-azul-profundo); border-color: var(--marca-azul-profundo); color: var(--marca-marfim); }
+.c-cz-filtro--fav, .central button.c-cz-filtro--fav { color: var(--marca-cereja); border-color: var(--marca-rosa); }
+.c-cz-filtro--fav[aria-pressed="true"], .central button.c-cz-filtro--fav[aria-pressed="true"] { background: var(--marca-cereja); border-color: var(--marca-cereja); color: var(--marca-marfim); }
+.c-cz-filtro--leitura { cursor: default; }
+.c-cz-secao, .c-conteudo .c-cz-secao, .c-bloco .c-cz-secao, fieldset .c-cz-secao, .c-es .c-cz-secao, .c-rc .c-cz-secao {
+  margin: 24px 0 10px; padding: 0;
+  font-family: var(--font-body); font-size: 12px; font-weight: 700; line-height: 1.3;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--marca-azul-profundo);
+}
+.c-cz-secao.c-cz-secao--dentro { margin-top: 2px; }
+.c-cz-nada { margin-top: 18px; }
+.c-cz-grade { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 720px) { .c-cz-grade { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.c-cz-cartao {
+  display: flex; flex-direction: column; gap: 6px; min-height: 150px; min-width: 0;
+  padding: 14px; border-radius: var(--radius); background: var(--marca-marfim);
+  color: var(--marca-nanquim); box-shadow: var(--shadow); cursor: pointer;
+}
+.c-cz-cartao-topo { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.c-cz-categoria { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--marca-azul-medio); }
+.c-cz-coracao, .central button.c-cz-coracao {
+  display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; margin: -8px -8px -8px 0;
+  border: 0; border-radius: 50%; background: none; color: var(--marca-azul-medio); cursor: pointer;
+}
+.c-cz-coracao:focus-visible { outline: none; box-shadow: var(--foco); }
+.c-cz-coracao--salvo, .central button.c-cz-coracao--salvo { color: var(--marca-cereja); }
+.c-cz-cartao-nome, .central a.c-cz-cartao-nome {
+  font-family: var(--font-display); font-size: 17px; font-weight: 500; line-height: 1.2;
+  color: var(--marca-azul-profundo); text-decoration: none; overflow-wrap: anywhere;
+}
+.c-cz-cartao-nome:focus-visible { outline: none; box-shadow: var(--foco); border-radius: 4px; }
+.c-cz-meta { font-size: 12px; color: var(--text-muted); }
+.c-cz-cartao-rodape { margin-top: auto; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.c-cz-kcal { padding: 2px 9px; border-radius: var(--radius-pill); background: var(--marca-azul-profundo); color: var(--marca-marfim); font-size: 12px; font-weight: 700; }
+.c-cz-por { font-size: 11px; color: var(--text-muted); }
+.c-cz-enviada { margin-left: auto; font-size: 10.5px; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--marca-gelo); color: var(--marca-nanquim); }
+.c-cz-etiqueta {
+  display: inline-flex; align-items: center; padding: 4px 12px; border-radius: var(--radius-pill); background: var(--marca-rosa);
+  color: var(--marca-nanquim); font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.c-cz-numeros { margin-top: 16px; padding: 16px; border-radius: var(--radius); background: var(--marca-azul-profundo); color: var(--marca-marfim); }
+.c-cz-numeros-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.c-cz-numeros-rotulo { margin: 0; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--marca-azul-profundo); }
+.c-cz-numeros .c-cz-numeros-rotulo { color: var(--marca-gelo); }
+.c-cz-alternar { display: inline-flex; padding: 3px; border-radius: var(--radius-pill); background: rgba(247, 238, 231, 0.14); }
+.c-cz-alternar button, .central .c-cz-alternar button { border: 0; background: none; color: var(--marca-marfim); padding: 6px 12px; border-radius: var(--radius-pill); font: inherit; font-size: 12px; cursor: pointer; }
+.c-cz-alternar button[aria-pressed="true"], .central .c-cz-alternar button[aria-pressed="true"] { background: var(--marca-marfim); color: var(--marca-azul-profundo); font-weight: 700; }
+.c-cz-alternar button:focus-visible { outline: none; box-shadow: var(--foco); }
+.c-cz-numeros-grade { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
+.c-cz-num { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.c-cz-num strong { font-family: var(--font-display); font-size: 19px; font-weight: 500; }
+.c-cz-num--kcal strong { font-size: 26px; }
+.c-cz-num span { font-size: 11px; color: var(--marca-gelo); }
+.c-cz-fonte { margin: 10px 0 0; font-size: 11.5px; line-height: 1.45; color: var(--text-muted); }
+.c-cz-numeros .c-cz-fonte { color: var(--marca-gelo); }
+.c-cz-bloco { margin-top: 14px; }
+.c-cz-ingredientes { list-style: none; margin: 0; padding: 0; }
+.c-cz-ingredientes li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 15px; }
+.c-cz-ingredientes li:last-child { border-bottom: 0; }
+.c-cz-gramas { color: var(--text-muted); white-space: nowrap; }
+.c-cz-preparo { margin: 0; padding-left: 20px; display: grid; gap: 8px; font-size: 15px; }
+.c-cz-preparo li::marker { color: var(--marca-azul-medio); font-weight: 700; }
+.c-cz-dica { margin: 14px 0 0; padding: 12px 14px; border-radius: var(--radius-sm); background: var(--marca-gelo); color: var(--marca-nanquim); font-size: 14px; }
+.c-cz-acoes { margin-top: 18px; }
+
+/* O "Baixar em PDF" fora de Meus documentos. */
+.c-pdf { display: flex; flex-direction: column; gap: 8px; align-items: stretch; }
+.c-pdf > .c-botao { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+
+/* Protocolo → receitas da refeição */
+.c-prot-receitas { display: grid; gap: 8px; margin: 0 14px 14px; }
+.c-prot-receita, .central button.c-prot-receita {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; text-align: left;
+  border-radius: var(--radius-sm); border: 1px dashed var(--marca-areia); background: var(--marca-marfim);
+  color: var(--marca-nanquim); font: inherit; cursor: pointer;
+}
+.c-prot-receita:focus-visible { outline: none; box-shadow: var(--foco); }
+.c-prot-receita-icone { display: inline-flex; padding: 7px; border-radius: 50%; background: var(--surface); color: var(--marca-azul-profundo); }
+.c-prot-receita-texto { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.c-prot-receita-texto small { font-size: 11px; color: var(--marca-azul-medio); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.c-prot-receita-texto strong { font-size: 14px; font-weight: 600; }
+
+/* Cadastro de receitas (área da nutricionista) */
+.c-rc-cabeca { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.c-rc-grade { display: grid; gap: 16px; align-items: start; }
+.c-rc-grade--editando .c-rc-lista { display: none; }
+@media (min-width: 1100px) {
+  .c-rc-grade--editando { grid-template-columns: 240px minmax(0, 1fr) 260px; }
+  .c-rc-grade--editando .c-rc-lista { display: flex; }
+}
+.c-rc-lista { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.c-rc-item, .central button.c-rc-item {
+  text-align: left; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius-sm);
+  padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; font: inherit; color: var(--marca-nanquim); cursor: pointer;
+}
+.c-rc-item:focus-visible { outline: none; box-shadow: var(--foco); }
+.c-rc-item span { font-size: 12.5px; color: var(--text-muted); }
+.c-rc-item .c-rc-item-estado { font-size: 11.5px; color: var(--marca-azul-medio); }
+.c-rc-item--ativo { border-color: var(--marca-azul-profundo); background: var(--marca-marfim); }
+.c-rc-form { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.c-rc-form-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.c-rc-tres { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; }
+@media (max-width: 560px) { .c-rc-tres { grid-template-columns: 1fr 1fr; } .c-rc-tres > :first-child { grid-column: 1 / -1; } }
+.c-rc-ingredientes { display: grid; gap: 10px; }
+/* Cada ingrediente em duas linhas: o texto da paciente em cima; o alimento da
+   tabela, os gramas e as kcal embaixo. Numa linha só, o texto ficava cortado. */
+.c-rc-ing {
+  display: grid; grid-template-columns: minmax(0, 1fr) 90px 78px 32px; gap: 8px; align-items: end;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+.c-rc-ing-texto { grid-column: 1 / -1; }
+@media (max-width: 560px) {
+  .c-rc-ing { grid-template-columns: minmax(0, 1fr) 96px 32px; }
+  .c-rc-ing-alimento { grid-column: 1 / -1; }
+  .c-rc-ing .c-rc-ing-kcal { grid-column: 1; grid-row: 3; text-align: left; }
+  .c-rc-ing-g { grid-column: 2; grid-row: 3; }
+  .c-rc-tirar { grid-column: 3; grid-row: 3; }
+}
+.c-rc-ing-alimento { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.c-rc-escolhido { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 44px; padding: 6px 10px; border-radius: var(--radius-sm); background: var(--marca-marfim); font-size: 13.5px; }
+.c-rc-escolhido small { color: var(--text-muted); }
+.c-rc-ing-kcal { align-self: center; font-size: 12.5px; color: var(--text-muted); text-align: right; }
+.c-rc-tirar, .central button.c-rc-tirar { width: 32px; height: 44px; border: 0; background: none; font-size: 20px; color: var(--text-muted); cursor: pointer; border-radius: var(--radius-sm); }
+.c-rc-tirar:focus-visible { outline: none; box-shadow: var(--foco); }
+.c-rc-mais { align-self: flex-start; }
+.c-rc-textarea { min-height: 110px; font: inherit; resize: vertical; }
+.c-rc-publicar { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: var(--radius-sm); background: var(--marca-marfim); cursor: pointer; }
+.c-rc-publicar input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--marca-azul-profundo); }
+.c-rc-publicar span { display: flex; flex-direction: column; gap: 2px; }
+.c-rc-publicar small { color: var(--text-muted); font-size: 12.5px; }
+.c-rc-falta { margin: 0; padding-left: 18px; font-size: 13px; color: var(--warning); display: grid; gap: 2px; }
+.c-rc-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.c-rc-numeros { min-width: 0; }
+@media (min-width: 1100px) { .c-rc-numeros { position: sticky; top: 16px; } }
+.c-rc-numeros hr { border: 0; border-top: 1px solid var(--border); margin: 12px 0; }
+.c-rc-grande { margin: 4px 0 2px; font-family: var(--font-display); font-size: 30px; color: var(--marca-azul-profundo); }
+.c-rc-grande small { font-size: 14px; }
+.c-rc-mini { margin: 0; font-size: 12.5px; color: var(--text-muted); line-height: 1.45; }
+.c-rc-aviso { margin-top: 8px; color: var(--warning); }
+.c-rc-pacientes { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; max-height: 280px; overflow: auto; }
+.c-rc-pacientes label { display: flex; gap: 8px; align-items: center; min-height: 36px; font-size: 14px; cursor: pointer; }
+.c-rc-pacientes input { width: 18px; height: 18px; accent-color: var(--marca-azul-profundo); }
+
+/* Pedido de exames */
+.c-px-topo { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+.c-px-grupos { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-top: 12px; }
+.c-px-grupo { margin: 0; min-width: 0; border: 1px solid var(--border); }
+.c-px-exame { display: flex; gap: 8px; align-items: center; min-height: 36px; font-size: 14px; cursor: pointer; }
+.c-px-exame input { width: 18px; height: 18px; accent-color: var(--marca-azul-profundo); }
+.c-px-novo { display: flex; gap: 8px; margin-top: 8px; }
+.c-px-orientacao { margin-top: 14px; }
+.c-px-rodape { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; max-width: 420px; }
+
+/* Estilo do app */
+.c-es-cores { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.c-es-cor { display: flex; flex-direction: column; gap: 3px; font-size: 13px; min-width: 0; }
+.c-es-cor span { height: 56px; border-radius: var(--radius-sm); border: 1px solid var(--border); }
+.c-es-cor small { color: var(--text-muted); font-size: 11.5px; }
+.c-es-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 20px; align-items: start; }
+.c-es-titulo { margin: 0 0 6px; font-family: var(--font-display); font-size: 28px; color: var(--marca-azul-profundo); }
+.c-es-texto { margin: 0 0 10px; font-size: 16px; }
+.c-es-rotulo { margin-bottom: 4px; }
+.c-es-josefin { margin: 0; font-family: "Josefin Sans", sans-serif; font-weight: 300; font-size: 26px; letter-spacing: 0.04em; color: var(--marca-azul-profundo); }
+.c-es-lato { margin: 6px 0 8px; font-family: "Lato", sans-serif; font-size: 14px; }
+.c-es-linha { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.c-es-espaco, .c-bloco .c-cz-secao.c-es-espaco { margin-top: 20px; }
+.c-es-pilha { display: grid; gap: 10px; }
+.c-es-regras { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }

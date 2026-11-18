@@ -17,6 +17,7 @@ const ROTULOS: Record<TipoResultado, string> = {
   opcao: "Opções",
   guia: "Guias",
   troca: "Trocas",
+  receita: "Receitas",
 };
 
 const ORDEM: TipoResultado[] = ["ferramenta", "alimento", "grupo", "categoria", "opcao", "guia", "troca"];

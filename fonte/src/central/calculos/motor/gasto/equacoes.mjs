@@ -355,13 +355,19 @@ export const EQUACOES = [
     entradas: ["peso", "idade", "sexo"],
     resultado: "geb",
     status: "em_vistoria",
-    fonte: "Henry CJK, Rees DG. Eur J Clin Nutr 1991;45:177-85.",
+    fonte: "Henry CJK, Rees DG. Eur J Clin Nutr 1991;45(4):177-85.",
     observacao:
-      "Equação original em MJ/dia; ×239 converte para kcal (a spec usa 239, não 238,85). Populações tropicais; indicada para 18-60 anos.",
+      "Equação original em MJ/dia; ×239 converte para kcal (a spec usa 239, não 238,85). Populações tropicais; indicada para 18-60 anos. Só HOMENS: a versão feminina está suspensa (ver `conferida`).",
+    conferida:
+      "18/11/2026. Homem conferido: 0,056×P + 2,800 (18-30) bate com a reprodução em BMC Res Notes 2015;8:353 (doi:10.1186/s13104-015-1320-8). MULHER SUSPENSA: o app usava 0,047×P + 2,57 (18-30) e 0,037×P + 2,83 (30-60); duas fontes secundárias independentes (o artigo acima e EFDeportes 183) trazem 0,048×P + 2,562 para 18-30, e a faixa de 30-60 não foi confirmada em nenhuma. Sem a tabela do artigo original, a conta feminina não roda. Decisão da Isabela.",
+    validar: (e) =>
+      e.sexo === "feminino"
+        ? "Henry & Rees está suspensa para mulheres: os coeficientes femininos não conferem com as fontes consultadas. Use outra equação até a tabela original de 1991 ser conferida."
+        : null,
     calcular(e) {
-      const h = e.sexo === "masculino";
+      // Só a versão masculina: a feminina é recusada em `validar`.
       const jovem = e.idade < 30;
-      const [a, b] = h ? (jovem ? [0.056, 2.8] : [0.046, 3.16]) : jovem ? [0.047, 2.57] : [0.037, 2.83];
+      const [a, b] = jovem ? [0.056, 2.8] : [0.046, 3.16];
       return {
         valor: (a * e.peso + b) * 239,
         formula: `GEB = (${fmt(a)}×P + ${fmt(b)}) × 239`,
@@ -738,10 +744,10 @@ export const EQUACOES = [
     entradas: ["peso", "massaMagra"],
     resultado: "geb",
     status: "em_vistoria",
-    fonte: "Horie LM et al. 2011 (120 obesos graves, HC-FMUSP). Indicada para IMC ≥ 35.",
+    fonte: "Horie LM et al. Obesity 2011;19(5):1090-4 (120 obesos graves, HC-FMUSP). Indicada para IMC ≥ 35.",
     observacao: "Entra com a massa magra (kg).",
     conferida:
-      "NÃO conferida: o resumo no PubMed não traz os coeficientes (560,43 + 5,39×P + 14,14×MM vêm só da spec do DietSystem). Verificar na fonte antes de uso clínico.",
+      "Conferida em 18/11/2026 no resumo do artigo no PubMed (PMID 21233808, doi:10.1038/oby.2010.326): REE = 560,43 + (5,39 × peso) + (14,14 × massa magra).",
     validadeImc: [35, 120],
     calcular(e) {
       const r = linear(560.43, [

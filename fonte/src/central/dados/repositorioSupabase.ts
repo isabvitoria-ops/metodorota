@@ -1,4 +1,5 @@
 import type { EstadoDoTermo, PedidoLgpd } from "@/central/types";
+import type { CategoriaReceita, NumerosDaReceita, Receita, ReceitaParaSalvar } from "@/central/types/receita";
 import { TERMO_PADRAO } from "./sementes/termo";
 import type {
   MesDaMinhaEvolucao,
@@ -2876,7 +2877,122 @@ export const repositorioSupabase: Repositorio = {
     const caminho = texto(data);
     if (caminho) await sb.storage.from("fotos-evolucao").remove([caminho]);
   },
+
+  // -- Cozinha (0095) --
+
+  async minhaCozinha() {
+    const sb = exigirSupabase();
+    // A RLS já recorta: só as publicadas e as enviadas para ela.
+    const [receitas, enviadas] = await Promise.all([
+      sb.from("receitas").select("*").eq("ativo", true).order("titulo"),
+      sb.from("receitas_enviadas").select("receita_id"),
+    ]);
+    erro("carregar as receitas", receitas.error);
+    erro("carregar as receitas enviadas", enviadas.error);
+    return {
+      receitas: (receitas.data ?? []).map(paraReceita),
+      enviadas: (enviadas.data ?? []).map((l) => texto((l as Linha).receita_id)),
+    };
+  },
+
+  async receitasDaNutri() {
+    const sb = exigirSupabase();
+    const [receitas, enviadas] = await Promise.all([
+      sb.from("receitas").select("*").eq("ativo", true).order("titulo"),
+      sb.from("receitas_enviadas").select("receita_id, paciente_id"),
+    ]);
+    erro("carregar as receitas", receitas.error);
+    erro("carregar os envios das receitas", enviadas.error);
+    const porReceita = new Map<string, string[]>();
+    for (const l of (enviadas.data ?? []) as Linha[]) {
+      const id = texto(l.receita_id);
+      porReceita.set(id, [...(porReceita.get(id) ?? []), texto(l.paciente_id)]);
+    }
+    return (receitas.data ?? []).map((l) => {
+      const r = paraReceita(l);
+      return { ...r, enviadaPara: porReceita.get(r.id) ?? [] };
+    });
+  },
+
+  async salvarReceita(receita: ReceitaParaSalvar) {
+    const sb = exigirSupabase();
+    const linha = {
+      titulo: receita.titulo.trim(),
+      categoria: receita.categoria,
+      minutos: receita.minutos,
+      porcoes: receita.porcoes,
+      tags: receita.tags,
+      ingredientes: receita.ingredientes,
+      preparo: receita.preparo,
+      dica: receita.dica?.trim() || null,
+      numeros: receita.numeros,
+      publicada: receita.publicada,
+    };
+    const { data, error } = receita.id
+      ? await sb.from("receitas").update(linha).eq("id", receita.id).select("id").single()
+      : await sb.from("receitas").insert(linha).select("id").single();
+    erro("salvar a receita", error);
+    return { id: texto((data as Linha | null)?.id) };
+  },
+
+  async apagarReceita(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.from("receitas").delete().eq("id", id);
+    erro("apagar a receita", error);
+  },
+
+  async enviarReceita(receitaId: string, pacienteIds: string[]) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.from("receitas_enviadas").select("paciente_id").eq("receita_id", receitaId);
+    erro("carregar os envios da receita", error);
+    const antes = new Set((data ?? []).map((l) => texto((l as Linha).paciente_id)));
+    const agora = new Set(pacienteIds);
+    const sair = [...antes].filter((p) => !agora.has(p));
+    const entrar = [...agora].filter((p) => !antes.has(p));
+    if (sair.length) {
+      const r = await sb.from("receitas_enviadas").delete().eq("receita_id", receitaId).in("paciente_id", sair);
+      erro("tirar a receita de uma paciente", r.error);
+    }
+    if (entrar.length) {
+      const r = await sb
+        .from("receitas_enviadas")
+        .insert(entrar.map((paciente_id) => ({ receita_id: receitaId, paciente_id })));
+      erro("enviar a receita", r.error);
+    }
+  },
 };
+
+const CATEGORIAS_VALIDAS: CategoriaReceita[] = ["cafe", "lanche", "almoco_jantar", "doce", "outros"];
+
+/** Linha do banco → receita. Tolerante: um campo estragado não derruba a Cozinha inteira. */
+function paraReceita(bruta: unknown): Receita {
+  const l = (bruta ?? {}) as Linha;
+  const categoria = CATEGORIAS_VALIDAS.includes(l.categoria as CategoriaReceita) ? (l.categoria as CategoriaReceita) : "outros";
+  const ingredientes = (Array.isArray(l.ingredientes) ? l.ingredientes : [])
+    .filter((i): i is Linha => i !== null && typeof i === "object")
+    .map((i) => ({
+      texto: texto(i.texto),
+      alimentoId: textoOuNulo(i.alimentoId),
+      alimentoNome: textoOuNulo(i.alimentoNome),
+      fonte: textoOuNulo(i.fonte),
+      gramas: typeof i.gramas === "number" && Number.isFinite(i.gramas) ? i.gramas : null,
+    }));
+  const n = l.numeros && typeof l.numeros === "object" ? (l.numeros as NumerosDaReceita) : null;
+  return {
+    id: texto(l.id),
+    titulo: texto(l.titulo),
+    categoria,
+    minutos: typeof l.minutos === "number" ? l.minutos : null,
+    porcoes: Number(l.porcoes) > 0 ? Number(l.porcoes) : 1,
+    tags: Array.isArray(l.tags) ? l.tags.map(String) : [],
+    ingredientes,
+    preparo: Array.isArray(l.preparo) ? l.preparo.map(String).filter((p) => p.trim()) : [],
+    dica: textoOuNulo(l.dica),
+    numeros: n && n.total && typeof n.total === "object" ? n : null,
+    publicada: l.publicada === true,
+    atualizadoEm: texto(l.atualizado_em),
+  };
+}
 
 const REFEICOES_VALIDAS: RefeicaoDoDiario[] = [
   "cafe", "lanche_manha", "almoco", "lanche_tarde", "jantar", "ceia", "outro",
