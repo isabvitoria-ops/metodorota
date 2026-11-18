@@ -186,7 +186,6 @@ function problemas(r: Rascunho): string[] {
     for (const [k, v] of Object.entries(r.manualValores)) {
       if (v.trim() && (numero(v) === null || (numero(v) as number) < 0)) p.push(`O valor de ${NOMES[k as ChaveNutriente]} precisa ser um número.`);
     }
-    if (!r.manualOrigem.trim()) p.push("Diga de onde vêm os números (ex.: rótulo, e-book, sua conta).");
   }
   const minutos = numero(r.minutos);
   if (r.minutos.trim() && (minutos === null || minutos < 0 || minutos > 1440)) p.push("O tempo está em minutos (0 a 1440).");
@@ -597,7 +596,7 @@ export function Receitas() {
                 <input type="checkbox" checked={rascunho.manual} onChange={(e) => mudar({ manual: e.target.checked })} />
                 <span>
                   <strong>Digitar os números eu mesma</strong>
-                  <small>Por porção, no lugar da soma pelos gramas (rótulo, e-book, conta sua).</small>
+                  <small>Por porção, no lugar da soma pelos gramas (rótulo do produto ou conta sua).</small>
                 </span>
               </label>
               {rascunho.manual ? (
@@ -617,11 +616,11 @@ export function Receitas() {
                     </label>
                   ))}
                   <label className="c-campo c-rc-manual-origem">
-                    <span className="c-rotulo">De onde vêm (aparece para a paciente)</span>
+                    <span className="c-rotulo">Nota embaixo dos números (opcional, aparece para a paciente)</span>
                     <input
                       className="c-input"
                       value={rascunho.manualOrigem}
-                      placeholder="ex.: rótulo do produto"
+                      placeholder="em branco, não aparece nada"
                       onChange={(e) => mudar({ manualOrigem: e.target.value })}
                     />
                   </label>

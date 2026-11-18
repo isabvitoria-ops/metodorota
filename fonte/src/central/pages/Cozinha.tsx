@@ -26,8 +26,8 @@ import { CATEGORIAS_RECEITA, MARCACOES_RECEITA, NUTRIENTES_DA_RECEITA, rotuloDaC
 import { comUnidade, formatarNutriente, numerosParaMostrar, receitaCombina } from "@/central/utils/receitas";
 
 /**
- * Nos números digitados (por porção, como no e-book), "1 porção" seria
- * chute: o e-book nem sempre diz quanto a receita rende. Aí não se escreve.
+ * Nos números digitados (por porção), "1 porção" seria
+ * chute: nem sempre se sabe quanto a receita rende. Aí não se escreve.
  */
 function textoDoRendimento(r: Receita): string | null {
   if (r.porcoes === 1) return r.numeros?.manual ? null : "1 porção";
@@ -310,10 +310,12 @@ export function ReceitaDetalhe() {
                 <span>gordura</span>
               </div>
             </div>
-            <p className="c-cz-fonte">
-              {np.manual ? `Números por porção: ${np.origem}.` : `${np.origem}.`}
-              {np.incompleto && " Algum ingrediente não tem todos os valores na tabela; esses números ficam um pouco abaixo do real."}
-            </p>
+            {(!np.manual || np.origem) && (
+              <p className="c-cz-fonte">
+                {`${np.origem}.`}
+                {np.incompleto && " Algum ingrediente não tem todos os valores na tabela; esses números ficam um pouco abaixo do real."}
+              </p>
+            )}
           </div>
         )}
 

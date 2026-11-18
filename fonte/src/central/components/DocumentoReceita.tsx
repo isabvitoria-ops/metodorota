@@ -11,7 +11,7 @@ import { FolhaDeDocumento } from "./FolhaDeDocumento";
  */
 export function DocumentoReceita({ receita, paciente }: { receita: Receita; paciente: string | null }) {
   const np = numerosParaMostrar(receita);
-  // Só o que tem valor: o e-book às vezes não traz a gordura, e "— g de gordura" não diz nada.
+  // Só o que tem valor: nem toda receita digitada traz a gordura, e "— g de gordura" não diz nada.
   const linha = (fonte: Record<string, number | null>) =>
     (
       [
@@ -79,7 +79,7 @@ export function DocumentoReceita({ receita, paciente }: { receita: Receita; paci
                 <small>{linha(np.porcao)}</small>
               </div>
             </div>
-            <p className="doc-rc-fonte">{np.manual ? `Números por porção: ${np.origem}.` : `${np.origem}.`}</p>
+            {(!np.manual || np.origem) && <p className="doc-rc-fonte">{`${np.origem}.`}</p>}
           </>
         )}
       </article>
