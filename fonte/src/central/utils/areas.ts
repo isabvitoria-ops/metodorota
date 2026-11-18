@@ -33,7 +33,7 @@ export type ChaveArea =
 export const AREAS: { chave: ChaveArea; rotulo: string; descricao: string }[] = [
   { chave: "trocas", rotulo: "Troca inteligente", descricao: "A calculadora de trocas, na barra de baixo e na tela inicial." },
   { chave: "comer_fora", rotulo: "Comer fora", descricao: "Os guias de restaurante, na barra de baixo e na tela inicial." },
-  { chave: "cozinha", rotulo: "Cozinha", descricao: "As receitas, e o atalho de receita em cada refeição do protocolo." },
+  { chave: "cozinha", rotulo: "Cozinha", descricao: "Todas as receitas publicadas, e o atalho de receita em cada refeição do protocolo." },
   { chave: "documentos", rotulo: "Meus documentos", descricao: "Os PDFs (plano, trocas, mercado, avaliação) e os exames guardados." },
   { chave: "avaliacao", rotulo: "Avaliação física", descricao: "As medidas e a evolução entre as consultas." },
   { chave: "metas", rotulo: "Metas", descricao: "As metas combinadas e o cartão da meta de hoje." },

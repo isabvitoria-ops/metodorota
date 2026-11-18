@@ -12677,3 +12677,4 @@ textarea.c-campo-input,
 .c-rc-manual { margin-bottom: 4px; }
 .c-rc-manual-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
 .c-rc-manual-campos .c-campo:first-child, .c-rc-manual-origem { grid-column: 1 / -1; }
+.central .c-rc-nota { max-width: 62ch; margin-top: 8px; }
