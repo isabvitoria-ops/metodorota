@@ -32,34 +32,55 @@ export function DocumentoProtocolo({
 }) {
   if (!conteudo || conteudo.refeicoes.length === 0) return null;
 
+  // Os horários existem só quando ela preencheu algum: sem eles, a faixa do
+  // alto mostra só a ordem das refeições, que já orienta o dia.
+  const temHorario = conteudo.refeicoes.some((r) => r.horario?.trim());
+
   return (
     <FolhaDeDocumento titulo={`Protocolo Alimentar — ${paciente}`}>
-      <article className="doc">
-      <header className="doc-capa doc-capa-inteira">
-        <Marca variante="horizontal-clara" altura={40} className="doc-marca" />
-        <div className="doc-capa-meio">
-          <p className="doc-sobretitulo">Protocolo Alimentar</p>
-          <h1 className="doc-nome">{paciente}</h1>
-          {protocolo?.titulo && <p className="doc-lema">{protocolo.titulo}</p>}
-          <p className="doc-periodo">
-            {protocolo?.publicadoEm
-              ? `Publicado em ${dataBonita(protocolo.publicadoEm)}`
-              : "Protocolo atual"}
-            {protocolo?.versao ? ` · versão ${protocolo.versao}` : ""}
-          </p>
-        </div>
-        <div className="doc-capa-fim">
-          {protocolo?.ajustes && (
-            <p className="doc-aviso">
-              <TextoComLinks texto={protocolo.ajustes} />
+      <article className="doc doc-plano">
+      {/* Sem capa de folha inteira: o plano começa na primeira página, com um
+          cabeçalho compacto e o dia inteiro num olhar. */}
+      <header className="doc-pa-topo">
+        <Marca variante="horizontal" altura={30} className="doc-pa-marca" />
+        <div className="doc-pa-titulos">
+          <div>
+            <p className="doc-pa-sobretitulo">
+              Protocolo alimentar
+              {protocolo?.titulo ? ` · ${protocolo.titulo}` : ""}
             </p>
-          )}
+            <h1 className="doc-pa-titulo">Plano alimentar</h1>
+          </div>
+          <div className="doc-pa-paciente">
+            <span className="doc-pa-rotulo">Paciente</span>
+            <strong>{paciente}</strong>
+            <span className="doc-pa-data">
+              {protocolo?.publicadoEm ? `Publicado em ${dataBonita(protocolo.publicadoEm)}` : "Protocolo atual"}
+              {protocolo?.versao ? ` · versão ${protocolo.versao}` : ""}
+            </span>
+          </div>
         </div>
+
+        <ol className="doc-pa-dia" aria-label="As refeições do dia">
+          {conteudo.refeicoes.map((r, i) => (
+            <li key={`${r.nome}-${i}`} className="doc-pa-dia-item">
+              {temHorario && <span className="doc-pa-dia-hora">{r.horario?.trim() || "—"}</span>}
+              <span className="doc-pa-dia-nome">{r.nome}</span>
+            </li>
+          ))}
+        </ol>
+
+        {protocolo?.ajustes && (
+          <p className="doc-pa-ajustes">
+            <strong>Nesta semana: </strong>
+            <TextoComLinks texto={protocolo.ajustes} />
+          </p>
+        )}
       </header>
 
       {conteudo.orientacoes.length > 0 && (
-        <section className="doc-secao">
-          <h2 className="doc-titulo">Orientações gerais</h2>
+        <section className="doc-secao doc-pa-orientacoes">
+          <h2 className="doc-pa-secao-titulo">Orientações gerais</h2>
           <ul className="doc-lista">
             {conteudo.orientacoes.map((o, i) => (
               <li key={i}>
@@ -74,10 +95,11 @@ export function DocumentoProtocolo({
         // `break-inside: avoid` na refeição: uma refeição partida ao meio
         // obriga a virar a página no meio do café da manhã. Só as grandes
         // demais para uma página é que quebram — e aí não há o que fazer.
-        <section className="doc-secao doc-refeicao" key={`${refeicao.nome}-${i}`}>
-          <h2 className="doc-titulo doc-titulo-refeicao">
-            <span>{refeicao.nome}</span>
-            {refeicao.horario && <span className="doc-horario">{refeicao.horario}</span>}
+        <section className="doc-secao doc-pa-refeicao" key={`${refeicao.nome}-${i}`}>
+          <h2 className="doc-pa-refeicao-titulo">
+            <span className="doc-pa-numero" aria-hidden="true">{i + 1}</span>
+            <span className="doc-pa-refeicao-nome">{refeicao.nome}</span>
+            {refeicao.horario && <span className="doc-pa-hora">{refeicao.horario}</span>}
           </h2>
 
           {refeicao.opcoes.map((opcao, j) => {
@@ -85,14 +107,17 @@ export function DocumentoProtocolo({
             // travessões seguidos não dizem nada a quem está na cozinha.
             const temTrocas = opcao.itens.some((item) => item.substituicoes.length > 0);
             return (
-            <div className="doc-opcao" key={j}>
-              {/* "Opção 2" só aparece quando HÁ uma segunda: num protocolo
-                  de opção única, o rótulo seria ruído. */}
+            <div className="doc-pa-opcao" key={j}>
+              {/* A letra da opção só aparece quando HÁ uma segunda: num
+                  protocolo de opção única, ela seria ruído. */}
               {refeicao.opcoes.length > 1 && (
-                <p className="doc-opcao-rotulo">{opcao.rotulo || `Opção ${j + 1}`}</p>
+                <p className="doc-pa-opcao-rotulo">
+                  <span className="doc-pa-letra" aria-hidden="true">{String.fromCharCode(97 + j)}</span>
+                  {opcao.rotulo || `Opção ${j + 1}`}
+                </p>
               )}
 
-              <table className={`doc-tabela doc-tabela-protocolo${temTrocas ? "" : " doc-tabela-sem-trocas"}`}>
+              <table className={`doc-tabela doc-tabela-protocolo doc-pa-tabela${temTrocas ? "" : " doc-tabela-sem-trocas"}`}>
                 <thead>
                   <tr>
                     <th scope="col">Alimento</th>
@@ -147,7 +172,7 @@ export function DocumentoProtocolo({
               </table>
 
               {opcao.notas.length > 0 && (
-                <ul className="doc-lista doc-lista-nota">
+                <ul className="doc-pa-notas">
                   {opcao.notas.map((n, k) => (
                     <li key={k}>
                       <TextoComLinks texto={n} />
@@ -165,8 +190,8 @@ export function DocumentoProtocolo({
         // As orientações de rotina formam UMA seção, com um bloco por tema —
         // como no app. Um cartão com título grande para cada tema gastava
         // meia folha em três frases.
-        <section className="doc-secao">
-          <h2 className="doc-titulo">Orientações de rotina</h2>
+        <section className="doc-secao doc-pa-rotina">
+          <h2 className="doc-pa-secao-titulo">Orientações de rotina</h2>
           {conteudo.secoes.map((secao, i) => (
             <div className="doc-rotina" key={`${secao.titulo}-${i}`}>
               <h3 className="doc-rotina-titulo">{secao.titulo}</h3>
