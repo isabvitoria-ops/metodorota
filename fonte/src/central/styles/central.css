@@ -7276,6 +7276,18 @@ textarea.c-campo:focus {
   color: var(--text-muted);
 }
 
+.c-av-tabela--colunas-iguais {
+  width: auto;
+}
+
+.c-av-tabela--colunas-iguais thead th:not(:first-child),
+.c-av-tabela--colunas-iguais td {
+  box-sizing: border-box;
+  width: var(--av-coluna);
+  min-width: var(--av-coluna);
+  max-width: var(--av-coluna);
+}
+
 .c-av-tabela td.c-av-atual {
   font-weight: 600;
   color: var(--text);
@@ -9547,6 +9559,17 @@ textarea.c-campo-input,
   flex: 1;
   min-width: 0;
   margin: 0;
+}
+
+/* Quando as abas não cabem (celular, com uma seção do "Mais" aberta), a última
+   sumia cortada no meio da palavra ("Cobran"). A borda direita esmaece, e
+   fica claro que a régua continua rolando de lado. */
+@media (max-width: 720px) {
+  .c-admin-abas-linha .c-admin-abas {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+    padding-right: 20px;
+  }
 }
 
 .c-admin-aba-mais {
