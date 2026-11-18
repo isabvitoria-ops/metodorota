@@ -39,14 +39,14 @@ function montar(linhas: Linha[], categoria: CategoriaFodmap): AlimentoFodmap[] {
 
 const FRUTAS: Linha[] = [
   ["banana-verde", "Banana (verde/madura firme)", "100 g (1 unid.)", null, "verde", [], null],
-  ["banana-madura", "Banana (muito madura)", null, "100 g (1 unid.)", "amarelo", ["frutanos"], "Quanto mais madura, mais frutanos."],
-  ["morango", "Morango", "140 g (10 unid.)", null, "verde", [], null],
-  ["uva", "Uva", "150 g (1 cacho peq.)", null, "verde", [], null],
+  ["banana-madura", "Banana (madura, com pintas)", "35 g (⅓ unid.)", "100 g (1 unid.)", "amarelo", ["frutanos"], "Quanto mais madura, mais frutanos: madura só é baixa em FODMAP em ⅓ da fruta (Monash)."],
+  ["morango", "Morango", "65 g (5 unid. médias)", null, "verde", [], "Porção revista pela Monash em 2021-2022 (antes era 140 g)."],
+  ["uva", "Uva", "32 g (6 uvas)", "48 g (10 uvas)", "verde", ["frutose"], "Porção revista pela Monash em 2021: 6 uvas verdes (32 g) ou vermelhas (28 g)."],
   ["laranja", "Laranja", "130 g (1 unid.)", null, "verde", [], null],
   ["kiwi", "Kiwi", "150 g (2 unid.)", null, "verde", [], null],
   ["abacaxi", "Abacaxi", "140 g (1 fatia)", null, "verde", [], null],
   ["mamao", "Mamão papaia", "140 g (1 fatia)", null, "verde", [], null],
-  ["mirtilo", "Mirtilo", "40 g (¼ xíc.)", null, "verde", [], null],
+  ["mirtilo", "Mirtilo", "125 g (1 xíc.)", null, "verde", [], "Porção revista pela Monash em 2022."],
   ["framboesa", "Framboesa", "60 g (½ xíc.)", null, "verde", [], null],
   ["melao", "Melão", "120 g (1 fatia)", null, "verde", [], null],
   ["maracuja", "Maracujá (polpa)", "2 col. sopa", null, "verde", [], null],
@@ -132,6 +132,7 @@ const LATICINIOS: Linha[] = [
   ["leite-coco", "Leite de coco (bebida)", "120 ml (½ copo)", null, "verde", [], null],
   ["leite-amendoa", "Leite de amêndoa", "240 ml (1 copo)", null, "verde", [], "Sem inulina/chicória."],
   ["leite-arroz", "Leite de arroz", "200 ml", null, "verde", [], null],
+  ["leite-aveia", "Bebida de aveia", "100 ml", "125 ml", "verde", [], "Acima de ~100 ml entram frutanos e GOS (Monash)."],
 ];
 
 const PROTEINAS: Linha[] = [

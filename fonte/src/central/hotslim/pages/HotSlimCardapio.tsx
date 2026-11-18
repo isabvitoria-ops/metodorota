@@ -1,131 +1,135 @@
 import { useState } from "react";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { alimento } from "../conteudo/alimentos.ts";
+import { CARDAPIO_ETAPA_1 } from "../conteudo/cardapio.ts";
+import { macrosDaOpcao, textoDaQuantidade, trocasDe } from "../conteudo/calculo.ts";
+import { ETAPAS, META_KCAL, REFEICOES, etapaDoDia } from "../conteudo/regras.ts";
 
-interface Opcao {
-  nome: string;
-  itens: string;
-}
-
-interface Refeicao {
-  titulo: string;
-  opcoes: Opcao[];
-}
-
-const REFEICOES: Refeicao[] = [
-  {
-    titulo: "Café da Manhã",
-    opcoes: [
-      { nome: "Opção 1", itens: "2 ovos mexidos (100g) + tapioca (50g) + 1 banana (70g)" },
-      { nome: "Opção 2", itens: "Omelete com salsinha (100g) + cuscuz (90g) + mamão (170g)" },
-      { nome: "Opção 3", itens: "Ovo cozido (50g) + batata inglesa cozida amassada (145g) + morango (115g)" },
-    ],
-  },
-  {
-    titulo: "Almoço",
-    opcoes: [
-      { nome: "Opção 1", itens: "Frango grelhado (120g) + arroz (100g) + abobrinha refogada + azeite (5ml)" },
-      { nome: "Opção 2", itens: "Peixe assado (120g) + batata cozida (145g) + cenoura no vapor + azeite (5ml)" },
-      { nome: "Opção 3", itens: "Frango desfiado (120g) + arroz (100g) + chuchu cozido + azeite (5ml)" },
-    ],
-  },
-  {
-    titulo: "Lanche da Tarde",
-    opcoes: [
-      { nome: "Opção 1", itens: "1 banana (70g) + ovo cozido (50g)" },
-      { nome: "Opção 2", itens: "Maçã sem casca (80g) + tapioca com ovo (50g + 50g)" },
-      { nome: "Opção 3", itens: "Mamão (170g) + cuscuz com ovo (90g + 50g)" },
-    ],
-  },
-  {
-    titulo: "Jantar",
-    opcoes: [
-      { nome: "Opção 1", itens: "Frango desfiado (120g) + abóbora assada + azeite (5ml)" },
-      { nome: "Opção 2", itens: "Omelete (100g) + vagem no vapor + azeite (5ml)" },
-      { nome: "Opção 3", itens: "Peixe grelhado (120g) + cenoura + pepino (se tolerar cru)" },
-    ],
-  },
-];
-
-const PODE_USAR = [
-  "Atum em lata (natural)",
-  "Macarrão de arroz",
-  "Tapioca",
-  "Cuscuz",
-  "Ghee",
-];
-
-const EVITAR = [
-  "Leite e derivados",
-  "Glúten (pão, macarrão, bolos)",
-  "Açúcar refinado",
-  "Ultraprocessados",
-  "Refrigerante",
-  "Álcool",
-  "Adoçante artificial",
-];
-
+/**
+ * Cardápio do Hot Slim.
+ *
+ * Tudo nesta tela sai da base única (conteudo/): opções, gramas, calorias e
+ * trocas. Nada é digitado aqui. Por isso o cardápio não consegue contradizer
+ * a lista de compras nem o Protocolo — o teste conteudo.test.ts garante.
+ *
+ * Por enquanto só a Etapa 1 está revisada. Nos dias das Etapas 2 e 3 a tela
+ * avisa e continua mostrando a Etapa 1, que é segura.
+ */
 export function HotSlimCardapio() {
-  const [abertos, setAbertos] = useState<Set<number>>(() => new Set(REFEICOES.map((_, i) => i)));
-
-  function alternar(idx: number) {
-    setAbertos((prev) => {
-      const novo = new Set(prev);
-      if (novo.has(idx)) novo.delete(idx);
-      else novo.add(idx);
-      return novo;
-    });
-  }
+  const { acesso } = useSessao();
+  const dia = Math.max(1, acesso.hotslimDiaAtual ?? 1);
+  const etapaHoje = etapaDoDia(dia);
+  const etapa = ETAPAS[0]!;
+  const [aberta, setAberta] = useState<string | null>(null);
 
   return (
     <div className="hs-pagina">
       <div style={{ marginBottom: 20 }}>
-        <h1 className="hs-titulo">Cardápio Sugestivo</h1>
-        <p className="hs-texto">Ideias de refeições para a fase de repouso digestivo</p>
+        <h1 className="hs-titulo">Cardápio</h1>
+        <p className="hs-texto">
+          Etapa {etapa.numero} · {etapa.nome} · dias {etapa.dias.de} a {etapa.dias.ate}
+        </p>
       </div>
 
-      {REFEICOES.map((ref, i) => (
-        <div className="hs-refeicao" key={i}>
-          <div className="hs-refeicao-header" onClick={() => alternar(i)}>
-            <span>{ref.titulo}</span>
-            <span style={{ marginLeft: "auto", color: "var(--hs-fg-soft)", fontSize: 14 }}>
-              {abertos.has(i) ? "▾" : "▸"}
+      {!etapaHoje.revisada && (
+        <div className="hs-dica">
+          <strong>Etapa {etapaHoje.numero} chegando:</strong> o cardápio da {etapaHoje.nome.toLowerCase()} está sendo
+          preparado. Até ele entrar, siga a Etapa 1.
+        </div>
+      )}
+
+      <div className="hs-dica">
+        <strong>Como usar:</strong> escolha 1 opção de cada refeição. Qualquer combinação dá perto de{" "}
+        {META_KCAL.toLocaleString("pt-BR")} kcal. Pese depois de pronto (carnes, arroz, batata) e cru o que é seco
+        (aveia, tapioca, flocão). Toque numa opção para ver as trocas.
+      </div>
+
+      {REFEICOES.map((ref) => (
+        <div className="hs-refeicao" key={ref.id}>
+          <div className="hs-refeicao-header">
+            <span>{ref.nome}</span>
+            <span style={{ marginLeft: "auto", color: "var(--hs-fg-soft)", fontSize: 13 }}>
+              {ref.horario} · ~{ref.kcal} kcal
             </span>
           </div>
-          {abertos.has(i) && (
-            <div className="hs-refeicao-body">
-              <div className="hs-list-card" style={{ border: "none" }}>
-                {ref.opcoes.map((op, j) => (
-                  <div className="hs-list-item static" key={j}>
-                    <span className="hs-label" style={{ flexShrink: 0 }}>{op.nome}</span>
-                    <span className="hs-list-item-name" style={{ fontSize: 14 }}>{op.itens}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <div className="hs-refeicao-body">
+            {CARDAPIO_ETAPA_1[ref.id].map((op) => {
+              const m = macrosDaOpcao(op);
+              const chave = `${ref.id}-${op.id}`;
+              const expandida = aberta === chave;
+              const avisos = [...new Set(op.itens.map((i) => alimento(i.alimento).aviso).filter((a): a is string => !!a))];
+              return (
+                <div key={op.id} className="hs-list-card" style={{ marginBottom: 12 }}>
+                  <button
+                    type="button"
+                    className="hs-list-item"
+                    aria-expanded={expandida}
+                    onClick={() => setAberta(expandida ? null : chave)}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      background: "transparent",
+                      borderTop: 0,
+                      borderLeft: 0,
+                      borderRight: 0,
+                      font: "inherit",
+                      color: "inherit",
+                    }}
+                  >
+                    <span className="hs-list-item-name">
+                      <strong>{op.nome}</strong>
+                      <br />
+                      <span className="hs-list-item-detail">
+                        {Math.round(m.kcal)} kcal · {Math.round(m.proteina)} g proteína · {m.fibra.toFixed(0)} g fibra
+                      </span>
+                    </span>
+                    <span style={{ marginLeft: "auto", color: "var(--hs-fg-soft)" }}>{expandida ? "▾" : "▸"}</span>
+                  </button>
+                  {op.itens.map((item) => (
+                    <div className="hs-list-item static" key={item.alimento}>
+                      <span className="hs-list-item-name">{alimento(item.alimento).nome}</span>
+                      <span className="hs-list-item-detail">{textoDaQuantidade(item)}</span>
+                    </div>
+                  ))}
+                  {op.preparo && (
+                    <div className="hs-list-item static">
+                      <span className="hs-list-item-name">
+                        <span className="hs-list-item-detail">{op.preparo}</span>
+                      </span>
+                    </div>
+                  )}
+                  {avisos.map((a) => (
+                    <div className="hs-list-item static" key={a}>
+                      <span className="hs-list-item-name">
+                        <span className="hs-list-item-detail">⚠ {a}</span>
+                      </span>
+                    </div>
+                  ))}
+                  {expandida &&
+                    op.itens.map((item) => {
+                      const trocas = trocasDe(item, etapa.numero);
+                      if (trocas.length === 0) return null;
+                      return (
+                        <div className="hs-list-item static" key={`t-${item.alimento}`}>
+                          <span className="hs-list-item-name">
+                            <span className="hs-list-item-detail">
+                              <strong>Troque {textoDaQuantidade(item)} de {alimento(item.alimento).nome.toLowerCase()} por:</strong>{" "}
+                              {trocas.map((t) => `${t.alimento.nome.toLowerCase()} ${t.g} g`).join(" · ")}
+                            </span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       ))}
 
-      <div className="hs-list-section" style={{ marginTop: 28 }}>
-        <div className="hs-list-header">Pode usar</div>
-        <div className="hs-list-card">
-          {PODE_USAR.map((item) => (
-            <div className="hs-list-item static" key={item}>
-              <span className="hs-list-item-name">{item}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="hs-list-section">
-        <div className="hs-list-header">Evitar durante o repouso</div>
-        <div className="hs-list-card">
-          {EVITAR.map((item) => (
-            <div className="hs-list-item static evitar" key={item}>
-              <span className="hs-list-item-name">{item}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <p className="hs-texto" style={{ fontSize: 12, marginTop: 16 }}>
+        Calorias pela TACO (4ª ed.) e pela USDA FoodData Central. Porções low FODMAP conforme a Monash University.
+      </p>
     </div>
   );
 }

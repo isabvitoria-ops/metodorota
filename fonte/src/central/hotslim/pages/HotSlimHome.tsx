@@ -3,6 +3,7 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { Icone, type NomeIcone } from "@/central/components/Icone";
 import { Marca } from "@/central/components/Marca";
 import { rotas } from "@/central/rotas";
+import { ETAPAS, TOTAL_DIAS } from "../conteudo/regras.ts";
 
 /**
  * A entrada do desafio de 21 dias.
@@ -12,22 +13,19 @@ import { rotas } from "@/central/rotas";
  * hoje; a jornada inteira aparece embaixo, em três fases, no lugar de vinte e
  * uma caixinhas iguais.
  *
- * As frases de cada fase são as que já estavam nesta tela ("Como funciona");
- * só mudaram de lugar.
+ * As etapas (nomes, dias e frases) vêm de conteudo/regras.ts.
  */
-const TOTAL = 21;
+const TOTAL = TOTAL_DIAS;
 
-const FASES = [
-  { nome: "Repouso digestivo", curto: "Repouso", de: 1, ate: 6, texto: "Alimentos de fácil digestão." },
-  { nome: "Teste", curto: "Teste", de: 7, ate: 14, texto: "Reintrodução guiada de alimentos." },
-  { nome: "Autonomia", curto: "Autonomia", de: 15, ate: 21, texto: "Consolidação dos resultados." },
-] as const;
+// As etapas vêm da base única do Hot Slim (conteudo/regras.ts): o mesmo
+// recorte de dias que o Protocolo, o Cardápio e o banco usam.
+const FASES = ETAPAS.map((e) => ({ nome: e.nome, curto: e.nome, de: e.dias.de, ate: e.dias.ate, texto: e.resumo }));
 
 const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; apoio: string }[] = [
-  { rota: "/hotslim/protocolo", icone: "lista", titulo: "Método Rota", apoio: "Repouso digestivo — 6 dias" },
-  { rota: "/hotslim/cardapio", icone: "almoco", titulo: "Cardápio", apoio: "Ideias de refeições" },
+  { rota: "/hotslim/protocolo", icone: "lista", titulo: "Método Rota", apoio: "Regras, rotina e sintomas" },
+  { rota: "/hotslim/cardapio", icone: "almoco", titulo: "Cardápio", apoio: "Opções de 1.600 kcal" },
   { rota: "/hotslim/lista-compras", icone: "mercado", titulo: "Lista de compras", apoio: "O que levar do supermercado" },
-  { rota: "/hotslim/reintroducao", icone: "folha", titulo: "Reintrodução", apoio: "Semana por semana" },
+  { rota: "/hotslim/reintroducao", icone: "folha", titulo: "Reintrodução", apoio: "Etapa 3, dias 15 a 21" },
   { rota: "/hotslim/metas", icone: "evolucao", titulo: "Minhas metas", apoio: "Objetivos semanais" },
   { rota: "/hotslim/faq", icone: "info", titulo: "Dúvidas", apoio: "Perguntas sobre o desafio" },
 ];
@@ -38,7 +36,7 @@ export function HotSlimHome() {
   const concluido = diaAtual > TOTAL;
   const dia = Math.min(diaAtual, TOTAL);
   const progresso = Math.round((dia / TOTAL) * 100);
-  const faseAtual = FASES.find((f) => dia >= f.de && dia <= f.ate) ?? FASES[2];
+  const faseAtual = FASES.find((f) => dia >= f.de && dia <= f.ate) ?? FASES[FASES.length - 1]!;
 
   return (
     <div className="hs-pagina">
