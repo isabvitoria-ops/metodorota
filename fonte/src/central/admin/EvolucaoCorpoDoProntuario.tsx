@@ -259,8 +259,8 @@ function TabelaPrincipal({ cronologico }: { cronologico: AvaliacaoNoTempo[] }) {
 }
 
 function deltaEntre(anterior: string, atual: string): string | null {
-  const a = parseFloat(anterior.replace(",", ".").replace(/[^\d.\-]/g, ""));
-  const b = parseFloat(atual.replace(",", ".").replace(/[^\d.\-]/g, ""));
+  const a = parseFloat(anterior.replace(",", ".").replace(/[^\d.-]/g, ""));
+  const b = parseFloat(atual.replace(",", ".").replace(/[^\d.-]/g, ""));
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
   const diff = Number((b - a).toFixed(1));
   if (diff === 0) return null;

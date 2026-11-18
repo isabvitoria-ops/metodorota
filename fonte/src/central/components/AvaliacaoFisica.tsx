@@ -430,10 +430,36 @@ function TabelaComparativa({
 
   // A tabela abre mostrando a consulta MAIS RECENTE. Rolando de lado a partir
   // do começo, a coluna de hoje — a que ela veio ver — ficava fora da tela.
+  //
+  // E a área visível mostra sempre colunas INTEIRAS: com larguras soltas, a
+  // coluna parada do nome cobria metade da consulta mais antiga, e "34,0 cm"
+  // aparecia como "4,0 cm". As colunas de consulta ganham todas a mesma
+  // largura, a que faz caber um número exato delas ao lado do nome.
   const rolagem = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const caixa = rolagem.current;
-    if (caixa) caixa.scrollLeft = caixa.scrollWidth;
+    if (!caixa) return;
+    const ajustar = () => {
+      const tabelaEl = caixa.querySelector("table");
+      if (!tabelaEl) return;
+      tabelaEl.style.removeProperty("--av-coluna");
+      tabelaEl.classList.remove("c-av-tabela--colunas-iguais");
+      if (caixa.scrollWidth <= caixa.clientWidth + 1) return;
+      const cabecas = [...tabelaEl.querySelectorAll<HTMLTableCellElement>("thead th")];
+      const nome = cabecas[0];
+      if (!nome) return;
+      const natural = Math.max(...[...tabelaEl.querySelectorAll<HTMLElement>("thead th:not(:first-child), td")].map((c) => c.offsetWidth));
+      for (let passo = 0; passo < 2; passo++) {
+        const livre = caixa.clientWidth - nome.offsetWidth;
+        const cabem = Math.max(1, Math.floor(livre / natural));
+        tabelaEl.style.setProperty("--av-coluna", `${Math.floor(livre / cabem)}px`);
+        tabelaEl.classList.add("c-av-tabela--colunas-iguais");
+      }
+      caixa.scrollLeft = caixa.scrollWidth;
+    };
+    ajustar();
+    window.addEventListener("resize", ajustar);
+    return () => window.removeEventListener("resize", ajustar);
   }, [tabela.colunas.length]);
 
   return (
