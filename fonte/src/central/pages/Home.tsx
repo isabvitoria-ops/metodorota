@@ -10,6 +10,7 @@ import { useDesafio } from "@/central/hooks/useDesafio";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { useInstalacao } from "@/central/hooks/useInstalacao";
 import { useMinhaCozinha } from "@/central/hooks/useMinhaCozinha";
+import { areaLigada, type ChaveArea } from "@/central/utils/areas";
 
 /**
  * Home — a "Central do Paciente" (§3 e §33).
@@ -19,6 +20,19 @@ import { useMinhaCozinha } from "@/central/hooks/useMinhaCozinha";
  * quem está só procurando. Nada de conteúdo institucional.
  */
 type Grupo = "acompanhamento" | "ferramentas";
+
+/** Qual interruptor de área decide cada atalho (os outros têm regra própria, abaixo). */
+const AREA_DO_ATALHO: Record<string, ChaveArea> = {
+  [rotas.trocas]: "trocas",
+  [rotas.comerFora]: "comer_fora",
+  [rotas.cozinha]: "cozinha",
+  [rotas.documentos]: "documentos",
+  [rotas.metas]: "metas",
+  [rotas.hidratacao]: "hidratacao",
+  [rotas.habitos]: "habitos",
+  [rotas.diario]: "diario",
+  [rotas.evolucaoFotos]: "fotos_evolucao",
+};
 
 const GRUPOS: { chave: Grupo; titulo: string }[] = [
   { chave: "acompanhamento", titulo: "Meu acompanhamento" },
@@ -170,20 +184,24 @@ export function Home() {
       </header>
 
       <div className="c-conteudo">
-        <div style={{ marginTop: 22 }}>
-          <BarraBusca
-            valor={consulta}
-            aoMudar={definirConsulta}
-            aoEnviar={() => navegar(rotas.busca(consulta))}
-            placeholder="O que você está procurando?"
-          />
-        </div>
+        {areaLigada(acesso, "busca") && (
+          <>
+            <div style={{ marginTop: 22 }}>
+              <BarraBusca
+                valor={consulta}
+                aoMudar={definirConsulta}
+                aoEnviar={() => navegar(rotas.busca(consulta))}
+                placeholder="O que você está procurando?"
+              />
+            </div>
 
-        {consulta.trim().length > 0 && (
-          <button type="button" className="c-chip" style={{ marginTop: 12 }} onClick={() => navegar(rotas.busca(consulta))}>
-            <Icone nome="busca" tamanho={14} />
-            Buscar por "{consulta.trim()}"
-          </button>
+            {consulta.trim().length > 0 && (
+              <button type="button" className="c-chip" style={{ marginTop: 12 }} onClick={() => navegar(rotas.busca(consulta))}>
+                <Icone nome="busca" tamanho={14} />
+                Buscar por "{consulta.trim()}"
+              </button>
+            )}
+          </>
         )}
 
         {vencendo && (
@@ -200,13 +218,13 @@ export function Home() {
 
         <CardDeInstalar />
 
-        <CardDeViagem temGuia={acesso.viagem} />
+        {(acesso.viagem || areaLigada(acesso, "aviso_viagem")) && <CardDeViagem temGuia={acesso.viagem} />}
 
-        <CheckinPendente />
+        {areaLigada(acesso, "checkin") && <CheckinPendente />}
 
-        <MinhaMetaDeHoje />
+        {areaLigada(acesso, "metas") && <MinhaMetaDeHoje />}
 
-        <CardDoDesafio />
+        {(acesso.papel === "admin" || acesso.desafio !== false) && <CardDoDesafio />}
 
         {/* A Rastreabilidade é para quem faz o acompanhamento intestinal.
             Para quem não faz, o atalho não existe — em vez de existir e
@@ -226,7 +244,9 @@ export function Home() {
               // existe — em vez de abrir uma evolução sem o que mostrar.
               (atalho.rota !== rotas.treino || acesso.treino) &&
               // A Cozinha só aparece quando há receita para ela abrir.
-              (atalho.rota !== rotas.cozinha || (cozinha?.receitas.length ?? 0) > 0),
+              (atalho.rota !== rotas.cozinha || (cozinha?.receitas.length ?? 0) > 0) &&
+              // E o que a nutricionista desligou para ela (utils/areas.ts).
+              (!AREA_DO_ATALHO[atalho.rota] || areaLigada(acesso, AREA_DO_ATALHO[atalho.rota] as ChaveArea)),
           );
           if (portas.length === 0) return null;
           return (

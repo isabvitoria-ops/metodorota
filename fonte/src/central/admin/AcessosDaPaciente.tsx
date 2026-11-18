@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { repositorio } from "@/central/dados/repositorio";
+import { AREAS, type ChaveArea } from "@/central/utils/areas";
 
 /**
  * O que a paciente alcança — os interruptores num lugar só.
+ *
+ * 18/11/2026: as áreas que só se escondiam sozinhas (trocas, comer fora,
+ * cozinha, documentos, avaliação, metas, check-in…) ganharam interruptor
+ * por paciente, a pedido dela (utils/areas.ts, migração 0096). Os
+ * interruptores antigos continuam abaixo deles.
  *
  * O pedido era "controle de acesso uniforme, módulo a módulo". Ao levantar
  * quais módulos precisavam de interruptor, a conta deu DOIS (rastreio e
@@ -31,6 +37,8 @@ interface Acessos {
 
 export function AcessosDaPaciente({ pacienteId }: { pacienteId: string }) {
   const [acessos, definirAcessos] = useState<Acessos | null>(null);
+  /** Áreas desligadas (0096). Nulo = ainda carregando ou o banco não respondeu. */
+  const [desligadas, definirDesligadas] = useState<string[] | null>(null);
   const [ocupado, definirOcupado] = useState<string | null>(null);
   const [erro, definirErro] = useState<string | null>(null);
 
@@ -38,6 +46,12 @@ export function AcessosDaPaciente({ pacienteId }: { pacienteId: string }) {
     try {
       definirAcessos(await repositorio.acessosDoPaciente(pacienteId));
       definirErro(null);
+    } catch (e) {
+      definirErro(e instanceof Error ? e.message : "Não consegui carregar os acessos.");
+      return;
+    }
+    try {
+      definirDesligadas(await repositorio.areasDoPaciente(pacienteId));
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui carregar os acessos.");
     }
@@ -53,6 +67,18 @@ export function AcessosDaPaciente({ pacienteId }: { pacienteId: string }) {
         <span>{erro}</span>
       </div>
     ) : null;
+  }
+
+  async function alternarArea(area: ChaveArea, ligar: boolean) {
+    definirOcupado(area);
+    definirErro(null);
+    try {
+      definirDesligadas(await repositorio.definirAreaDoPaciente(pacienteId, area, ligar));
+    } catch (e) {
+      definirErro(e instanceof Error ? e.message : "Não consegui mudar.");
+    } finally {
+      definirOcupado(null);
+    }
   }
 
   async function alternar(qual: "treino" | "desafio" | "restricoes" | "fodmap", valor: boolean) {
@@ -75,6 +101,30 @@ export function AcessosDaPaciente({ pacienteId }: { pacienteId: string }) {
   return (
     <section className="c-secao">
       <h2 className="c-secao-titulo">O que ela vê no aplicativo</h2>
+      <p className="c-dica c-acesso-intro">
+        Desligue o que ela não precisa: some da tela inicial, da barra de baixo e não abre nem pelo endereço. O Protocolo fica
+        sempre ligado.
+      </p>
+
+      <div className="c-bloco">
+        {desligadas === null ? (
+          <p className="c-dica">Não consegui carregar as áreas. Recarregue a página.</p>
+        ) : (
+          AREAS.map((a) => {
+            const ligada = !desligadas.includes(a.chave);
+            return (
+              <Interruptor
+                key={a.chave}
+                nome={a.rotulo}
+                ligado={ligada}
+                ocupado={ocupado === a.chave}
+                apoio={ligada ? a.descricao : "Desligada: não aparece para ela."}
+                aoMudar={() => void alternarArea(a.chave, !ligada)}
+              />
+            );
+          })
+        )}
+      </div>
 
       <div className="c-bloco">
         <Interruptor
@@ -143,16 +193,6 @@ export function AcessosDaPaciente({ pacienteId }: { pacienteId: string }) {
           nome="Protocolo"
           ligado={acessos.protocolo}
           apoio={acessos.protocolo ? "Publicado." : "Nenhum publicado — a porta não aparece."}
-        />
-        <Estado
-          nome="Avaliação"
-          ligado={acessos.avaliacao}
-          apoio={acessos.avaliacao ? "Publicada." : "Nenhuma publicada — a porta não aparece."}
-        />
-        <Estado
-          nome="Metas"
-          ligado={acessos.metas}
-          apoio={acessos.metas ? "Tem metas." : "Nenhuma meta ainda."}
         />
       </div>
 

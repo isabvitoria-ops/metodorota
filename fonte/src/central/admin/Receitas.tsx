@@ -25,12 +25,13 @@ import type {
   CategoriaReceita,
   ChaveNutriente,
   IngredienteReceita,
+  NumerosDaReceita,
   Receita,
   ReceitaDaNutri,
   ReceitaParaSalvar,
 } from "@/central/types/receita";
-import { CATEGORIAS_RECEITA, MARCACOES_RECEITA, rotuloDaCategoria } from "@/central/types/receita";
-import { calcularNumeros, formatarNutriente, porPorcao, receitaCombina, textoDasFontes } from "@/central/utils/receitas";
+import { CATEGORIAS_RECEITA, MARCACOES_RECEITA, NUTRIENTES_DA_RECEITA, rotuloDaCategoria } from "@/central/types/receita";
+import { calcularNumeros, comUnidade, formatarNutriente, numerosParaMostrar, porPorcao, receitaCombina, textoDasFontes } from "@/central/utils/receitas";
 
 interface LinhaIngrediente {
   chave: number;
@@ -52,7 +53,19 @@ interface Rascunho {
   preparo: string;
   dica: string;
   publicada: boolean;
+  /** Números por porção digitados por ela, no lugar da soma pelos gramas. */
+  manual: boolean;
+  manualValores: Record<ChaveNutriente, string>;
+  manualOrigem: string;
 }
+
+const SEM_VALORES = (): Record<ChaveNutriente, string> => ({
+  energia_kcal: "",
+  proteina: "",
+  carboidrato: "",
+  lipideos: "",
+  fibra_alimentar: "",
+});
 
 let proximaChave = 1;
 const novaLinha = (): LinhaIngrediente => ({
@@ -75,6 +88,9 @@ const VAZIO = (): Rascunho => ({
   preparo: "",
   dica: "",
   publicada: false,
+  manual: false,
+  manualValores: SEM_VALORES(),
+  manualOrigem: "",
 });
 
 const numero = (t: string): number | null => {
@@ -103,7 +119,31 @@ function paraRascunho(r: Receita): Rascunho {
     preparo: r.preparo.join("\n"),
     dica: r.dica ?? "",
     publicada: r.publicada,
+    manual: Boolean(r.numeros?.manual),
+    manualValores: r.numeros?.manual
+      ? (Object.fromEntries(
+          Object.entries(r.numeros.manual.porcao).map(([k, v]) => [k, v === null ? "" : String(v).replace(".", ",")]),
+        ) as Record<ChaveNutriente, string>)
+      : SEM_VALORES(),
+    manualOrigem: r.numeros?.manual?.origem ?? "",
   };
+}
+
+/** Os números que vão ser gravados: os digitados por ela, ou a soma pelos gramas. */
+function numerosDe(r: Rascunho, agora = new Date()): NumerosDaReceita | null {
+  if (r.manual) {
+    const porcao = Object.fromEntries(
+      Object.entries(r.manualValores).map(([k, v]) => [k, numero(v)]),
+    ) as Record<ChaveNutriente, number | null>;
+    return {
+      total: { energia_kcal: null, proteina: null, carboidrato: null, lipideos: null, fibra_alimentar: null },
+      faltando: {},
+      fontes: [],
+      calculadoEm: agora.toISOString(),
+      manual: { porcao, origem: r.manualOrigem.trim() },
+    };
+  }
+  return calcularNumeros(ingredientesDe(r), valorDaBase);
 }
 
 function ingredientesDe(r: Rascunho): IngredienteReceita[] {
@@ -141,6 +181,13 @@ function problemas(r: Rascunho): string[] {
   }
   const porcoes = numero(r.porcoes);
   if (porcoes === null || porcoes <= 0) p.push("O rendimento precisa ser um número maior que zero.");
+  if (r.manual) {
+    if (numero(r.manualValores.energia_kcal) === null) p.push("Digite pelo menos as calorias da porção.");
+    for (const [k, v] of Object.entries(r.manualValores)) {
+      if (v.trim() && (numero(v) === null || (numero(v) as number) < 0)) p.push(`O valor de ${NOMES[k as ChaveNutriente]} precisa ser um número.`);
+    }
+    if (!r.manualOrigem.trim()) p.push("Diga de onde vêm os números (ex.: rótulo, e-book, sua conta).");
+  }
   const minutos = numero(r.minutos);
   if (r.minutos.trim() && (minutos === null || minutos < 0 || minutos > 1440)) p.push("O tempo está em minutos (0 a 1440).");
   return p;
@@ -179,7 +226,7 @@ export function Receitas() {
   }, []);
 
   const numeros = useMemo(
-    () => (rascunho && baseOk ? calcularNumeros(ingredientesDe(rascunho), valorDaBase) : null),
+    () => (rascunho && (baseOk || rascunho.manual) ? numerosDe(rascunho) : null),
     [rascunho, baseOk],
   );
 
@@ -199,7 +246,7 @@ export function Receitas() {
 
   async function salvar() {
     if (!rascunho || aSalvar.length || salvando) return;
-    if (!baseOk) {
+    if (!baseOk && !rascunho.manual) {
       definirRecado({ tom: "erro", texto: "A tabela de alimentos não carregou, então não dá para fazer as contas. Recarregue a página." });
       return;
     }
@@ -217,7 +264,7 @@ export function Receitas() {
         .map((l) => l.replace(/^\s*\d+[.)-]\s*/, "").trim())
         .filter(Boolean),
       dica: rascunho.dica.trim() || null,
-      numeros: calcularNumeros(ingredientesDe(rascunho), valorDaBase),
+      numeros: numerosDe(rascunho),
       publicada: rascunho.publicada,
     };
     try {
@@ -330,7 +377,9 @@ export function Receitas() {
               <strong>{r.titulo}</strong>
               <span>
                 {rotuloDaCategoria(r.categoria)}
-                {r.numeros ? ` · ${formatarNutriente(porPorcao(r.numeros.total.energia_kcal, r.porcoes), "energia_kcal")} kcal/porção` : ""}
+                {numerosParaMostrar(r)?.porcao?.energia_kcal != null
+                  ? ` · ${formatarNutriente(numerosParaMostrar(r)?.porcao?.energia_kcal, "energia_kcal")} kcal/porção`
+                  : ""}
               </span>
               <span className="c-rc-item-estado">
                 {r.publicada ? "Na Cozinha" : "Não publicada"}
@@ -469,7 +518,7 @@ export function Receitas() {
                         />
                       </label>
                       <span className="c-rc-ing-kcal" aria-label="kcal deste ingrediente">
-                        {kcal !== null ? `${formatarNutriente((kcal * (numero(i.gramas) as number)) / 100, "energia_kcal")} kcal` : i.alimentoId ? "—" : "fora da conta"}
+                        {kcal !== null ? `${formatarNutriente((kcal * (numero(i.gramas) as number)) / 100, "energia_kcal")} kcal` : i.alimentoId ? "—" : rascunho.manual ? "" : "fora da conta"}
                       </span>
                       <button
                         type="button"
@@ -538,25 +587,63 @@ export function Receitas() {
             </section>
 
             <aside className="c-bloco c-rc-numeros" aria-label="Números da receita">
-              <p className="c-cz-numeros-rotulo">Receita inteira</p>
-              <p className="c-rc-grande">
-                {formatarNutriente(numeros?.total.energia_kcal, "energia_kcal")} <small>kcal</small>
-              </p>
-              <p className="c-rc-mini">
-                {formatarNutriente(numeros?.total.proteina, "proteina")} g proteína · {formatarNutriente(numeros?.total.carboidrato, "carboidrato")} g
-                carboidrato · {formatarNutriente(numeros?.total.lipideos, "lipideos")} g gordura · {formatarNutriente(numeros?.total.fibra_alimentar, "fibra_alimentar")} g fibra
-              </p>
-              <hr />
-              <p className="c-cz-numeros-rotulo">Uma porção ({porcoes.toLocaleString("pt-BR")} no total)</p>
-              <p className="c-rc-grande">
-                {formatarNutriente(porPorcao(numeros?.total.energia_kcal, porcoes), "energia_kcal")} <small>kcal</small>
-              </p>
-              <p className="c-rc-mini">
-                {formatarNutriente(porPorcao(numeros?.total.proteina, porcoes), "proteina")} g proteína ·{" "}
-                {formatarNutriente(porPorcao(numeros?.total.carboidrato, porcoes), "carboidrato")} g carboidrato ·{" "}
-                {formatarNutriente(porPorcao(numeros?.total.lipideos, porcoes), "lipideos")} g gordura
-              </p>
-              {numeros && Object.entries(numeros.faltando).some(([, l]) => l?.length) && (
+              <label className="c-rc-publicar c-rc-manual">
+                <input type="checkbox" checked={rascunho.manual} onChange={(e) => mudar({ manual: e.target.checked })} />
+                <span>
+                  <strong>Digitar os números eu mesma</strong>
+                  <small>Por porção, no lugar da soma pelos gramas (rótulo, e-book, conta sua).</small>
+                </span>
+              </label>
+              {rascunho.manual ? (
+                <div className="c-rc-manual-campos">
+                  {NUTRIENTES_DA_RECEITA.map((n) => (
+                    <label key={n.chave} className="c-campo">
+                      <span className="c-rotulo">
+                        {n.rotulo} ({n.unidade})
+                      </span>
+                      <input
+                        className="c-input"
+                        inputMode="decimal"
+                        value={rascunho.manualValores[n.chave]}
+                        placeholder={n.chave === "energia_kcal" ? "obrigatório" : "se souber"}
+                        onChange={(e) => mudar({ manualValores: { ...rascunho.manualValores, [n.chave]: e.target.value } })}
+                      />
+                    </label>
+                  ))}
+                  <label className="c-campo c-rc-manual-origem">
+                    <span className="c-rotulo">De onde vêm (aparece para a paciente)</span>
+                    <input
+                      className="c-input"
+                      value={rascunho.manualOrigem}
+                      placeholder="ex.: rótulo do produto"
+                      onChange={(e) => mudar({ manualOrigem: e.target.value })}
+                    />
+                  </label>
+                </div>
+              ) : (
+                <>
+                  <hr />
+                  <p className="c-cz-numeros-rotulo">Receita inteira</p>
+                  <p className="c-rc-grande">
+                    {formatarNutriente(numeros?.total.energia_kcal, "energia_kcal")} <small>kcal</small>
+                  </p>
+                  <p className="c-rc-mini">
+                    {comUnidade(numeros?.total.proteina, "proteina")} proteína · {comUnidade(numeros?.total.carboidrato, "carboidrato")} carboidrato ·{" "}
+                    {comUnidade(numeros?.total.lipideos, "lipideos")} gordura · {comUnidade(numeros?.total.fibra_alimentar, "fibra_alimentar")} fibra
+                  </p>
+                  <hr />
+                  <p className="c-cz-numeros-rotulo">Uma porção ({porcoes.toLocaleString("pt-BR")} no total)</p>
+                  <p className="c-rc-grande">
+                    {formatarNutriente(porPorcao(numeros?.total.energia_kcal, porcoes), "energia_kcal")} <small>kcal</small>
+                  </p>
+                  <p className="c-rc-mini">
+                    {comUnidade(porPorcao(numeros?.total.proteina, porcoes), "proteina")} proteína ·{" "}
+                    {comUnidade(porPorcao(numeros?.total.carboidrato, porcoes), "carboidrato")} carboidrato ·{" "}
+                    {comUnidade(porPorcao(numeros?.total.lipideos, porcoes), "lipideos")} gordura
+                  </p>
+                </>
+              )}
+              {!rascunho.manual && numeros && Object.entries(numeros.faltando).some(([, l]) => l?.length) && (
                 <details className="c-rc-mini c-rc-aviso">
                   <summary>Alguns alimentos não têm todos os valores na tabela</summary>
                   Esses ficam fora daquele número (não viram zero):{" "}
@@ -567,7 +654,7 @@ export function Receitas() {
                   .
                 </details>
               )}
-              {numeros && <p className="c-cz-fonte">Fonte: {textoDasFontes(numeros.fontes)}.</p>}
+              {!rascunho.manual && numeros && <p className="c-cz-fonte">Fonte: {textoDasFontes(numeros.fontes)}.</p>}
               <hr />
               <BotaoPdf
                 titulo={`Receita — ${previa.titulo}`}

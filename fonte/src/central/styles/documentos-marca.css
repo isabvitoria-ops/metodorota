@@ -915,6 +915,7 @@
   .doc-rc-lista--numerada { padding-left: 5mm; }
   .doc-rc-dica { margin-top: 5mm; }
   .doc-rc-numeros { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-top: 8mm; break-inside: avoid; }
+  .doc-rc-numeros--so-porcao { grid-template-columns: minmax(0, 0.55fr); }
   .doc-rc-numeros > div { display: flex; flex-direction: column; gap: 1mm; padding: 4mm 5mm; border-radius: 3mm; border: 0.3mm solid #c9bcac; }
   .doc-rc-numeros strong { font-family: "Josefin Sans", system-ui, sans-serif; font-size: 20pt; font-weight: 600; color: #38546c; }
   .doc-rc-numeros small { font-size: 8.5pt; color: #263d52; }

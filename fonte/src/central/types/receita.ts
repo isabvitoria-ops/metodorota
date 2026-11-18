@@ -52,6 +52,12 @@ export interface NumerosDaReceita {
   /** As tabelas usadas, para escrever a origem embaixo dos números. */
   fontes: string[];
   calculadoEm: string;
+  /**
+   * Números POR PORÇÃO digitados pela nutricionista (de um e-book, do rótulo,
+   * de uma conta dela). Quando existe, vale no lugar da soma pelos gramas,
+   * e a tela mostra `origem` embaixo — o número continua tendo de onde veio.
+   */
+  manual?: { porcao: Record<ChaveNutriente, number | null>; origem: string } | null;
 }
 
 export interface Receita {
