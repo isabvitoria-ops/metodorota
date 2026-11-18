@@ -69,7 +69,7 @@ export function etapaDoDia(dia: number): Etapa {
 /** Regras da Etapa 1, na ordem em que aparecem no Protocolo. */
 export const REGRAS_ETAPA_1: { titulo: string; texto: string }[] = [
   { titulo: "4 refeições por dia", texto: "Café, almoço, lanche e jantar, nos horários do cardápio. Entre elas, nada que tenha caloria: só água e os chás liberados." },
-  { titulo: "Só o que está no cardápio", texto: "Cada opção já soma as calorias certas para você chegar perto de 1.600 kcal. Troque só pelas trocas da própria tela." },
+  { titulo: "Só o que está no cardápio", texto: "Cada opção já vem montada e equilibrada para o seu dia. Troque só pelas trocas da própria tela." },
   { titulo: "Tudo cozido", texto: "Legumes cozidos, assados ou refogados. Folhas e legumes crus ficam para a Etapa 2. Frutas podem ser cruas, sempre na porção indicada." },
   { titulo: "Sem carne vermelha", texto: "Frango, peixe, camarão e ovos. Carne bovina e suína voltam na Etapa 2." },
   { titulo: "Sem glúten e sem laticínios", texto: "Nada de trigo, centeio, cevada e malte. Nada de leite, iogurte, queijo, manteiga ou ghee, nem na versão sem lactose. Os dois voltam, testados, nas próximas etapas." },
