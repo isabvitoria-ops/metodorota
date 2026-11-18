@@ -71,7 +71,11 @@ test("Schofield: fronteiras de idade usam a faixa de cima; homem 40 a, 80 kg = 1
 });
 
 test("Henry & Rees: mulher 21 a, 90 kg = (0,047×90 + 2,57)×239 = 1625,2; homem 40 a, 80 kg = 1634,76", () => {
-  perto(calcularGasto("henry_rees", MULHER_21).geb, 1625.2);
+  // A versão feminina está suspensa (coeficientes não conferem com as fontes).
+  const mulherHR = calcularGasto("henry_rees", MULHER_21);
+  assert.equal(mulherHR.ok, false);
+  assert.match(mulherHR.motivo, /suspensa para mulheres/);
+  assert.ok(!compararEquacoes(MULHER_21).some((x) => x.equacao.id === "henry_rees"));
   perto(calcularGasto("henry_rees", { sexo: "masculino", idade: 40, peso: 80 }).geb, 1634.76);
 });
 

@@ -1,4 +1,6 @@
 import { TERMO_PADRAO } from "./sementes/termo";
+import type { ReceitaDaNutri, ReceitaParaSalvar } from "@/central/types/receita";
+import { RECEITAS_DEMO } from "./sementes/receitasDemo";
 import type {
   MesDaMinhaEvolucao,
   MesDoHistorico,
@@ -2401,7 +2403,44 @@ export const repositorioLocal: Repositorio = {
     return "";
   },
   async apagarFotoEvolucao() {},
+
+  // -- Cozinha (0095) --
+  async minhaCozinha() {
+    const receitas = [...RECEITAS_DA_DEMO.values()].filter(
+      (r) => r.publicada || r.enviadaPara.includes(PACIENTE_DA_DEMONSTRACAO),
+    );
+    return {
+      receitas: receitas.map(({ enviadaPara: _e, ...r }) => structuredClone(r)),
+      enviadas: receitas.filter((r) => r.enviadaPara.includes(PACIENTE_DA_DEMONSTRACAO)).map((r) => r.id),
+    };
+  },
+  async receitasDaNutri() {
+    return [...RECEITAS_DA_DEMO.values()].map((r) => structuredClone(r));
+  },
+  async salvarReceita(receita: ReceitaParaSalvar) {
+    const id = receita.id ?? `receita-${Date.now()}`;
+    const antes = RECEITAS_DA_DEMO.get(id);
+    RECEITAS_DA_DEMO.set(id, {
+      ...structuredClone(receita),
+      id,
+      atualizadoEm: new Date().toISOString(),
+      enviadaPara: antes?.enviadaPara ?? [],
+    });
+    return { id };
+  },
+  async apagarReceita(id: string) {
+    RECEITAS_DA_DEMO.delete(id);
+  },
+  async enviarReceita(receitaId: string, pacienteIds: string[]) {
+    const r = RECEITAS_DA_DEMO.get(receitaId);
+    if (r) r.enviadaPara = [...pacienteIds];
+  },
 };
+
+/** Cozinha da demonstração: em memória, some ao recarregar (como o resto do modo demonstração). */
+const RECEITAS_DA_DEMO = new Map<string, ReceitaDaNutri>(
+  RECEITAS_DEMO.map((r, i) => [r.id, { ...r, enviadaPara: i < 2 ? [PACIENTE_DA_DEMONSTRACAO] : [] }]),
+);
 
 /**
  * Cardio e metas da demonstração.

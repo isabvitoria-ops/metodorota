@@ -7,6 +7,8 @@ import { Exames } from "@/central/components/Exames";
 import { DocumentoAvaliacao } from "@/central/components/DocumentoAvaliacao";
 import { DocumentoProtocolo } from "@/central/components/DocumentoProtocolo";
 import { DocumentoRastreio } from "@/central/components/DocumentoRastreio";
+import { DocumentoCompras, DocumentoTrocas } from "@/central/components/DocumentosNovos";
+import { montarListaDeCompras } from "@/central/utils/listaDeCompras";
 import { Icone } from "@/central/components/Icone";
 import { fotosDoProtocolo } from "@/central/utils/fotosDoProtocolo";
 import { repositorio } from "@/central/dados/repositorio";
@@ -39,7 +41,7 @@ import { CRN_DA_NUTRICIONISTA, INSTAGRAM_DA_MARCA, TELEFONE_DA_MARCA } from "@/c
  * CRESCE SEM REFORMA: acrescentar exames, orientações ou um relatório novo
  * é acrescentar uma entrada em `DOCUMENTOS` e um componente ao lado.
  */
-type Qual = "protocolo" | "avaliacao" | "rastreio";
+type Qual = "protocolo" | "avaliacao" | "rastreio" | "compras" | "trocas";
 
 /**
  * O arquivo PDF de um documento, do pedido até ficar pronto para salvar.
@@ -88,6 +90,8 @@ const NOME_DO_DOCUMENTO: Record<Qual, string> = {
   protocolo: "Protocolo Alimentar",
   avaliacao: "Avaliação Física",
   rastreio: "Rastreabilidade Alimentar",
+  compras: "Mercado da semana",
+  trocas: "Minhas trocas",
 };
 
 interface Dados {
@@ -311,6 +315,30 @@ export function Documentos() {
               aoGerar={() => void montarPdf("protocolo")}
               aoImprimir={appInstalado() ? null : () => void gerar("protocolo")}
             />
+            {temProtocolo && (
+              <>
+                <Cartao
+                  icone="carrinho"
+                  titulo="Mercado da semana"
+                  descricao="As quantidades do seu plano somadas para 7 dias, por corredor."
+                  disponivel
+                  pdf={pdf?.qual === "compras" ? pdf : null}
+                  ocupado={pdf?.estado === "montando"}
+                  aoGerar={() => void montarPdf("compras")}
+                  aoImprimir={appInstalado() ? null : () => void gerar("compras")}
+                />
+                <Cartao
+                  icone="troca"
+                  titulo="Minhas trocas"
+                  descricao="Cada alimento do plano e o que pode entrar no lugar dele."
+                  disponivel
+                  pdf={pdf?.qual === "trocas" ? pdf : null}
+                  ocupado={pdf?.estado === "montando"}
+                  aoGerar={() => void montarPdf("trocas")}
+                  aoImprimir={appInstalado() ? null : () => void gerar("trocas")}
+                />
+              </>
+            )}
             <Cartao
               destaque={pedido === "avaliacao"}
               icone="balanca"
@@ -365,6 +393,10 @@ export function Documentos() {
           fotos={fotos}
         />
       )}
+      {imprimindo === "compras" && dados?.conteudo && (
+        <DocumentoCompras paciente={paciente} lista={montarListaDeCompras(dados.conteudo)} />
+      )}
+      {imprimindo === "trocas" && dados?.conteudo && <DocumentoTrocas paciente={paciente} conteudo={dados.conteudo} />}
       {imprimindo === "avaliacao" && dados && (
         <DocumentoAvaliacao
           paciente={paciente}

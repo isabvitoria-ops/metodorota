@@ -1,4 +1,7 @@
 import { useEffect, useRef } from "react";
+import { Receitas } from "./Receitas";
+import { PedidoDeExames } from "./PedidoDeExames";
+import { EstiloDoApp } from "./EstiloDoApp";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Marca } from "@/central/components/Marca";
 import { FaixaDemonstracao } from "@/central/components/FaixaDemonstracao";
@@ -57,12 +60,15 @@ const MAIS = [
   { rota: rotas.adminCondutas, rotulo: "Condutas" },
   { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
   { rota: rotas.adminCalculos, rotulo: "Cálculos" },
+  { rota: rotas.adminReceitas, rotulo: "Receitas" },
+  { rota: rotas.adminExames, rotulo: "Pedido de exames" },
   { rota: rotas.adminMetas, rotulo: "Metas" },
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
   { rota: rotas.adminDesafios, rotulo: "Desafio" },
   { rota: rotas.adminHotSlim, rotulo: "Hot Slim" },
   { rota: rotas.adminRastreabilidade, rotulo: "Rastreabilidade" },
   { rota: rotas.adminCerebro, rotulo: "Cérebro" },
+  { rota: rotas.adminEstilo, rotulo: "Estilo do app" },
   { rota: rotas.adminConfiguracoes, rotulo: "Configurações" },
 ];
 
@@ -167,6 +173,9 @@ export function AdminApp() {
               <Route path="protocolos" element={<Protocolos />} />
               <Route path="protocolos/:pacienteId" element={<Protocolos />} />
               <Route path="calculos" element={<Calculos />} />
+              <Route path="receitas" element={<Receitas />} />
+              <Route path="exames" element={<PedidoDeExames />} />
+              <Route path="estilo" element={<EstiloDoApp />} />
               <Route path="treinos" element={<Treinos />} />
               <Route path="treinos/:pacienteId" element={<Treinos />} />
               <Route path="metas" element={<Metas />} />

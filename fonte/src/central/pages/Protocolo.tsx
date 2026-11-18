@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMinhaCozinha } from "@/central/hooks/useMinhaCozinha";
+import { categoriaDaRefeicao } from "@/central/utils/receitas";
 import { useNavigate } from "react-router-dom";
 import type { ItemProtocolo, Protocolo as ProtocoloAlimentar, RefeicaoProtocolo } from "@/central/types/protocolo";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
@@ -416,6 +418,8 @@ function Refeicao({
         ))}
       </ul>
 
+      <ReceitasDaRefeicao nome={refeicao.nome} />
+
       {opcao.notas.length > 0 && (
         <div className="c-prot-notas">
           {opcao.notas.map((nota, i) => (
@@ -426,6 +430,39 @@ function Refeicao({
         </div>
       )}
     </section>
+  );
+}
+
+/**
+ * A ponte para a Cozinha: até duas receitas da categoria desta refeição, as
+ * enviadas para ela primeiro. Sem receita que combine, não aparece nada.
+ */
+function ReceitasDaRefeicao({ nome }: { nome: string }) {
+  const { cozinha } = useMinhaCozinha();
+  const navegar = useNavigate();
+  const categoria = categoriaDaRefeicao(nome);
+  if (!cozinha || !categoria) return null;
+  const enviadas = new Set(cozinha.enviadas);
+  const lista = cozinha.receitas
+    .filter((r) => r.categoria === categoria)
+    .sort((a, b) => Number(enviadas.has(b.id)) - Number(enviadas.has(a.id)))
+    .slice(0, 2);
+  if (!lista.length) return null;
+  return (
+    <div className="c-prot-receitas">
+      {lista.map((r) => (
+        <button key={r.id} type="button" className="c-prot-receita" onClick={() => navegar(rotas.receita(r.id))}>
+          <span className="c-prot-receita-icone" aria-hidden="true">
+            <Icone nome="receita" tamanho={17} />
+          </span>
+          <span className="c-prot-receita-texto">
+            <small>Receita da Cozinha</small>
+            <strong>{r.titulo}</strong>
+          </span>
+          <Icone nome="seta" tamanho={16} />
+        </button>
+      ))}
+    </div>
   );
 }
 

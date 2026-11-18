@@ -8,6 +8,17 @@ fórmula, a conta com os números do paciente e o selo **em vistoria**.
 Como conferir uma equação: abra *Composição corporal → Gasto energético*, escolha a
 equação, digite os dados do vetor e compare com o valor esperado abaixo.
 
+## Conferência nas fontes (18/11/2026)
+
+| Equação | Resultado | Fonte |
+|---|---|---|
+| Henry & Rees (1991), **mulher** | **SUSPENSA** (decisão da Isabela). O app usava 0,047×P + 2,57 (18-30) e 0,037×P + 2,83 (30-60). Duas fontes secundárias independentes trazem 0,048×P + 2,562 (18-30); a faixa 30-60 não foi confirmada. A conta feminina recusa com aviso até a tabela original ser conferida. | BMC Res Notes 2015 (doi:10.1186/s13104-015-1320-8); EFDeportes 183 |
+| Henry & Rees (1991), homem | Conferida (18-30: 0,056×P + 2,800). Segue calculando. | idem |
+| Horie-Waitzberg-Gonzalez (2011) | Conferida: 560,43 + 5,39×P + 14,14×MM. | PubMed 21233808 (doi:10.1038/oby.2010.326) |
+| Mifflin, Harris-Benedict 1919/1984, Cunningham, Katch-McArdle, IOM 2005 (adulto, criança, obesidade, gestante), DRI 2023 (adulto, gestante), Schofield, FAO/OMS 1985, Ten Haaf, Tinsley | Coeficientes conferem com os artigos originais. | — |
+| Fatores FAO (ocupacionais) | Divergem um pouco do FAO 1985 original (homem moderada 1,78; mulher 1,56 / 1,64 / 1,82). O app segue o manual CEPRAN. Em aberto. | FAO/WHO/UNU 1985 |
+| Tabela de MET | Valores do Compêndio de 2000; há versões de 2011 e 2024. | — |
+
 ## Etapa 1 — Motor + gasto (01/10/2026)
 
 ### Mudanças que alteram o que a tela fazia antes (destrutivas)

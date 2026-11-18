@@ -5,7 +5,7 @@
  * (id, tipo, referência, data ISO) justamente para que migrar para Supabase
  * seja trocar a implementação do repositório, não o formato (§30).
  */
-export type TipoFavorito = "alimento" | "troca" | "grupo" | "categoria" | "opcao" | "guia";
+export type TipoFavorito = "alimento" | "troca" | "grupo" | "categoria" | "opcao" | "guia" | "receita";
 
 export interface Favorito {
   /** `${tipo}:${refId}` — estável, para alternar sem duplicar. */

@@ -1,4 +1,5 @@
 import type { EstadoDoTermo, PedidoLgpd, SituacaoDosAceites, TermoDeUso } from "@/central/types";
+import type { MinhaCozinha, ReceitaDaNutri, ReceitaParaSalvar } from "@/central/types/receita";
 import type {
   AcaoAdmin,
   Alimento,
@@ -982,6 +983,21 @@ export interface Repositorio {
   enderecoDaFotoEvolucao(caminho: string): Promise<string>;
   /** Admin: apaga uma foto evolutiva. */
   apagarFotoEvolucao(id: string): Promise<void>;
+
+  // ---------------------------------------------------------------------
+  // Cozinha (0095)
+  // ---------------------------------------------------------------------
+
+  /** A Cozinha da paciente: as receitas publicadas e as enviadas para ela. */
+  minhaCozinha(): Promise<MinhaCozinha>;
+  /** Nutricionista: todas as receitas, com para quem foram enviadas. */
+  receitasDaNutri(): Promise<ReceitaDaNutri[]>;
+  /** Nutricionista: grava (cria ou altera) uma receita. Devolve o id. */
+  salvarReceita(receita: ReceitaParaSalvar): Promise<{ id: string }>;
+  /** Nutricionista: apaga a receita (e os envios dela). */
+  apagarReceita(id: string): Promise<void>;
+  /** Nutricionista: define para quais pacientes a receita está enviada (substitui a lista). */
+  enviarReceita(receitaId: string, pacienteIds: string[]): Promise<void>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;
