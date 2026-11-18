@@ -332,6 +332,12 @@ export function Receitas() {
         <div>
           <h1 className="c-titulo">Receitas</h1>
           <p className="c-subtitulo">A Cozinha das pacientes. As contas saem das tabelas dos Cálculos, pelos gramas.</p>
+          {receitas && receitas.length > 0 && (
+            <p className="c-rc-mini c-rc-nota">
+              {receitas.filter((r) => r.publicada).length} de {receitas.length} na Cozinha: aparecem para toda paciente com a
+              Cozinha ligada. Para ligar ou desligar a Cozinha inteira de uma paciente, abra o prontuário dela, em “O que ela vê”.
+            </p>
+          )}
         </div>
         {rascunho === null && (
           <button type="button" className="c-botao" onClick={() => definirRascunho(VAZIO())}>
@@ -382,7 +388,7 @@ export function Receitas() {
                   : ""}
               </span>
               <span className="c-rc-item-estado">
-                {r.publicada ? "Na Cozinha" : "Não publicada"}
+                {r.publicada ? "Na Cozinha de todas" : "Só para quem você enviar"}
                 {r.enviadaPara.length ? ` · enviada a ${r.enviadaPara.length}` : ""}
               </span>
             </button>
@@ -664,7 +670,14 @@ export function Receitas() {
                 documento={<DocumentoReceita receita={previa} paciente={null} />}
               />
               <hr />
-              <p className="c-cz-numeros-rotulo">Enviar para</p>
+              <p className="c-cz-numeros-rotulo">{rascunho.publicada ? "Destacar para (opcional)" : "Enviar só para"}</p>
+              {atual && (
+                <p className="c-rc-mini">
+                  {rascunho.publicada
+                    ? "Todas já veem esta receita. Marcada aqui, ela sobe para o topo da Cozinha da paciente, em “Enviadas para você”."
+                    : "Fora da Cozinha de todas. Só quem você marcar aqui vê esta receita."}
+                </p>
+              )}
               {!atual ? (
                 <p className="c-rc-mini">Salve a receita para poder enviar.</p>
               ) : ativas.length === 0 ? (
