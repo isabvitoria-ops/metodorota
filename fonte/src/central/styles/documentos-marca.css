@@ -623,3 +623,275 @@
     color: inherit;
   }
 }
+
+/* =========================================================================
+   PLANO ALIMENTAR (o protocolo em PDF) — sem capa de folha inteira.
+
+   O plano começa na primeira folha: logo, título, a paciente e o dia inteiro
+   numa faixa (as refeições em ordem, com o horário quando ela preencheu).
+   Cada refeição é numerada; as opções levam letra (a, b, c). Fios finos em
+   Areia no lugar dos cartões fechados: a página respira e cabe mais.
+   Cores e letras só da marca (skill marca-isa).
+   ========================================================================= */
+@media print {
+  .doc-pa-topo {
+    break-inside: avoid;
+  }
+
+  .doc-pa-marca {
+    display: block;
+    height: 9mm;
+    width: auto;
+    margin: 0 auto 7mm;
+  }
+
+  .doc-pa-titulos {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8mm;
+    padding-bottom: 4mm;
+    border-bottom: 0.3mm solid #c9bcac;
+  }
+
+  .doc-pa-sobretitulo {
+    margin: 0 0 1.5mm;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #38546c;
+  }
+
+  .doc-pa-titulo {
+    margin: 0;
+    font-family: "Josefin Sans", system-ui, sans-serif;
+    font-size: 32pt;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #38546c;
+  }
+
+  .doc-pa-paciente {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.8mm;
+    text-align: right;
+  }
+
+  .doc-pa-rotulo {
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #38546c;
+  }
+
+  .doc-pa-paciente strong {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #263d52;
+  }
+
+  .doc-pa-data {
+    font-size: 8.5pt;
+    color: #38546c;
+  }
+
+  /* O dia num olhar. */
+  .doc-pa-dia {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2.5mm;
+    margin: 5mm 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .doc-pa-dia-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 24mm;
+    padding: 2.6mm 4mm;
+    border-radius: 3mm;
+    background: #38546c;
+    color: #f7eee7;
+    text-align: center;
+  }
+
+  .doc-pa-dia-hora {
+    font-family: "Josefin Sans", system-ui, sans-serif;
+    font-size: 13pt;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  .doc-pa-dia-nome {
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* O recado da semana: a caixa de destaque da página. */
+  .doc-pa-ajustes {
+    margin: 5mm 0 0;
+    padding: 3.5mm 5mm;
+    border-radius: 3mm;
+    background: #c8dae4;
+    font-size: 9.5pt;
+    color: #263d52;
+  }
+
+  .doc-pa-secao-titulo {
+    margin: 0 0 3mm;
+    font-size: 10pt;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #38546c;
+    break-after: avoid;
+  }
+
+  .doc-pa-orientacoes {
+    margin-top: 7mm;
+  }
+
+  /* Cada refeição: número, nome e horário, e um fio embaixo. */
+  .doc-pa-refeicao {
+    margin-top: 8mm;
+    break-inside: avoid;
+  }
+
+  .doc-pa-refeicao-titulo {
+    display: flex;
+    align-items: center;
+    gap: 3mm;
+    margin: 0 0 3mm;
+    padding-bottom: 2.5mm;
+    border-bottom: 0.3mm solid #c9bcac;
+    break-after: avoid;
+  }
+
+  .doc-pa-numero {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 7mm;
+    height: 7mm;
+    border-radius: 50%;
+    background: #38546c;
+    color: #f7eee7;
+    font-family: "Lato", system-ui, sans-serif;
+    font-size: 10pt;
+    font-weight: 700;
+  }
+
+  .doc-pa-refeicao-nome {
+    flex: 1;
+    font-family: "Josefin Sans", system-ui, sans-serif;
+    font-size: 16pt;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #38546c;
+  }
+
+  .doc-pa-hora {
+    flex: none;
+    font-size: 10pt;
+    font-weight: 700;
+    color: #263d52;
+  }
+
+  .doc-pa-opcao + .doc-pa-opcao {
+    margin-top: 5mm;
+  }
+
+  .doc-pa-opcao-rotulo {
+    display: flex;
+    align-items: center;
+    gap: 2.5mm;
+    margin: 0 0 2mm;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #38546c;
+  }
+
+  .doc-pa-letra {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 5.5mm;
+    height: 5.5mm;
+    border-radius: 50%;
+    background: #c8dae4;
+    color: #263d52;
+    font-size: 8.5pt;
+    letter-spacing: 0;
+    text-transform: lowercase;
+  }
+
+  /* A tabela fica leve: cabeçalho em letra pequena, sem faixa de cor. */
+  .doc-pa-tabela thead th {
+    padding: 1.5mm 3mm;
+    background: none;
+    border-bottom: 0.3mm solid #c9bcac;
+    font-size: 7.5pt;
+    color: #38546c;
+  }
+
+  .doc-pa-tabela thead th:first-child {
+    padding-left: 0;
+  }
+
+  .doc-pa-tabela tbody th {
+    padding-left: 0;
+  }
+
+  .doc-pa-tabela tbody th,
+  .doc-pa-tabela tbody td {
+    padding-top: 2.4mm;
+    padding-bottom: 2.4mm;
+    border-bottom: 0.25mm solid #e2d8cd;
+  }
+
+  /* As observações da opção: um traço Cereja e o texto. */
+  .doc-pa-notas {
+    margin: 2.5mm 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 9.5pt;
+    color: #263d52;
+  }
+
+  .doc-pa-notas li {
+    position: relative;
+    margin-bottom: 1.2mm;
+    padding-left: 5mm;
+  }
+
+  .doc-pa-notas li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 2.6mm;
+    height: 0.5mm;
+    border-radius: 0.3mm;
+    background: #a82b3c;
+  }
+
+  .doc-pa-rotina {
+    margin-top: 9mm;
+  }
+}
