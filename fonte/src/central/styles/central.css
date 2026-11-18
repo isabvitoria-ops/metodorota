@@ -6532,6 +6532,556 @@ textarea.c-campo:focus {
   background: #f6f8fa;
 }
 
+/* ============================================================ Cálculos
+   A bancada dela (dieta, composição, macros) no visual do app. Prefixo
+   c-cx-. As seções e números reaproveitam o c-calc-* da avaliação. */
+.c-cx-cabeca {
+  align-items: flex-start;
+}
+
+.c-cx-cabeca-texto {
+  flex: 1;
+  min-width: 0;
+}
+
+.c-cx-cabeca-acoes {
+  flex: none;
+}
+
+.c-cx-aviso {
+  margin-top: 12px;
+}
+
+.central .c-cx-confirmando {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.c-cx-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.c-cx-erro {
+  color: var(--danger);
+}
+
+/* Barra de fichas */
+.c-cx-fichas {
+  margin-bottom: 16px;
+}
+
+.c-cx-fichas-linha {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.c-cx-fichas-linha .c-campo {
+  margin-top: 0;
+}
+
+.c-cx-fichas-acoes {
+  margin-top: 12px;
+}
+
+.c-cx-abas {
+  margin: 4px 0 2px;
+}
+
+/* Busca de alimento */
+.c-cx-busca {
+  position: relative;
+  margin-top: 12px;
+}
+
+.c-cx-busca--compacta {
+  flex: 1;
+  min-width: 200px;
+  margin-top: 0;
+}
+
+.c-cx-busca-lista {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-forte);
+}
+
+.c-cx-busca-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.c-cx-busca-item small,
+.c-cx-busca-nada small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.c-cx-busca-item--marcado,
+.c-cx-busca-item:hover {
+  background: var(--primary-soft);
+}
+
+.c-cx-busca-nada {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+/* Refeições */
+.c-cx-refeicoes {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.c-cx-refeicao {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  min-width: 0;
+}
+
+.c-cx-refeicao--recolhida .c-calc-dica {
+  margin-top: 6px;
+}
+
+.c-cx-refeicao-topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.central .c-cx-recolher {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.central .c-cx-hora {
+  flex: none;
+  width: 116px;
+}
+
+.central .c-cx-nome-refeicao {
+  flex: 1;
+  min-width: 140px;
+  font-weight: 600;
+}
+
+.c-cx-refeicao-acoes {
+  display: flex;
+  gap: 12px;
+}
+
+.c-cx-opcoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.c-cx-opcao {
+  display: inline-flex;
+  align-items: center;
+}
+
+.central .c-cx-opcao .c-calc-fator,
+.central .c-cx-grupos .c-calc-fator {
+  align-items: center;
+}
+
+.central .c-cx-opcao-x {
+  margin-left: -6px;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.central .c-cx-opcao-x.c-cx-confirmando {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.c-cx-opcao-renomear .c-input {
+  width: 160px;
+  min-height: 40px;
+}
+
+/* A tabela da opção aberta */
+.c-cx-tabela {
+  width: 100%;
+  min-width: 760px;
+  margin-top: 12px;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.c-cx-tabela th,
+.c-cx-tabela td {
+  padding: 7px 6px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  vertical-align: middle;
+}
+
+.c-cx-tabela thead th {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.c-cx-tabela thead th:first-child,
+.c-cx-tabela tbody th,
+.c-cx-tabela tfoot th {
+  text-align: left;
+}
+
+.c-cx-tabela tbody th {
+  font-weight: 600;
+  color: var(--text);
+  min-width: 200px;
+}
+
+.c-cx-tabela tfoot th,
+.c-cx-tabela tfoot td {
+  border-bottom: 0;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.c-cx-fonte {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--primary-soft);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--primary);
+  vertical-align: 1px;
+}
+
+.central .c-cx-selo-subst {
+  margin-left: 6px;
+  padding: 1px 8px;
+  border: 1px solid var(--marca-azul-medio);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.central .c-cx-selo-subst--vazio {
+  border-style: dashed;
+  color: var(--text-muted);
+}
+
+.central .c-cx-qtd {
+  width: 72px;
+  min-height: 36px;
+  padding: 4px 8px;
+  text-align: right;
+}
+
+.central .c-cx-select-mini {
+  min-height: 36px;
+  padding: 4px 28px 4px 8px;
+  font-size: 13px;
+}
+
+.central .c-cx-x {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-muted);
+  font-size: 17px;
+  cursor: pointer;
+}
+
+.central .c-cx-x:hover {
+  background: var(--primary-soft);
+  color: var(--danger);
+}
+
+.c-cx-subst th,
+.c-cx-subst td {
+  background: var(--surface);
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.c-cx-tabela .c-cx-subst th {
+  font-weight: 500;
+  padding-left: 18px;
+}
+
+.c-cx-ou {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--marca-cereja);
+}
+
+.c-cx-subst-novo td {
+  text-align: left;
+}
+
+.c-cx-subst-controles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.c-cx-igualar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.c-cx-referencia th,
+.c-cx-referencia td,
+.c-cx-diferenca th {
+  font-weight: 500 !important;
+  color: var(--text-muted) !important;
+}
+
+.c-cx-dif-ok {
+  color: var(--success) !important;
+}
+
+.c-cx-dif-longe {
+  color: var(--danger) !important;
+}
+
+.c-cx-nova-medida,
+.c-cx-formulario {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.c-cx-nova-medida .c-cx-linha {
+  margin: 8px 0;
+}
+
+.c-cx-nova-medida .c-input {
+  flex: 1;
+  min-width: 150px;
+}
+
+.c-cx-sugestoes {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--marca-marfim);
+}
+
+.c-cx-sugestao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.c-cx-sugestao span {
+  flex: 1;
+  min-width: 160px;
+}
+
+.c-cx-grupos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+/* Gasto energético */
+.c-cx-met {
+  margin-top: 14px;
+}
+
+.c-cx-met-linha {
+  display: grid;
+  grid-template-columns: minmax(0, 2.4fr) repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.c-cx-equacao {
+  margin: 16px 0 0;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.c-cx-selo {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--warning-soft);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--warning);
+  vertical-align: 2px;
+}
+
+.c-cx-selo--espera {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.c-cx-detalhe {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.c-cx-detalhe summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.c-cx-passos {
+  margin: 10px 0;
+  padding-left: 18px;
+  font-size: 13.5px;
+}
+
+.c-cx-passos code {
+  font-size: 12.5px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.c-cx-micros td {
+  white-space: nowrap;
+}
+
+.c-cx-micros td:nth-child(3) {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* Meus alimentos e grupos */
+.c-cx-lista {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.c-cx-lista li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.c-cx-lista li > div:first-child {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.c-cx-lista-acoes {
+  display: flex;
+  gap: 12px;
+}
+
+.c-cx-grupo-itens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.central .c-cx-chip {
+  padding: 3px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-size: 12.5px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.central .c-cx-chip:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+@media (max-width: 560px) {
+  .c-cx-fichas-linha {
+    grid-template-columns: 1fr;
+  }
+
+  .c-cx-met-linha {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .c-cx-met-linha > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
 /* Partes que vieram da ferramenta de cálculo: meta de peso, divisão em
    percentual e faixas de referência. */
 .c-calc-bloco {
@@ -6563,6 +7113,9 @@ textarea.c-campo:focus {
 }
 
 .c-calc-rolagem {
+  /* "relative" prende aqui dentro o texto só para leitor de tela (que é
+     absoluto): solto, ele escapava da rolagem e esticava a página de lado. */
+  position: relative;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }

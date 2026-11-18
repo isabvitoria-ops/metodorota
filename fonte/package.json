@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
     "lint": "eslint .",
-    "test": "node --test --import ./scripts/registrar-alias.mjs \"src/**/*.test.ts\"",
+    "test": "node --test --import ./scripts/registrar-alias.mjs \"src/**/*.test.ts\" \"src/**/*.test.mjs\"",
     "seed": "node --import ./scripts/registrar-alias.mjs scripts/gerar-seed.mjs",
     "test:banco": "./scripts/testar-banco.sh",
     "instalador": "node scripts/gerar-instalador.mjs",
