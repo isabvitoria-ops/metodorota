@@ -63,3 +63,20 @@ test("busca por nome ou ingrediente, sem acento", () => {
   assert.ok(receitaCombina(r, "ESPINAFRE ovo"));
   assert.ok(!receitaCombina(r, "frango"));
 });
+
+test("números digitados valem por porção e mostram a origem", async () => {
+  const { numerosParaMostrar } = await import("./receitas.ts");
+  const porcao = { energia_kcal: 313, proteina: 41, carboidrato: 29.6, lipideos: 10.4, fibra_alimentar: null };
+  const m = numerosParaMostrar({
+    porcoes: 2,
+    numeros: { total: { energia_kcal: null, proteina: null, carboidrato: null, lipideos: null, fibra_alimentar: null }, faltando: {}, fontes: [], calculadoEm: "", manual: { porcao, origem: "e-book" } },
+  })!;
+  assert.equal(m.manual, true);
+  assert.equal(m.total, null);
+  assert.equal(m.porcao?.energia_kcal, 313);
+  assert.equal(m.origem, "e-book");
+  const c = numerosParaMostrar({ porcoes: 2, numeros: calcularNumeros([ing("abobrinha", "taco:71", 200)], valor) })!;
+  assert.equal(c.manual, false);
+  assert.ok(Math.abs((c.porcao?.energia_kcal as number) - 19.3) < 1e-9);
+  assert.ok(Math.abs((c.total?.energia_kcal as number) - 38.6) < 1e-9);
+});

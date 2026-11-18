@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMinhaCozinha } from "@/central/hooks/useMinhaCozinha";
 import { categoriaDaRefeicao } from "@/central/utils/receitas";
+import { areaLigada } from "@/central/utils/areas";
+import { useArea } from "@/central/hooks/useArea";
 import { useNavigate } from "react-router-dom";
 import type { ItemProtocolo, Protocolo as ProtocoloAlimentar, RefeicaoProtocolo } from "@/central/types/protocolo";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
@@ -164,17 +166,19 @@ export function Protocolo() {
                     não abre daqui — foram duas tentativas, e nenhuma
                     funcionou no aparelho. Abre de Meus documentos; então o
                     botão leva para lá, e lá o PDF começa sozinho. */}
-                <button
-                  type="button"
-                  className="c-prot-acao"
-                  onClick={() => navegar(rotas.documentos, { state: pedirPdf("protocolo") })}
-                >
-                  <Icone nome="documentos" tamanho={17} />
-                  Baixar em PDF
-                </button>
+                {areaLigada(acesso, "documentos") && (
+                  <button
+                    type="button"
+                    className="c-prot-acao"
+                    onClick={() => navegar(rotas.documentos, { state: pedirPdf("protocolo") })}
+                  >
+                    <Icone nome="documentos" tamanho={17} />
+                    Baixar em PDF
+                  </button>
+                )}
                 {/* Só aparece quando existe uma avaliação publicada: uma porta
                     que abre vazia faz a paciente achar que perdeu alguma coisa. */}
-                {acesso.avaliacao && (
+                {acesso.avaliacao && areaLigada(acesso, "avaliacao") && (
                   <button type="button" className="c-prot-acao" onClick={() => navegar(rotas.avaliacao)}>
                     <Icone nome="balanca" tamanho={17} />
                     Avaliação física
@@ -242,16 +246,18 @@ export function Protocolo() {
               />
             ))}
 
-            <button type="button" className="c-prot-troca" onClick={() => navegar(rotas.trocas)}>
-              <span className="c-prot-troca-icone">
-                <Icone nome="troca" tamanho={18} />
-              </span>
-              <span>
-                <strong>Quer trocar por outro alimento?</strong>
-                <span>A Troca Inteligente calcula a quantidade certa para você.</span>
-              </span>
-              <Icone nome="seta" tamanho={18} />
-            </button>
+            {areaLigada(acesso, "trocas") && (
+              <button type="button" className="c-prot-troca" onClick={() => navegar(rotas.trocas)}>
+                <span className="c-prot-troca-icone">
+                  <Icone nome="troca" tamanho={18} />
+                </span>
+                <span>
+                  <strong>Quer trocar por outro alimento?</strong>
+                  <span>A Troca Inteligente calcula a quantidade certa para você.</span>
+                </span>
+                <Icone nome="seta" tamanho={18} />
+              </button>
+            )}
 
             {conteudo.secoes.length > 0 && (
               <section id="prot-rotina" className="c-prot-bloco">
@@ -440,8 +446,9 @@ function Refeicao({
 function ReceitasDaRefeicao({ nome }: { nome: string }) {
   const { cozinha } = useMinhaCozinha();
   const navegar = useNavigate();
+  const ligada = useArea("cozinha");
   const categoria = categoriaDaRefeicao(nome);
-  if (!cozinha || !categoria) return null;
+  if (!ligada || !cozinha || !categoria) return null;
   const enviadas = new Set(cozinha.enviadas);
   const lista = cozinha.receitas
     .filter((r) => r.categoria === categoria)

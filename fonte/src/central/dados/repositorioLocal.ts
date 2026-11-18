@@ -2435,7 +2435,20 @@ export const repositorioLocal: Repositorio = {
     const r = RECEITAS_DA_DEMO.get(receitaId);
     if (r) r.enviadaPara = [...pacienteIds];
   },
+
+  // -- Áreas por paciente (0096) --
+  async areasDoPaciente(pacienteId: string) {
+    return [...(AREAS_DESLIGADAS_DEMO.get(pacienteId) ?? [])];
+  },
+  async definirAreaDoPaciente(pacienteId: string, area: string, ligada: boolean) {
+    const antes = AREAS_DESLIGADAS_DEMO.get(pacienteId) ?? [];
+    const depois = ligada ? antes.filter((a) => a !== area) : [...new Set([...antes, area])];
+    AREAS_DESLIGADAS_DEMO.set(pacienteId, depois);
+    return [...depois];
+  },
 };
+
+const AREAS_DESLIGADAS_DEMO = new Map<string, string[]>();
 
 /** Cozinha da demonstração: em memória, some ao recarregar (como o resto do modo demonstração). */
 const RECEITAS_DA_DEMO = new Map<string, ReceitaDaNutri>(

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { ComArea, PortaDaViagem } from "./components/ComArea";
 import { Cozinha, ReceitaDetalhe } from "./pages/Cozinha";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { NavPrincipal } from "./components/NavPrincipal";
@@ -54,41 +55,41 @@ export function CentralApp() {
         <Routes>
           <Route index element={<Home />} />
           <Route path="protocolo" element={<Protocolo />} />
-          <Route path="cozinha" element={<Cozinha />} />
-          <Route path="cozinha/:receitaId" element={<ReceitaDetalhe />} />
+          <Route path="cozinha" element={<ComArea chave="cozinha"><Cozinha /></ComArea>} />
+          <Route path="cozinha/:receitaId" element={<ComArea chave="cozinha"><ReceitaDetalhe /></ComArea>} />
           {/* Rolê no Mercado — escondido até as fotos individuais ficarem prontas */}
           {/* <Route path="mercado" element={<Mercado />} /> */}
-          <Route path="avaliacao" element={<Avaliacao />} />
+          <Route path="avaliacao" element={<ComArea chave="avaliacao"><Avaliacao /></ComArea>} />
           <Route path="evolucao" element={<Treino />} />
-          <Route path="metas" element={<Metas />} />
-          <Route path="questionarios" element={<Questionarios />} />
-          <Route path="documentos" element={<Documentos />} />
-          <Route path="trocas" element={<TrocaInteligente />} />
+          <Route path="metas" element={<ComArea chave="metas"><Metas /></ComArea>} />
+          <Route path="questionarios" element={<ComArea chave="checkin"><Questionarios /></ComArea>} />
+          <Route path="documentos" element={<ComArea chave="documentos"><Documentos /></ComArea>} />
+          <Route path="trocas" element={<ComArea chave="trocas"><TrocaInteligente /></ComArea>} />
           {/* A tabela de substituições saiu da Central: a Troca Inteligente faz
               o mesmo trabalho e duas portas para a mesma coisa confundiam. O
               caminho fica de pé para não quebrar link já enviado nem item que
               a paciente tenha guardado. */}
           <Route path="substituicoes" element={<Navigate to={rotas.trocas} replace />} />
           <Route path="substituicoes/:grupoId" element={<Navigate to={rotas.trocas} replace />} />
-          <Route path="comer-fora" element={<ComerFora />} />
-          <Route path="comer-fora/:categoriaId" element={<CategoriaDetalhe />} />
+          <Route path="comer-fora" element={<ComArea chave="comer_fora"><ComerFora /></ComArea>} />
+          <Route path="comer-fora/:categoriaId" element={<ComArea chave="comer_fora"><CategoriaDetalhe /></ComArea>} />
           <Route
             path="comer-fora/:categoriaId/:estabelecimentoId"
-            element={<EstabelecimentoDetalhe />}
+            element={<ComArea chave="comer_fora"><EstabelecimentoDetalhe /></ComArea>}
           />
           <Route path="desafio" element={<Desafio />} />
           <Route path="rastreabilidade" element={<Rastreabilidade />} />
           <Route path="fodmap" element={<FodmapSemaforo />} />
           <Route path="agua" element={<Navigate to={rotas.hidratacao} replace />} />
-          <Route path="hidratacao" element={<Hidratacao />} />
+          <Route path="hidratacao" element={<ComArea chave="hidratacao"><Hidratacao /></ComArea>} />
           <Route path="restricoes" element={<Restricoes />} />
-          <Route path="fotos-evolucao" element={<FotosEvolucao />} />
+          <Route path="fotos-evolucao" element={<ComArea chave="fotos_evolucao"><FotosEvolucao /></ComArea>} />
           <Route path="fibras" element={<Navigate to={rotas.habitos} replace />} />
           <Route path="bristol" element={<Bristol />} />
-          <Route path="habitos" element={<Habitos />} />
-          <Route path="viagem" element={<Viagem />} />
-          <Route path="diario" element={<DiarioDeFotosPagina />} />
-          <Route path="busca" element={<Busca />} />
+          <Route path="habitos" element={<ComArea chave="habitos"><Habitos /></ComArea>} />
+          <Route path="viagem" element={<PortaDaViagem><Viagem /></PortaDaViagem>} />
+          <Route path="diario" element={<ComArea chave="diario"><DiarioDeFotosPagina /></ComArea>} />
+          <Route path="busca" element={<ComArea chave="busca"><Busca /></ComArea>} />
           <Route path="instalar" element={<InstalarPagina />} />
           <Route path="*" element={<Navigate to={rotas.home} replace />} />
         </Routes>
