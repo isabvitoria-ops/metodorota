@@ -36,6 +36,11 @@ export interface OpcaoProtocolo {
   itens: ItemProtocolo[];
   /** O chá pós-refeição, a suplementação, o modo de preparo, os vegetais. */
   notas: string[];
+  /**
+   * Receitas da Cozinha que ELA escolheu para esta opção (ids). Só aparece o
+   * que está aqui: o app não adivinha receita pela refeição.
+   */
+  receitas?: string[];
 }
 
 export interface RefeicaoProtocolo {

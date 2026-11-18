@@ -2988,6 +2988,7 @@ const PROTOCOLO_DEMO: ConteudoProtocolo = {
             { alimento: "Banana", quantidade: "1 unidade", substituicoes: ["Morango - 200g"] },
           ],
           notas: ["Chá de gengibre com limão depois da refeição."],
+          receitas: ["receita-demo-1"],
         },
       ],
     },

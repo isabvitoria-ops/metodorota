@@ -48,6 +48,7 @@ import { energiaEMacros } from "@/central/utils/calculoEnergia";
 import { percentuaisDosGramas, type Percentuais } from "@/central/utils/planejamentoDeMacros";
 import { DivisaoPorPercentual, FaixasDeReferencia, MetaDePesoNoCalculo } from "./componentes/PlanejamentoNoCalculo";
 import { abrirImpressao } from "@/central/utils/impressao";
+import type { ReceitaDaNutri } from "@/central/types/receita";
 
 /**
  * Protocolo alimentar — área da nutricionista.
@@ -228,6 +229,19 @@ function EditorDoProtocolo({
   // O que veio do banco. Enquanto for igual ao da tela, não há o que guardar
   // — e é isso que impede o salvamento automático de disparar na abertura.
   const espelho = useRef<string>("");
+  // As receitas da Cozinha, para ela escolher qual vai em cada refeição.
+  // Se não carregarem, o editor continua: só some a escolha de receita.
+  const [receitas, definirReceitas] = useState<ReceitaDaNutri[]>([]);
+  useEffect(() => {
+    let vivo = true;
+    repositorio
+      .receitasDaNutri()
+      .then((lista) => vivo && definirReceitas(lista))
+      .catch(() => undefined);
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   const carregar = useCallback(async () => {
     const dados = await repositorio.protocoloDoPaciente(paciente.id);
@@ -452,6 +466,7 @@ function EditorDoProtocolo({
           key={iRefeicao}
           refeicao={refeicao}
           grupos={grupos}
+          receitas={receitas}
           pacienteId={paciente.id}
           primeira={iRefeicao === 0}
           ultima={iRefeicao === conteudo.refeicoes.length - 1}
@@ -670,6 +685,7 @@ function EditorDoProtocolo({
 function BlocoDaRefeicao({
   refeicao,
   grupos,
+  receitas,
   pacienteId,
   primeira,
   ultima,
@@ -681,6 +697,7 @@ function BlocoDaRefeicao({
 }: {
   refeicao: RefeicaoProtocolo;
   grupos: GrupoDoProtocolo[];
+  receitas: ReceitaDaNutri[];
   pacienteId: string;
   primeira: boolean;
   ultima: boolean;
@@ -905,6 +922,13 @@ function BlocoDaRefeicao({
               aoMudar={(lista) => trocarOpcao(iOpcao, { ...opcao, notas: lista })}
             />
           </Campo>
+
+          <ReceitasDaOpcao
+            escolhidas={opcao.receitas ?? []}
+            receitas={receitas}
+            pacienteId={pacienteId}
+            aoMudar={(ids) => trocarOpcao(iOpcao, { ...opcao, receitas: ids.length ? ids : undefined })}
+          />
         </div>
       ))}
 
@@ -924,6 +948,59 @@ function BlocoDaRefeicao({
         + Acrescentar outra versão desta refeição
       </button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Qual receita da Cozinha aparece embaixo desta opção, na tela da paciente.
+ * Ela escolhe; nada entra sozinho. Avisa quando a paciente não vai conseguir
+ * abrir a receita escolhida, em vez de deixar o atalho sumir sem explicação.
+ */
+function ReceitasDaOpcao({
+  escolhidas,
+  receitas,
+  pacienteId,
+  aoMudar,
+}: {
+  escolhidas: string[];
+  receitas: ReceitaDaNutri[];
+  pacienteId: string;
+  aoMudar: (ids: string[]) => void;
+}) {
+  if (receitas.length === 0 && escolhidas.length === 0) return null;
+  const livres = receitas.filter((r) => !escolhidas.includes(r.id));
+  return (
+    <div className="c-campo">
+      <span className="c-rotulo">Receita da Cozinha</span>
+      {escolhidas.map((id) => {
+        const r = receitas.find((x) => x.id === id);
+        const problema = !r
+          ? "Esta receita foi apagada. Ela não aparece para a paciente."
+          : !r.publicada && !r.enviadaPara.includes(pacienteId)
+            ? "Fora da Cozinha e não enviada para esta paciente: ela não consegue abrir."
+            : null;
+        return (
+          <div key={id} className="c-acoes-refeicao" style={{ gap: 12, flexWrap: "wrap", alignItems: "baseline" }}>
+            <strong>{r?.titulo ?? "Receita apagada"}</strong>
+            <button type="button" className="c-link" onClick={() => aoMudar(escolhidas.filter((x) => x !== id))}>
+              Tirar
+            </button>
+            {problema && <span className="c-dica c-dica-erro">{problema}</span>}
+          </div>
+        );
+      })}
+      {livres.length > 0 && (
+        <Selecao
+          valor=""
+          aoMudar={(id) => id && aoMudar([...escolhidas, id])}
+          opcoes={[
+            { valor: "", rotulo: escolhidas.length ? "+ Ligar outra receita…" : "+ Ligar uma receita…" },
+            ...livres.map((r) => ({ valor: r.id, rotulo: r.publicada ? r.titulo : `${r.titulo} (fora da Cozinha)` })),
+          ]}
+        />
+      )}
+      <span className="c-dica">Aparece embaixo desta refeição, na tela dela, para tocar e abrir a receita.</span>
     </div>
   );
 }
@@ -1041,7 +1118,7 @@ function limpar(conteudo: ConteudoProtocolo): ConteudoProtocolo {
         nome: r.nome.trim(),
         opcoes: r.opcoes
           .map((o) => ({ ...o, itens: o.itens.filter((i) => i.alimento.trim()) }))
-          .filter((o) => o.itens.length > 0 || o.notas.length > 0),
+          .filter((o) => o.itens.length > 0 || o.notas.length > 0 || (o.receitas?.length ?? 0) > 0),
       }))
       .filter((r) => r.nome && r.opcoes.length > 0),
   };
