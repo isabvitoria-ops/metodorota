@@ -65,10 +65,20 @@ export function HotSlimCardapio() {
                     className="hs-list-item"
                     aria-expanded={expandida}
                     onClick={() => setAberta(expandida ? null : chave)}
-                    style={{ width: "100%", textAlign: "left" }}
+                    style={{
+                      width: "100%",
+                      textAlign: "left",
+                      background: "transparent",
+                      borderTop: 0,
+                      borderLeft: 0,
+                      borderRight: 0,
+                      font: "inherit",
+                      color: "inherit",
+                    }}
                   >
                     <span className="hs-list-item-name">
                       <strong>{op.nome}</strong>
+                      <br />
                       <span className="hs-list-item-detail">
                         {Math.round(m.kcal)} kcal · {Math.round(m.proteina)} g proteína · {m.fibra.toFixed(0)} g fibra
                       </span>
@@ -78,19 +88,21 @@ export function HotSlimCardapio() {
                   {op.itens.map((item) => (
                     <div className="hs-list-item static" key={item.alimento}>
                       <span className="hs-list-item-name">{alimento(item.alimento).nome}</span>
-                      <span className="hs-label" style={{ marginLeft: "auto", flexShrink: 0 }}>
-                        {textoDaQuantidade(item)}
-                      </span>
+                      <span className="hs-list-item-detail">{textoDaQuantidade(item)}</span>
                     </div>
                   ))}
                   {op.preparo && (
                     <div className="hs-list-item static">
-                      <span className="hs-list-item-detail">{op.preparo}</span>
+                      <span className="hs-list-item-name">
+                        <span className="hs-list-item-detail">{op.preparo}</span>
+                      </span>
                     </div>
                   )}
                   {avisos.map((a) => (
                     <div className="hs-list-item static" key={a}>
-                      <span className="hs-list-item-detail">⚠ {a}</span>
+                      <span className="hs-list-item-name">
+                        <span className="hs-list-item-detail">⚠ {a}</span>
+                      </span>
                     </div>
                   ))}
                   {expandida &&
@@ -99,9 +111,11 @@ export function HotSlimCardapio() {
                       if (trocas.length === 0) return null;
                       return (
                         <div className="hs-list-item static" key={`t-${item.alimento}`}>
-                          <span className="hs-list-item-detail">
-                            <strong>Troque {textoDaQuantidade(item)} de {alimento(item.alimento).nome.toLowerCase()} por:</strong>{" "}
-                            {trocas.map((t) => `${t.alimento.nome.toLowerCase()} ${t.g} g`).join(" · ")}
+                          <span className="hs-list-item-name">
+                            <span className="hs-list-item-detail">
+                              <strong>Troque {textoDaQuantidade(item)} de {alimento(item.alimento).nome.toLowerCase()} por:</strong>{" "}
+                              {trocas.map((t) => `${t.alimento.nome.toLowerCase()} ${t.g} g`).join(" · ")}
+                            </span>
                           </span>
                         </div>
                       );

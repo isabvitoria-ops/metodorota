@@ -44,6 +44,7 @@ export function HotSlimProtocolo() {
               <div className="hs-list-item static evitar" key={f.item}>
                 <span className="hs-list-item-name">
                   {f.item}
+                  <br />
                   <span className="hs-list-item-detail">{f.motivo}</span>
                 </span>
               </div>
@@ -60,6 +61,7 @@ export function HotSlimProtocolo() {
               <div className="hs-list-item static" key={a.item}>
                 <span className="hs-list-item-name">
                   <strong>{a.item}</strong>
+                  <br />
                   <span className="hs-list-item-detail">{a.aviso}</span>
                 </span>
               </div>

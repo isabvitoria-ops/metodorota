@@ -111,6 +111,7 @@ export function HotSlimListaCompras() {
             <div className="hs-list-item static" key={a.item}>
               <span className="hs-list-item-name">
                 <strong>{a.item}</strong>
+                <br />
                 <span className="hs-list-item-detail">{a.aviso}</span>
               </span>
             </div>
