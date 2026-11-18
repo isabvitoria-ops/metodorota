@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMinhaCozinha } from "@/central/hooks/useMinhaCozinha";
-import { categoriaDaRefeicao } from "@/central/utils/receitas";
 import { areaLigada } from "@/central/utils/areas";
 import { useArea } from "@/central/hooks/useArea";
 import { useNavigate } from "react-router-dom";
@@ -424,7 +423,7 @@ function Refeicao({
         ))}
       </ul>
 
-      <ReceitasDaRefeicao nome={refeicao.nome} />
+      <ReceitasDaRefeicao ids={opcao.receitas ?? []} />
 
       {opcao.notas.length > 0 && (
         <div className="c-prot-notas">
@@ -440,20 +439,20 @@ function Refeicao({
 }
 
 /**
- * A ponte para a Cozinha: até duas receitas da categoria desta refeição, as
- * enviadas para ela primeiro. Sem receita que combine, não aparece nada.
+ * A ponte para a Cozinha: só as receitas que a nutricionista ligou a esta
+ * opção no editor do protocolo, na ordem dela. Antes o app escolhia pela
+ * categoria da refeição e pendurava uma torta de frango numa panqueca; agora
+ * quem escolhe é ela. Receita que a paciente não pode abrir (não publicada e
+ * não enviada, ou apagada) simplesmente não aparece.
  */
-function ReceitasDaRefeicao({ nome }: { nome: string }) {
+function ReceitasDaRefeicao({ ids }: { ids: string[] }) {
   const { cozinha } = useMinhaCozinha();
   const navegar = useNavigate();
   const ligada = useArea("cozinha");
-  const categoria = categoriaDaRefeicao(nome);
-  if (!ligada || !cozinha || !categoria) return null;
-  const enviadas = new Set(cozinha.enviadas);
-  const lista = cozinha.receitas
-    .filter((r) => r.categoria === categoria)
-    .sort((a, b) => Number(enviadas.has(b.id)) - Number(enviadas.has(a.id)))
-    .slice(0, 2);
+  if (!ligada || !cozinha || ids.length === 0) return null;
+  const lista = ids
+    .map((id) => cozinha.receitas.find((r) => r.id === id))
+    .filter((r): r is NonNullable<typeof r> => !!r);
   if (!lista.length) return null;
   return (
     <div className="c-prot-receitas">
