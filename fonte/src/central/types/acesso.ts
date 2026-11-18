@@ -120,6 +120,13 @@ export interface Acesso {
    */
   fodmap: boolean;
   viagem: boolean;
+  /** Se ela participa do desafio. Ausente (cópia antiga no aparelho) = sim. */
+  desafio?: boolean;
+  /**
+   * As áreas que a nutricionista desligou para ela (ver utils/areas.ts).
+   * Ausente (cópia antiga guardada no aparelho) = nada desligado.
+   */
+  areasDesligadas?: string[];
   hotslim: boolean;
   hotslimFases: number[];
   hotslimDiaAtual: number | null;

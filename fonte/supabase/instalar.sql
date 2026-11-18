@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql, 0095_cozinha.sql, 0096_areas_por_paciente.sql
 -- =============================================================================
 
 
@@ -23314,3 +23314,214 @@ alter table reintroducao_itens
     'sintomas_observados', 'nao_tolerado', 'necessita_reavaliacao',
     'pausado', 'nao_relevante'
   ));
+
+
+-- ###########################################################################
+-- 0095_cozinha.sql
+-- ###########################################################################
+
+-- 0095 — Cozinha: receitas da nutricionista.
+--
+-- receitas            : a receita inteira. Os números (`numeros`) são calculados
+--                       pelo app a partir dos gramas e da tabela escolhida (TACO,
+--                       IBGE, USDA ou "Meus alimentos") no momento de salvar —
+--                       nunca digitados à mão. Cada ingrediente guarda de onde
+--                       veio (`fonte`, `alimento_id`, `alimento_nome`).
+-- receitas_enviadas   : quais receitas ela mandou para qual paciente
+--                       ("Enviadas para você" na Cozinha da paciente).
+--
+-- Quem vê o quê:
+--   * nutricionista (e_admin): tudo;
+--   * paciente com acesso ativo: as receitas PUBLICADAS e as enviadas para ela.
+-- Favoritas usam a tabela `favoritos`, que já existe (tipo = 'receita').
+
+create table if not exists public.receitas (
+  id uuid primary key default gen_random_uuid(),
+  titulo text not null check (length(trim(titulo)) > 0),
+  categoria text not null check (categoria in ('cafe', 'lanche', 'almoco_jantar', 'doce', 'outros')),
+  minutos integer check (minutos is null or minutos between 0 and 1440),
+  porcoes numeric not null default 1 check (porcoes > 0),
+  tags text[] not null default '{}',
+  ingredientes jsonb not null default '[]'::jsonb,
+  preparo text[] not null default '{}',
+  dica text,
+  numeros jsonb,
+  publicada boolean not null default false,
+  ativo boolean not null default true,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+
+create table if not exists public.receitas_enviadas (
+  receita_id uuid not null references public.receitas(id) on delete cascade,
+  paciente_id uuid not null references public.pacientes(id) on delete cascade,
+  enviada_em timestamptz not null default now(),
+  primary key (receita_id, paciente_id)
+);
+
+drop trigger if exists tocar_atualizado on public.receitas;
+create trigger tocar_atualizado before update on public.receitas
+  for each row execute function tocar_atualizado_em();
+
+create index if not exists receitas_enviadas_paciente on public.receitas_enviadas (paciente_id);
+
+alter table public.receitas enable row level security;
+alter table public.receitas_enviadas enable row level security;
+
+drop policy if exists receitas_admin on public.receitas;
+create policy receitas_admin on public.receitas
+  for all using (e_admin()) with check (e_admin());
+
+drop policy if exists receitas_paciente on public.receitas;
+create policy receitas_paciente on public.receitas
+  for select using (
+    ativo and tem_acesso() and (
+      publicada
+      or exists (
+        select 1 from public.receitas_enviadas e
+        where e.receita_id = receitas.id and e.paciente_id = meu_paciente_id()
+      )
+    )
+  );
+
+drop policy if exists receitas_enviadas_admin on public.receitas_enviadas;
+create policy receitas_enviadas_admin on public.receitas_enviadas
+  for all using (e_admin()) with check (e_admin());
+
+drop policy if exists receitas_enviadas_paciente on public.receitas_enviadas;
+create policy receitas_enviadas_paciente on public.receitas_enviadas
+  for select using (paciente_id = meu_paciente_id() and tem_acesso());
+
+revoke all on public.receitas, public.receitas_enviadas from anon;
+grant select, insert, update, delete on public.receitas, public.receitas_enviadas to authenticated;
+
+-- Conferência: as duas tabelas, com RLS ligado.
+select relname, relrowsecurity from pg_class
+where relname in ('receitas', 'receitas_enviadas') and relnamespace = 'public'::regnamespace;
+
+
+-- ###########################################################################
+-- 0096_areas_por_paciente.sql
+-- ###########################################################################
+
+-- 0096 — Áreas do app ligadas ou desligadas por paciente.
+--
+-- A nutricionista escolhe o que cada paciente vê (pacientes mais velhos com o
+-- mínimo, por exemplo). Guardado como a lista do que está DESLIGADO: tudo
+-- nasce ligado, então ninguém perde nada no dia em que isto entra.
+--
+-- O Protocolo não entra (é de todos). Treino, desafio, restrições, FODMAP,
+-- rastreio e o guia de viagem continuam com os interruptores próprios.
+-- As chaves são as de src/central/utils/areas.ts — as duas listas andam juntas.
+
+alter table public.pacientes
+  add column if not exists areas_desligadas text[] not null default '{}';
+
+alter table public.pacientes drop constraint if exists pacientes_areas_desligadas_validas;
+alter table public.pacientes add constraint pacientes_areas_desligadas_validas check (
+  areas_desligadas <@ array[
+    'trocas', 'comer_fora', 'cozinha', 'documentos', 'avaliacao', 'metas', 'checkin',
+    'hidratacao', 'habitos', 'diario', 'fotos_evolucao', 'busca', 'aviso_viagem'
+  ]::text[]
+);
+
+create or replace function public.definir_area_do_paciente(p_paciente uuid, p_area text, p_ligada boolean)
+returns text[]
+language plpgsql
+security definer
+set search_path to 'public'
+as $$
+declare
+  resultado text[];
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista muda o que a paciente vê.' using errcode = '42501';
+  end if;
+  if p_area is null or not (p_area = any (array[
+    'trocas', 'comer_fora', 'cozinha', 'documentos', 'avaliacao', 'metas', 'checkin',
+    'hidratacao', 'habitos', 'diario', 'fotos_evolucao', 'busca', 'aviso_viagem'
+  ])) then
+    raise exception 'Área desconhecida: %', p_area using errcode = '22023';
+  end if;
+  update pacientes
+     set areas_desligadas = case
+           when p_ligada then array_remove(areas_desligadas, p_area)
+           else array(select distinct x from unnest(areas_desligadas || p_area) as x order by x)
+         end
+   where id = p_paciente
+  returning areas_desligadas into resultado;
+  if resultado is null then
+    raise exception 'Paciente não encontrada.' using errcode = 'P0002';
+  end if;
+  return resultado;
+end;
+$$;
+
+revoke all on function public.definir_area_do_paciente(uuid, text, boolean) from public, anon;
+grant execute on function public.definir_area_do_paciente(uuid, text, boolean) to authenticated;
+
+-- meu_acesso(): o mesmo de antes, mais 'areasDesligadas'.
+create or replace function public.meu_acesso()
+ returns jsonb
+ language sql
+ stable security definer
+ set search_path to 'public'
+as $function$
+  select jsonb_build_object(
+    'autenticado', auth.uid() is not null,
+    'perfilId', auth.uid(),
+    'papel', coalesce((select papel from perfis where id = auth.uid()), 'paciente'),
+    'nome', (select coalesce(pa.nome, pe.nome) from perfis pe
+             left join pacientes pa on pa.perfil_id = pe.id where pe.id = auth.uid()),
+    'email', (select email::text from perfis where id = auth.uid()),
+    'temAcesso', tem_acesso() or e_admin(),
+    'situacao', coalesce(
+      (select situacao_paciente(p.status, p.perfil_id, p.data_inicio, p.data_fim)
+         from pacientes p where p.perfil_id = auth.uid()),
+      case when e_admin() then 'admin' else 'sem_cadastro' end
+    ),
+    'dataInicio', (select data_inicio from pacientes where perfil_id = auth.uid()),
+    'dataFim', (select data_fim from pacientes where perfil_id = auth.uid()),
+    'diasRestantes', (select data_fim - hoje_sp() from pacientes where perfil_id = auth.uid()),
+    'plano', (select pl.nome from pacientes p join planos pl on pl.id = p.plano_id
+               where p.perfil_id = auth.uid()),
+    'rastreio', e_admin() or coalesce(rastreio_ativo(meu_paciente_id()), false),
+    'protocolo', e_admin() or tenho_protocolo(),
+    'avaliacao', e_admin() or tenho_avaliacao(),
+    'treino', e_admin() or tenho_treino(),
+    'metas', e_admin() or tenho_metas(),
+    'desafio', e_admin() or coalesce(desafio_liberado(meu_paciente_id()), true),
+    'restricoes', e_admin() or coalesce(restricoes_liberado(meu_paciente_id()), false),
+    'fodmap', e_admin() or coalesce(fodmap_liberado(meu_paciente_id()), false),
+    'viagem', e_admin() or coalesce(viagem_liberado(meu_paciente_id()), false),
+    'areasDesligadas', case when e_admin() then '{}'::text[]
+      else coalesce((select areas_desligadas from pacientes where perfil_id = auth.uid()), '{}'::text[]) end,
+    -- Hot Slim
+    'hotslim', e_admin() or e_hotslim(),
+    'hotslimFases', coalesce(
+      (select
+        case
+          when hoje_sp() < hp.data_inicio then hp.fases_liberadas
+          else (
+            select array(
+              select distinct unnest(
+                hp.fases_liberadas ||
+                (select coalesce(array_agg(g)::int[], '{}'::int[])
+                 from generate_series(1,
+                   least(4, ceil((hoje_sp() - hp.data_inicio + 1)::numeric / 7))::int
+                 ) g)
+              ) order by 1
+            )
+          )
+        end
+       from hotslim_participantes hp
+       where hp.id = auth.uid() and hp.ativo = true),
+      '{}'::int[]
+    ),
+    'hotslimDiaAtual', (
+      select least(21, greatest(1, hoje_sp() - data_inicio + 1))
+      from hotslim_participantes
+      where id = auth.uid() and ativo = true
+    )
+  );
+$function$;

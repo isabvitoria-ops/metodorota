@@ -7,6 +7,8 @@ import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { Icone } from "@/central/components/Icone";
 import { rotas } from "@/central/rotas";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { areaDaRota, areaLigada } from "@/central/utils/areas";
 
 /**
  * Busca global (§18).
@@ -23,7 +25,19 @@ export function Busca() {
   const [parametros, definirParametros] = useSearchParams();
   const consulta = parametros.get("q") ?? "";
 
-  const secoes = useMemo(() => buscar(indiceBusca(), consulta), [consulta]);
+  const { acesso } = useSessao();
+  // O que leva a uma área desligada para ela não aparece na busca.
+  const secoes = useMemo(
+    () =>
+      buscar(
+        indiceBusca().filter((i) => {
+          const area = areaDaRota(i.rota);
+          return !area || areaLigada(acesso, area);
+        }),
+        consulta,
+      ),
+    [consulta, acesso],
+  );
   const total = totalDeResultados(secoes);
 
   return (

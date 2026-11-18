@@ -1,6 +1,6 @@
 import type { Receita } from "@/central/types/receita";
 import { rotuloDaCategoria } from "@/central/types/receita";
-import { formatarNutriente, porPorcao, textoDasFontes } from "@/central/utils/receitas";
+import { comUnidade, formatarNutriente, numerosParaMostrar } from "@/central/utils/receitas";
 import { CabecalhoDoDocumento } from "./CabecalhoDoDocumento";
 import { FolhaDeDocumento } from "./FolhaDeDocumento";
 
@@ -10,12 +10,19 @@ import { FolhaDeDocumento } from "./FolhaDeDocumento";
  * com a tabela de origem embaixo.
  */
 export function DocumentoReceita({ receita, paciente }: { receita: Receita; paciente: string | null }) {
-  const n = receita.numeros;
+  const np = numerosParaMostrar(receita);
+  // Só o que tem valor: o e-book às vezes não traz a gordura, e "— g de gordura" não diz nada.
   const linha = (fonte: Record<string, number | null>) =>
-    `${formatarNutriente(fonte.proteina, "proteina")} g de proteína · ${formatarNutriente(fonte.carboidrato, "carboidrato")} g de carboidrato · ${formatarNutriente(fonte.lipideos, "lipideos")} g de gordura`;
-  const porcao = n
-    ? Object.fromEntries(Object.entries(n.total).map(([k, v]) => [k, porPorcao(v, receita.porcoes)]))
-    : null;
+    (
+      [
+        ["proteina", "de proteína"],
+        ["carboidrato", "de carboidrato"],
+        ["lipideos", "de gordura"],
+      ] as const
+    )
+      .filter(([k]) => fonte[k] !== null && fonte[k] !== undefined)
+      .map(([k, r]) => `${comUnidade(fonte[k], k)} ${r}`)
+      .join(" · ");
   return (
     <FolhaDeDocumento titulo={`Receita — ${receita.titulo}`}>
       <article className="doc doc-receita">
@@ -25,7 +32,7 @@ export function DocumentoReceita({ receita, paciente }: { receita: Receita; paci
           paciente={paciente}
           data={[
             receita.minutos ? `${receita.minutos} min` : null,
-            receita.porcoes === 1 ? "1 porção" : `rende ${receita.porcoes} porções`,
+            receita.porcoes === 1 ? (receita.numeros?.manual ? null : "1 porção") : `rende ${receita.porcoes} porções`,
           ]
             .filter(Boolean)
             .join(" · ")}
@@ -54,23 +61,25 @@ export function DocumentoReceita({ receita, paciente }: { receita: Receita; paci
             )}
           </section>
         </div>
-        {n && porcao && (
+        {np?.porcao && (
           <>
-            <div className="doc-rc-numeros">
-              <div>
-                <span className="doc-pa-rotulo">Receita inteira</span>
-                <strong>{formatarNutriente(n.total.energia_kcal, "energia_kcal")} kcal</strong>
-                <small>{linha(n.total)}</small>
-              </div>
+            <div className={`doc-rc-numeros${np.total ? "" : " doc-rc-numeros--so-porcao"}`}>
+              {np.total && (
+                <div>
+                  <span className="doc-pa-rotulo">Receita inteira</span>
+                  <strong>{formatarNutriente(np.total.energia_kcal, "energia_kcal")} kcal</strong>
+                  <small>{linha(np.total)}</small>
+                </div>
+              )}
               <div className="doc-rc-numeros-porcao">
                 <span className="doc-pa-rotulo">
-                  Uma porção{receita.porcoes !== 1 ? ` (rende ${receita.porcoes})` : ""}
+                  Uma porção{receita.porcoes !== 1 && np.total ? ` (rende ${receita.porcoes})` : ""}
                 </span>
-                <strong>{formatarNutriente(porcao.energia_kcal, "energia_kcal")} kcal</strong>
-                <small>{linha(porcao)}</small>
+                <strong>{formatarNutriente(np.porcao.energia_kcal, "energia_kcal")} kcal</strong>
+                <small>{linha(np.porcao)}</small>
               </div>
             </div>
-            <p className="doc-rc-fonte">Contas a partir dos gramas de cada ingrediente: {textoDasFontes(n.fontes)}.</p>
+            <p className="doc-rc-fonte">{np.manual ? `Números por porção: ${np.origem}.` : `${np.origem}.`}</p>
           </>
         )}
       </article>

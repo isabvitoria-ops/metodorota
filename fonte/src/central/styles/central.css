@@ -12674,3 +12674,7 @@ textarea.c-campo-input,
 .c-es-espaco, .c-bloco .c-cz-secao.c-es-espaco { margin-top: 20px; }
 .c-es-pilha { display: grid; gap: 10px; }
 .c-es-regras { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 14px; }
+.c-rc-manual { margin-bottom: 4px; }
+.c-rc-manual-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.c-rc-manual-campos .c-campo:first-child, .c-rc-manual-origem { grid-column: 1 / -1; }
+.central .c-rc-nota { max-width: 62ch; margin-top: 8px; }

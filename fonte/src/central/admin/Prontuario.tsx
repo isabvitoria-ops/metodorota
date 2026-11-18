@@ -66,8 +66,9 @@ const ABAS_DA_FICHA: [Aba, string][] = [
   ["exames", "Exames"],
   ["cerebro", "Cérebro"],
   ["historico", "Histórico"],
+  ["acessos", "O que ela vê"],
 ];
-const ABAS_VALIDAS: Aba[] = [...ABAS_DA_FICHA.map(([v]) => v), "viagem", "carta", "acessos"];
+const ABAS_VALIDAS: Aba[] = [...ABAS_DA_FICHA.map(([v]) => v), "viagem", "carta"];
 
 const CONSULTA_VAZIA: ConsultaParaSalvar = {
   data: "",
@@ -254,7 +255,6 @@ export function Prontuario() {
             },
             { rotulo: "Rota Viagem", aoEscolher: () => irPara("viagem") },
             { rotulo: "Carta de encaminhamento", separar: true, aoEscolher: () => irPara("carta") },
-            { rotulo: "O que ela vê no app", aoEscolher: () => irPara("acessos") },
           ]}
         />
       </div>

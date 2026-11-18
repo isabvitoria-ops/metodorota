@@ -23,10 +23,15 @@ import { useMinhaCozinha } from "@/central/hooks/useMinhaCozinha";
 import { rotas } from "@/central/rotas";
 import type { CategoriaReceita, Receita } from "@/central/types/receita";
 import { CATEGORIAS_RECEITA, MARCACOES_RECEITA, NUTRIENTES_DA_RECEITA, rotuloDaCategoria } from "@/central/types/receita";
-import { formatarNutriente, porPorcao, receitaCombina, textoDasFontes } from "@/central/utils/receitas";
+import { comUnidade, formatarNutriente, numerosParaMostrar, receitaCombina } from "@/central/utils/receitas";
 
-function textoDoRendimento(r: Receita): string {
-  return r.porcoes === 1 ? "1 porção" : `rende ${r.porcoes.toLocaleString("pt-BR")} porções`;
+/**
+ * Nos números digitados (por porção, como no e-book), "1 porção" seria
+ * chute: o e-book nem sempre diz quanto a receita rende. Aí não se escreve.
+ */
+function textoDoRendimento(r: Receita): string | null {
+  if (r.porcoes === 1) return r.numeros?.manual ? null : "1 porção";
+  return `rende ${r.porcoes.toLocaleString("pt-BR")} porções`;
 }
 
 function Coracao({ receita }: { receita: Receita }) {
@@ -56,7 +61,7 @@ function Coracao({ receita }: { receita: Receita }) {
 
 function CartaoReceita({ receita, enviada }: { receita: Receita; enviada: boolean }) {
   const navegar = useNavigate();
-  const kcal = porPorcao(receita.numeros?.total.energia_kcal, receita.porcoes);
+  const kcal = numerosParaMostrar(receita)?.porcao?.energia_kcal ?? null;
   return (
     <article className="c-cz-cartao" onClick={() => navegar(rotas.receita(receita.id))}>
       <div className="c-cz-cartao-topo">
@@ -247,10 +252,10 @@ export function ReceitaDetalhe() {
     );
   }
 
-  const n = receita.numeros;
+  const np = numerosParaMostrar(receita);
+  const mostraInteira = inteira && np?.total != null;
   const valor = (chave: (typeof NUTRIENTES_DA_RECEITA)[number]["chave"]) =>
-    inteira ? (n?.total[chave] ?? null) : porPorcao(n?.total[chave], receita.porcoes);
-  const faltando = n ? Object.entries(n.faltando).filter(([, l]) => l && l.length) : [];
+    (mostraInteira ? np?.total?.[chave] : np?.porcao?.[chave]) ?? null;
 
   return (
     <>
@@ -272,16 +277,16 @@ export function ReceitaDetalhe() {
           ))}
         </div>
 
-        {n && (
+        {np && (
           <div className="c-cz-numeros">
             <div className="c-cz-numeros-topo">
-              <span className="c-cz-numeros-rotulo">{inteira ? "A receita inteira" : "Uma porção"}</span>
-              {receita.porcoes !== 1 && (
+              <span className="c-cz-numeros-rotulo">{mostraInteira ? "A receita inteira" : "Uma porção"}</span>
+              {receita.porcoes !== 1 && np.total && (
                 <div className="c-cz-alternar" role="group" aria-label="Ver os números de">
-                  <button type="button" aria-pressed={!inteira} onClick={() => definirInteira(false)}>
+                  <button type="button" aria-pressed={!mostraInteira} onClick={() => definirInteira(false)}>
                     Porção
                   </button>
-                  <button type="button" aria-pressed={inteira} onClick={() => definirInteira(true)}>
+                  <button type="button" aria-pressed={mostraInteira} onClick={() => definirInteira(true)}>
                     Inteira
                   </button>
                 </div>
@@ -293,21 +298,21 @@ export function ReceitaDetalhe() {
                 <span>kcal</span>
               </div>
               <div className="c-cz-num">
-                <strong>{formatarNutriente(valor("proteina"), "proteina")} g</strong>
+                <strong>{comUnidade(valor("proteina"), "proteina")}</strong>
                 <span>proteína</span>
               </div>
               <div className="c-cz-num">
-                <strong>{formatarNutriente(valor("carboidrato"), "carboidrato")} g</strong>
+                <strong>{comUnidade(valor("carboidrato"), "carboidrato")}</strong>
                 <span>carboidrato</span>
               </div>
               <div className="c-cz-num">
-                <strong>{formatarNutriente(valor("lipideos"), "lipideos")} g</strong>
+                <strong>{comUnidade(valor("lipideos"), "lipideos")}</strong>
                 <span>gordura</span>
               </div>
             </div>
             <p className="c-cz-fonte">
-              Contas a partir dos gramas de cada ingrediente: {textoDasFontes(n.fontes)}.
-              {faltando.length > 0 && " Algum ingrediente não tem todos os valores na tabela; esses números ficam um pouco abaixo do real."}
+              {np.manual ? `Números por porção: ${np.origem}.` : `${np.origem}.`}
+              {np.incompleto && " Algum ingrediente não tem todos os valores na tabela; esses números ficam um pouco abaixo do real."}
             </p>
           </div>
         )}

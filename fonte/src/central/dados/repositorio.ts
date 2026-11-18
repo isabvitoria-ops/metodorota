@@ -998,6 +998,15 @@ export interface Repositorio {
   apagarReceita(id: string): Promise<void>;
   /** Nutricionista: define para quais pacientes a receita está enviada (substitui a lista). */
   enviarReceita(receitaId: string, pacienteIds: string[]): Promise<void>;
+
+  // ---------------------------------------------------------------------
+  // Áreas por paciente (0096)
+  // ---------------------------------------------------------------------
+
+  /** Nutricionista: as áreas que estão desligadas para a paciente. */
+  areasDoPaciente(pacienteId: string): Promise<string[]>;
+  /** Nutricionista: liga ou desliga uma área. Devolve a lista gravada. */
+  definirAreaDoPaciente(pacienteId: string, area: string, ligada: boolean): Promise<string[]>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

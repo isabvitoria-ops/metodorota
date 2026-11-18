@@ -2960,6 +2960,27 @@ export const repositorioSupabase: Repositorio = {
       erro("enviar a receita", r.error);
     }
   },
+
+  // -- Áreas por paciente (0096) --
+
+  async areasDoPaciente(pacienteId: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.from("pacientes").select("areas_desligadas").eq("id", pacienteId).single();
+    erro("carregar as áreas da paciente", error);
+    const l = (data ?? {}) as Linha;
+    return Array.isArray(l.areas_desligadas) ? l.areas_desligadas.map(String) : [];
+  },
+
+  async definirAreaDoPaciente(pacienteId: string, area: string, ligada: boolean) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("definir_area_do_paciente", {
+      p_paciente: pacienteId,
+      p_area: area,
+      p_ligada: ligada,
+    });
+    erro(ligada ? "ligar a área" : "desligar a área", error);
+    return Array.isArray(data) ? data.map(String) : [];
+  },
 };
 
 const CATEGORIAS_VALIDAS: CategoriaReceita[] = ["cafe", "lanche", "almoco_jantar", "doce", "outros"];

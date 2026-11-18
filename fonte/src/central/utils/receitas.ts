@@ -95,3 +95,40 @@ export function formatarNutriente(v: number | null | undefined, chave: ChaveNutr
   if (chave === "energia_kcal") return Math.round(v).toLocaleString("pt-BR");
   return v.toLocaleString("pt-BR", { maximumFractionDigits: 1, minimumFractionDigits: 0 });
 }
+
+/** "28,2 g", ou só "—" quando não há valor (sem um "g" solto). */
+export function comUnidade(v: number | null | undefined, chave: ChaveNutriente, unidade = "g"): string {
+  const t = formatarNutriente(v, chave);
+  return t === "—" ? t : `${t} ${unidade}`;
+}
+
+export interface NumerosParaMostrar {
+  /** Uma porção. Nulo quando a receita não tem números. */
+  porcao: Record<ChaveNutriente, number | null> | null;
+  /** A receita inteira. Nulo nos números digitados (que já vêm por porção). */
+  total: Record<ChaveNutriente, number | null> | null;
+  /** A frase de origem que vai embaixo dos números. */
+  origem: string;
+  manual: boolean;
+  /** Algum ingrediente sem o valor na tabela (só na soma pelos gramas). */
+  incompleto: boolean;
+}
+
+/** O que a tela e o PDF mostram: os números digitados por ela, ou a soma pelos gramas. */
+export function numerosParaMostrar(r: Pick<Receita, "numeros" | "porcoes">): NumerosParaMostrar | null {
+  const n = r.numeros;
+  if (!n) return null;
+  if (n.manual) {
+    return { porcao: n.manual.porcao, total: null, origem: n.manual.origem.trim(), manual: true, incompleto: false };
+  }
+  const porcao = Object.fromEntries(
+    Object.entries(n.total).map(([k, v]) => [k, porPorcao(v, r.porcoes)]),
+  ) as Record<ChaveNutriente, number | null>;
+  return {
+    porcao,
+    total: n.total,
+    origem: `Contas a partir dos gramas de cada ingrediente: ${textoDasFontes(n.fontes)}`,
+    manual: false,
+    incompleto: Object.values(n.faltando).some((l) => l && l.length),
+  };
+}
