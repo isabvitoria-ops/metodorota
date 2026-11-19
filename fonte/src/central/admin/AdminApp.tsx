@@ -63,7 +63,7 @@ const ABAS = [
  * que rolava de lado, e no celular metade ficava fora da tela.
  */
 const MAIS = [
-  { rota: rotas.adminFotos, rotulo: "Fotos das pacientes" },
+  { rota: rotas.adminFotos, rotulo: "Daily dos pacientes" },
   { rota: rotas.adminNotificacoes, rotulo: "Notificações" },
   { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
   { rota: rotas.adminCalculos, rotulo: "Cálculos" },

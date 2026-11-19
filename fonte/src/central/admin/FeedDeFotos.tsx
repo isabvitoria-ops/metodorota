@@ -56,8 +56,8 @@ export function FeedDeFotos() {
   return (
     <div className="c-feed">
       <div>
-        <h1 className="c-titulo">Fotos das pacientes</h1>
-        <p className="c-subtitulo">O diário de todas, da foto mais nova para a mais antiga.</p>
+        <h1 className="c-titulo">Daily dos pacientes</h1>
+        <p className="c-subtitulo">O diário de fotos de todos, da mais nova para a mais antiga.</p>
       </div>
 
       <div className="c-feed-filtros">
@@ -81,7 +81,7 @@ export function FeedDeFotos() {
             onChange={(e) => definirPaciente(e.target.value)}
             aria-label="Filtrar por paciente"
           >
-            <option value="">Todas as pacientes</option>
+            <option value="">Todos os pacientes</option>
             {pacientes.map(([id, nome]) => (
               <option key={id} value={id}>
                 {nome}
