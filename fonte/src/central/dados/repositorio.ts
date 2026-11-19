@@ -93,18 +93,9 @@ import type { Meta, MetaParaSalvar, StatusDaMeta } from "@/central/types/meta";
 import type { OQueMudou } from "@/central/types/oQueMudou";
 import type { FotoDoDiario, RefeicaoDoDiario } from "@/central/types/diarioDeFotos";
 import type { MensagemDaRefeicao, ResumoDaConversa } from "@/central/types/conversaDaRefeicao";
-import type {
-  Conduta,
-  CondutaPendente,
-  EtapaDoModelo,
-  ModeloDeConduta,
-  StatusDaConduta,
-  TarefaParaAplicar,
-} from "@/central/types/conduta";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { MinhaHidratacao, HidratacaoDoPaciente, TipoLiquido } from "@/central/types/hidratacao";
 import type { RestricaoAlimentar, TipoRestricao, GravidadeRestricao } from "@/central/types/restricao";
-import type { FotoEvolucao, PoseEvolucao } from "@/central/types/fotoEvolucao";
 import type {
   CamposDoDiario,
   DiaDoDiarioDeViagem,
@@ -869,41 +860,6 @@ export interface Repositorio {
   sugestoesDoPaciente(pacienteId: string): Promise<SugestaoDoCerebro[]>;
 
   // ---------------------------------------------------------------------
-  // Condutas em Kanban (0055) — só da nutricionista
-  // ---------------------------------------------------------------------
-
-  /** A biblioteca de modelos ("Protocolo SIBO", "Primeira consulta"…). */
-  listarModelosConduta(): Promise<ModeloDeConduta[]>;
-  /** Cria (id null) ou regrava o modelo inteiro, etapas incluídas. */
-  salvarModeloConduta(
-    id: string | null,
-    nome: string,
-    descricao: string | null,
-    etapas: EtapaDoModelo[],
-  ): Promise<string>;
-  /** Apaga o modelo. O que já foi aplicado fica. */
-  excluirModeloConduta(id: string): Promise<void>;
-  /** Grava as tarefas com as datas que ela confirmou. Devolve quantas. */
-  aplicarModeloConduta(
-    pacienteId: string,
-    modeloId: string | null,
-    tarefas: TarefaParaAplicar[],
-  ): Promise<number>;
-  condutasDe(pacienteId: string): Promise<Conduta[]>;
-  salvarConduta(
-    id: string | null,
-    pacienteId: string,
-    titulo: string,
-    descricao: string | null,
-    prazo: string | null,
-    status: StatusDaConduta,
-  ): Promise<string>;
-  moverConduta(id: string, status: StatusDaConduta): Promise<void>;
-  excluirConduta(id: string): Promise<void>;
-  /** Tudo o que não está concluído, de todas as pacientes. */
-  condutasPendentes(): Promise<CondutaPendente[]>;
-
-  // ---------------------------------------------------------------------
   // Termo de uso, privacidade e direitos (LGPD) — 0063
   // ---------------------------------------------------------------------
 
@@ -970,21 +926,6 @@ export interface Repositorio {
   definirViagemDoPaciente(pacienteId: string, ativo: boolean): Promise<boolean>;
   /** Nutricionista: quem já tem guia, para servir de ponto de partida. */
   guiasDeViagemParaCopiar(): Promise<GuiaParaCopiar[]>;
-
-  // ---------------------------------------------------------------------
-  // Fotos evolutivas (0081)
-  // ---------------------------------------------------------------------
-
-  /** Envia uma foto de evolução (reduzida no cliente). */
-  enviarFotoEvolucao(foto: Blob, pose: PoseEvolucao, data?: string, pacienteId?: string): Promise<{ id: string }>;
-  /** Minhas sessões de fotos evolutivas. */
-  minhasFotosEvolucao(): Promise<FotoEvolucao[]>;
-  /** Admin: fotos evolutivas de uma paciente. */
-  fotosEvolucaoDoPaciente(pacienteId: string): Promise<FotoEvolucao[]>;
-  /** URL assinada para exibir uma foto evolutiva. */
-  enderecoDaFotoEvolucao(caminho: string): Promise<string>;
-  /** Admin: apaga uma foto evolutiva. */
-  apagarFotoEvolucao(id: string): Promise<void>;
 
   // ---------------------------------------------------------------------
   // Cozinha (0095)

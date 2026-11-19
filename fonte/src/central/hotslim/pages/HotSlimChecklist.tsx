@@ -21,12 +21,15 @@ function contarMarcados(valores: Record<Campo, boolean>): number {
 }
 
 function hoje(): string {
+  // "Quinta-feira, 19 de novembro": só a primeira letra maiúscula. O
+  // capitalize do CSS escrevia "Quinta-Feira, 19 De Novembro".
   const iso = hojeSaoPaulo();
-  return new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", {
+  const t = new Date(iso + "T12:00:00").toLocaleDateString("pt-BR", {
     weekday: "long",
     day: "numeric",
     month: "long",
   });
+  return t.charAt(0).toUpperCase() + t.slice(1);
 }
 
 export function HotSlimChecklist() {
@@ -83,7 +86,7 @@ export function HotSlimChecklist() {
   return (
     <div className="hs-pagina">
       <h1 className="hs-titulo">Checklist Diário</h1>
-      <p className="hs-texto" style={{ textTransform: "capitalize" }}>{hoje()}</p>
+      <p className="hs-texto">{hoje()}</p>
 
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", margin: "16px 0 12px" }}>
         <span className="hs-label">Como você está hoje?</span>

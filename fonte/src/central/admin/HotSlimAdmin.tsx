@@ -9,6 +9,7 @@ import { dataBonita, hojeSaoPaulo } from "@/central/utils/situacao";
 import { Campo, Texto } from "./componentes/Campos";
 import { Modal } from "./componentes/Modal";
 import { Esqueleto } from "@/central/components/Esqueleto";
+import { MODO_DEMONSTRACAO } from "@/central/supabase/cliente";
 
 const TODAS_FASES = [1, 2, 3, 4];
 const FASE_NOMES = ["Semana 1", "Semana 2", "Semana 3", "Semana 4"];
@@ -152,9 +153,13 @@ export function HotSlimAdmin() {
       const lista = await repositorioHotSlimAdmin.listarParticipantes();
       definirParticipantes(lista);
       definirErro(null);
-    } catch (e: unknown) {
-      const msg = e && typeof e === "object" && "message" in e ? String((e as { message: unknown }).message) : "";
-      definirErro(msg || "Não consegui carregar.");
+    } catch {
+      // A mensagem crua do banco (em inglês, técnica) não ajuda ela em nada.
+      definirErro(
+        MODO_DEMONSTRACAO
+          ? "Na demonstração o Hot Slim não tem participantes: ele só funciona com o banco ligado."
+          : "Não consegui carregar as participantes. Recarregue a página; se continuar, me avise.",
+      );
     } finally {
       definirCarregando(false);
     }

@@ -113,7 +113,7 @@ export function RastreabilidadeAdmin() {
       <Campo rotulo="Buscar paciente">
         <Texto valor={busca} aoMudar={definirBusca} placeholder="Nome" />
       </Campo>
-      <p className="c-dica" style={{ marginTop: -4 }}>
+      <p className="c-dica" style={{ marginTop: 6 }}>
         {ligados.length === 0
           ? "Nenhuma paciente com rastreio ligado ainda."
           : `${ligados.length} ${
@@ -274,7 +274,7 @@ function PainelDaPaciente({
           <div className="c-admin-topo-linha" style={{ marginBottom: 12 }}>
             <p className="c-dica" style={{ margin: 0 }}>
               {(dados?.registros.length ?? 0) === 0
-                ? "Nenhum registro ainda."
+                ? ""
                 : `${dados?.registros.length} ${dados?.registros.length === 1 ? "registro" : "registros"} no diário dela.`}
             </p>
             <button
@@ -396,7 +396,7 @@ function ResumoDoRastreio({
   if (registros.length === 0) {
     return (
       <p className="c-contagem">
-        Nenhum registro ainda. Quando ela registrar — ou você lançar por ela —, o resumo aparece aqui.
+        Nenhum registro ainda. Quando ela registrar, ou você lançar por ela, o resumo aparece aqui.
       </p>
     );
   }
