@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql, 0095_cozinha.sql, 0096_areas_por_paciente.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql, 0095_cozinha.sql, 0096_areas_por_paciente.sql, 0097_agenda.sql, 0098_feed_e_notificacoes.sql
 -- =============================================================================
 
 
@@ -23525,3 +23525,278 @@ as $function$
     )
   );
 $function$;
+
+
+-- ###########################################################################
+-- 0097_agenda.sql
+-- ###########################################################################
+
+-- 0097 — Agenda da nutricionista.
+--
+-- Um calendário só dela, dentro do app: consultas, visitas, compromissos
+-- pessoais. Ela pediu "um só meu", sem Google Agenda.
+--
+-- agenda_eventos : cada compromisso. `paciente_id` é opcional (uma visita ou
+--                  um compromisso pessoal não tem paciente).
+--
+-- Quem vê o quê: SÓ a nutricionista (e_admin). Paciente não lê nem a própria
+-- linha — a agenda tem compromisso pessoal dela, que não é da conta de
+-- ninguém. As consultas que ela já marca no prontuário continuam na tabela
+-- `consultas` (0035); a tela da agenda mostra as duas juntas, sem copiar.
+
+create table if not exists public.agenda_eventos (
+  id uuid primary key default gen_random_uuid(),
+  titulo text not null check (length(trim(titulo)) between 1 and 200),
+  tipo text not null default 'pessoal' check (tipo in ('consulta', 'visita', 'pessoal', 'outro')),
+  data date not null,
+  -- Nulas = o dia inteiro. Nula não é meia-noite.
+  hora_inicio time,
+  hora_fim time,
+  local text,
+  observacao text,
+  paciente_id uuid references public.pacientes(id) on delete set null,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now(),
+  constraint agenda_fim_depois_do_inicio check (hora_fim is null or hora_inicio is null or hora_fim >= hora_inicio),
+  constraint agenda_fim_precisa_inicio check (hora_fim is null or hora_inicio is not null)
+);
+
+create index if not exists agenda_eventos_data on public.agenda_eventos (data);
+
+drop trigger if exists tocar_atualizado on public.agenda_eventos;
+create trigger tocar_atualizado before update on public.agenda_eventos
+  for each row execute function tocar_atualizado_em();
+
+alter table public.agenda_eventos enable row level security;
+
+drop policy if exists agenda_eventos_admin on public.agenda_eventos;
+create policy agenda_eventos_admin on public.agenda_eventos
+  for all using (e_admin()) with check (e_admin());
+
+revoke all on public.agenda_eventos from anon;
+grant select, insert, update, delete on public.agenda_eventos to authenticated;
+
+
+-- ###########################################################################
+-- 0098_feed_e_notificacoes.sql
+-- ###########################################################################
+
+-- 0098 — Feed de fotos e notificações da nutricionista.
+--
+-- Ela pediu para não ter que abrir a ficha de cada paciente para saber quem
+-- mandou foto, quem registrou rastreio, quem respondeu check-in, quem treinou.
+--
+-- diario_de_todas(dias, limite) : as fotos do diário de TODAS as pacientes,
+--                                 da mais nova para a mais velha, com o nome.
+-- notificacoes_da_nutri(dias)   : o que as pacientes fizeram, numa lista só.
+--                                 Não é uma tabela nova: é lida das tabelas
+--                                 que já guardam cada coisa, então não dá
+--                                 para "esquecer" de avisar nada.
+-- notificacoes_vistas           : até quando ela já viu (por perfil), para
+--                                 marcar o que é novo.
+--
+-- Tudo só para e_admin(). Nenhuma paciente vê o que a outra faz.
+
+create table if not exists public.notificacoes_vistas (
+  perfil_id uuid primary key references public.perfis(id) on delete cascade,
+  visto_em timestamptz not null default now()
+);
+alter table public.notificacoes_vistas enable row level security;
+drop policy if exists notificacoes_vistas_dono on public.notificacoes_vistas;
+create policy notificacoes_vistas_dono on public.notificacoes_vistas
+  for all using (perfil_id = auth.uid() and e_admin()) with check (perfil_id = auth.uid() and e_admin());
+revoke all on public.notificacoes_vistas from anon;
+grant select, insert, update on public.notificacoes_vistas to authenticated;
+
+create or replace function public.diario_de_todas(p_dias integer default 30, p_limite integer default 300)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path to 'public'
+as $$
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê o diário de todas.' using errcode = '42501';
+  end if;
+  return coalesce((
+    select jsonb_agg(f order by f->>'criadoEm' desc)
+    from (
+      select jsonb_build_object(
+        'id', d.id, 'caminho', d.caminho, 'refeicao', d.refeicao, 'legenda', d.legenda,
+        'data', d.data, 'curtida', d.curtida, 'criadoEm', d.criado_em,
+        'pacienteId', p.id, 'pacienteNome', p.nome) as f
+      from diario_fotos d
+      join pacientes p on p.id = d.paciente_id
+      where d.data >= hoje_sp() - least(greatest(coalesce(p_dias, 30), 1), 365)
+      order by d.criado_em desc
+      limit least(greatest(coalesce(p_limite, 300), 1), 1000)
+    ) x
+  ), '[]'::jsonb);
+end;
+$$;
+
+create or replace function public.notificacoes_da_nutri(p_dias integer default 14)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path to 'public'
+as $$
+declare
+  desde timestamptz := now() - make_interval(days => least(greatest(coalesce(p_dias, 14), 1), 90));
+  visto timestamptz;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê as notificações.' using errcode = '42501';
+  end if;
+  select visto_em into visto from notificacoes_vistas where perfil_id = auth.uid();
+  return coalesce((
+    select jsonb_agg(jsonb_build_object(
+      'tipo', n.tipo, 'pacienteId', n.paciente_id, 'pacienteNome', n.nome,
+      'quando', n.quando, 'detalhe', n.detalhe, 'nova', visto is null or n.quando > visto)
+      order by n.quando desc)
+    from (
+      select * from (
+        -- Rastreabilidade: um registro novo (com ou sem sintoma).
+        select 'rastreio'::text tipo, r.paciente_id, p.nome, r.criado_em quando,
+               coalesce(a.nome, i.nome_livre, 'um alimento') ||
+               case when coalesce(array_length(array_remove(r.sintomas, 'nenhum'), 1), 0) > 0 then ' · com sintoma' else '' end detalhe
+          from reintroducao_registros r
+          join pacientes p on p.id = r.paciente_id
+          left join reintroducao_itens i on i.id = r.item_id
+          left join reintroducao_alimentos a on a.id = i.alimento_id
+         where r.criado_em >= desde
+        union all
+        -- Diário de fotos.
+        select 'foto', d.paciente_id, p.nome, d.criado_em, d.refeicao
+          from diario_fotos d join pacientes p on p.id = d.paciente_id
+         where d.criado_em >= desde
+        union all
+        -- Check-in respondido.
+        select 'checkin', e.paciente_id, p.nome, e.respondido_em, q.titulo
+          from questionario_envios e
+          join pacientes p on p.id = e.paciente_id
+          join questionarios q on q.id = e.questionario_id
+         where e.respondido_em >= desde
+        union all
+        -- Treino de força registrado.
+        select 'treino', s.paciente_id, p.nome, s.criado_em, coalesce(t.nome, 'treino')
+          from treino_sessoes s
+          join pacientes p on p.id = s.paciente_id
+          left join treinos t on t.id = s.treino_id
+         where s.criado_em >= desde
+        union all
+        -- Cardio registrado.
+        select 'cardio', c.paciente_id, p.nome, c.criado_em,
+               c.tipo || coalesce(' · ' || c.duracao_min || ' min', '')
+          from cardio_sessoes c join pacientes p on p.id = c.paciente_id
+         where c.criado_em >= desde
+        union all
+        -- Meta marcada.
+        select 'meta', m.paciente_id, p.nome, mr.criado_em, m.titulo
+          from meta_registros mr
+          join metas m on m.id = mr.meta_id
+          join pacientes p on p.id = m.paciente_id
+         where mr.criado_em >= desde
+        union all
+        -- Mensagem dela numa refeição do plano.
+        select 'mensagem', mr.paciente_id, p.nome, mr.criado_em, mr.refeicao
+          from mensagens_refeicao mr join pacientes p on p.id = mr.paciente_id
+         where mr.autor = 'paciente' and mr.criado_em >= desde
+        union all
+        -- Ação do desafio enviada.
+        select 'desafio', de.paciente_id, p.nome, de.enviado_em, coalesce(da.nome, 'uma ação')
+          from desafio_envios de
+          join pacientes p on p.id = de.paciente_id
+          left join desafio_acoes da on da.id = de.acao_id
+         where de.enviado_em >= desde
+        union all
+        -- Exame que ela mesma guardou.
+        select 'exame', x.paciente_id, p.nome, x.criado_em, coalesce(x.descricao, x.nome)
+          from exames x join pacientes p on p.id = x.paciente_id
+         where x.origem = 'paciente' and x.criado_em >= desde
+        union all
+        -- Diário da viagem.
+        select 'viagem', v.paciente_id, p.nome, v.atualizado_em, to_char(v.dia, 'DD/MM')
+          from viagem_diario v join pacientes p on p.id = v.paciente_id
+         where v.atualizado_em >= desde
+      ) tudo
+      order by quando desc
+      limit 300
+    ) n
+  ), '[]'::jsonb);
+end;
+$$;
+
+create or replace function public.marcar_notificacoes_vistas()
+returns timestamptz
+language plpgsql
+security definer
+set search_path to 'public'
+as $$
+declare
+  agora timestamptz := now();
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista.' using errcode = '42501';
+  end if;
+  insert into notificacoes_vistas (perfil_id, visto_em) values (auth.uid(), agora)
+  on conflict (perfil_id) do update set visto_em = excluded.visto_em;
+  return agora;
+end;
+$$;
+
+revoke all on function public.diario_de_todas(integer, integer) from public, anon;
+revoke all on function public.notificacoes_da_nutri(integer) from public, anon;
+revoke all on function public.marcar_notificacoes_vistas() from public, anon;
+grant execute on function public.diario_de_todas(integer, integer) to authenticated;
+grant execute on function public.notificacoes_da_nutri(integer) to authenticated;
+grant execute on function public.marcar_notificacoes_vistas() to authenticated;
+
+-- Conserto do teto de 12 fotos por dia: contava pelo dia em UTC, e entre 21h e
+-- meia-noite (horário de Brasília) o teto olhava o dia errado. Mesma função de
+-- 0057, só essa linha mudou.
+create or replace function registrar_diario_foto(
+  p_caminho text, p_refeicao text, p_legenda text, p_data date)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_paciente uuid;
+  v_data date := coalesce(p_data, hoje_sp());
+  v_id uuid;
+begin
+  if not tem_acesso() then
+    raise exception 'Seu acesso não está liberado.' using errcode = '42501';
+  end if;
+  v_paciente := meu_paciente_id();
+  if v_paciente is null then
+    raise exception 'Não encontrei o seu cadastro.' using errcode = '42501';
+  end if;
+  if coalesce(trim(p_caminho), '') = '' then
+    raise exception 'Faltou a foto.' using errcode = '22023';
+  end if;
+  if split_part(p_caminho, '/', 1) <> v_paciente::text then
+    raise exception 'A foto não está na sua pasta.' using errcode = '42501';
+  end if;
+  if v_data > hoje_sp() then
+    raise exception 'Não dá para registrar uma refeição de amanhã.' using errcode = '22023';
+  end if;
+  if v_data < hoje_sp() - 7 then
+    raise exception 'Só dá para registrar refeições dos últimos 7 dias.' using errcode = '22023';
+  end if;
+  if (select count(*) from diario_fotos where paciente_id = v_paciente and (criado_em at time zone 'America/Sao_Paulo')::date = hoje_sp()) >= 12 then
+    raise exception 'Você já registrou 12 fotos hoje. Amanhã dá para continuar.' using errcode = '22023';
+  end if;
+
+  insert into diario_fotos (paciente_id, caminho, refeicao, legenda, data)
+  values (v_paciente, trim(p_caminho), p_refeicao,
+          nullif(left(trim(coalesce(p_legenda, '')), 300), ''), v_data)
+  returning id into v_id;
+
+  return v_id;
+end;
+$$;

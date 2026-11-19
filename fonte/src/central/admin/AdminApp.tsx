@@ -1,5 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Receitas } from "./Receitas";
+import { Agenda } from "./Agenda";
+import { FeedDeFotos } from "./FeedDeFotos";
+import { Notificacoes } from "./Notificacoes";
+import { repositorio } from "@/central/dados/repositorio";
+import { Icone } from "@/central/components/Icone";
 import { PedidoDeExames } from "./PedidoDeExames";
 import { EstiloDoApp } from "./EstiloDoApp";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
@@ -21,7 +26,6 @@ import { Prontuario } from "./Prontuario";
 import { Metas } from "./Metas";
 import { Treinos } from "./Treinos";
 import { CerebroDoNutri } from "./Cerebro";
-import { Condutas } from "./Condutas";
 import { HotSlimAdmin } from "./HotSlimAdmin";
 import { Calculos } from "./Calculos";
 import { MenuMais } from "@/central/components/MenuMais";
@@ -47,8 +51,10 @@ import { MenuMais } from "@/central/components/MenuMais";
  */
 const ABAS = [
   { rota: rotas.adminPacientes, rotulo: "Pacientes" },
+  { rota: rotas.adminAgenda, rotulo: "Agenda" },
   { rota: rotas.adminQuestionarios, rotulo: "Check-in" },
   { rota: rotas.adminTreinos, rotulo: "Treino" },
+  { rota: rotas.adminDesafios, rotulo: "Desafio" },
   { rota: rotas.adminFinanceiro, rotulo: "Cobrança" },
 ];
 
@@ -57,14 +63,14 @@ const ABAS = [
  * que rolava de lado, e no celular metade ficava fora da tela.
  */
 const MAIS = [
-  { rota: rotas.adminCondutas, rotulo: "Condutas" },
+  { rota: rotas.adminFotos, rotulo: "Fotos das pacientes" },
+  { rota: rotas.adminNotificacoes, rotulo: "Notificações" },
   { rota: rotas.adminProtocolos, rotulo: "Protocolo" },
   { rota: rotas.adminCalculos, rotulo: "Cálculos" },
   { rota: rotas.adminReceitas, rotulo: "Receitas" },
   { rota: rotas.adminExames, rotulo: "Pedido de exames" },
   { rota: rotas.adminMetas, rotulo: "Metas" },
   { rota: rotas.adminEquivalencias, rotulo: "Equivalências" },
-  { rota: rotas.adminDesafios, rotulo: "Desafio" },
   { rota: rotas.adminHotSlim, rotulo: "Hot Slim" },
   { rota: rotas.adminRastreabilidade, rotulo: "Rastreabilidade" },
   { rota: rotas.adminCerebro, rotulo: "Cérebro" },
@@ -78,6 +84,30 @@ export function AdminApp() {
   const { acesso, sair } = useSessao();
   const barraDeAbas = useRef<HTMLElement>(null);
   const secaoDoMais = MAIS.find((m) => pathname.startsWith(m.rota));
+  const [novidades, definirNovidades] = useState(0);
+
+  // O sino: quantas coisas novas as pacientes fizeram desde a última vez que
+  // ela abriu as notificações. Confere ao entrar, a cada 2 minutos e quando
+  // a tela de notificações avisa que marcou tudo como visto.
+  useEffect(() => {
+    if (acesso.papel !== "admin") return;
+    let ativo = true;
+    const conferir = () =>
+      void repositorio
+        .notificacoesDaNutri(14)
+        .then((l) => ativo && definirNovidades(l.filter((n) => n.nova).length))
+        // Sem saber (sem rede, 0098 ainda não aplicada), o sino fica sem número.
+        .catch(() => ativo && definirNovidades(0));
+    conferir();
+    const relogio = window.setInterval(conferir, 120_000);
+    const vistas = () => definirNovidades(0);
+    window.addEventListener("central:notificacoes-vistas", vistas);
+    return () => {
+      ativo = false;
+      window.clearInterval(relogio);
+      window.removeEventListener("central:notificacoes-vistas", vistas);
+    };
+  }, [acesso.papel]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -103,13 +133,23 @@ export function AdminApp() {
               <Marca altura={34} />
               <span className="c-admin-papel">Área da nutricionista</span>
             </div>
-            <button
-              type="button"
-              className="c-botao c-botao-secundario c-botao-pequeno"
-              onClick={() => navegar(rotas.home)}
-            >
-              Ver a Central
-            </button>
+            <div className="c-admin-topo-acoes">
+              <NavLink
+                to={rotas.adminNotificacoes}
+                className="c-admin-sino"
+                aria-label={novidades > 0 ? `Notificações: ${novidades} novas` : "Notificações"}
+              >
+                <Icone nome="sino" tamanho={22} />
+                {novidades > 0 && <span className="c-admin-sino-conta">{novidades > 99 ? "99+" : novidades}</span>}
+              </NavLink>
+              <button
+                type="button"
+                className="c-botao c-botao-secundario c-botao-pequeno"
+                onClick={() => navegar(rotas.home)}
+              >
+                Ver a Central
+              </button>
+            </div>
           </div>
           <div className="c-admin-abas-linha">
             <nav className="c-admin-abas" aria-label="Seções administrativas" ref={barraDeAbas}>
@@ -174,6 +214,9 @@ export function AdminApp() {
               <Route path="protocolos/:pacienteId" element={<Protocolos />} />
               <Route path="calculos" element={<Calculos />} />
               <Route path="receitas" element={<Receitas />} />
+              <Route path="agenda" element={<Agenda />} />
+              <Route path="fotos" element={<FeedDeFotos />} />
+              <Route path="notificacoes" element={<Notificacoes />} />
               <Route path="exames" element={<PedidoDeExames />} />
               <Route path="estilo" element={<EstiloDoApp />} />
               <Route path="treinos" element={<Treinos />} />
@@ -190,7 +233,6 @@ export function AdminApp() {
               <Route path="rastreabilidade" element={<RastreabilidadeAdmin />} />
               <Route path="rastreabilidade/:pacienteId" element={<RastreabilidadeAdmin />} />
               <Route path="cerebro" element={<CerebroDoNutri />} />
-              <Route path="condutas" element={<Condutas />} />
               <Route path="hotslim" element={<HotSlimAdmin />} />
               <Route path="configuracoes" element={<ConfiguracoesAdmin />} />
               <Route path="*" element={<Navigate to={rotas.admin} replace />} />

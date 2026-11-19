@@ -12678,3 +12678,86 @@ textarea.c-campo-input,
 .c-rc-manual-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
 .c-rc-manual-campos .c-campo:first-child, .c-rc-manual-origem { grid-column: 1 / -1; }
 .central .c-rc-nota { max-width: 62ch; margin-top: 8px; }
+
+/* ── Agenda da nutricionista (0097) ───────────────────────────── */
+.central .c-ag { display: flex; flex-direction: column; gap: 18px; }
+.central .c-ag-grade { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 860px) { .central .c-ag-grade { grid-template-columns: minmax(0, 1fr); } }
+.central .c-ag-mes-topo { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.central .c-ag-mes-nome { flex: 1; text-align: center; font-family: var(--font-display, inherit); font-size: 20px; margin: 0; }
+@media (max-width: 480px) { .central .c-ag-mes-nome { font-size: 17px; } }
+.central button.c-ag-seta { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--border, #e2e8ed); background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
+.central .c-ag-hoje { margin-left: 4px; }
+.central .c-ag-semana, .central .c-ag-dias { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.central .c-ag-semana span { text-align: center; font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--text-muted); padding: 4px 0; }
+.central button.c-ag-dia { position: relative; aspect-ratio: 1 / 1; min-height: 40px; border-radius: 12px; border: 1px solid transparent; background: var(--surface-alt, #f6f8fa); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; padding: 2px; color: var(--text, #263D52); }
+.central button.c-ag-dia:hover { border-color: var(--border, #e2e8ed); }
+.central button.c-ag-dia--fora { background: transparent; color: var(--text-muted); opacity: .55; }
+.central button.c-ag-dia--hoje .c-ag-num { background: #38546C; color: #F7EEE7; }
+.central button.c-ag-dia--escolhido { border-color: #38546C; box-shadow: 0 0 0 1px #38546C inset; }
+.central .c-ag-num { min-width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.central .c-ag-pontos { display: flex; gap: 3px; min-height: 6px; }
+.central .c-ag-ponto { display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.central .c-ag-tipo-consulta { background: #38546C; }
+.central .c-ag-tipo-visita { background: #5A7A8F; }
+.central .c-ag-tipo-pessoal { background: #A82B3C; }
+.central .c-ag-tipo-outro { background: #C9BCAC; }
+.central .c-ag-legenda { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; font-size: 13px; color: var(--text-muted); }
+.central .c-ag-legenda span { display: inline-flex; align-items: center; gap: 6px; }
+.central .c-ag-dia-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.central .c-ag-dia-nome { margin: 0; font-size: 18px; }
+.central .c-ag-recado { margin: 0 0 10px; font-size: 14px; color: var(--text-muted); }
+.central .c-ag-vazio { margin: 6px 0 0; color: var(--text-muted); font-size: 14px; }
+.central .c-ag-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.central .c-ag-item { display: grid; grid-template-columns: 10px 96px minmax(0, 1fr); align-items: start; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--border, #e2e8ed); }
+.central .c-ag-item:last-child { border-bottom: 0; }
+.central .c-ag-item .c-ag-ponto { margin-top: 6px; }
+.central .c-ag-hora { font-size: 13px; font-weight: 600; color: var(--text-muted); padding-top: 2px; font-variant-numeric: tabular-nums; }
+.central .c-ag-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.central button.c-ag-editar { text-align: left; background: transparent; border: 0; padding: 0; cursor: pointer; color: inherit; font: inherit; }
+.central .c-ag-texto strong { font-size: 15px; }
+.central .c-ag-texto small { font-size: 13px; color: var(--text-muted); }
+.central .c-ag-obs { font-style: italic; }
+.central .c-ag-form { display: flex; flex-direction: column; gap: 12px; }
+.central .c-ag-tipos { display: flex; flex-wrap: wrap; gap: 8px; }
+.central .c-ag-tipos .c-chip { display: inline-flex; align-items: center; gap: 6px; }
+.central .c-ag-linha { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+@media (max-width: 480px) { .central .c-ag-linha { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .central .c-ag-linha > :first-child { grid-column: 1 / -1; } }
+.central .c-ag-dica { margin: -6px 0 0; font-size: 12.5px; color: var(--text-muted); }
+.central .c-ag-falta { margin: 0; padding-left: 18px; font-size: 13px; color: #A82B3C; }
+.central .c-ag-acoes { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.central button.c-ag-apagar { margin-left: auto; color: #A82B3C; }
+
+/* ---------------------------------------------------------------------
+ * Feed de fotos de todas as pacientes e notificações (0098)
+ * ------------------------------------------------------------------- */
+.central .c-admin-topo-acoes { display: flex; align-items: center; gap: 8px; }
+.central a.c-admin-sino { position: relative; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #38546C; border: 1px solid var(--border, #e2e8ed); background: transparent; flex: none; }
+.central a.c-admin-sino.active { background: #C8DAE4; border-color: #C8DAE4; }
+.central .c-admin-sino-conta { position: absolute; top: -4px; right: -4px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: #A82B3C; color: #F7EEE7; font-size: 11px; font-weight: 700; line-height: 20px; text-align: center; }
+
+.central .c-feed, .central .c-notif { display: flex; flex-direction: column; gap: 16px; max-width: 1100px; }
+.central .c-feed-filtros { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.central select.c-feed-paciente { width: auto; min-width: 0; max-width: 100%; }
+.central .c-feed-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+@media (max-width: 480px) { .central .c-feed-grade { grid-template-columns: minmax(0, 1fr); } }
+.central .c-feed-cartao { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; display: flex; flex-direction: column; min-width: 0; }
+.central .c-feed-topo { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+.central .c-feed-inicial { width: 34px; height: 34px; border-radius: 50%; background: #C8DAE4; color: #38546C; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.central .c-feed-quem { display: flex; flex-direction: column; min-width: 0; }
+.central a.c-feed-nome { font-weight: 700; color: #38546C; text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.central a.c-feed-nome:hover { text-decoration: underline; }
+.central .c-feed-quando { font-size: 13px; color: var(--text-muted); }
+.central .c-feed-foto { display: block; width: 100%; aspect-ratio: 1 / 1; object-fit: cover; background: #F7EEE7; }
+.central .c-feed-foto-vazia { display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 14px; }
+.central .c-feed-corpo { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.central .c-feed-legenda { margin: 0; font-size: 15px; color: var(--text, #263D52); }
+
+.central .c-notif-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.central a.c-notif-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text, #263D52); text-decoration: none; }
+.central a.c-notif-item:hover { border-color: #5A7A8F; }
+.central a.c-notif-nova { background: #F7EEE7; border-color: #C9BCAC; }
+.central .c-notif-icone { width: 36px; height: 36px; border-radius: 50%; background: #C8DAE4; color: #38546C; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.central .c-notif-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; font-size: 15px; }
+.central .c-notif-quando { font-size: 13px; color: var(--text-muted); }
+.central .c-notif-ponto { width: 10px; height: 10px; border-radius: 50%; background: #A82B3C; flex: none; }
