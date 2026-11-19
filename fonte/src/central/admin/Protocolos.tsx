@@ -168,7 +168,7 @@ export function Protocolos() {
       <Campo rotulo="Buscar paciente">
         <Texto valor={busca} aoMudar={definirBusca} placeholder="Nome" />
       </Campo>
-      <p className="c-dica" style={{ marginTop: -4 }}>
+      <p className="c-dica" style={{ marginTop: 6 }}>
         {comProtocolo === 0
           ? "Nenhuma paciente com protocolo publicado ainda."
           : `${comProtocolo} ${comProtocolo === 1 ? "paciente está" : "pacientes estão"} com protocolo publicado.`}

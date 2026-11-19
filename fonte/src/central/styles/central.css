@@ -12761,3 +12761,5 @@ textarea.c-campo-input,
 .central .c-notif-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; font-size: 15px; }
 .central .c-notif-quando { font-size: 13px; color: var(--text-muted); }
 .central .c-notif-ponto { width: 10px; height: 10px; border-radius: 50%; background: #A82B3C; flex: none; }
+/* No celular o "Ver a Central" quebrava em duas linhas ao lado do sino. */
+.central .c-admin-topo-acoes .c-botao { white-space: nowrap; }

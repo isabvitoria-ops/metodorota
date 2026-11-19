@@ -69,7 +69,6 @@ import type {
   StatusCobranca,
 } from "@/central/types/financeiro";
 import type { Consulta, ConsultaParaSalvar } from "@/central/types/consulta";
-import type { Conduta, CondutaPendente, ModeloDeConduta, StatusDaConduta } from "@/central/types/conduta";
 import type { MetricasDeAcompanhamento } from "@/central/types/financeiro";
 import type { FotoDoDiario, RefeicaoDoDiario } from "@/central/types/diarioDeFotos";
 import type { MensagemDaRefeicao, ResumoDaConversa } from "@/central/types/conversaDaRefeicao";
@@ -101,7 +100,6 @@ import { CONTEUDO_VAZIO } from "@/central/types/protocolo";
 import { semanaDoDesafio, situacaoDoDesafio, totalDeSemanas } from "@/central/utils/desafio";
 import type { MinhaHidratacao, RegistroHidratacao, DiaHidratacao } from "@/central/types/hidratacao";
 import type { RestricaoAlimentar } from "@/central/types/restricao";
-import type { FotoEvolucao, PoseEvolucao } from "@/central/types/fotoEvolucao";
 import { exigirSupabase } from "@/central/supabase/cliente";
 import { numeroDeTexto } from "@/central/utils/numero";
 import { urlDaRota } from "@/central/utils/enderecos";
@@ -2468,95 +2466,14 @@ export const repositorioSupabase: Repositorio = {
     }));
   },
 
-  async listarModelosConduta() {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("listar_modelos_conduta");
-    erro("carregar os modelos de conduta", error);
-    return ((data ?? []) as Linha[]).map(
-      (m): ModeloDeConduta => ({
-        id: texto(m.id),
-        nome: texto(m.nome),
-        descricao: textoOuNulo(m.descricao),
-        etapas: (Array.isArray(m.etapas) ? (m.etapas as Linha[]) : []).map((e) => ({
-          id: texto(e.id),
-          titulo: texto(e.titulo),
-          descricao: textoOuNulo(e.descricao),
-          dias: numero(e.dias),
-        })),
-      }),
-    );
-  },
 
-  async salvarModeloConduta(id, nome, descricao, etapas) {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("salvar_modelo_conduta", {
-      p_id: id,
-      p_nome: nome,
-      p_descricao: descricao,
-      p_etapas: etapas.map((e) => ({ titulo: e.titulo, descricao: e.descricao, dias: e.dias })),
-    });
-    erro("salvar o modelo", error);
-    return String(data);
-  },
 
-  async excluirModeloConduta(id) {
-    const sb = exigirSupabase();
-    const { error } = await sb.rpc("excluir_modelo_conduta", { p_id: id });
-    erro("apagar o modelo", error);
-  },
 
-  async aplicarModeloConduta(pacienteId, modeloId, tarefas) {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("aplicar_modelo_conduta", {
-      p_paciente: pacienteId,
-      p_modelo: modeloId,
-      p_etapas: tarefas,
-    });
-    erro("aplicar o modelo", error);
-    return numero(data);
-  },
 
-  async condutasDe(pacienteId) {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("condutas_de", { p_paciente: pacienteId });
-    erro("carregar as condutas", error);
-    return ((data ?? []) as Linha[]).map(paraConduta);
-  },
 
-  async salvarConduta(id, pacienteId, titulo, descricao, prazo, status) {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("salvar_conduta", {
-      p_id: id,
-      p_paciente: pacienteId,
-      p_titulo: titulo,
-      p_descricao: descricao,
-      p_prazo: prazo,
-      p_status: status,
-    });
-    erro("salvar a conduta", error);
-    return String(data);
-  },
 
-  async moverConduta(id, status) {
-    const sb = exigirSupabase();
-    const { error } = await sb.rpc("mover_conduta", { p_id: id, p_status: status });
-    erro("mover a conduta", error);
-  },
 
-  async excluirConduta(id) {
-    const sb = exigirSupabase();
-    const { error } = await sb.rpc("excluir_conduta", { p_id: id });
-    erro("apagar a conduta", error);
-  },
 
-  async condutasPendentes() {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("condutas_pendentes");
-    erro("carregar as condutas pendentes", error);
-    return ((data ?? []) as Linha[]).map(
-      (l): CondutaPendente => ({ ...paraConduta(l), pacienteNome: texto(l.pacienteNome) }),
-    );
-  },
 
   // ---------------------------------------------------------------------
   // Termo de uso, privacidade e direitos (LGPD) — 0063
@@ -2806,79 +2723,10 @@ export const repositorioSupabase: Repositorio = {
 
   // -- Fotos evolutivas (0081) --
 
-  async enviarFotoEvolucao(foto: Blob, pose: PoseEvolucao, data?: string, pacienteId?: string) {
-    const sb = exigirSupabase();
-    let dona: string | null;
-    if (pacienteId) {
-      dona = pacienteId;
-    } else {
-      const { data: pasta, error: erroPasta } = await sb.rpc("minha_pasta_de_evolucao");
-      erro("descobrir sua pasta", erroPasta);
-      dona = textoOuNulo(pasta);
-    }
-    if (!dona) throw new Error("Não encontrei o seu cadastro.");
 
-    const ts = Date.now();
-    const rand = Math.random().toString(36).slice(2, 8);
-    const caminho = `${dona}/${ts}-${rand}.jpg`;
 
-    const { error: erroEnvio } = await sb.storage.from("fotos-evolucao").upload(caminho, foto, {
-      contentType: "image/jpeg",
-      upsert: false,
-    });
-    erro("enviar a foto", erroEnvio);
 
-    const { hojeSaoPaulo } = await import("@/central/utils/situacao");
-    const dataEfetiva = data ?? hojeSaoPaulo();
-    const fotosAtuais = pacienteId
-      ? await this.fotosEvolucaoDoPaciente(pacienteId)
-      : await this.minhasFotosEvolucao();
-    const anterior = fotosAtuais.find((f) => f.pose === pose && f.data === dataEfetiva);
 
-    const { data: idFoto, error: erroRegistro } = await sb.rpc("registrar_foto_evolucao", {
-      p_caminho: caminho,
-      p_pose: pose,
-      p_data: data ?? null,
-    });
-    if (erroRegistro) {
-      await sb.storage.from("fotos-evolucao").remove([caminho]);
-      erro("registrar a foto", erroRegistro);
-    }
-    if (anterior && anterior.caminho !== caminho) {
-      await sb.storage.from("fotos-evolucao").remove([anterior.caminho]).catch(() => {});
-    }
-    return { id: texto(idFoto) };
-  },
-
-  async minhasFotosEvolucao(): Promise<FotoEvolucao[]> {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("minhas_fotos_evolucao");
-    erro("carregar suas fotos evolutivas", error);
-    return paraFotosEvolucao(data);
-  },
-
-  async fotosEvolucaoDoPaciente(pacienteId: string): Promise<FotoEvolucao[]> {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("fotos_evolucao_do_paciente", { p_paciente: pacienteId });
-    erro("carregar fotos evolutivas", error);
-    return paraFotosEvolucao(data);
-  },
-
-  async enderecoDaFotoEvolucao(caminho: string): Promise<string> {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.storage.from("fotos-evolucao").createSignedUrl(caminho, 3600);
-    erro("abrir a foto", error);
-    if (!data?.signedUrl) throw new Error("Não consegui abrir esta foto.");
-    return data.signedUrl;
-  },
-
-  async apagarFotoEvolucao(id: string): Promise<void> {
-    const sb = exigirSupabase();
-    const { data, error } = await sb.rpc("apagar_foto_evolucao", { p_id: id });
-    erro("apagar a foto", error);
-    const caminho = texto(data);
-    if (caminho) await sb.storage.from("fotos-evolucao").remove([caminho]);
-  },
 
   // -- Cozinha (0095) --
 
@@ -3138,22 +2986,6 @@ function paraFotoDoDiario(l: Linha): FotoDoDiario {
     data: texto(l.data),
     curtida: l.curtida === true,
     criadoEm: texto(l.criadoEm),
-  };
-}
-
-function paraConduta(l: Linha): Conduta {
-  const st = texto(l.status);
-  const status: StatusDaConduta = st === "andamento" || st === "concluida" ? st : "a_fazer";
-  return {
-    id: texto(l.id),
-    pacienteId: texto(l.pacienteId),
-    titulo: texto(l.titulo),
-    descricao: textoOuNulo(l.descricao),
-    prazo: textoOuNulo(l.prazo),
-    status,
-    modeloNome: textoOuNulo(l.modeloNome),
-    criadoEm: texto(l.criadoEm),
-    concluidaEm: textoOuNulo(l.concluidaEm),
   };
 }
 
@@ -3465,13 +3297,3 @@ async function listarPedidosLgpd(): Promise<PedidoLgpd[]> {
   }));
 }
 
-function paraFotosEvolucao(data: unknown): FotoEvolucao[] {
-  if (!Array.isArray(data)) return [];
-  return data.map((l: Linha) => ({
-    id: texto(l.id),
-    data: texto(l.data),
-    pose: texto(l.pose) as PoseEvolucao,
-    caminho: texto(l.caminho),
-    criadoEm: texto(l.criadoEm),
-  }));
-}

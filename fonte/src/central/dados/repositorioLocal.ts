@@ -72,8 +72,6 @@ import { CONFIGURACOES } from "./sementes/configuracoes";
 import { paraConfiguracoes } from "./mapeadores";
 import type { AlteracaoPaciente, DadosCatalogo, Repositorio } from "./repositorio";
 import type { Consulta } from "@/central/types/consulta";
-import type { Conduta, ModeloDeConduta } from "@/central/types/conduta";
-import { ordenarCondutas } from "@/central/utils/condutas";
 import { calcularMetricas } from "@/central/utils/metricasDeAcompanhamento";
 import type { FotoDoDiario } from "@/central/types/diarioDeFotos";
 import type { MensagemDaRefeicao, ResumoDaConversa } from "@/central/types/conversaDaRefeicao";
@@ -151,8 +149,6 @@ interface ExameDemo extends Exame {
   pacienteId: string;
 }
 const guardaExames = armazenamentoLocal<ExameDemo>("central:demo:exames:v1");
-const guardaModelosConduta = armazenamentoLocal<ModeloDeConduta>("central:demo:modelos-conduta:v1");
-const guardaCondutas = armazenamentoLocal<Conduta>("central:demo:condutas:v1");
 /** Na demonstração a foto (já reduzida) mora dentro do próprio registro. */
 type FotoDemo = FotoDoDiario & { pacienteId: string; dataUrl: string };
 const guardaDiario = armazenamentoLocal<FotoDemo>("central:demo:diario-fotos:v1");
@@ -964,7 +960,11 @@ export const repositorioLocal: Repositorio = {
   },
 
   async rastreiosAtivos() {
-    return [];
+    // Na demonstração toda paciente abre o mesmo rastreio (ligado), então
+    // a lista de "rastreio ligado" tem que trazer todas — senão a tela dizia
+    // "nenhuma ligada" logo acima de um "Ligado".
+    const r = await repositorioLocal.minhaReintroducao();
+    return r.ativo ? mesclar(pacientesDaSemente(), guardaPacientes.ler()).map((p) => p.id) : [];
   },
 
   async adicionarItensReintroducao() {
@@ -1865,10 +1865,18 @@ export const repositorioLocal: Repositorio = {
     ]);
   },
   async meuDiario() {
-    return guardaDiario.ler().filter((f) => f.pacienteId === pacienteDemoId()).map(semDados);
+    return [...guardaDiario.ler(), ...fotosIlustradasDaDemo()]
+      .filter((f) => f.pacienteId === pacienteDemoId())
+      .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))
+      .map(semDados);
   },
   async diarioDoPaciente(pacienteId: string) {
-    return guardaDiario.ler().filter((f) => f.pacienteId === pacienteId).map(semDados);
+    // As mesmas fotos do feed: a ficha não pode dizer "nenhuma foto" para
+    // quem aparece no feed com foto.
+    return [...guardaDiario.ler(), ...fotosIlustradasDaDemo()]
+      .filter((f) => f.pacienteId === pacienteId)
+      .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))
+      .map(semDados);
   },
   async enderecoDaFoto(caminho: string) {
     const f = [...guardaDiario.ler(), ...fotosIlustradasDaDemo()].find((x) => x.caminho === caminho);
@@ -2173,95 +2181,6 @@ export const repositorioLocal: Repositorio = {
     return [];
   },
 
-  // Condutas: guardadas no navegador, para a demonstração mostrar o Kanban
-  // funcionando de ponta a ponta.
-  async listarModelosConduta() {
-    return guardaModelosConduta.ler().sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-  },
-  async salvarModeloConduta(id, nome, descricao, etapas) {
-    if (!nome.trim()) throw new Error("Dê um nome ao modelo.");
-    const idFinal = id ?? `mc-${Date.now()}`;
-    const modelo: ModeloDeConduta = {
-      id: idFinal,
-      nome: nome.trim(),
-      descricao: descricao?.trim() || null,
-      etapas: etapas
-        .filter((e) => e.titulo.trim())
-        .map((e, i) => ({ id: `${idFinal}-${i}`, titulo: e.titulo.trim(),
-          descricao: e.descricao?.trim() || null, dias: Math.max(0, Math.round(e.dias || 0)) })),
-    };
-    const lista = guardaModelosConduta.ler();
-    guardaModelosConduta.escrever(
-      lista.some((m) => m.id === idFinal) ? lista.map((m) => (m.id === idFinal ? modelo : m)) : [...lista, modelo],
-    );
-    return idFinal;
-  },
-  async excluirModeloConduta(id) {
-    guardaModelosConduta.escrever(guardaModelosConduta.ler().filter((m) => m.id !== id));
-  },
-  async aplicarModeloConduta(pacienteId, modeloId, tarefas) {
-    const nome = guardaModelosConduta.ler().find((m) => m.id === modeloId)?.nome ?? null;
-    const agora = new Date().toISOString();
-    const novas: Conduta[] = tarefas
-      .filter((t) => t.titulo.trim())
-      .map((t, i) => ({
-        id: `cd-${Date.now()}-${i}`,
-        pacienteId,
-        titulo: t.titulo.trim(),
-        descricao: t.descricao?.trim() || null,
-        prazo: t.prazo || null,
-        status: "a_fazer" as const,
-        modeloNome: nome,
-        criadoEm: agora,
-        concluidaEm: null,
-      }));
-    guardaCondutas.escrever([...guardaCondutas.ler(), ...novas]);
-    return novas.length;
-  },
-  async condutasDe(pacienteId) {
-    return ordenarCondutas(guardaCondutas.ler().filter((c) => c.pacienteId === pacienteId));
-  },
-  async salvarConduta(id, pacienteId, titulo, descricao, prazo, status) {
-    if (!titulo.trim()) throw new Error("Escreva o que precisa ser feito.");
-    const lista = guardaCondutas.ler();
-    const antiga = id ? lista.find((c) => c.id === id) : undefined;
-    const conduta: Conduta = {
-      id: antiga?.id ?? `cd-${Date.now()}`,
-      pacienteId,
-      titulo: titulo.trim(),
-      descricao: descricao?.trim() || null,
-      prazo: prazo || null,
-      status,
-      modeloNome: antiga?.modeloNome ?? null,
-      criadoEm: antiga?.criadoEm ?? new Date().toISOString(),
-      concluidaEm: status === "concluida" ? (antiga?.concluidaEm ?? new Date().toISOString()) : null,
-    };
-    guardaCondutas.escrever(antiga ? lista.map((c) => (c.id === antiga.id ? conduta : c)) : [...lista, conduta]);
-    return conduta.id;
-  },
-  async moverConduta(id, status) {
-    guardaCondutas.escrever(
-      guardaCondutas.ler().map((c) =>
-        c.id === id
-          ? { ...c, status, concluidaEm: status === "concluida" ? (c.concluidaEm ?? new Date().toISOString()) : null }
-          : c,
-      ),
-    );
-  },
-  async excluirConduta(id) {
-    guardaCondutas.escrever(guardaCondutas.ler().filter((c) => c.id !== id));
-  },
-  async condutasPendentes() {
-    const nomes = new Map(
-      mesclar(pacientesDaSemente(), guardaPacientes.ler()).map((p) => [p.id, p.nome] as const),
-    );
-    return ordenarCondutas(
-      guardaCondutas
-        .ler()
-        .filter((c) => c.status !== "concluida")
-        .map((c) => ({ ...c, pacienteNome: nomes.get(c.pacienteId) ?? "Paciente" })),
-    );
-  },
 
   // ---------------------------------------------------------------------
   // Termo de uso, privacidade e direitos (LGPD) — 0063
@@ -2392,19 +2311,6 @@ export const repositorioLocal: Repositorio = {
         periodo: v.guia?.periodo ?? "",
       }));
   },
-  async enviarFotoEvolucao() {
-    return { id: "demo" };
-  },
-  async minhasFotosEvolucao() {
-    return [];
-  },
-  async fotosEvolucaoDoPaciente() {
-    return [];
-  },
-  async enderecoDaFotoEvolucao() {
-    return "";
-  },
-  async apagarFotoEvolucao() {},
 
   // -- Cozinha (0095) --
   async minhaCozinha() {
