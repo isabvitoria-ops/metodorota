@@ -1,5 +1,7 @@
 import type { EstadoDoTermo, PedidoLgpd, SituacaoDosAceites, TermoDeUso } from "@/central/types";
 import type { MinhaCozinha, ReceitaDaNutri, ReceitaParaSalvar } from "@/central/types/receita";
+import type { AgendaDoPeriodo, EventoParaSalvar } from "@/central/types/agenda";
+import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
 import type {
   AcaoAdmin,
   Alimento,
@@ -1007,6 +1009,28 @@ export interface Repositorio {
   areasDoPaciente(pacienteId: string): Promise<string[]>;
   /** Nutricionista: liga ou desliga uma área. Devolve a lista gravada. */
   definirAreaDoPaciente(pacienteId: string, area: string, ligada: boolean): Promise<string[]>;
+
+  // ---------------------------------------------------------------------
+  // Agenda da nutricionista (0097)
+  // ---------------------------------------------------------------------
+
+  /** Nutricionista: compromissos e consultas entre duas datas (inclusive). */
+  agendaDoPeriodo(de: string, ate: string): Promise<AgendaDoPeriodo>;
+  /** Nutricionista: grava (cria ou altera) um compromisso. Devolve o id. */
+  salvarEventoDaAgenda(evento: EventoParaSalvar): Promise<{ id: string }>;
+  /** Nutricionista: apaga um compromisso. */
+  apagarEventoDaAgenda(id: string): Promise<void>;
+
+  // ---------------------------------------------------------------------
+  // Feed de fotos e notificações (0098)
+  // ---------------------------------------------------------------------
+
+  /** Nutricionista: as fotos do diário de todas as pacientes, da mais nova para a mais velha. */
+  diarioDeTodas(dias: number): Promise<FotoDoFeed[]>;
+  /** Nutricionista: o que as pacientes fizeram, numa lista só. */
+  notificacoesDaNutri(dias: number): Promise<Notificacao[]>;
+  /** Nutricionista: marca tudo até agora como visto. */
+  marcarNotificacoesVistas(): Promise<void>;
 }
 
 export const repositorio: Repositorio = MODO_DEMONSTRACAO ? repositorioLocal : repositorioSupabase;

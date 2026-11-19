@@ -1,5 +1,7 @@
 import type { EstadoDoTermo, PedidoLgpd } from "@/central/types";
 import type { CategoriaReceita, NumerosDaReceita, Receita, ReceitaParaSalvar } from "@/central/types/receita";
+import type { FotoDoFeed, Notificacao, TipoDeNotificacao } from "@/central/types/notificacao";
+import type { ConsultaNaAgenda, EventoAgenda, EventoParaSalvar, TipoDeEvento } from "@/central/types/agenda";
 import { TERMO_PADRAO } from "./sementes/termo";
 import type {
   MesDaMinhaEvolucao,
@@ -2981,6 +2983,109 @@ export const repositorioSupabase: Repositorio = {
     erro(ligada ? "ligar a área" : "desligar a área", error);
     return Array.isArray(data) ? data.map(String) : [];
   },
+
+  // -- Agenda (0097) --
+
+  // -- Feed de fotos e notificações (0098) --
+  async diarioDeTodas(dias: number): Promise<FotoDoFeed[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("diario_de_todas", { p_dias: dias, p_limite: 300 });
+    erro("carregar as fotos das pacientes", error);
+    return ((data ?? []) as Linha[]).map((l) => ({
+      ...paraFotoDoDiario(l),
+      pacienteId: texto(l.pacienteId),
+      pacienteNome: texto(l.pacienteNome),
+    }));
+  },
+  async notificacoesDaNutri(dias: number): Promise<Notificacao[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("notificacoes_da_nutri", { p_dias: dias });
+    erro("carregar as notificações", error);
+    return ((data ?? []) as Linha[])
+      .filter((l) => TIPOS_DE_NOTIFICACAO.includes(texto(l.tipo) as TipoDeNotificacao))
+      .map((l) => ({
+        tipo: texto(l.tipo) as TipoDeNotificacao,
+        pacienteId: texto(l.pacienteId),
+        pacienteNome: texto(l.pacienteNome),
+        quando: texto(l.quando),
+        detalhe: textoOuNulo(l.detalhe),
+        nova: l.nova === true,
+      }));
+  },
+  async marcarNotificacoesVistas(): Promise<void> {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("marcar_notificacoes_vistas");
+    erro("marcar as notificações como vistas", error);
+  },
+
+  async agendaDoPeriodo(de: string, ate: string) {
+    const sb = exigirSupabase();
+    const [eventos, consultas] = await Promise.all([
+      sb.from("agenda_eventos").select("*").gte("data", de).lte("data", ate).order("data").order("hora_inicio"),
+      sb
+        .from("consultas")
+        .select("id, paciente_id, data, hora, tipo, status, pacientes(nome)")
+        .gte("data", de)
+        .lte("data", ate),
+    ]);
+    erro("carregar a agenda", eventos.error);
+    erro("carregar as consultas da agenda", consultas.error);
+    const hora = (v: unknown) => (v ? String(v).slice(0, 5) : null);
+    return {
+      eventos: ((eventos.data ?? []) as Linha[]).map(
+        (l): EventoAgenda => ({
+          id: texto(l.id),
+          titulo: texto(l.titulo),
+          tipo: texto(l.tipo) as TipoDeEvento,
+          data: texto(l.data),
+          horaInicio: hora(l.hora_inicio),
+          horaFim: hora(l.hora_fim),
+          local: (l.local as string | null) || null,
+          observacao: (l.observacao as string | null) || null,
+          pacienteId: (l.paciente_id as string | null) || null,
+        }),
+      ),
+      consultas: ((consultas.data ?? []) as Linha[]).map((l): ConsultaNaAgenda => {
+        const p = l.pacientes as { nome?: unknown } | { nome?: unknown }[] | null;
+        const nome = Array.isArray(p) ? p[0]?.nome : p?.nome;
+        return {
+          id: texto(l.id),
+          pacienteId: texto(l.paciente_id),
+          pacienteNome: nome ? String(nome) : "Paciente",
+          data: texto(l.data),
+          hora: hora(l.hora),
+          tipo: texto(l.tipo) as ConsultaNaAgenda["tipo"],
+          status: texto(l.status) as ConsultaNaAgenda["status"],
+        };
+      }),
+    };
+  },
+
+  async salvarEventoDaAgenda(evento: EventoParaSalvar) {
+    const sb = exigirSupabase();
+    const linha = {
+      titulo: evento.titulo.trim(),
+      tipo: evento.tipo,
+      data: evento.data,
+      // Em branco é o dia inteiro: nulo, nunca "00:00".
+      hora_inicio: evento.horaInicio || null,
+      hora_fim: evento.horaInicio ? evento.horaFim || null : null,
+      local: evento.local?.trim() || null,
+      observacao: evento.observacao?.trim() || null,
+      paciente_id: evento.pacienteId || null,
+    };
+    const { data, error } = evento.id
+      ? await sb.from("agenda_eventos").update(linha).eq("id", evento.id).select("id").single()
+      : await sb.from("agenda_eventos").insert(linha).select("id").single();
+    erro("salvar o compromisso", error);
+    return { id: texto((data as Linha | null)?.id) };
+  },
+
+  async apagarEventoDaAgenda(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.from("agenda_eventos").delete().eq("id", id);
+    erro("apagar o compromisso", error);
+  },
 };
 
 const CATEGORIAS_VALIDAS: CategoriaReceita[] = ["cafe", "lanche", "almoco_jantar", "doce", "outros"];
@@ -3017,6 +3122,10 @@ function paraReceita(bruta: unknown): Receita {
 
 const REFEICOES_VALIDAS: RefeicaoDoDiario[] = [
   "cafe", "lanche_manha", "almoco", "lanche_tarde", "jantar", "ceia", "outro",
+];
+
+const TIPOS_DE_NOTIFICACAO: TipoDeNotificacao[] = [
+  "rastreio", "foto", "checkin", "treino", "cardio", "meta", "mensagem", "desafio", "exame", "viagem",
 ];
 
 function paraFotoDoDiario(l: Linha): FotoDoDiario {

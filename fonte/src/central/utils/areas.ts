@@ -25,7 +25,6 @@ export type ChaveArea =
   | "hidratacao"
   | "habitos"
   | "diario"
-  | "fotos_evolucao"
   | "checkin"
   | "busca"
   | "aviso_viagem";
@@ -41,7 +40,6 @@ export const AREAS: { chave: ChaveArea; rotulo: string; descricao: string }[] = 
   { chave: "hidratacao", rotulo: "Hidratação", descricao: "O registro de água do dia." },
   { chave: "habitos", rotulo: "Hábitos e intestino", descricao: "Sono, estresse, exercício e o que afeta o intestino." },
   { chave: "diario", rotulo: "Diário de fotos", descricao: "As fotos das refeições." },
-  { chave: "fotos_evolucao", rotulo: "Fotos evolutivas", descricao: "As fotos de corpo, de frente, lado e costas." },
   { chave: "busca", rotulo: "Busca da tela inicial", descricao: "O campo “O que você está procurando?”." },
   { chave: "aviso_viagem", rotulo: "Aviso de viagem", descricao: "O cartão “Tem alguma viagem programada?” (o guia de viagem tem interruptor próprio)." },
 ];
@@ -74,7 +72,6 @@ export function areaDaRota(rota: string): ChaveArea | null {
     ["/agua", "hidratacao"],
     ["/habitos", "habitos"],
     ["/diario", "diario"],
-    ["/fotos-evolucao", "fotos_evolucao"],
   ];
   return pares.find(([p]) => caminho === p || caminho.startsWith(`${p}/`))?.[1] ?? null;
 }

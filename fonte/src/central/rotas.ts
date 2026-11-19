@@ -38,7 +38,6 @@ export const rotas = {
   agua: "/agua",
   hidratacao: "/hidratacao",
   restricoes: "/restricoes",
-  evolucaoFotos: "/fotos-evolucao",
   fibras: "/fibras",
   bristol: "/bristol",
   habitos: "/habitos",
@@ -80,6 +79,9 @@ export const rotas = {
   adminProtocolos: "/admin/protocolos",
   adminCalculos: "/admin/calculos",
   adminReceitas: "/admin/receitas",
+  adminAgenda: "/admin/agenda",
+  adminFotos: "/admin/fotos",
+  adminNotificacoes: "/admin/notificacoes",
   adminEstilo: "/admin/estilo",
   adminExames: "/admin/exames",
   adminProtocolo: (pacienteId: string) => `/admin/protocolos/${pacienteId}`,
@@ -93,7 +95,6 @@ export const rotas = {
   adminTreino: (pacienteId: string) => `/admin/treinos/${pacienteId}`,
   adminRastreabilidadeDe: (pacienteId: string) => `/admin/rastreabilidade/${pacienteId}`,
   adminCerebro: "/admin/cerebro",
-  adminCondutas: "/admin/condutas",
   adminHotSlim: "/admin/hotslim",
 };
 

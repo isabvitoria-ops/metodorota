@@ -31,7 +31,6 @@ const AREA_DO_ATALHO: Record<string, ChaveArea> = {
   [rotas.hidratacao]: "hidratacao",
   [rotas.habitos]: "habitos",
   [rotas.diario]: "diario",
-  [rotas.evolucaoFotos]: "fotos_evolucao",
 };
 
 const GRUPOS: { chave: Grupo; titulo: string }[] = [
@@ -96,13 +95,6 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
     icone: "agua",
     titulo: "Hidratação",
     descricao: "Registre o que bebeu e acompanhe sua meta diária.",
-  },
-  {
-    rota: rotas.evolucaoFotos,
-    grupo: "acompanhamento",
-    icone: "camera",
-    titulo: "Fotos evolutivas",
-    descricao: "Registre poses e compare o antes e depois.",
   },
   {
     rota: rotas.restricoes,

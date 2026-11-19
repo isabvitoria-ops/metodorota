@@ -1,5 +1,7 @@
 import { TERMO_PADRAO } from "./sementes/termo";
 import type { ReceitaDaNutri, ReceitaParaSalvar } from "@/central/types/receita";
+import type { EventoAgenda, EventoParaSalvar } from "@/central/types/agenda";
+import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
 import { RECEITAS_DEMO } from "./sementes/receitasDemo";
 import type {
   MesDaMinhaEvolucao,
@@ -1869,7 +1871,7 @@ export const repositorioLocal: Repositorio = {
     return guardaDiario.ler().filter((f) => f.pacienteId === pacienteId).map(semDados);
   },
   async enderecoDaFoto(caminho: string) {
-    const f = guardaDiario.ler().find((x) => x.caminho === caminho);
+    const f = [...guardaDiario.ler(), ...fotosIlustradasDaDemo()].find((x) => x.caminho === caminho);
     if (!f) throw new Error("Não achei esta foto.");
     return f.dataUrl;
   },
@@ -2446,7 +2448,146 @@ export const repositorioLocal: Repositorio = {
     AREAS_DESLIGADAS_DEMO.set(pacienteId, depois);
     return [...depois];
   },
+
+  // -- Feed de fotos e notificações (0098) --
+  async diarioDeTodas(dias: number): Promise<FotoDoFeed[]> {
+    const desde = diasAtras(dias);
+    return [...guardaDiario.ler(), ...fotosIlustradasDaDemo()]
+      .filter((f) => f.data >= desde)
+      .sort((a, b) => b.criadoEm.localeCompare(a.criadoEm))
+      .map((f) => ({ ...semDados(f), pacienteId: f.pacienteId, pacienteNome: nomeNaDemo(f.pacienteId) }));
+  },
+  async notificacoesDaNutri(dias: number): Promise<Notificacao[]> {
+    const desde = new Date(Date.now() - dias * 86400000).toISOString();
+    const fotos: Notificacao[] = [...guardaDiario.ler(), ...fotosIlustradasDaDemo()].map((f) => ({
+      tipo: "foto",
+      pacienteId: f.pacienteId,
+      pacienteNome: nomeNaDemo(f.pacienteId),
+      quando: f.criadoEm,
+      detalhe: f.refeicao,
+      nova: false,
+    }));
+    return [...fotos, ...notificacoesDeExemplo()]
+      .filter((n) => n.quando >= desde)
+      .sort((a, b) => b.quando.localeCompare(a.quando))
+      .map((n) => ({ ...n, nova: NOTIFICACOES_VISTAS_EM.valor === null || n.quando > NOTIFICACOES_VISTAS_EM.valor }));
+  },
+  async marcarNotificacoesVistas(): Promise<void> {
+    NOTIFICACOES_VISTAS_EM.valor = new Date().toISOString();
+  },
+
+  // -- Agenda (0097) --
+  async agendaDoPeriodo(de: string, ate: string) {
+    const noPeriodo = (d: string) => d >= de && d <= ate;
+    return {
+      eventos: [...AGENDA_DEMO.values()].filter((e) => noPeriodo(e.data)).map((e) => ({ ...e })),
+      consultas: CONSULTAS_DEMO.filter((c) => noPeriodo(c.data)).map((c) => ({
+        id: c.id,
+        pacienteId: PACIENTE_DA_DEMONSTRACAO,
+        pacienteNome: "Mariana Silva",
+        data: c.data,
+        hora: c.hora,
+        tipo: c.tipo,
+        status: c.status,
+      })),
+    };
+  },
+  async salvarEventoDaAgenda(evento: EventoParaSalvar) {
+    const id = evento.id ?? `evento-${Date.now()}`;
+    AGENDA_DEMO.set(id, { ...evento, id });
+    return { id };
+  },
+  async apagarEventoDaAgenda(id: string) {
+    AGENDA_DEMO.delete(id);
+  },
 };
+
+// ---------------------------------------------------------------------
+// Feed e notificações da demonstração. Os nomes são os das pacientes de
+// exemplo da semente; as "fotos" são desenhos simples (prato e cor), não
+// fotos de verdade de ninguém.
+// ---------------------------------------------------------------------
+
+const NOTIFICACOES_VISTAS_EM: { valor: string | null } = { valor: null };
+
+function nomeNaDemo(pacienteId: string): string {
+  return (
+    PANORAMA_DEMO.find((p) => p.id === pacienteId)?.nome ??
+    guardaPacientes.ler().find((p) => p.id === pacienteId)?.nome ??
+    "Paciente"
+  );
+}
+
+const minutosAtras = (min: number) => new Date(Date.now() - min * 60000).toISOString();
+
+function pratoDesenhado(fundo: string, prato: string, comida: string): string {
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">` +
+    `<rect width="400" height="400" fill="${fundo}"/>` +
+    `<circle cx="200" cy="200" r="150" fill="${prato}"/>` +
+    `<circle cx="200" cy="200" r="118" fill="none" stroke="#C9BCAC" stroke-width="3"/>` +
+    `<circle cx="165" cy="175" r="48" fill="${comida}"/>` +
+    `<circle cx="240" cy="215" r="38" fill="#C8DAE4"/>` +
+    `<circle cx="190" cy="255" r="26" fill="#E9C94A"/></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function fotosIlustradasDaDemo(): FotoDemo[] {
+  const ids = PANORAMA_DEMO.map((p) => p.id);
+  const de = (i: number) => ids[i % Math.max(ids.length, 1)] ?? "demo-paciente";
+  const base: [number, number, FotoDoDiario["refeicao"], string | null, string, string][] = [
+    [0, 25, "almoco", "Arroz, feijão, frango e salada", "#F7EEE7", "#5A7A8F"],
+    [1, 140, "cafe", null, "#C8DAE4", "#A82B3C"],
+    [2, 300, "lanche_tarde", "Iogurte com fruta", "#F7EEE7", "#F0B8C4"],
+    [0, 1500, "jantar", "Omelete com legumes", "#EAE6DB", "#38546C"],
+    [3, 1700, "almoco", null, "#F7EEE7", "#5A7A8F"],
+    [1, 2900, "ceia", "Chá e castanhas", "#C8DAE4", "#C9BCAC"],
+  ];
+  return base.map(([i, min, refeicao, legenda, fundo, comida], n) => {
+    const quando = minutosAtras(min);
+    return {
+      id: `df-ilustrada-${n}`,
+      pacienteId: de(i),
+      caminho: `${de(i)}/ilustrada-${n}.svg`,
+      refeicao,
+      legenda,
+      data: quando.slice(0, 10),
+      curtida: false,
+      criadoEm: quando,
+      dataUrl: pratoDesenhado(fundo, "#FFFFFF", comida),
+    };
+  });
+}
+
+function notificacoesDeExemplo(): Notificacao[] {
+  const ids = PANORAMA_DEMO.map((p) => p.id);
+  const n = (i: number, tipo: Notificacao["tipo"], min: number, detalhe: string | null): Notificacao => {
+    const id = ids[i % Math.max(ids.length, 1)] ?? "demo-paciente";
+    return { tipo, pacienteId: id, pacienteNome: nomeNaDemo(id), quando: minutosAtras(min), detalhe, nova: false };
+  };
+  return [
+    n(1, "rastreio", 12, "Leite sem lactose"),
+    n(0, "treino", 50, "Treino A"),
+    n(2, "checkin", 95, "Feedback semanal"),
+    n(3, "mensagem", 180, "Almoço"),
+    n(1, "cardio", 420, "caminhada · 30 min"),
+    n(2, "rastreio", 1600, "Feijão · com sintoma"),
+    n(0, "meta", 1750, "Beber 2 litros de água"),
+    n(3, "desafio", 3000, "Foto do prato colorido"),
+  ];
+}
+
+/** Compromissos da demonstração, em volta de hoje. Só na memória. */
+const AGENDA_DEMO = new Map<string, EventoAgenda>(
+  (
+    [
+      { id: "ev-1", titulo: "Treino", tipo: "pessoal", data: diasAtras(0), horaInicio: "07:00", horaFim: "08:00", local: "Academia", observacao: null, pacienteId: null },
+      { id: "ev-2", titulo: "Visita à clínica parceira", tipo: "visita", data: diasAtras(-2), horaInicio: "10:00", horaFim: "11:30", local: null, observacao: "Levar os PDFs do método.", pacienteId: null },
+      { id: "ev-3", titulo: "Manicure", tipo: "pessoal", data: diasAtras(-3), horaInicio: "18:00", horaFim: null, local: null, observacao: null, pacienteId: null },
+      { id: "ev-4", titulo: "Gravar vídeos do TikTok", tipo: "outro", data: diasAtras(-5), horaInicio: null, horaFim: null, local: null, observacao: null, pacienteId: null },
+    ] satisfies EventoAgenda[]
+  ).map((e) => [e.id, e]),
+);
 
 const AREAS_DESLIGADAS_DEMO = new Map<string, string[]>();
 

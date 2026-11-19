@@ -48,6 +48,7 @@ const TRACOS: Record<string, string> = {
   conversa: "M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12Z",
   // Um "feito": o traço de confirmação. O coração (salvos) não serve para isso —
   // dava a entender que "Marcar como feito" era um favoritar.
+  sino: "M6 16.5V11a6 6 0 1 1 12 0v5.5l1.5 2h-15l1.5-2ZM10 20.5a2 2 0 0 0 4 0",
   feito: "m5 12.5 4.5 4.5L19 7.5",
   // Coração só de contorno (a curtida).
   coracao: "M12 20.5s-7.5-4.5-9.3-9.3A5.2 5.2 0 0 1 12 6.6a5.2 5.2 0 0 1 9.3 4.6C19.5 16 12 20.5 12 20.5Z",
