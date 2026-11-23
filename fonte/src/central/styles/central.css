@@ -12763,3 +12763,20 @@ textarea.c-campo-input,
 .central .c-notif-ponto { width: 10px; height: 10px; border-radius: 50%; background: #A82B3C; flex: none; }
 /* No celular o "Ver a Central" quebrava em duas linhas ao lado do sino. */
 .central .c-admin-topo-acoes .c-botao { white-space: nowrap; }
+
+/* ---------------------------------------------------------------------
+ * Cálculos: rascunho da dieta para imprimir. Na tela não aparece; na
+ * impressão, é a única coisa que sai (o resto da página some).
+ * ------------------------------------------------------------------- */
+@media print {
+  .c-calc-impressao { font: 10.5pt/1.35 "Lato", system-ui, sans-serif; color: #263D52; }
+  .c-calc-impressao h1 { font-size: 16pt; margin: 0 0 2pt; color: #38546C; }
+  .c-calc-impressao-sub { margin: 0 0 10pt; font-size: 9pt; color: #5A7A8F; }
+  .c-calc-impressao h2 { font-size: 12pt; margin: 12pt 0 4pt; color: #38546C; break-after: avoid; }
+  .c-calc-impressao section { break-inside: avoid-page; }
+  .c-calc-impressao table { width: 100%; border-collapse: collapse; margin: 0 0 6pt; font-size: 9.5pt; break-inside: avoid; }
+  .c-calc-impressao th { text-align: left; border-bottom: 1pt solid #38546C; padding: 2pt 4pt; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .04em; }
+  .c-calc-impressao td { border-bottom: .5pt solid #C9BCAC; padding: 2.5pt 4pt; vertical-align: top; }
+  .c-calc-impressao th:nth-child(n+3), .c-calc-impressao td:nth-child(n+3) { text-align: right; width: 11%; }
+  .c-calc-impressao tr.c-calc-impressao-troca td { color: #5A7A8F; font-size: 9pt; padding-left: 14pt; border-bottom-style: dotted; }
+}

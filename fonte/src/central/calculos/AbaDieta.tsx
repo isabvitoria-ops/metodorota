@@ -5,6 +5,7 @@
  * traço da TACO (Tr) não soma nem deixa o total incompleto.
  */
 import { useEffect, useState } from "react";
+import { FolhaDeDocumento } from "@/central/components/FolhaDeDocumento";
 import { distribuicao, porGramas, porQuilo } from "./motor/calculos.mjs";
 import { MEDIDA_GRAMA, gramasDoItem, itensDoDia, normalizarRefeicao, refeicaoNova } from "./motor/dieta.mjs";
 import type { Dieta, Refeicao } from "./estado";
@@ -81,6 +82,114 @@ function textoDaDieta(nome: string, dieta: Dieta): string {
     linhas.push("");
   }
   return linhas.join("\n");
+}
+
+/**
+ * O rascunho para imprimir: todas as refeições e TODAS as opções, com a
+ * porção, os gramas, os macros e as trocas — do jeito que ela passa depois
+ * para o Protocolo. A ferramenta antiga tinha "Imprimir / PDF"; esta voltou
+ * a ter. Fica escondido na tela e é a única coisa que sai na impressão.
+ */
+function RascunhoParaImprimir({
+  nome,
+  dieta,
+  totais,
+}: {
+  nome: string;
+  dieta: Dieta;
+  totais: [string, string][];
+}) {
+  const cel = (codigo: string, chave: string, g: number, casas: number) => {
+    const a = alimentoPorId(codigo);
+    const v = a ? (porGramas(valorDe(a, chave), g) as number | null) : null;
+    return mostrar(v, casas);
+  };
+  return (
+    // A folha que o app já usa para os PDFs: fica fora da tela e é a única
+    // coisa que vai para o papel.
+    <FolhaDeDocumento
+      titulo={`Rascunho da dieta${nome.trim() ? ` — ${nome.trim()}` : ""}`}
+    >
+      <div className="c-calc-impressao">
+        <h1>Rascunho da dieta{nome.trim() ? ` · ${nome.trim()}` : ""}</h1>
+        <p className="c-calc-impressao-sub">
+          {new Date().toLocaleDateString("pt-BR")} · rascunho de trabalho, não é
+          o protocolo da paciente
+        </p>
+        {dieta.refeicoes
+          .filter((r) => r.opcoes.some((o) => o.itens.length))
+          .map((r, iR) => (
+            <section key={iR}>
+              <h2>
+                {r.horario ? `${r.horario} · ` : ""}
+                {r.nome}
+              </h2>
+              {r.opcoes
+                .filter((o) => o.itens.length)
+                .map((o, iO) => (
+                  <table key={iO}>
+                    <thead>
+                      <tr>
+                        <th>
+                          {r.opcoes.filter((x) => x.itens.length).length > 1
+                            ? o.rotulo
+                            : "Alimento"}
+                        </th>
+                        <th>Porção</th>
+                        <th>kcal</th>
+                        <th>CHO</th>
+                        <th>PTN</th>
+                        <th>LIP</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {o.itens.map((item, iI) => {
+                        const a = alimentoPorId(item.codigo);
+                        const g = gramasDoItem(item);
+                        return [
+                          <tr key={`i${iI}`}>
+                            <td>{a ? a.nome : item.nome}</td>
+                            <td>
+                              {porcaoEmTexto(item.quantidade, item.medida, g)}
+                            </td>
+                            <td>{cel(item.codigo, "energia_kcal", g, 0)}</td>
+                            <td>{cel(item.codigo, "carboidrato", g, 1)}</td>
+                            <td>{cel(item.codigo, "proteina", g, 1)}</td>
+                            <td>{cel(item.codigo, "lipideos", g, 1)}</td>
+                          </tr>,
+                          ...(item.substitutos ?? []).map((sub, iS) => {
+                            const porcao = porcaoDoSubstituto(item, sub);
+                            if (!porcao) return null;
+                            const troca = alimentoPorId(sub.codigo);
+                            return (
+                              <tr
+                                key={`s${iI}-${iS}`}
+                                className="c-calc-impressao-troca"
+                              >
+                                <td>ou {troca ? troca.nome : sub.nome}</td>
+                                <td>
+                                  {porcaoEmTexto(
+                                    porcao.quantidade,
+                                    sub.medida,
+                                    porcao.gramas,
+                                  )}
+                                </td>
+                                <td colSpan={4} />
+                              </tr>
+                            );
+                          }),
+                        ];
+                      })}
+                    </tbody>
+                  </table>
+                ))}
+            </section>
+          ))}
+        <h2>Total do dia (opção aberta de cada refeição)</h2>
+        <p>{totais.map(([k, v]) => `${k}: ${v}`).join(" · ")}</p>
+      </div>
+    </FolhaDeDocumento>
+  );
 }
 
 /**
@@ -303,7 +412,21 @@ export function AbaDieta({
           >
             {copiado ? "Copiado" : "Copiar como texto"}
           </button>
+          <button type="button" className="c-botao c-botao-secundario c-botao-pequeno" onClick={() => window.print()}>
+            Imprimir rascunho
+          </button>
         </div>
+        <RascunhoParaImprimir
+          nome={nome}
+          dieta={dieta}
+          totais={[
+            ["Calorias", mostrar(soma.energia_kcal, 0) + marca("energia_kcal")],
+            ["Carboidrato", gramas(soma.carboidrato ?? null, "carboidrato")],
+            ["Proteína", gramas(soma.proteina ?? null, "proteina")],
+            ["Gordura", gramas(soma.lipideos ?? null, "lipideos")],
+            ["Fibra", gramas(soma.fibra_alimentar ?? null, "fibra_alimentar")],
+          ]}
+        />
         {r && (
           <p className="c-calc-dica" style={{ marginTop: 12 }}>
             Tabelas carregadas (valores por 100 g): <strong>TACO</strong> {r.taco.quantos} alimentos ({r.taco.nome}, {r.taco.instituicao})
