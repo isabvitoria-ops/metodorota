@@ -3,6 +3,7 @@ import type { CategoriaReceita, NumerosDaReceita, Receita, ReceitaParaSalvar } f
 import type { FotoDoFeed, Notificacao, TipoDeNotificacao } from "@/central/types/notificacao";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
+import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
 import type { PassoDoTour } from "@/central/types/tour";
 import type { ConsultaNaAgenda, EventoAgenda, EventoParaSalvar, Repeticao, TipoDeEvento } from "@/central/types/agenda";
 import { TERMO_PADRAO } from "./sementes/termo";
@@ -2941,6 +2942,72 @@ export const repositorioSupabase: Repositorio = {
       diasComRegistro: r.diasComRegistro ?? [],
     };
   },
+  // -- Medicamentos × nutrientes (0101) --
+  async baseDeMedicamentos() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.from("base_medicamentos").select("*").order("nome");
+    erro("carregar a base de medicamentos", error);
+    return ((data ?? []) as Linha[]).map(paraEntradaDaBase);
+  },
+  async salvarEntradaDaBase(e: Omit<EntradaDaBase, "id"> & { id?: string }) {
+    const sb = exigirSupabase();
+    const linha = {
+      nome: e.nome.trim(),
+      termos: e.termos.map((t) => t.trim()).filter(Boolean),
+      nutrientes: e.nutrientes
+        .map((n) => ({ nutriente: n.nutriente.trim(), fonte: n.fonte.trim() }))
+        .filter((n) => n.nutriente && n.fonte),
+      conferido_em: e.conferidoEm,
+      anotacao: e.anotacao?.trim() || null,
+    };
+    const consulta = e.id
+      ? sb.from("base_medicamentos").update(linha).eq("id", e.id).select().single()
+      : sb.from("base_medicamentos").insert(linha).select().single();
+    const { data, error } = await consulta;
+    erro("salvar a entrada da base", error);
+    return paraEntradaDaBase(data as Linha);
+  },
+  async apagarEntradaDaBase(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.from("base_medicamentos").delete().eq("id", id);
+    erro("apagar a entrada da base", error);
+  },
+  async medicamentosDaPaciente(pacienteId: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb
+      .from("paciente_medicamentos")
+      .select("*")
+      .eq("paciente_id", pacienteId)
+      .order("ativo", { ascending: false })
+      .order("criado_em");
+    erro("carregar os medicamentos", error);
+    return ((data ?? []) as Linha[]).map(paraMedicamentoDaPaciente);
+  },
+  async salvarMedicamentoDaPaciente(m: Omit<MedicamentoDaPaciente, "id"> & { id?: string }) {
+    const sb = exigirSupabase();
+    const linha = {
+      paciente_id: m.pacienteId,
+      nome: m.nome.trim(),
+      tipo: m.tipo,
+      dose: m.dose?.trim() || null,
+      horario: m.horario?.trim() || null,
+      desde: m.desde?.trim() || null,
+      prescrito_por: m.prescritoPor?.trim() || null,
+      anotacao: m.anotacao?.trim() || null,
+      ativo: m.ativo,
+    };
+    const consulta = m.id
+      ? sb.from("paciente_medicamentos").update(linha).eq("id", m.id).select().single()
+      : sb.from("paciente_medicamentos").insert(linha).select().single();
+    const { data, error } = await consulta;
+    erro("salvar o medicamento", error);
+    return paraMedicamentoDaPaciente(data as Linha);
+  },
+  async apagarMedicamentoDaPaciente(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.from("paciente_medicamentos").delete().eq("id", id);
+    erro("apagar o medicamento", error);
+  },
   async meusPrazos(): Promise<PrazoDoCheckin[]> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("meus_prazos");
@@ -3078,6 +3145,35 @@ const REFEICOES_VALIDAS: RefeicaoDoDiario[] = [
 const TIPOS_DE_NOTIFICACAO: TipoDeNotificacao[] = [
   "rastreio", "foto", "checkin", "treino", "cardio", "meta", "mensagem", "desafio", "exame", "viagem",
 ];
+
+function paraEntradaDaBase(l: Linha): EntradaDaBase {
+  return {
+    id: texto(l.id),
+    nome: texto(l.nome),
+    termos: Array.isArray(l.termos) ? l.termos.map(texto).filter(Boolean) : [],
+    nutrientes: Array.isArray(l.nutrientes)
+      ? (l.nutrientes as Linha[]).map((n) => ({ nutriente: texto(n.nutriente), fonte: texto(n.fonte) }))
+      : [],
+    conferidoEm: textoOuNulo(l.conferido_em),
+    anotacao: textoOuNulo(l.anotacao),
+  };
+}
+
+function paraMedicamentoDaPaciente(l: Linha): MedicamentoDaPaciente {
+  const tipo = texto(l.tipo);
+  return {
+    id: texto(l.id),
+    pacienteId: texto(l.paciente_id),
+    nome: texto(l.nome),
+    tipo: tipo === "suplemento" || tipo === "fitoterapico" ? tipo : "medicamento",
+    dose: textoOuNulo(l.dose),
+    horario: textoOuNulo(l.horario),
+    desde: textoOuNulo(l.desde),
+    prescritoPor: textoOuNulo(l.prescrito_por),
+    anotacao: textoOuNulo(l.anotacao),
+    ativo: l.ativo !== false,
+  };
+}
 
 function paraPassoDoTour(l: Linha): PassoDoTour {
   return {

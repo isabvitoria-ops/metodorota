@@ -14,6 +14,7 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { BotaoPdf } from "@/central/components/BotaoPdf";
 import { DocumentoExames, type GrupoDeExames } from "@/central/components/DocumentosNovos";
 import type { Paciente } from "@/central/types";
+import { examesComONome, nutrientesAAcompanhar, type NutrienteAAcompanhar } from "@/central/utils/medicamentos";
 
 const LISTA: GrupoDeExames[] = [
   // Intestino primeiro: é o foco do método. Os três vieram da auditoria do
@@ -54,6 +55,26 @@ export function PedidoDeExames() {
       .then((p) => definirPacientes([...p].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))))
       .catch(() => definirErro(true));
   }, []);
+
+  // Lembrete da base de medicamentos dela (N31): só o que ela já conferiu.
+  const [lembrete, definirLembrete] = useState<NutrienteAAcompanhar[]>([]);
+  const [lembreteFechado, definirLembreteFechado] = useState(false);
+  useEffect(() => {
+    let vivo = true;
+    definirLembrete([]);
+    definirLembreteFechado(false);
+    if (!pacienteId) return;
+    Promise.all([repositorio.medicamentosDaPaciente(pacienteId), repositorio.baseDeMedicamentos()])
+      .then(([m, b]) => vivo && definirLembrete(nutrientesAAcompanhar(m, b)))
+      .catch(() => vivo && definirLembrete([]));
+    return () => {
+      vivo = false;
+    };
+  }, [pacienteId]);
+  const examesDoLembrete = examesComONome(
+    lembrete.map((n) => n.nutriente),
+    LISTA.flatMap((g) => g.exames),
+  );
 
   const paciente = pacientes?.find((p) => p.id === pacienteId) ?? null;
   const grupos = useMemo(() => {
@@ -102,6 +123,31 @@ export function PedidoDeExames() {
           <input className="c-input" type="date" value={data} onChange={(e) => definirData(e.target.value)} />
         </label>
       </div>
+
+      {lembrete.length > 0 && !lembreteFechado && paciente && (
+        <div className="c-bloco c-px-lembrete">
+          <p className="c-rotulo">Lembrete da sua base de medicamentos</p>
+          <p>
+            {paciente.nome} usa {[...new Set(lembrete.flatMap((n) => n.medicamentos))].join(" e ")}. Na sua base conferida:{" "}
+            {lembrete.map((n) => n.nutriente).join(", ")} para acompanhar.
+          </p>
+          <div className="c-acoes">
+            {examesDoLembrete.length > 0 && (
+              <button
+                type="button"
+                className="c-botao c-botao-pequeno"
+                onClick={() => definirMarcados((m) => [...new Set([...m, ...examesDoLembrete])])}
+              >
+                Marcar {examesDoLembrete.join(", ")}
+              </button>
+            )}
+            <button type="button" className="c-botao c-botao-secundario c-botao-pequeno" onClick={() => definirLembreteFechado(true)}>
+              Agora não
+            </button>
+          </div>
+          <p className="c-dica">Só lembra. Quem decide o pedido é você.</p>
+        </div>
+      )}
 
       <div className="c-px-grupos">
         {LISTA.map((g) => (

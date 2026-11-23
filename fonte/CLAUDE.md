@@ -91,6 +91,22 @@ logo, e as letras não mudam até ela confirmar quais são as oficiais. Leia
 aquele arquivo antes de qualquer capa, PDF, tela ou proposta visual. Cor
 nova só com pedido dela.
 
+## Regra permanente: o app da paciente é para ser fácil
+
+Pedido dela (23/11/2026): "layout do app do paciente sempre tem que visar
+funcionalidade e ser fácil de mexer e entender, sempre". Vale para toda tela
+que a paciente vê, nova ou mexida. Antes de entregar, conferir:
+
+- **Funciona antes de enfeitar.** Cada tela tem uma coisa principal a fazer,
+  e ela fica à vista, no topo, sem rolar.
+- **Entende de primeira.** Texto curto, no jeito da marca, sem termo técnico.
+  Botão diz o que faz ("Registrar", não "Enviar dados").
+- **Mexe sem pensar.** Poucos toques até o objetivo, área de toque grande,
+  nada escondido em menu se é usado todo dia. Nunca acrescentar passo que
+  não existia.
+- **Conferir no celular (390 px)**, com print, antes de dizer que ficou bom.
+  Se precisou explicar como usa, ainda não está fácil.
+
 ## Publicar
 
 Ela não sobe arquivo. Você publica:

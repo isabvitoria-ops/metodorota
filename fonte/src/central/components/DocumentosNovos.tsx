@@ -171,3 +171,96 @@ export function DocumentoTrocas({ paciente, conteudo }: { paciente: string; cont
     </FolhaDeDocumento>
   );
 }
+
+/** Uma linha do PDF de medicamentos: o que ela usa e o que acompanhar (só da base CONFERIDA). */
+export interface LinhaDeMedicamento {
+  nome: string;
+  tipo: string;
+  uso: string;
+  /** Nutriente e o número da fonte (1, 2…) na lista de fontes. */
+  acompanhar: { nutriente: string; fonte: number }[];
+  anotacao: string | null;
+}
+
+/**
+ * Medicamentos e nutrientes (N31): para a nutricionista e o médico. Cada
+ * nutriente leva o número da sua fonte; sem fonte, não entra. Nada aqui é
+ * escrito por IA.
+ */
+export function DocumentoMedicamentos({
+  paciente,
+  linhas,
+  fontes,
+  nutricionista,
+}: {
+  paciente: string;
+  linhas: LinhaDeMedicamento[];
+  fontes: string[];
+  nutricionista: string;
+}) {
+  const anotacoes = linhas.filter((l) => l.anotacao?.trim());
+  return (
+    <FolhaDeDocumento titulo={`Medicamentos e nutrientes — ${paciente}`}>
+      <article className="doc doc-medicamentos">
+        <CabecalhoDoDocumento sobretitulo="Acompanhamento nutricional" titulo="Medicamentos e nutrientes" paciente={paciente} data={hojeEmTexto()} />
+        <p className="doc-novo-intro">O que está em uso e os nutrientes que a literatura indica acompanhar, com a fonte de cada linha.</p>
+        <table className="doc-tabela doc-tr-tabela">
+          <thead>
+            <tr>
+              <th>Em uso</th>
+              <th>Dose e horário</th>
+              <th>Acompanhar</th>
+            </tr>
+          </thead>
+          <tbody>
+            {linhas.map((l, i) => (
+              <tr key={i}>
+                <td>
+                  <strong>{l.nome}</strong>
+                  {l.tipo && <small className="doc-tr-opcao">{l.tipo}</small>}
+                </td>
+                <td>{l.uso || "—"}</td>
+                <td>
+                  {l.acompanhar.length
+                    ? l.acompanhar.map((a, j) => (
+                        <span key={j} className="doc-tr-troca">
+                          {a.nutriente}
+                          <sup>{a.fonte}</sup>
+                        </span>
+                      ))
+                    : "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {anotacoes.length > 0 && (
+          <div className="doc-pa-ajustes doc-med-anotacao">
+            <strong>Anotação da nutricionista</strong>
+            {anotacoes.map((l, i) => (
+              <p key={i}>
+                <b>{l.nome}:</b> {l.anotacao!.trim()}
+              </p>
+            ))}
+          </div>
+        )}
+        {fontes.length > 0 && (
+          <section className="doc-med-fontes">
+            <h2 className="doc-pa-secao-titulo">Fontes</h2>
+            <ol>
+              {fontes.map((f, i) => (
+                <li key={i}>{f}</li>
+              ))}
+            </ol>
+          </section>
+        )}
+        <p className="doc-med-aviso">Documento de apoio. Não substitui a avaliação médica e não é prescrição.</p>
+        <div className="doc-assinatura">
+          <span className="doc-assinatura-linha" />
+          <strong>{nutricionista}</strong>
+          <span>Nutricionista · {CRN_DA_NUTRICIONISTA}</span>
+        </div>
+      </article>
+    </FolhaDeDocumento>
+  );
+}

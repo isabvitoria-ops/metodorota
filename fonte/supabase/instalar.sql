@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql, 0095_cozinha.sql, 0096_areas_por_paciente.sql, 0097_agenda.sql, 0098_feed_e_notificacoes.sql, 0099_tour_prazo_checkin_agenda_repete.sql, 0100_resumo_pre_retorno.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql, 0095_cozinha.sql, 0096_areas_por_paciente.sql, 0097_agenda.sql, 0098_feed_e_notificacoes.sql, 0099_tour_prazo_checkin_agenda_repete.sql, 0100_resumo_pre_retorno.sql, 0101_medicamentos_nutrientes.sql
 -- =============================================================================
 
 
@@ -24167,3 +24167,98 @@ $$;
 
 revoke all on function public.resumo_pre_retorno(uuid) from public, anon;
 grant execute on function public.resumo_pre_retorno(uuid) to authenticated;
+
+
+-- ###########################################################################
+-- 0101_medicamentos_nutrientes.sql
+-- ###########################################################################
+
+-- 0101 — Medicamentos × nutrientes (N31, aprovado por ela em 23/11/2026).
+--
+-- Decisão dela: "medicamento é uma coisa séria e é só eu que vou fazer as
+-- anotações". Por isso:
+--   * NADA aqui é escrito por IA e NADA aparece para a paciente: as duas
+--     tabelas são só da nutricionista (RLS com e_admin(), sem leitura da
+--     paciente, sem acesso de visitante);
+--   * a base de partida traz só o que tem fonte publicada, e entra como
+--     "para conferir" (conferido_em nulo). Só depois que ela marca que
+--     conferiu é que a entrada vale para o lembrete do pedido de exames e
+--     para o PDF.
+--
+-- 1. base_medicamentos: a base dela. Uma linha por medicamento ou classe,
+--    com os nomes que casam (termos) e os nutrientes a acompanhar, cada um
+--    com a sua fonte.
+-- 2. paciente_medicamentos: o que cada paciente usa (remédio, suplemento ou
+--    fitoterápico), com dose, horário, desde quando, quem prescreveu e a
+--    anotação dela.
+
+create table if not exists public.base_medicamentos (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null check (length(trim(nome)) between 1 and 80),
+  termos text[] not null default '{}',
+  -- [{ "nutriente": "Vitamina B12", "fonte": "Lam JR et al. JAMA 2013…" }]
+  nutrientes jsonb not null default '[]'::jsonb check (jsonb_typeof(nutrientes) = 'array'),
+  -- Nulo = ainda não conferido por ela: não vale para lembrete nem PDF.
+  conferido_em date,
+  anotacao text check (anotacao is null or length(anotacao) <= 2000),
+  atualizado_em timestamptz not null default now()
+);
+
+drop trigger if exists tocar_atualizado on public.base_medicamentos;
+create trigger tocar_atualizado before update on public.base_medicamentos
+  for each row execute function tocar_atualizado_em();
+
+alter table public.base_medicamentos enable row level security;
+revoke all on public.base_medicamentos from anon, authenticated;
+grant select, insert, update, delete on public.base_medicamentos to authenticated;
+drop policy if exists base_medicamentos_admin on public.base_medicamentos;
+create policy base_medicamentos_admin on public.base_medicamentos
+  for all to authenticated using (e_admin()) with check (e_admin());
+
+create table if not exists public.paciente_medicamentos (
+  id uuid primary key default gen_random_uuid(),
+  paciente_id uuid not null references public.pacientes(id) on delete cascade,
+  nome text not null check (length(trim(nome)) between 1 and 120),
+  tipo text not null default 'medicamento' check (tipo in ('medicamento', 'suplemento', 'fitoterapico')),
+  dose text check (dose is null or length(dose) <= 120),
+  horario text check (horario is null or length(horario) <= 120),
+  desde text check (desde is null or length(desde) <= 40),
+  prescrito_por text check (prescrito_por is null or length(prescrito_por) <= 120),
+  anotacao text check (anotacao is null or length(anotacao) <= 2000),
+  ativo boolean not null default true,
+  criado_em timestamptz not null default now(),
+  atualizado_em timestamptz not null default now()
+);
+create index if not exists paciente_medicamentos_paciente on public.paciente_medicamentos (paciente_id);
+
+drop trigger if exists tocar_atualizado on public.paciente_medicamentos;
+create trigger tocar_atualizado before update on public.paciente_medicamentos
+  for each row execute function tocar_atualizado_em();
+
+alter table public.paciente_medicamentos enable row level security;
+revoke all on public.paciente_medicamentos from anon, authenticated;
+grant select, insert, update, delete on public.paciente_medicamentos to authenticated;
+drop policy if exists paciente_medicamentos_admin on public.paciente_medicamentos;
+create policy paciente_medicamentos_admin on public.paciente_medicamentos
+  for all to authenticated using (e_admin()) with check (e_admin());
+
+-- Base de partida: só o que tem fonte publicada (PubMed), e PARA CONFERIR.
+-- Entra só se a base estiver vazia, para nunca sobrescrever o que ela editou.
+insert into public.base_medicamentos (nome, termos, nutrientes)
+select * from (values
+  ('Inibidores da bomba de prótons (IBP)',
+   array['omeprazol', 'esomeprazol', 'pantoprazol', 'lansoprazol', 'dexlansoprazol', 'rabeprazol'],
+   jsonb_build_array(
+     jsonb_build_object('nutriente', 'Vitamina B12',
+       'fonte', 'Lam JR et al. Proton pump inhibitor and histamine 2 receptor antagonist use and vitamin B12 deficiency. JAMA 2013;310(22):2435-42. doi:10.1001/jama.2013.280490. PMID 24327038'),
+     jsonb_build_object('nutriente', 'Ferro',
+       'fonte', 'Lam JR et al. Proton pump inhibitor and histamine-2 receptor antagonist use and iron deficiency. Gastroenterology 2017;152(4):821-829.e1. doi:10.1053/j.gastro.2016.11.023. PMID 27890768'),
+     jsonb_build_object('nutriente', 'Magnésio',
+       'fonte', 'Cheungpasitporn W et al. Proton pump inhibitors linked to hypomagnesemia: a systematic review and meta-analysis of observational studies. Ren Fail 2015;37(7):1237-41. doi:10.3109/0886022X.2015.1057800. PMID 26108134'))),
+  ('Metformina',
+   array['metformina'],
+   jsonb_build_array(
+     jsonb_build_object('nutriente', 'Vitamina B12',
+       'fonte', 'Aroda VR et al. Long-term metformin use and vitamin B12 deficiency in the Diabetes Prevention Program Outcomes Study. J Clin Endocrinol Metab 2016;101(4):1754-61. doi:10.1210/jc.2015-3754. PMID 26900641')))
+) as v(nome, termos, nutrientes)
+where not exists (select 1 from public.base_medicamentos);

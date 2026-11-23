@@ -4,6 +4,7 @@ import type { EventoAgenda, EventoParaSalvar } from "@/central/types/agenda";
 import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
+import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
 import type { PassoDoTour } from "@/central/types/tour";
 import { RECEITAS_DEMO } from "./sementes/receitasDemo";
 import type {
@@ -2437,6 +2438,35 @@ export const repositorioLocal: Repositorio = {
       diasComRegistro,
     };
   },
+  // -- Medicamentos × nutrientes (0101): só na memória, dados fictícios --
+  async baseDeMedicamentos() {
+    return BASE_MEDICAMENTOS_DEMO.map((e) => ({ ...e }));
+  },
+  async salvarEntradaDaBase(e: Omit<EntradaDaBase, "id"> & { id?: string }) {
+    const gravada: EntradaDaBase = { ...e, id: e.id ?? `base-${Date.now()}` };
+    const i = BASE_MEDICAMENTOS_DEMO.findIndex((x) => x.id === gravada.id);
+    if (i >= 0) BASE_MEDICAMENTOS_DEMO[i] = gravada;
+    else BASE_MEDICAMENTOS_DEMO.push(gravada);
+    return gravada;
+  },
+  async apagarEntradaDaBase(id: string) {
+    const i = BASE_MEDICAMENTOS_DEMO.findIndex((x) => x.id === id);
+    if (i >= 0) BASE_MEDICAMENTOS_DEMO.splice(i, 1);
+  },
+  async medicamentosDaPaciente(pacienteId: string) {
+    return MEDICAMENTOS_DEMO.filter((m) => m.pacienteId === pacienteId || m.pacienteId === "*").map((m) => ({ ...m, pacienteId }));
+  },
+  async salvarMedicamentoDaPaciente(m: Omit<MedicamentoDaPaciente, "id"> & { id?: string }) {
+    const gravado: MedicamentoDaPaciente = { ...m, id: m.id ?? `med-${Date.now()}` };
+    const i = MEDICAMENTOS_DEMO.findIndex((x) => x.id === gravado.id);
+    if (i >= 0) MEDICAMENTOS_DEMO[i] = gravado;
+    else MEDICAMENTOS_DEMO.push(gravado);
+    return gravado;
+  },
+  async apagarMedicamentoDaPaciente(id: string) {
+    const i = MEDICAMENTOS_DEMO.findIndex((x) => x.id === id);
+    if (i >= 0) MEDICAMENTOS_DEMO.splice(i, 1);
+  },
   async meusPrazos(): Promise<PrazoDoCheckin[]> {
     const segunda = segundaDaSemana(hojeLocal());
     return [...PRAZOS_DEMO.entries()]
@@ -2739,6 +2769,40 @@ const PANORAMA_DEMO: PanoramaDoPaciente[] = [
     pesoAtual: null,
     metas: [],
   },
+];
+
+// A mesma base de partida da migração 0101 (fontes conferidas no PubMed).
+// Na demonstração, a metformina já aparece conferida para mostrar o lembrete.
+const BASE_MEDICAMENTOS_DEMO: EntradaDaBase[] = [
+  {
+    id: "base-ibp",
+    nome: "Inibidores da bomba de prótons (IBP)",
+    termos: ["omeprazol", "esomeprazol", "pantoprazol", "lansoprazol", "dexlansoprazol", "rabeprazol"],
+    nutrientes: [
+      { nutriente: "Vitamina B12", fonte: "Lam JR et al. Proton pump inhibitor and histamine 2 receptor antagonist use and vitamin B12 deficiency. JAMA 2013;310(22):2435-42. doi:10.1001/jama.2013.280490. PMID 24327038" },
+      { nutriente: "Ferro", fonte: "Lam JR et al. Proton pump inhibitor and histamine-2 receptor antagonist use and iron deficiency. Gastroenterology 2017;152(4):821-829.e1. doi:10.1053/j.gastro.2016.11.023. PMID 27890768" },
+      { nutriente: "Magnésio", fonte: "Cheungpasitporn W et al. Proton pump inhibitors linked to hypomagnesemia: a systematic review and meta-analysis of observational studies. Ren Fail 2015;37(7):1237-41. doi:10.3109/0886022X.2015.1057800. PMID 26108134" },
+    ],
+    conferidoEm: null,
+    anotacao: null,
+  },
+  {
+    id: "base-metformina",
+    nome: "Metformina",
+    termos: ["metformina"],
+    nutrientes: [
+      { nutriente: "Vitamina B12", fonte: "Aroda VR et al. Long-term metformin use and vitamin B12 deficiency in the Diabetes Prevention Program Outcomes Study. J Clin Endocrinol Metab 2016;101(4):1754-61. doi:10.1210/jc.2015-3754. PMID 26900641" },
+    ],
+    conferidoEm: hojeLocal(),
+    anotacao: null,
+  },
+];
+
+// Fictícios: valem para qualquer paciente aberta na demonstração ("*").
+const MEDICAMENTOS_DEMO: MedicamentoDaPaciente[] = [
+  { id: "med-omeprazol", pacienteId: "*", nome: "Omeprazol 20 mg", tipo: "medicamento", dose: "20 mg", horario: "1 vez ao dia, em jejum", desde: "03/2026", prescritoPor: "gastro", anotacao: null, ativo: true },
+  { id: "med-metformina", pacienteId: "*", nome: "Metformina 850 mg", tipo: "medicamento", dose: "850 mg", horario: "2 vezes ao dia", desde: "01/2025", prescritoPor: "endócrino", anotacao: null, ativo: true },
+  { id: "med-espinheira", pacienteId: "*", nome: "Espinheira-santa", tipo: "fitoterapico", dose: null, horario: "chá, 1 vez ao dia", desde: null, prescritoPor: "por conta própria", anotacao: null, ativo: true },
 ];
 
 const CONSULTAS_DEMO: Consulta[] = [
