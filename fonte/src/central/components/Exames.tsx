@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Exame } from "@/central/types/exame";
 import { repositorio } from "@/central/dados/repositorio";
+import { avisarLixeira } from "@/central/utils/avisoDaLixeira";
 import { porQueNaoServe, tamanhoBonito, TIPOS_ACEITOS } from "@/central/utils/exames";
 import { Esqueleto } from "@/central/components/Esqueleto";
 
@@ -101,6 +102,10 @@ export function Exames({ pacienteId }: { pacienteId: string | null }) {
     try {
       await repositorio.apagarExame(exame.id);
       await carregar();
+      // O que a nutricionista apaga vai para a lixeira (0102); o que a
+      // paciente apaga dela continua indo de vez, sem aviso.
+      if (souNutricionista)
+        avisarLixeira({ texto: `"${exame.nome}" foi para a lixeira.`, registroId: exame.id, aoVoltar: carregar });
     } catch (e) {
       definirErro(e instanceof Error ? e.message : "Não consegui apagar.");
     }

@@ -218,8 +218,12 @@ select teste('o espaco e contado', (espaco_dos_exames() ->> 'arquivos')::integer
 select teste('em bytes, para a tela poder avisar antes de acabar',
   (espaco_dos_exames() ->> 'bytes')::bigint > 0);
 
-select teste('ela apaga o que a paciente mandou tambem',
-  apagar_exame(exame_de(elisa(), 'nutricionista')) like '%hemograma%');
+-- Desde a 0102, o que ela apaga vai para a lixeira por 30 dias e o arquivo
+-- fica guardado (a função não devolve caminho para a tela remover).
+select teste('ela apaga o que a paciente mandou tambem (vai para a lixeira, o arquivo fica)',
+  apagar_exame(exame_de(elisa(), 'nutricionista')) is null);
+select teste('e o exame apagado esta na lixeira, com o nome da paciente',
+  exists (select 1 from lixeira where tipo = 'exame' and detalhe = 'Elisa Exame'));
 select teste('exame que nao existe e recusado',
   estado_de(format('select apagar_exame(%L)',
     '00000000-0000-0000-0000-0000000000ef')) = '22023');
