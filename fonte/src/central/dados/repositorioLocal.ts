@@ -5,6 +5,7 @@ import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
+import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
 import type { ItemDaLixeira, TipoNaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
 import { RECEITAS_DEMO } from "./sementes/receitasDemo";
@@ -2480,6 +2481,28 @@ export const repositorioLocal: Repositorio = {
     const i = MEDICAMENTOS_DEMO.findIndex((x) => x.id === id);
     if (i >= 0) MEDICAMENTOS_DEMO.splice(i, 1);
   },
+  // -- Quem esfriou (0103): fictício, com pacientes da demonstração --
+  async quemEsfriou(): Promise<PacienteQueEsfriou[]> {
+    return [
+      {
+        id: "pac-renata", nome: "Renata Costa", telefone: "31900000000", comAcesso: true, ultimoRegistro: diasAtras(6),
+        checkins: [{ titulo: "Check-in semanal", venceuEm: diasAtras(2) }], reintroducao: null, cobrancas: [],
+        semRetorno: false, ultimaConsulta: diasAtras(20),
+      },
+      {
+        id: "pac-juliana", nome: "Juliana Ferreira", telefone: null, comAcesso: true, ultimoRegistro: diasAtras(9),
+        checkins: [], reintroducao: { emTeste: ["Feijão"], ultimoRastreio: diasAtras(9) }, cobrancas: [],
+        semRetorno: false, ultimaConsulta: diasAtras(25),
+      },
+      {
+        id: "pac-ana", nome: "Ana Luiza", telefone: "31900000001", comAcesso: true, ultimoRegistro: diasAtras(1),
+        checkins: [], reintroducao: null,
+        cobrancas: [{ id: "cob-demo", competencia: diasAtras(22).slice(0, 8) + "01", valor: 350, vencimento: diasAtras(11) }],
+        semRetorno: true, ultimaConsulta: null,
+      },
+    ];
+  },
+
   // -- Lixeira (0102): só na memória --
   async lixeiraDoRegistro(registroId: string) {
     return LIXEIRA_DEMO.find((x) => x.registroId === registroId)?.item.id ?? null;

@@ -12922,3 +12922,18 @@ textarea.c-campo-input,
 .central .c-lixeira-texto small { font-size: 13px; color: var(--text-muted); }
 .central .c-lixeira-acoes { display: flex; align-items: center; gap: 12px; }
 .central .c-lixeira-esvaziar { margin-top: 12px; }
+
+/* ---------- Quem esfriou (lote 3) ---------- */
+.central .c-esfriou { margin: 16px 0 4px; padding: 14px 16px; border-radius: var(--radius); background: #F7EEE7; color: #263D52; }
+.central .c-esfriou-titulo { margin: 0 0 6px; font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #38546C; }
+.central .c-esfriou-lista { list-style: none; margin: 0; padding: 0; }
+.central .c-esfriou-lista li { display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid #C9BCAC; }
+.central .c-esfriou-lista li:last-child { border-bottom: 0; }
+.central .c-esfriou-lista strong { font-size: 15px; }
+.central .c-esfriou-lista small { font-size: 13px; color: var(--text-muted); }
+.central .c-esfriou-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.central .c-esfriou-acoes .c-chip { text-decoration: none; }
+.central .c-esfriou-falta { color: #A82B3C !important; }
+.central .c-esfriou-retorno { margin-top: 8px; }
+.central .c-esfriou-nomes { margin: 6px 0 0; padding-left: 18px; font-size: 14px; }
+.central .c-esfriou-nomes a { color: #38546C; }

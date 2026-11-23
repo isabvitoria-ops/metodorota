@@ -21,6 +21,7 @@ import { rotas } from "@/central/rotas";
 import { Modal } from "./componentes/Modal";
 import { AreaTexto, Campo, Selecao, Texto } from "./componentes/Campos";
 import { FichaPaciente } from "./FichaPaciente";
+import { QuemEsfriou } from "./QuemEsfriou";
 import { Esqueleto } from "@/central/components/Esqueleto";
 
 /**
@@ -168,6 +169,8 @@ export function Pacientes() {
               : "") +
             "."}
       </p>
+
+      <QuemEsfriou />
 
       {/* Os números do antigo Painel. São botões: tocar em "Vencendo" filtra
           a lista abaixo por quem está vencendo -- o número deixa de ser só
