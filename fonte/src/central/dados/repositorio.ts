@@ -2,6 +2,7 @@ import type { EstadoDoTermo, PedidoLgpd, SituacaoDosAceites, TermoDeUso } from "
 import type { MinhaCozinha, ReceitaDaNutri, ReceitaParaSalvar } from "@/central/types/receita";
 import type { AgendaDoPeriodo, EventoParaSalvar } from "@/central/types/agenda";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
+import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { PassoDoTour } from "@/central/types/tour";
 import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
 import type {
@@ -972,6 +973,10 @@ export interface Repositorio {
   atrasosDoPaciente(pacienteId: string): Promise<{ questionarioId: string; periodo: string }[]>;
   /** Paciente: até quando responder cada check-in desta semana. */
   meusPrazos(): Promise<PrazoDoCheckin[]>;
+
+  // Resumo pré-retorno (0100)
+  /** Nutricionista: o que mudou desde a última consulta concluída. */
+  resumoPreRetorno(pacienteId: string): Promise<ResumoPreRetorno>;
 
   // Tour do app (0099)
   /** Paciente: os passos ativos e se ela já viu o tour. */

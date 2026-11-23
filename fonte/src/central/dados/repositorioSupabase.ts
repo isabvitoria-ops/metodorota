@@ -2,6 +2,7 @@ import type { EstadoDoTermo, PedidoLgpd } from "@/central/types";
 import type { CategoriaReceita, NumerosDaReceita, Receita, ReceitaParaSalvar } from "@/central/types/receita";
 import type { FotoDoFeed, Notificacao, TipoDeNotificacao } from "@/central/types/notificacao";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
+import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { PassoDoTour } from "@/central/types/tour";
 import type { ConsultaNaAgenda, EventoAgenda, EventoParaSalvar, Repeticao, TipoDeEvento } from "@/central/types/agenda";
 import { TERMO_PADRAO } from "./sementes/termo";
@@ -2919,6 +2920,26 @@ export const repositorioSupabase: Repositorio = {
     const { data, error } = await sb.rpc("atrasos_do_paciente", { p_paciente: pacienteId });
     erro("carregar as respostas atrasadas", error);
     return ((data ?? []) as Linha[]).map((l) => ({ questionarioId: texto(l.questionarioId), periodo: texto(l.periodo) }));
+  },
+  async resumoPreRetorno(pacienteId: string): Promise<ResumoPreRetorno> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("resumo_pre_retorno", { p_paciente: pacienteId });
+    erro("carregar o resumo pré-retorno", error);
+    const r = (data ?? {}) as Partial<ResumoPreRetorno>;
+    return {
+      temMarco: Boolean(r.temMarco),
+      desde: r.desde ?? null,
+      dias: r.dias ?? null,
+      combinado: r.combinado ?? null,
+      proximaConsulta: r.proximaConsulta ?? null,
+      bristol: r.bristol ?? {},
+      registrosComBristol: r.registrosComBristol ?? 0,
+      sintomas: r.sintomas ?? {},
+      reintroducao: r.reintroducao ?? [],
+      restricoesNovas: r.restricoesNovas ?? [],
+      metas: r.metas ?? [],
+      diasComRegistro: r.diasComRegistro ?? [],
+    };
   },
   async meusPrazos(): Promise<PrazoDoCheckin[]> {
     const sb = exigirSupabase();
