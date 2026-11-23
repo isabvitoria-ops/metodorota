@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { EventoHistorico, Paciente, Plano } from "@/central/types";
 import { usePacientes } from "@/central/hooks/usePacientes";
 import { repositorio } from "@/central/dados/repositorio";
+import { avisarLixeira } from "@/central/utils/avisoDaLixeira";
 import { baixarJson } from "@/central/utils/baixarJson";
 import { SeloSituacao } from "@/central/components/Selo";
 import { dataBonita, hojeSaoPaulo, somarDias } from "@/central/utils/situacao";
@@ -213,8 +214,9 @@ export function FichaPaciente({
             {confirmandoExclusao ? (
               <div className="c-bloco" style={{ borderColor: "var(--danger)" }}>
                 <p style={{ fontSize: 14.5, lineHeight: 1.5 }}>
-                  Excluir apaga o cadastro, o histórico e os salvos desta pessoa. Não dá para
-                  desfazer. Para só tirar o acesso, use <strong>Suspender</strong>.
+                  Excluir manda o cadastro, o histórico e os registros desta pessoa para a lixeira. Fica lá
+                  por 30 dias e dá para restaurar em Configurações › Lixeira. Para só tirar o acesso, use{" "}
+                  <strong>Suspender</strong>.
                 </p>
                 <div className="c-modal-acoes">
                   <button type="button" className="c-botao c-botao-secundario" onClick={() => definirConfirmando(false)}>
@@ -227,10 +229,17 @@ export function FichaPaciente({
                     onClick={async () => {
                       definirOcupado(true);
                       await excluir(paciente.id);
+                      // `excluir` guarda o erro no estado em vez de lançar: só avisa se saiu mesmo.
+                      if (!usePacientes.getState().pacientes.some((p) => p.id === paciente.id))
+                        avisarLixeira({
+                        texto: `${paciente.nome} foi para a lixeira.`,
+                        registroId: paciente.id,
+                        aoVoltar: () => usePacientes.getState().carregar(),
+                      });
                       aoFechar();
                     }}
                   >
-                    Excluir de vez
+                    Mandar para a lixeira
                   </button>
                 </div>
               </div>

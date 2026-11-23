@@ -12911,3 +12911,14 @@ textarea.c-campo-input,
   .central .c-med-campos { grid-template-columns: 1fr; }
   .central .c-base-med-nutriente { grid-template-columns: 1fr; }
 }
+
+/* ---------- Lixeira de 30 dias (0102) ---------- */
+.central .c-lixeira-aviso { position: fixed; left: max(14px, env(safe-area-inset-left, 0px)); right: max(14px, env(safe-area-inset-right, 0px)); bottom: calc(22px + env(safe-area-inset-bottom, 0px)); z-index: 70; max-width: 560px; margin: 0 auto; background: #263D52; color: #F7EEE7; border-radius: 14px; padding: 12px 14px 12px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 15px; box-shadow: var(--shadow-forte); }
+.central .c-lixeira-aviso button { flex: none; background: #F7EEE7; color: #263D52; border: 0; border-radius: var(--radius-pill); padding: 8px 14px; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; }
+.central .c-lixeira-lista { list-style: none; margin: 10px 0 0; padding: 0; }
+.central .c-lixeira-lista li { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.central .c-lixeira-lista li:last-child { border-bottom: 0; }
+.central .c-lixeira-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 220px; }
+.central .c-lixeira-texto small { font-size: 13px; color: var(--text-muted); }
+.central .c-lixeira-acoes { display: flex; align-items: center; gap: 12px; }
+.central .c-lixeira-esvaziar { margin-top: 12px; }

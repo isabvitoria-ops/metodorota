@@ -5,6 +5,7 @@ import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
+import type { ItemDaLixeira, TipoNaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
 import { RECEITAS_DEMO } from "./sementes/receitasDemo";
 import type {
@@ -430,8 +431,15 @@ export const repositorioLocal: Repositorio = {
   },
 
   async excluirPaciente(id) {
+    const paciente = guardaPacientes.ler().find((p) => p.id === id);
+    const historico = guardaHistorico.ler().filter((e) => e.pacienteId === id);
     guardaPacientes.escrever(guardaPacientes.ler().filter((p) => p.id !== id));
     guardaHistorico.escrever(guardaHistorico.ler().filter((e) => e.pacienteId !== id));
+    if (paciente)
+      guardarNaLixeiraDemo(id, "paciente", paciente.nome, "Com todos os registros dela", () => {
+        guardaPacientes.escrever([...guardaPacientes.ler(), paciente]);
+        guardaHistorico.escrever([...guardaHistorico.ler(), ...historico]);
+      });
   },
 
   async registrarConvite(pacienteId) {
@@ -1541,7 +1549,10 @@ export const repositorioLocal: Repositorio = {
   },
 
   async apagarExame(id: string): Promise<void> {
+    const exame = guardaExames.ler().find((e) => e.id === id);
     guardaExames.escrever(guardaExames.ler().filter((e) => e.id !== id));
+    if (exame)
+      guardarNaLixeiraDemo(id, "exame", exame.nome, null, () => guardaExames.escrever([...guardaExames.ler(), exame]));
   },
 
   async espacoDosExames(): Promise<EspacoDosExames> {
@@ -2341,7 +2352,9 @@ export const repositorioLocal: Repositorio = {
     return { id };
   },
   async apagarReceita(id: string) {
+    const receita = RECEITAS_DA_DEMO.get(id);
     RECEITAS_DA_DEMO.delete(id);
+    if (receita) guardarNaLixeiraDemo(id, "receita", receita.titulo, "Receita", () => RECEITAS_DA_DEMO.set(id, receita));
   },
   async enviarReceita(receitaId: string, pacienteIds: string[]) {
     const r = RECEITAS_DA_DEMO.get(receitaId);
@@ -2466,6 +2479,27 @@ export const repositorioLocal: Repositorio = {
   async apagarMedicamentoDaPaciente(id: string) {
     const i = MEDICAMENTOS_DEMO.findIndex((x) => x.id === id);
     if (i >= 0) MEDICAMENTOS_DEMO.splice(i, 1);
+  },
+  // -- Lixeira (0102): só na memória --
+  async lixeiraDoRegistro(registroId: string) {
+    return LIXEIRA_DEMO.find((x) => x.registroId === registroId)?.item.id ?? null;
+  },
+  async itensDaLixeira() {
+    return LIXEIRA_DEMO.map((x) => ({ ...x.item }));
+  },
+  async restaurarDaLixeira(id: string) {
+    const i = LIXEIRA_DEMO.findIndex((x) => x.item.id === id);
+    if (i < 0) throw new Error("Este item não está mais na lixeira.");
+    LIXEIRA_DEMO[i]!.restaurar();
+    LIXEIRA_DEMO.splice(i, 1);
+  },
+  async apagarDaLixeiraDeVez(id: string) {
+    const i = LIXEIRA_DEMO.findIndex((x) => x.item.id === id);
+    if (i >= 0) LIXEIRA_DEMO.splice(i, 1);
+  },
+  async esvaziarLixeira(confirmacao: string) {
+    if (confirmacao !== "EXCLUIR") throw new Error("Para esvaziar, digite EXCLUIR.");
+    LIXEIRA_DEMO.splice(0, LIXEIRA_DEMO.length);
   },
   async meusPrazos(): Promise<PrazoDoCheckin[]> {
     const segunda = segundaDaSemana(hojeLocal());
@@ -2804,6 +2838,16 @@ const MEDICAMENTOS_DEMO: MedicamentoDaPaciente[] = [
   { id: "med-metformina", pacienteId: "*", nome: "Metformina 850 mg", tipo: "medicamento", dose: "850 mg", horario: "2 vezes ao dia", desde: "01/2025", prescritoPor: "endócrino", anotacao: null, ativo: true },
   { id: "med-espinheira", pacienteId: "*", nome: "Espinheira-santa", tipo: "fitoterapico", dose: null, horario: "chá, 1 vez ao dia", desde: null, prescritoPor: "por conta própria", anotacao: null, ativo: true },
 ];
+
+// Lixeira da demonstração: guarda como devolver cada item.
+const LIXEIRA_DEMO: { registroId: string; item: ItemDaLixeira; restaurar: () => void }[] = [];
+function guardarNaLixeiraDemo(registroId: string, tipo: TipoNaLixeira, titulo: string, detalhe: string | null, restaurar: () => void) {
+  LIXEIRA_DEMO.unshift({
+    registroId,
+    item: { id: `lix-${Date.now()}`, tipo, titulo, detalhe, apagadoEm: new Date().toISOString(), diasRestantes: 30 },
+    restaurar,
+  });
+}
 
 const CONSULTAS_DEMO: Consulta[] = [
   {

@@ -11,6 +11,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { repositorio } from "@/central/dados/repositorio";
+import { avisarLixeira } from "@/central/utils/avisoDaLixeira";
 import { esquecerCozinha } from "@/central/hooks/useMinhaCozinha";
 import { BarraBusca } from "@/central/components/BarraBusca";
 import { BotaoPdf } from "@/central/components/BotaoPdf";
@@ -282,10 +283,19 @@ export function Receitas() {
   async function apagar() {
     if (!rascunho?.id) return;
     try {
-      await repositorio.apagarReceita(rascunho.id);
+      const { id, titulo } = rascunho;
+      await repositorio.apagarReceita(id);
       esquecerCozinha();
       definirRascunho(null);
       await carregar();
+      avisarLixeira({
+        texto: `"${titulo || "Receita"}" foi para a lixeira.`,
+        registroId: id,
+        aoVoltar: async () => {
+          esquecerCozinha();
+          await carregar();
+        },
+      });
     } catch {
       definirRecado({ tom: "erro", texto: "Não consegui apagar. Tente de novo." });
     }

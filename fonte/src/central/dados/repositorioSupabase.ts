@@ -4,6 +4,7 @@ import type { FotoDoFeed, Notificacao, TipoDeNotificacao } from "@/central/types
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
+import type { ItemDaLixeira, TipoNaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
 import type { ConsultaNaAgenda, EventoAgenda, EventoParaSalvar, Repeticao, TipoDeEvento } from "@/central/types/agenda";
 import { TERMO_PADRAO } from "./sementes/termo";
@@ -325,7 +326,8 @@ export const repositorioSupabase: Repositorio = {
 
   async excluirPaciente(id) {
     const sb = exigirSupabase();
-    const { error } = await sb.from("pacientes").delete().eq("id", id);
+    // Vai para a lixeira por 30 dias, com tudo o que é dela (0102).
+    const { error } = await sb.rpc("lixeira_apagar_paciente", { p_id: id });
     erro("excluir paciente", error);
   },
 
@@ -2791,7 +2793,7 @@ export const repositorioSupabase: Repositorio = {
 
   async apagarReceita(id: string) {
     const sb = exigirSupabase();
-    const { error } = await sb.from("receitas").delete().eq("id", id);
+    const { error } = await sb.rpc("lixeira_apagar_receita", { p_id: id });
     erro("apagar a receita", error);
   },
 
@@ -3008,6 +3010,45 @@ export const repositorioSupabase: Repositorio = {
     const { error } = await sb.from("paciente_medicamentos").delete().eq("id", id);
     erro("apagar o medicamento", error);
   },
+  // -- Lixeira de 30 dias (0102) --
+  async lixeiraDoRegistro(registroId: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("lixeira_ultimo", { p_registro: registroId });
+    erro("achar o item na lixeira", error);
+    return textoOuNulo(data);
+  },
+  async itensDaLixeira(): Promise<ItemDaLixeira[]> {
+    const sb = exigirSupabase();
+    const vencidos = await sb.rpc("lixeira_limpar_vencidos");
+    if (!vencidos.error) await removerArquivosDaLixeira(vencidos.data);
+    const { data, error } = await sb.rpc("lixeira_itens");
+    erro("abrir a lixeira", error);
+    return ((data ?? []) as Linha[]).map((l) => ({
+      id: texto(l.id),
+      tipo: texto(l.tipo) as TipoNaLixeira,
+      titulo: texto(l.titulo),
+      detalhe: textoOuNulo(l.detalhe),
+      apagadoEm: texto(l.apagadoEm),
+      diasRestantes: numero(l.diasRestantes),
+    }));
+  },
+  async restaurarDaLixeira(id: string) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("lixeira_restaurar", { p_id: id });
+    erro("restaurar", error);
+  },
+  async apagarDaLixeiraDeVez(id: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("lixeira_apagar_de_vez", { p_id: id });
+    erro("apagar de vez", error);
+    await removerArquivosDaLixeira(data);
+  },
+  async esvaziarLixeira(confirmacao: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("lixeira_esvaziar", { p_confirmacao: confirmacao });
+    erro("esvaziar a lixeira", error);
+    await removerArquivosDaLixeira(data);
+  },
   async meusPrazos(): Promise<PrazoDoCheckin[]> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("meus_prazos");
@@ -3145,6 +3186,28 @@ const REFEICOES_VALIDAS: RefeicaoDoDiario[] = [
 const TIPOS_DE_NOTIFICACAO: TipoDeNotificacao[] = [
   "rastreio", "foto", "checkin", "treino", "cardio", "meta", "mensagem", "desafio", "exame", "viagem",
 ];
+
+/**
+ * Os arquivos de um item apagado de vez (exame, foto do diário). Falhar aqui
+ * não desfaz o apagar: no pior caso sobra um arquivo sem dono no
+ * armazenamento, que é o que já acontecia antes da lixeira.
+ */
+async function removerArquivosDaLixeira(arquivos: unknown) {
+  const sb = exigirSupabase();
+  const porBalde = new Map<string, string[]>();
+  for (const a of Array.isArray(arquivos) ? (arquivos as Linha[]) : []) {
+    const balde = texto(a.balde);
+    const caminho = texto(a.caminho);
+    if (balde && caminho) porBalde.set(balde, [...(porBalde.get(balde) ?? []), caminho]);
+  }
+  for (const [balde, caminhos] of porBalde) {
+    try {
+      await sb.storage.from(balde).remove(caminhos);
+    } catch {
+      // segue: o registro já foi apagado de vez
+    }
+  }
+}
 
 function paraEntradaDaBase(l: Linha): EntradaDaBase {
   return {

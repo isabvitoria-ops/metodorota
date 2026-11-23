@@ -4,6 +4,7 @@ import type { AgendaDoPeriodo, EventoParaSalvar } from "@/central/types/agenda";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
+import type { ItemDaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
 import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
 import type {
@@ -988,6 +989,16 @@ export interface Repositorio {
   medicamentosDaPaciente(pacienteId: string): Promise<MedicamentoDaPaciente[]>;
   salvarMedicamentoDaPaciente(m: Omit<MedicamentoDaPaciente, "id"> & { id?: string }): Promise<MedicamentoDaPaciente>;
   apagarMedicamentoDaPaciente(id: string): Promise<void>;
+
+  // Lixeira de 30 dias (0102) — só da nutricionista
+  /** O id na lixeira do que acabou de ser apagado (para o "Desfazer"). */
+  lixeiraDoRegistro(registroId: string): Promise<string | null>;
+  /** Também tira de vez o que passou de 30 dias. */
+  itensDaLixeira(): Promise<ItemDaLixeira[]>;
+  restaurarDaLixeira(id: string): Promise<void>;
+  apagarDaLixeiraDeVez(id: string): Promise<void>;
+  /** Precisa de `confirmacao === "EXCLUIR"`. */
+  esvaziarLixeira(confirmacao: string): Promise<void>;
 
   // Tour do app (0099)
   /** Paciente: os passos ativos e se ela já viu o tour. */

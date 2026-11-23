@@ -6,6 +6,7 @@ import { Notificacoes } from "./Notificacoes";
 import { repositorio } from "@/central/dados/repositorio";
 import { Icone } from "@/central/components/Icone";
 import { PedidoDeExames } from "./PedidoDeExames";
+import { AvisoDaLixeira } from "@/central/components/AvisoDaLixeira";
 import { EstiloDoApp } from "./EstiloDoApp";
 import { NavLink, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { Marca } from "@/central/components/Marca";
@@ -195,6 +196,7 @@ export function AdminApp() {
           </div>
         </header>
 
+        <AvisoDaLixeira />
         <main className="c-admin-conteudo">
           {acesso.papel !== "admin" ? (
             <Navigate to={rotas.home} replace />

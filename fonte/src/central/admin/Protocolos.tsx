@@ -1356,7 +1356,7 @@ function GruposDeAlimentos({
                 onClick={() =>
                   void executar(
                     () => repositorio.excluirGrupoProtocolo(abertoId),
-                    "Grupo apagado. Os protocolos que já usaram continuam iguais.",
+                    "Grupo foi para a lixeira (30 dias, em Configurações). Os protocolos que já usaram continuam iguais.",
                   )
                 }
               >
