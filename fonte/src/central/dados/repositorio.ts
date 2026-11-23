@@ -3,6 +3,7 @@ import type { MinhaCozinha, ReceitaDaNutri, ReceitaParaSalvar } from "@/central/
 import type { AgendaDoPeriodo, EventoParaSalvar } from "@/central/types/agenda";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
+import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
 import type { PassoDoTour } from "@/central/types/tour";
 import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
 import type {
@@ -977,6 +978,16 @@ export interface Repositorio {
   // Resumo pré-retorno (0100)
   /** Nutricionista: o que mudou desde a última consulta concluída. */
   resumoPreRetorno(pacienteId: string): Promise<ResumoPreRetorno>;
+
+  // Medicamentos × nutrientes (0101) — só da nutricionista
+  /** A base dela: medicamento ou classe → nutrientes a acompanhar, com fonte. */
+  baseDeMedicamentos(): Promise<EntradaDaBase[]>;
+  /** Sem id, cria. Devolve a entrada gravada. */
+  salvarEntradaDaBase(entrada: Omit<EntradaDaBase, "id"> & { id?: string }): Promise<EntradaDaBase>;
+  apagarEntradaDaBase(id: string): Promise<void>;
+  medicamentosDaPaciente(pacienteId: string): Promise<MedicamentoDaPaciente[]>;
+  salvarMedicamentoDaPaciente(m: Omit<MedicamentoDaPaciente, "id"> & { id?: string }): Promise<MedicamentoDaPaciente>;
+  apagarMedicamentoDaPaciente(id: string): Promise<void>;
 
   // Tour do app (0099)
   /** Paciente: os passos ativos e se ela já viu o tour. */

@@ -35,6 +35,7 @@ import { dataBonita } from "@/central/utils/situacao";
 import { AreaTexto, Campo, Selecao, Texto } from "@/central/admin/componentes/Campos";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { HidratacaoDoProntuario } from "./HidratacaoDoProntuario";
+import { MedicamentosDoProntuario } from "./MedicamentosDoProntuario";
 import { RestricoesDoProntuario } from "./RestricoesDoProntuario";
 import { EvolucaoCorpoDoProntuario } from "./EvolucaoCorpoDoProntuario";
 
@@ -51,12 +52,13 @@ import { EvolucaoCorpoDoProntuario } from "./EvolucaoCorpoDoProntuario";
  * sala: peso de agora, adesão e quantas consultas já houve. Cada um vira
  * travessão quando não há de onde sair — um zero ali seria afirmação.
  */
-type Aba = "consulta" | "resumo" | "diario" | "conversas" | "checkin" | "exames" | "cerebro" | "historico" | "viagem" | "carta" | "acessos";
+type Aba = "consulta" | "resumo" | "medicamentos" | "diario" | "conversas" | "checkin" | "exames" | "cerebro" | "historico" | "viagem" | "carta" | "acessos";
 
 /** As abas à vista. Carta e acessos entram pelo ⋯, porque são de vez em quando. */
 const ABAS_DA_FICHA: [Aba, string][] = [
   ["consulta", "Consulta"],
   ["resumo", "Resumo"],
+  ["medicamentos", "Medicamentos"],
   ["diario", "Diário"],
   ["conversas", "Conversas"],
   ["checkin", "Check-in"],
@@ -340,6 +342,10 @@ export function Prontuario() {
 
         <HidratacaoDoProntuario pacienteId={pacienteId} pesoAtual={paciente.pesoAtual} />
         <RestricoesDoProntuario pacienteId={pacienteId} />
+      </div>
+
+      <div hidden={aba !== "medicamentos"}>
+        {aba === "medicamentos" && <MedicamentosDoProntuario pacienteId={pacienteId} pacienteNome={paciente.nome} />}
       </div>
 
       <div hidden={aba !== "diario"}>

@@ -957,4 +957,12 @@
   .doc-tr-opcao { display: block; font-size: 8pt; color: #5a7a8f; }
   .doc-tr-troca { display: block; }
   .doc-tr-troca b { color: #38546c; }
+  /* Medicamentos e nutrientes (N31) */
+  .doc-medicamentos .doc-tabela { margin-top: 4mm; }
+  .doc-medicamentos sup { font-size: 6.5pt; color: #38546c; margin-left: 0.4mm; }
+  .doc-med-anotacao { margin-top: 6mm; }
+  .doc-med-anotacao p { margin: 1.5mm 0 0; }
+  .doc-med-fontes { margin-top: 6mm; break-inside: avoid; }
+  .doc-med-fontes ol { margin: 2mm 0 0; padding-left: 5mm; font-size: 8pt; line-height: 1.45; color: #263d52; }
+  .doc-med-aviso { margin-top: 5mm; font-size: 8.5pt; color: #5a7a8f; }
 }

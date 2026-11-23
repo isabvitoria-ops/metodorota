@@ -12883,3 +12883,31 @@ textarea.c-campo-input,
   .central .c-rpr { width: 100%; height: auto; max-height: 88vh; border-radius: 20px 20px 0 0; padding: 10px 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
   .central .c-rpr-pega { display: block; width: 40px; height: 4px; border-radius: 4px; background: #C9BCAC; margin: 0 auto 4px; }
 }
+
+/* ---------- Medicamentos × nutrientes (N31): só da nutricionista ---------- */
+.central .c-med-topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.central .c-med-topo .c-secao-titulo { margin: 0; }
+.central .c-med-lista { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.central button.c-med-item { width: 100%; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 12px 14px; border: 0; border-radius: 14px; background: #F7EEE7; text-align: left; font: inherit; color: #263D52; cursor: pointer; }
+.central button.c-med-item:focus-visible { box-shadow: var(--foco); outline: none; }
+.central .c-med-parou { opacity: 0.7; }
+.central .c-med-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.central .c-med-texto strong { font-size: 15px; }
+.central .c-med-texto small { font-size: 13px; color: var(--text-muted); }
+.central .c-med-item .c-selo { flex: none; }
+.central .c-med-rodape { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+.central .c-med-rodape .c-dica { margin: 0; flex: 1 1 260px; }
+.central .c-med-tipos { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 10px; }
+.central .c-med-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.central .c-med-base { background: #C8DAE4; border-radius: 12px; padding: 10px 12px; margin: 10px 0; color: #263D52; }
+.central .c-med-base .c-rotulo { margin: 0 0 4px; }
+.central .c-med-base ul { margin: 0; padding-left: 18px; }
+.central .c-med-base li { margin: 4px 0; }
+.central .c-med-base li small { display: block; font-size: 12px; line-height: 1.4; }
+.central .c-base-med-nutriente { display: grid; grid-template-columns: 160px minmax(0, 1fr) auto; gap: 8px; align-items: start; margin-bottom: 8px; }
+.central .c-px-lembrete { background: #C8DAE4; color: #263D52; margin: 0 0 14px; }
+.central .c-px-lembrete p { margin: 4px 0; }
+@media (max-width: 720px) {
+  .central .c-med-campos { grid-template-columns: 1fr; }
+  .central .c-base-med-nutriente { grid-template-columns: 1fr; }
+}

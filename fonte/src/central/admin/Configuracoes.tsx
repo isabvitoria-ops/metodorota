@@ -1,4 +1,5 @@
 import { TourDoAppAdmin } from "./TourDoAppAdmin";
+import { BaseDeMedicamentosAdmin } from "./BaseDeMedicamentosAdmin";
 import { useState } from "react";
 import { repositorio } from "@/central/dados/repositorio";
 import { useCatalogo } from "@/central/hooks/useCatalogo";
@@ -165,6 +166,7 @@ export function ConfiguracoesAdmin() {
       </div>
 
       <TourDoAppAdmin />
+      <BaseDeMedicamentosAdmin />
 
       <TermoELgpd />
 
