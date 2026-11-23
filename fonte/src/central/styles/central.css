@@ -12945,3 +12945,11 @@ textarea.c-campo-input,
 .central .c-restricao-troca { font-size: 12px; color: var(--text-muted); }
 .central .c-alim-troca { margin: 8px 0 12px; }
 .central .c-alim-troca-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+/* ---------- Relatório para o médico (lote 3) ---------- */
+.central .c-relmed .c-chips { margin-bottom: 10px; }
+.central .c-relmed-datas { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.central .c-relmed-secoes { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 2px 12px; margin-bottom: 10px; }
+.central .c-relmed-guardados { margin-top: 16px; }
+.central .c-relmed-guardados ul { list-style: none; margin: 6px 0 0; padding: 0; }
+.central .c-relmed-guardados li { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }

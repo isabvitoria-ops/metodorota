@@ -5,6 +5,7 @@ import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
 import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
+import type { DadosDoRelatorio, RelatorioGuardado } from "@/central/types/relatorioMedico";
 import type { ItemDaLixeira, TipoNaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
 import type { ConsultaNaAgenda, EventoAgenda, EventoParaSalvar, Repeticao, TipoDeEvento } from "@/central/types/agenda";
@@ -3029,6 +3030,28 @@ export const repositorioSupabase: Repositorio = {
     const { error } = await sb.from("paciente_medicamentos").delete().eq("id", id);
     erro("apagar o medicamento", error);
   },
+  async salvarRelatorioMedico(pacienteId: string, dados: DadosDoRelatorio): Promise<RelatorioGuardado> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb
+      .from("relatorios_medico")
+      .insert({ paciente_id: pacienteId, de: dados.de, ate: dados.ate, medico: dados.medico, dados })
+      .select("id, criado_em, dados")
+      .single();
+    erro("guardar o relatório", error);
+    const l = data as Linha;
+    return { id: texto(l.id), criadoEm: texto(l.criado_em), dados: l.dados as DadosDoRelatorio };
+  },
+  async relatoriosMedicoDe(pacienteId: string): Promise<RelatorioGuardado[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb
+      .from("relatorios_medico")
+      .select("id, criado_em, dados")
+      .eq("paciente_id", pacienteId)
+      .order("criado_em", { ascending: false });
+    erro("carregar os relatórios", error);
+    return ((data ?? []) as Linha[]).map((l) => ({ id: texto(l.id), criadoEm: texto(l.criado_em), dados: l.dados as DadosDoRelatorio }));
+  },
+
   async quemEsfriou(): Promise<PacienteQueEsfriou[]> {
     const sb = exigirSupabase();
     const { data, error } = await sb.rpc("quem_esfriou");

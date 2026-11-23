@@ -6,6 +6,7 @@ import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
 import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
+import type { DadosDoRelatorio, RelatorioGuardado } from "@/central/types/relatorioMedico";
 import type { AlimentoRestrito, GravidadeRestricao, RestricaoAlimentar, TipoRestricao } from "@/central/types/restricao";
 import type { ItemDaLixeira, TipoNaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
@@ -2517,6 +2518,16 @@ export const repositorioLocal: Repositorio = {
     const i = MEDICAMENTOS_DEMO.findIndex((x) => x.id === id);
     if (i >= 0) MEDICAMENTOS_DEMO.splice(i, 1);
   },
+  // -- Relatório para o médico (0106): só na memória --
+  async salvarRelatorioMedico(pacienteId: string, dados: DadosDoRelatorio): Promise<RelatorioGuardado> {
+    const r = { id: `rel-${Date.now()}`, criadoEm: new Date().toISOString(), dados };
+    RELATORIOS_DEMO.unshift({ pacienteId, ...r });
+    return r;
+  },
+  async relatoriosMedicoDe(pacienteId: string): Promise<RelatorioGuardado[]> {
+    return RELATORIOS_DEMO.filter((r) => r.pacienteId === pacienteId).map(({ id, criadoEm, dados }) => ({ id, criadoEm, dados }));
+  },
+
   // -- Quem esfriou (0103): fictício, com pacientes da demonstração --
   async quemEsfriou(): Promise<PacienteQueEsfriou[]> {
     return [
@@ -2914,6 +2925,8 @@ const RESTRICOES_DEMO: RestricaoAlimentar[] = [
   { id: "res-tapioca", tipo: "intolerancia", alimento: "Tapioca", gravidade: "moderada", notas: null, alimentoIds: ["tapioca"], origem: "rastreio", criadoEm: "2026-11-10T12:00:00Z", atualizadoEm: "2026-11-10T12:00:00Z" },
   { id: "res-mandioca", tipo: "preferencia", alimento: "Mandioca", gravidade: "leve", notas: null, alimentoIds: ["mandioca-cozida"], origem: "consulta", criadoEm: "2026-11-12T12:00:00Z", atualizadoEm: "2026-11-12T12:00:00Z" },
 ];
+
+const RELATORIOS_DEMO: (RelatorioGuardado & { pacienteId: string })[] = [];
 
 const CONSULTAS_DEMO: Consulta[] = [
   {

@@ -47,6 +47,7 @@ export function BotaoPdf({
   rotulo = "Baixar em PDF",
   classe = "c-botao",
   desligado = false,
+  aoGerar,
 }: {
   /** "Receita — Frango com abobrinha": rodapé do PDF e nome do arquivo. */
   titulo: string;
@@ -54,6 +55,8 @@ export function BotaoPdf({
   rotulo?: string;
   classe?: string;
   desligado?: boolean;
+  /** Chamado quando o PDF fica pronto (o relatório para o médico guarda a cópia aqui). */
+  aoGerar?: () => void;
 }) {
   const { configuracoes } = useSessao();
   const [estado, definirEstado] = useState<Estado>({ tipo: "parado" });
@@ -90,6 +93,7 @@ export function BotaoPdf({
       });
       const arquivo = new File([blob], `${titulo.replace(" — ", " - ")}.pdf`, { type: "application/pdf" });
       definirEstado({ tipo: "pronto", arquivo, url: URL.createObjectURL(arquivo) });
+      aoGerar?.();
     } catch {
       definirEstado({ tipo: "erro" });
     } finally {

@@ -5,6 +5,7 @@ import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
 import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
+import type { DadosDoRelatorio, RelatorioGuardado } from "@/central/types/relatorioMedico";
 import type { ItemDaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
 import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
@@ -1006,6 +1007,10 @@ export interface Repositorio {
 
   /** Quem esfriou (0103): quem parou, com o motivo. Só da nutricionista. */
   quemEsfriou(): Promise<PacienteQueEsfriou[]>;
+
+  /** Relatório para o médico (0106): guarda a cópia do que saiu no PDF. */
+  salvarRelatorioMedico(pacienteId: string, dados: DadosDoRelatorio): Promise<RelatorioGuardado>;
+  relatoriosMedicoDe(pacienteId: string): Promise<RelatorioGuardado[]>;
 
   // Tour do app (0099)
   /** Paciente: os passos ativos e se ela já viu o tour. */
