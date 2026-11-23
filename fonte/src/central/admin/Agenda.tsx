@@ -3,9 +3,10 @@ import { Link } from "react-router-dom";
 import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { Esqueleto } from "@/central/components/Esqueleto";
+import { ResumoPreRetorno } from "@/central/components/ResumoPreRetorno";
 import { hojeSaoPaulo } from "@/central/utils/situacao";
 import type { Paciente } from "@/central/types";
-import type { AgendaDoPeriodo, EventoParaSalvar, TipoDeEvento } from "@/central/types/agenda";
+import type { AgendaDoPeriodo, ConsultaNaAgenda, EventoParaSalvar, TipoDeEvento } from "@/central/types/agenda";
 import { REPETICOES, TIPOS_DE_EVENTO } from "@/central/types/agenda";
 import type { OcorrenciaDaAgenda, Repeticao } from "@/central/types/agenda";
 import {
@@ -52,6 +53,8 @@ export function Agenda() {
   const [mes, definirMes] = useState(() => Number(hoje.slice(5, 7)) - 1);
   const [dia, definirDia] = useState(hoje);
   const [agenda, definirAgenda] = useState<AgendaDoPeriodo | null>(null);
+  const [resumoDe, definirResumoDe] = useState<ConsultaNaAgenda | null>(null);
+  const fecharResumo = useCallback(() => definirResumoDe(null), []);
   const [erroCarga, definirErroCarga] = useState(false);
   const [pacientes, definirPacientes] = useState<Paciente[]>([]);
   const [rascunho, definirRascunho] = useState<EventoParaSalvar | null>(null);
@@ -268,6 +271,10 @@ export function Agenda() {
                         <Link className="c-link" to={rotas.adminPaciente(it.consulta.pacienteId)}>
                           abrir
                         </Link>
+                        {" · "}
+                        <button type="button" className="c-link c-ag-resumo" onClick={() => definirResumoDe(it.consulta)}>
+                          resumo pré-retorno
+                        </button>
                       </small>
                     </span>
                   </li>
@@ -471,6 +478,15 @@ export function Agenda() {
           )}
         </section>
       </div>
+
+      {resumoDe && (
+        <ResumoPreRetorno
+          pacienteId={resumoDe.pacienteId}
+          pacienteNome={resumoDe.pacienteNome}
+          consulta={resumoDe}
+          aoFechar={fecharResumo}
+        />
+      )}
     </div>
   );
 }

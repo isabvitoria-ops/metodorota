@@ -3,6 +3,7 @@ import type { ReceitaDaNutri, ReceitaParaSalvar } from "@/central/types/receita"
 import type { EventoAgenda, EventoParaSalvar } from "@/central/types/agenda";
 import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
+import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { PassoDoTour } from "@/central/types/tour";
 import { RECEITAS_DEMO } from "./sementes/receitasDemo";
 import type {
@@ -2407,6 +2408,34 @@ export const repositorioLocal: Repositorio = {
   },
   async atrasosDoPaciente() {
     return [];
+  },
+  // -- Resumo pré-retorno (0100): dados fictícios, coerentes com CONSULTAS_DEMO --
+  async resumoPreRetorno(): Promise<ResumoPreRetorno> {
+    const ultima = CONSULTAS_DEMO.filter((c) => c.status === "concluida").sort((a, b) => b.data.localeCompare(a.data))[0];
+    const proxima = CONSULTAS_DEMO.find((c) => c.status === "agendada");
+    const proximaConsulta = proxima ? { data: proxima.data, hora: proxima.hora, tipo: proxima.tipo } : null;
+    if (!ultima) {
+      return { temMarco: false, desde: null, dias: null, combinado: null, proximaConsulta, bristol: {}, registrosComBristol: 0, sintomas: {}, reintroducao: [], restricoesNovas: [], metas: [], diasComRegistro: [] };
+    }
+    // Registrou em quase todos os dias, com dois buracos (para a tela mostrar as lacunas).
+    const diasComRegistro = [13, 12, 11, 10, 6, 5, 4, 3, 2, 1, 0].map(diasAtras).sort();
+    return {
+      temMarco: true,
+      desde: ultima.data,
+      dias: 14,
+      combinado: ultima.resumo ?? ultima.observacoes,
+      proximaConsulta,
+      bristol: { "3": 2, "4": 7, "6": 2 },
+      registrosComBristol: 11,
+      sintomas: { gases: 3, distensao: 2 },
+      reintroducao: [
+        { nome: "Feijão", status: "tolerancia_parcial" },
+        { nome: "Iogurte natural", status: "bem_tolerado" },
+      ],
+      restricoesNovas: [],
+      metas: [{ titulo: "Beber 2 litros de água", frequencia: "diaria", diasMarcados: 11 }],
+      diasComRegistro,
+    };
   },
   async meusPrazos(): Promise<PrazoDoCheckin[]> {
     const segunda = segundaDaSemana(hojeLocal());

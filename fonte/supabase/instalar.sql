@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql, 0095_cozinha.sql, 0096_areas_por_paciente.sql, 0097_agenda.sql, 0098_feed_e_notificacoes.sql, 0099_tour_prazo_checkin_agenda_repete.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql, 0095_cozinha.sql, 0096_areas_por_paciente.sql, 0097_agenda.sql, 0098_feed_e_notificacoes.sql, 0099_tour_prazo_checkin_agenda_repete.sql, 0100_resumo_pre_retorno.sql
 -- =============================================================================
 
 
@@ -24052,3 +24052,118 @@ grant execute on function public.prazos_dos_questionarios() to authenticated;
 grant execute on function public.atrasos_do_paciente(uuid) to authenticated;
 grant execute on function public.meus_prazos() to authenticated;
 grant execute on function public.concluir_tour() to authenticated;
+
+
+-- ###########################################################################
+-- 0100_resumo_pre_retorno.sql
+-- ###########################################################################
+
+-- 0100 — Resumo pré-retorno (N28, aprovado por ela em 23/11/2026).
+--
+-- Clicou no Retorno na Agenda, abre o que mudou desde a ÚLTIMA CONSULTA
+-- CONCLUÍDA — o mesmo marco da 0037, agora do lado da nutricionista.
+-- Sem consulta concluída, não há marco e a resposta diz isso em vez de
+-- inventar um período.
+--
+-- SÓ DADOS E CONTAGENS. Nenhuma frase diz se está bom ou ruim, e nada aqui
+-- é gerado por IA. A pontuação do check-in é feita na tela, com a mesma
+-- conta que a ficha já usa (utils/pontuacaoQuestionario.ts).
+--
+-- Só para e_admin(). A paciente não chama esta função.
+
+create or replace function public.resumo_pre_retorno(p_paciente uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path to 'public'
+as $$
+declare
+  v_marco date;
+  v_combinado text;
+  v_proxima jsonb;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista vê o resumo.' using errcode = '42501';
+  end if;
+
+  select jsonb_build_object('data', c.data, 'hora', to_char(c.hora, 'HH24:MI'), 'tipo', c.tipo)
+    into v_proxima
+    from consultas c
+   where c.paciente_id = p_paciente and c.status = 'agendada' and c.data >= hoje_sp()
+   order by c.data, c.hora nulls last
+   limit 1;
+
+  select c.data, coalesce(nullif(trim(c.resumo), ''), nullif(trim(c.observacoes), ''))
+    into v_marco, v_combinado
+    from consultas c
+   where c.paciente_id = p_paciente and c.status = 'concluida'
+   order by c.data desc, c.hora desc nulls last
+   limit 1;
+
+  if v_marco is null then
+    return jsonb_build_object('temMarco', false, 'proximaConsulta', v_proxima);
+  end if;
+
+  return jsonb_build_object(
+    'temMarco', true,
+    'desde', v_marco,
+    'dias', hoje_sp() - v_marco,
+    'combinado', v_combinado,
+    'proximaConsulta', v_proxima,
+    -- Bristol: quantas vezes cada tipo apareceu nos registros desde o marco.
+    'bristol', coalesce((
+      select jsonb_object_agg(b.bristol::text, b.n)
+        from (select r.bristol, count(*) n from reintroducao_registros r
+               where r.paciente_id = p_paciente and r.data >= v_marco and r.bristol is not null
+               group by r.bristol) b
+    ), '{}'::jsonb),
+    'registrosComBristol', (select count(*) from reintroducao_registros r
+                             where r.paciente_id = p_paciente and r.data >= v_marco and r.bristol is not null),
+    -- Sintomas: o código de cada um e quantas vezes ("nenhum" não conta).
+    'sintomas', coalesce((
+      select jsonb_object_agg(s.sintoma, s.n)
+        from (select x.sintoma, count(*) n
+                from reintroducao_registros r, unnest(r.sintomas) as x(sintoma)
+               where r.paciente_id = p_paciente and r.data >= v_marco and x.sintoma <> 'nenhum'
+               group by x.sintoma) s
+    ), '{}'::jsonb),
+    -- Reintrodução: os itens que mudaram de situação desde o marco.
+    'reintroducao', coalesce((
+      select jsonb_agg(jsonb_build_object('nome', coalesce(a.nome, i.nome_livre), 'status', i.status) order by i.atualizado_em)
+        from reintroducao_itens i
+        left join reintroducao_alimentos a on a.id = i.alimento_id
+       where i.paciente_id = p_paciente
+         and i.atualizado_em::date >= v_marco
+         and i.status in ('bem_tolerado', 'tolerancia_parcial', 'sintomas_observados', 'nao_tolerado', 'necessita_reavaliacao')
+    ), '[]'::jsonb),
+    'restricoesNovas', coalesce((
+      select jsonb_agg(jsonb_build_object('tipo', r.tipo, 'alimento', r.alimento) order by r.criado_em)
+        from restricoes_alimentares r
+       where r.paciente_id = p_paciente and r.criado_em::date >= v_marco
+    ), '[]'::jsonb),
+    -- Metas ativas: em quantos dias ela marcou desde o marco.
+    'metas', coalesce((
+      select jsonb_agg(jsonb_build_object(
+               'titulo', m.titulo, 'frequencia', m.frequencia,
+               'diasMarcados', (select count(distinct mr.data) from meta_registros mr where mr.meta_id = m.id and mr.data >= v_marco)))
+        from metas m
+       where m.paciente_id = p_paciente and m.status = 'ativa'
+    ), '[]'::jsonb),
+    -- Os dias em que ela registrou alguma coisa (para a tela achar as lacunas).
+    'diasComRegistro', coalesce((
+      select jsonb_agg(d order by d) from (
+        select r.data d from reintroducao_registros r where r.paciente_id = p_paciente and r.data >= v_marco
+        union select h.data from hidratacao_registros h where h.paciente_id = p_paciente and h.data >= v_marco
+        union select f.data from diario_fotos f where f.paciente_id = p_paciente and f.data >= v_marco
+        union select mr.data from meta_registros mr join metas m on m.id = mr.meta_id where m.paciente_id = p_paciente and mr.data >= v_marco
+        union select (e.respondido_em at time zone 'America/Sao_Paulo')::date from questionario_envios e where e.paciente_id = p_paciente and e.respondido_em::date >= v_marco
+        union select (t.criado_em at time zone 'America/Sao_Paulo')::date from treino_sessoes t where t.paciente_id = p_paciente and t.criado_em::date >= v_marco
+      ) x
+    ), '[]'::jsonb)
+  );
+end;
+$$;
+
+revoke all on function public.resumo_pre_retorno(uuid) from public, anon;
+grant execute on function public.resumo_pre_retorno(uuid) to authenticated;
