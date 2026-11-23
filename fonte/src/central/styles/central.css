@@ -12937,3 +12937,11 @@ textarea.c-campo-input,
 .central .c-esfriou-retorno { margin-top: 8px; }
 .central .c-esfriou-nomes { margin: 6px 0 0; padding-left: 18px; font-size: 14px; }
 .central .c-esfriou-nomes a { color: #38546C; }
+
+/* ---------- Restrições na troca (0105) ---------- */
+.central .c-troca-aviso { display: block; width: fit-content; margin-top: 4px; padding: 2px 10px; border-radius: var(--radius-pill); background: #F0B8C4; color: #263D52; font-size: 12px; font-weight: 600; }
+.central .c-troca-aviso--resultado { margin: 8px auto 0; }
+.central .c-troca-escondidas { margin: 10px 0 0; font-size: 13px; color: var(--text-muted); }
+.central .c-restricao-troca { font-size: 12px; color: var(--text-muted); }
+.central .c-alim-troca { margin: 8px 0 12px; }
+.central .c-alim-troca-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }

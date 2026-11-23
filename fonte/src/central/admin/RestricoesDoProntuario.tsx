@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { repositorio } from "@/central/dados/repositorio";
+import { AlimentosDaTroca } from "./AlimentosDaTroca";
+import { catalogo } from "@/central/dados/catalogo";
 import type {
   RestricaoAlimentar,
   TipoRestricao,
@@ -30,6 +32,7 @@ const VAZIO: RestricaoForm = {
   alimento: "",
   gravidade: "moderada",
   notas: "",
+  alimentoIds: [],
 };
 
 interface RestricaoForm {
@@ -38,6 +41,7 @@ interface RestricaoForm {
   alimento: string;
   gravidade: GravidadeRestricao;
   notas: string;
+  alimentoIds: string[];
 }
 
 function seloGravidade(g: GravidadeRestricao): string {
@@ -104,6 +108,7 @@ export function RestricoesDoProntuario({ pacienteId }: Props) {
       alimento: r.alimento,
       gravidade: r.gravidade,
       notas: r.notas ?? "",
+      alimentoIds: r.alimentoIds ?? [],
     });
     definirAberto(true);
     definirMensagem(null);
@@ -124,6 +129,7 @@ export function RestricoesDoProntuario({ pacienteId }: Props) {
         form.alimento.trim(),
         form.gravidade,
         form.notas.trim() || null,
+        form.alimentoIds,
       );
       definirAberto(false);
       definirForm({ ...VAZIO });
@@ -190,6 +196,8 @@ export function RestricoesDoProntuario({ pacienteId }: Props) {
             </Campo>
           </div>
 
+          <AlimentosDaTroca ids={form.alimentoIds} aoMudar={(ids) => definirForm((f) => ({ ...f, alimentoIds: ids }))} />
+
           <Campo rotulo="Notas (opcional)">
             <AreaTexto
               valor={form.notas}
@@ -236,6 +244,12 @@ export function RestricoesDoProntuario({ pacienteId }: Props) {
                 <strong>{r.alimento}</strong>
                 <span className={seloGravidade(r.gravidade)}>{rotuloGravidade(r.gravidade)}</span>
                 <span className="c-restricao-tipo">{rotuloTipo(r.tipo)}</span>
+                {(r.alimentoIds ?? []).length > 0 && (
+                  <span className="c-restricao-troca">
+                    Na troca: {(r.alimentoIds ?? []).map((id) => catalogo.alimento(id)?.nome ?? id).join(", ")}
+                  </span>
+                )}
+                {r.origem === "rastreio" && <span className="c-restricao-troca">Veio da Rastreabilidade</span>}
               </div>
               {r.notas && <p className="c-texto-muted" style={{ margin: "4px 0 0" }}>{r.notas}</p>}
               <div style={{ display: "flex", gap: 8, marginTop: 8 }}>

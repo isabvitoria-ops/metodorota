@@ -101,7 +101,7 @@ import type { FotoDoDiario, RefeicaoDoDiario } from "@/central/types/diarioDeFot
 import type { MensagemDaRefeicao, ResumoDaConversa } from "@/central/types/conversaDaRefeicao";
 import type { PanoramaDoPaciente } from "@/central/types/panorama";
 import type { MinhaHidratacao, HidratacaoDoPaciente, TipoLiquido } from "@/central/types/hidratacao";
-import type { RestricaoAlimentar, TipoRestricao, GravidadeRestricao } from "@/central/types/restricao";
+import type { AlimentoRestrito, RestricaoAlimentar, TipoRestricao, GravidadeRestricao } from "@/central/types/restricao";
 import type {
   CamposDoDiario,
   DiaDoDiarioDeViagem,
@@ -909,10 +909,13 @@ export interface Repositorio {
   // Restrições alimentares (0079)
   // ---------------------------------------------------------------------
 
-  salvarRestricao(pacienteId: string, id: string | null, tipo: TipoRestricao, alimento: string, gravidade: GravidadeRestricao, notas: string | null): Promise<{ id: string }>;
+  /** `alimentoIds`: os alimentos da troca ligados (0105). Nulo mantém os que já estão. */
+  salvarRestricao(pacienteId: string, id: string | null, tipo: TipoRestricao, alimento: string, gravidade: GravidadeRestricao, notas: string | null, alimentoIds?: string[] | null, origem?: "consulta" | "rastreio" | null): Promise<{ id: string }>;
   excluirRestricao(id: string): Promise<void>;
   restricoesDoPaciente(pacienteId: string): Promise<RestricaoAlimentar[]>;
   minhasRestricoes(): Promise<RestricaoAlimentar[]>;
+  /** A Troca da paciente: os alimentos ligados a alguma restrição dela (0105). */
+  meusAlimentosRestritos(): Promise<AlimentoRestrito[]>;
 
   // ---------------------------------------------------------------------
   // Rota Viagem (0086)
