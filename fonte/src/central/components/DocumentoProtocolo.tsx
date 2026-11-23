@@ -143,7 +143,11 @@ export function DocumentoProtocolo({
                           </span>
                         )}
                       </th>
-                      <td className="doc-data doc-quantidade">{item.quantidade}</td>
+                      <td className="doc-data doc-quantidade">
+                        {conteudo.medidasCaseiras && item.medida
+                          ? `${item.medida.texto}${item.medida.nivel ? ` ${item.medida.nivel}` : ""}${item.medida.ou ? ` ou ${item.medida.ou.texto}` : ""}`
+                          : item.quantidade}
+                      </td>
                       {temTrocas && (
                         <td>
                           {item.substituicoes.length > 0 ? (

@@ -1,3 +1,4 @@
+import { MinhasMedidas } from "./pages/MinhasMedidas";
 import { useEffect } from "react";
 import { ComArea, PortaDaViagem } from "./components/ComArea";
 import { Cozinha, ReceitaDetalhe } from "./pages/Cozinha";
@@ -54,6 +55,7 @@ export function CentralApp() {
         <Routes>
           <Route index element={<Home />} />
           <Route path="protocolo" element={<Protocolo />} />
+          <Route path="medidas" element={<MinhasMedidas />} />
           <Route path="cozinha" element={<ComArea chave="cozinha"><Cozinha /></ComArea>} />
           <Route path="cozinha/:receitaId" element={<ComArea chave="cozinha"><ReceitaDetalhe /></ComArea>} />
           {/* Rolê no Mercado — escondido até as fotos individuais ficarem prontas */}

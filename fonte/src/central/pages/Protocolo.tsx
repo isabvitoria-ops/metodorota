@@ -9,6 +9,7 @@ import { EstadoVazio } from "@/central/components/EstadoVazio";
 import { ConversaDaRefeicao } from "@/central/components/ConversaDaRefeicao";
 import { pedirPdf } from "@/central/utils/pedidoDePdf";
 import { Icone } from "@/central/components/Icone";
+import { LinhaDaMedida } from "@/central/components/MedidaCaseira";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { TextoComLinks } from "@/central/components/TextoComLinks";
 import type { ResumoDaConversa } from "@/central/types/conversaDaRefeicao";
@@ -201,6 +202,16 @@ export function Protocolo() {
               </div>
             )}
 
+            {conteudo.medidasCaseiras && (
+              <button type="button" className="c-md-guia" onClick={() => navegar(rotas.medidas)}>
+                <span>
+                  <strong>Seu plano está em medidas caseiras</strong>
+                  <span>Toque no desenho ao lado do alimento para ver qual é a colher. Ou veja todas aqui.</span>
+                </span>
+                <Icone nome="seta" tamanho={18} />
+              </button>
+            )}
+
             {secoes.length > 2 && (
               <nav className="c-prot-nav" aria-label="Partes do protocolo">
                 {secoes.map((s) => (
@@ -242,6 +253,7 @@ export function Protocolo() {
                 chaveDasOpcoes={chaveDasOpcoes(acesso.perfilId)}
                 naoLidas={naoLidasDaRefeicao(resumo, refeicao.nome)}
                 aoConversar={() => definirConversa(refeicao)}
+                caseiras={conteudo.medidasCaseiras === true}
               />
             ))}
 
@@ -341,6 +353,7 @@ function Refeicao({
   chaveDasOpcoes: chave,
   naoLidas,
   aoConversar,
+  caseiras,
 }: {
   id: string;
   refeicao: RefeicaoProtocolo;
@@ -348,6 +361,7 @@ function Refeicao({
   chaveDasOpcoes: string;
   naoLidas: number;
   aoConversar: () => void;
+  caseiras: boolean;
 }) {
   const opcoes = refeicao.opcoes;
   // A opção escolhida é lembrada pelo RÓTULO: se a nutricionista reordenar as
@@ -419,7 +433,7 @@ function Refeicao({
 
       <ul className="c-prot-itens">
         {opcao.itens.map((item, i) => (
-          <Item key={`${item.alimento}-${i}`} item={item} />
+          <Item key={`${item.alimento}-${i}`} item={item} caseiras={caseiras} />
         ))}
       </ul>
 
@@ -475,7 +489,7 @@ function ReceitasDaRefeicao({ ids }: { ids: string[] }) {
 /** Até aqui as trocas ficam abertas; acima disso a lista dobra, para o item não virar uma página. */
 const TROCAS_A_VISTA = 3;
 
-function Item({ item }: { item: ItemProtocolo }) {
+function Item({ item, caseiras }: { item: ItemProtocolo; caseiras: boolean }) {
   const [aberto, definirAberto] = useState(false);
   const trocas = item.substituicoes.filter((t) => t.trim() !== "");
   const visiveis = aberto ? trocas : trocas.slice(0, TROCAS_A_VISTA);
@@ -484,8 +498,11 @@ function Item({ item }: { item: ItemProtocolo }) {
     <li className="c-prot-item">
       <div className="c-prot-item-linha">
         <span className="c-prot-item-nome">{item.alimento}</span>
-        {item.quantidade && <span className="c-prot-item-qtd">{item.quantidade}</span>}
+        {/* Em medidas caseiras, a medida com o desenho substitui os gramas.
+            Item sem medida caseira continua mostrando a quantidade. */}
+        {item.quantidade && !(caseiras && item.medida) && <span className="c-prot-item-qtd">{item.quantidade}</span>}
       </div>
+      {caseiras && item.medida && <LinhaDaMedida medida={item.medida} />}
 
       {item.imagem && <FotoInline item={item} />}
 
