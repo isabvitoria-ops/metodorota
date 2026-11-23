@@ -2386,7 +2386,9 @@ export const repositorioLocal: Repositorio = {
   async agendaDoPeriodo(de: string, ate: string) {
     const noPeriodo = (d: string) => d >= de && d <= ate;
     return {
-      eventos: [...AGENDA_DEMO.values()].filter((e) => noPeriodo(e.data)).map((e) => ({ ...e })),
+      eventos: [...AGENDA_DEMO.values()]
+        .filter((e) => noPeriodo(e.data) || (e.repete !== "nao" && e.data <= ate && (!e.repeteAte || e.repeteAte >= de)))
+        .map((e) => ({ ...e })),
       consultas: CONSULTAS_DEMO.filter((c) => noPeriodo(c.data)).map((c) => ({
         id: c.id,
         pacienteId: PACIENTE_DA_DEMONSTRACAO,
@@ -2487,10 +2489,10 @@ function notificacoesDeExemplo(): Notificacao[] {
 const AGENDA_DEMO = new Map<string, EventoAgenda>(
   (
     [
-      { id: "ev-1", titulo: "Treino", tipo: "pessoal", data: diasAtras(0), horaInicio: "07:00", horaFim: "08:00", local: "Academia", observacao: null, pacienteId: null },
-      { id: "ev-2", titulo: "Visita à clínica parceira", tipo: "visita", data: diasAtras(-2), horaInicio: "10:00", horaFim: "11:30", local: null, observacao: "Levar os PDFs do método.", pacienteId: null },
-      { id: "ev-3", titulo: "Manicure", tipo: "pessoal", data: diasAtras(-3), horaInicio: "18:00", horaFim: null, local: null, observacao: null, pacienteId: null },
-      { id: "ev-4", titulo: "Gravar vídeos do TikTok", tipo: "outro", data: diasAtras(-5), horaInicio: null, horaFim: null, local: null, observacao: null, pacienteId: null },
+      { id: "ev-1", titulo: "Treino", tipo: "pessoal", data: diasAtras(0), horaInicio: "07:00", horaFim: "08:00", local: "Academia", observacao: null, pacienteId: null, repete: "semanal", diasSemana: [1, 3, 5], repeteAte: null, excecoes: [] },
+      { id: "ev-2", titulo: "Visita à clínica parceira", tipo: "visita", data: diasAtras(-2), horaInicio: "10:00", horaFim: "11:30", local: null, observacao: "Levar os PDFs do método.", pacienteId: null, repete: "nao", diasSemana: [], repeteAte: null, excecoes: [] },
+      { id: "ev-3", titulo: "Manicure", tipo: "pessoal", data: diasAtras(-3), horaInicio: "18:00", horaFim: null, local: null, observacao: null, pacienteId: null, repete: "nao", diasSemana: [], repeteAte: null, excecoes: [] },
+      { id: "ev-4", titulo: "Gravar vídeos do TikTok", tipo: "outro", data: diasAtras(-5), horaInicio: null, horaFim: null, local: null, observacao: null, pacienteId: null, repete: "nao", diasSemana: [], repeteAte: null, excecoes: [] },
     ] satisfies EventoAgenda[]
   ).map((e) => [e.id, e]),
 );

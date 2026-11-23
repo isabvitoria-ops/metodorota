@@ -12825,3 +12825,5 @@ textarea.c-campo-input,
 .central .c-mde-modo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: #C8DAE4; border-radius: 16px; padding: 12px 14px; margin: 0 0 16px; }
 .central .c-mde-modo > div { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 200px; color: #263D52; }
 .central .c-mde-modo span { font-size: 13.5px; }
+.central .c-ag-semana-escolha { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.central button.c-ag-dia-semana { width: 40px; height: 40px; padding: 0; justify-content: center; }
