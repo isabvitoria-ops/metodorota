@@ -965,4 +965,10 @@
   .doc-med-fontes { margin-top: 6mm; break-inside: avoid; }
   .doc-med-fontes ol { margin: 2mm 0 0; padding-left: 5mm; font-size: 8pt; line-height: 1.45; color: #263d52; }
   .doc-med-aviso { margin-top: 5mm; font-size: 8.5pt; color: #5a7a8f; }
+  /* Relatório para o médico (lote 3) */
+  .doc-rel-secao { margin-top: 5mm; break-inside: avoid; }
+  .doc-rel-secao p { margin: 1.5mm 0 0; font-size: 10pt; line-height: 1.45; color: #263d52; }
+  .doc-rel-secao .doc-tabela th:nth-child(1), .doc-rel-secao .doc-tabela td:nth-child(1) { width: 32%; }
+  .doc-rel-parecer { margin-top: 6mm; }
+  .doc-rel-parecer p { margin: 1.5mm 0 0; white-space: pre-wrap; }
 }

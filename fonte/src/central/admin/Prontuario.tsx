@@ -36,6 +36,7 @@ import { AreaTexto, Campo, Selecao, Texto } from "@/central/admin/componentes/Ca
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { HidratacaoDoProntuario } from "./HidratacaoDoProntuario";
 import { MedicamentosDoProntuario } from "./MedicamentosDoProntuario";
+import { RelatorioParaOMedico } from "./RelatorioParaOMedico";
 import { RestricoesDoProntuario } from "./RestricoesDoProntuario";
 import { EvolucaoCorpoDoProntuario } from "./EvolucaoCorpoDoProntuario";
 
@@ -304,6 +305,7 @@ export function Prontuario() {
           anotação não pode jogar fora o que ela já escreveu. */}
       <div hidden={aba !== "consulta"}>
         <AbaConsulta pacienteId={pacienteId} consultas={consultas} aoMudar={carregar} />
+        <RelatorioParaOMedico pacienteId={pacienteId} pacienteNome={paciente.nome} />
       </div>
 
       <div hidden={aba !== "resumo"}>

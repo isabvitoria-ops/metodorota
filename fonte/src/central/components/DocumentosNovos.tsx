@@ -10,6 +10,8 @@ import { partirSubstituicao } from "@/central/utils/protocoloDaPaciente";
 import type { ListaDeCompras } from "@/central/utils/listaDeCompras";
 import { CRN_DA_NUTRICIONISTA } from "@/central/utils/marcaDosDocumentos";
 import { hojeEmTexto } from "@/central/utils/dataDoDocumento";
+import type { DadosDoRelatorio } from "@/central/types/relatorioMedico";
+import { variacaoDoPeso } from "@/central/utils/relatorioMedico";
 import { CabecalhoDoDocumento } from "./CabecalhoDoDocumento";
 import { FolhaDeDocumento } from "./FolhaDeDocumento";
 
@@ -255,6 +257,144 @@ export function DocumentoMedicamentos({
           </section>
         )}
         <p className="doc-med-aviso">Documento de apoio. Não substitui a avaliação médica e não é prescrição.</p>
+        <div className="doc-assinatura">
+          <span className="doc-assinatura-linha" />
+          <strong>{nutricionista}</strong>
+          <span>Nutricionista · {CRN_DA_NUTRICIONISTA}</span>
+        </div>
+      </article>
+    </FolhaDeDocumento>
+  );
+}
+
+const dataBr = (iso: string) => iso.slice(0, 10).split("-").reverse().join("/");
+
+/**
+ * Relatório de evolução para o médico (lote 3). Só o que foi registrado no
+ * período, seção por seção; o único texto livre é o parecer dela. Nada aqui
+ * é escrito por IA.
+ */
+export function DocumentoRelatorioMedico({ dados, nutricionista }: { dados: DadosDoRelatorio; nutricionista: string }) {
+  const variacao = variacaoDoPeso(dados.peso);
+  return (
+    <FolhaDeDocumento titulo={`Relatório de evolução — ${dados.paciente}`}>
+      <article className="doc doc-relatorio">
+        <CabecalhoDoDocumento sobretitulo="Acompanhamento nutricional" titulo="Relatório de evolução" paciente={dados.paciente} data={dataBr(dados.emitidoEm)} />
+        <p className="doc-novo-intro">
+          Período de {dataBr(dados.de)} a {dataBr(dados.ate)}
+          {dados.medico ? `, para ${dados.medico}` : ""}. Só o que foi registrado no acompanhamento.
+        </p>
+
+        {dados.fase && (
+          <section className="doc-rel-secao">
+            <h2 className="doc-pa-secao-titulo">Fase do método</h2>
+            <p>
+              {dados.fase.nome}, desde {dataBr(dados.fase.desde)}.
+            </p>
+          </section>
+        )}
+
+        {dados.sintomas && (
+          <section className="doc-rel-secao">
+            <h2 className="doc-pa-secao-titulo">Sintomas e Bristol</h2>
+            {dados.sintomas.registros === 0 ? (
+              <p>Nenhum registro de rastreio no período.</p>
+            ) : (
+              <>
+                <p>
+                  {dados.sintomas.registros} {dados.sintomas.registros === 1 ? "registro" : "registros"} de rastreio,{" "}
+                  {dados.sintomas.comSintoma} com sintoma.
+                </p>
+                {dados.sintomas.porSintoma.length > 0 && (
+                  <p>{dados.sintomas.porSintoma.map((s) => `${s.rotulo}: ${s.vezes}`).join(" · ")}</p>
+                )}
+                {dados.sintomas.bristol.length > 0 && (
+                  <p>Bristol: {dados.sintomas.bristol.map((b) => `tipo ${b.tipo} (${b.vezes})`).join(" · ")}</p>
+                )}
+              </>
+            )}
+          </section>
+        )}
+
+        {dados.tolerancia && (
+          <section className="doc-rel-secao">
+            <h2 className="doc-pa-secao-titulo">Tolerou e não tolerou</h2>
+            {dados.tolerancia.length === 0 ? (
+              <p>Nenhum alimento classificado ainda.</p>
+            ) : (
+              <table className="doc-tabela doc-tr-tabela">
+                <tbody>
+                  {dados.tolerancia.map((g) => (
+                    <tr key={g.situacao}>
+                      <td>
+                        <strong>{g.situacao}</strong>
+                      </td>
+                      <td colSpan={2}>{g.alimentos.join(", ")}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </section>
+        )}
+
+        {dados.checkin && (
+          <section className="doc-rel-secao">
+            <h2 className="doc-pa-secao-titulo">Check-in da semana</h2>
+            {dados.checkin.length === 0 ? (
+              <p>Nenhum check-in com nota no período.</p>
+            ) : (
+              dados.checkin.map((q) => (
+                <p key={q.titulo}>
+                  {dados.checkin!.length > 1 ? <strong>{q.titulo}: </strong> : null}
+                  {q.notas.map((n) => `${dataBr(n.data).slice(0, 5)}: ${n.nota}`).join(" · ")} (nota de 0 a 100)
+                </p>
+              ))
+            )}
+          </section>
+        )}
+
+        {dados.peso && (
+          <section className="doc-rel-secao">
+            <h2 className="doc-pa-secao-titulo">Peso e medidas</h2>
+            {!dados.peso.primeira ? (
+              <p>Nenhuma avaliação com peso no período.</p>
+            ) : (
+              <p>
+                {dados.peso.ultima
+                  ? `${dados.peso.primeira.peso.toLocaleString("pt-BR")} kg em ${dataBr(dados.peso.primeira.data)} e ${dados.peso.ultima.peso.toLocaleString("pt-BR")} kg em ${dataBr(dados.peso.ultima.data)} (${variacao}).`
+                  : `${dados.peso.primeira.peso.toLocaleString("pt-BR")} kg em ${dataBr(dados.peso.primeira.data)}.`}
+              </p>
+            )}
+            {dados.peso.circunferencias.length > 0 && (
+              <p>Medidas da última avaliação: {dados.peso.circunferencias.map((c) => `${c.nome} ${c.valor} cm`).join(" · ")}</p>
+            )}
+          </section>
+        )}
+
+        {dados.consultas && (
+          <section className="doc-rel-secao">
+            <h2 className="doc-pa-secao-titulo">Anotações de consulta</h2>
+            {dados.consultas.length === 0 ? (
+              <p>Nenhuma consulta concluída com anotação no período.</p>
+            ) : (
+              dados.consultas.map((c) => (
+                <p key={c.data}>
+                  <strong>{dataBr(c.data)}: </strong>
+                  {[c.resumo, c.observacoes].filter(Boolean).join(" · ")}
+                </p>
+              ))
+            )}
+          </section>
+        )}
+
+        {dados.parecer && (
+          <div className="doc-pa-ajustes doc-rel-parecer">
+            <strong>Parecer da nutricionista</strong>
+            <p>{dados.parecer}</p>
+          </div>
+        )}
+        <p className="doc-med-aviso">Documento de apoio ao acompanhamento. Não substitui a avaliação médica.</p>
         <div className="doc-assinatura">
           <span className="doc-assinatura-linha" />
           <strong>{nutricionista}</strong>
