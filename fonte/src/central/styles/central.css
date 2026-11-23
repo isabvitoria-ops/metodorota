@@ -12780,3 +12780,48 @@ textarea.c-campo-input,
   .c-calc-impressao th:nth-child(n+3), .c-calc-impressao td:nth-child(n+3) { text-align: right; width: 11%; }
   .c-calc-impressao tr.c-calc-impressao-troca td { color: #5A7A8F; font-size: 9pt; padding-left: 14pt; border-bottom-style: dotted; }
 }
+
+/* ---------------------------------------------------------------------
+ * Plano em medidas caseiras: o desenho do utensílio ao lado do alimento,
+ * o "ou", a folha "qual é a colher?" e o guia "Minhas medidas".
+ * ------------------------------------------------------------------- */
+.central button.c-md-linha { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 8px; padding: 6px 0; background: none; border: 0; text-align: left; cursor: pointer; color: inherit; font: inherit; }
+.central .c-md-ic { width: 52px; height: 52px; border-radius: 14px; background: #F7EEE7; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.central .c-md-qtd { display: flex; flex-direction: column; font-size: 17px; font-weight: 700; color: #263D52; line-height: 1.25; }
+.central .c-md-qtd small { font-size: 12.5px; font-weight: 400; color: #5A7A8F; text-decoration: underline; margin-top: 2px; }
+.central .c-md-ou { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; position: relative; }
+.central button.c-md-op { border: 1.5px solid var(--border-strong); border-radius: 14px; padding: 10px 8px; background: #fff; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; font: inherit; font-weight: 700; font-size: 14.5px; color: #263D52; cursor: pointer; }
+.central .c-md-oux { position: absolute; left: 50%; top: 38px; transform: translateX(-50%); background: #fff; border-radius: 99px; padding: 2px 6px; font-size: 12px; font-weight: 700; color: #5A7A8F; }
+.central .c-md-ou-dica { grid-column: 1 / -1; margin: 0; font-size: 12.5px; color: var(--text-muted); }
+.central .c-md-veu { position: fixed; inset: 0; background: rgba(38, 61, 82, 0.5); z-index: 80; display: flex; align-items: flex-end; justify-content: center; }
+.central .c-md-folha { width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; background: #fff; border-radius: 22px 22px 0 0; padding: 14px 18px calc(22px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; }
+.central .c-md-alca { width: 42px; height: 5px; border-radius: 99px; background: #C9BCAC; margin: 0 auto 6px; }
+.central .c-md-rot { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #38546C; }
+.central .c-md-desc { margin: 0; font-size: 14.5px; color: #263D52; line-height: 1.45; }
+.central .c-md-fila { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.central .c-md-fila > div { display: grid; grid-template-columns: 170px 1fr auto; align-items: center; gap: 8px; font-size: 13px; color: #5A7A8F; }
+.central .c-md-fila > div.c-md-esta { color: #263D52; font-weight: 700; }
+.central .c-md-etiqueta { background: #A82B3C; color: #F7EEE7; border-radius: 99px; padding: 2px 8px; font-size: 11px; letter-spacing: 0.06em; }
+.central .c-md-grande { display: flex; justify-content: center; padding: 10px 0; }
+.central .c-md-niveis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.central .c-md-niveis > div { background: #F7EEE7; border-radius: 14px; padding: 8px; text-align: center; font-size: 13px; color: #263D52; display: flex; flex-direction: column; align-items: center; border: 2px solid transparent; }
+.central .c-md-niveis > div.c-md-esta { border-color: #38546C; }
+.central .c-md-niveis span { color: #5A7A8F; font-size: 12.5px; }
+.central button.c-md-guia { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: #C8DAE4; border: 0; border-radius: 16px; padding: 12px 14px; margin: 0 0 14px; color: #263D52; font: inherit; cursor: pointer; }
+.central button.c-md-guia > span { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.central button.c-md-guia span span { font-size: 13.5px; }
+.central .c-md-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.central .c-md-ut { background: #fff; border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.central .c-md-ut b { font-size: 14px; color: #263D52; }
+.central .c-md-ut span { font-size: 12.5px; color: var(--text-muted); line-height: 1.35; }
+@media (max-width: 400px) { .central .c-md-fila > div { grid-template-columns: 150px 1fr auto; } .central .c-md-fila svg { max-width: 145px; height: auto; } }
+/* No editor dela */
+.central .c-mde { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 8px; background: #F7EEE7; border-radius: 14px; padding: 10px 12px; }
+.central .c-mde-linha { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
+@media (max-width: 560px) { .central .c-mde-linha { grid-template-columns: minmax(0, 1fr); } }
+.central .c-mde-escolha { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.central .c-mde-escolha .c-select { flex: 1; min-width: 0; }
+.central .c-mde-ic { width: 40px; height: 40px; border-radius: 10px; background: #fff; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.central .c-mde-modo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: #C8DAE4; border-radius: 16px; padding: 12px 14px; margin: 0 0 16px; }
+.central .c-mde-modo > div { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 200px; color: #263D52; }
+.central .c-mde-modo span { font-size: 13.5px; }

@@ -22,6 +22,39 @@ export interface ItemProtocolo {
   link?: string;
   /** Caminho no balde `protocolo-fotos`, ou URL externa. */
   imagem?: string;
+  /**
+   * A medida caseira com o desenho do utensílio. Só aparece para a paciente
+   * quando o protocolo está "em medidas caseiras"; aí ela vê isto no lugar
+   * da quantidade (que continua guardada para a nutricionista).
+   */
+  medida?: MedidaCaseira;
+}
+
+/** Os utensílios que têm desenho (ver components/Utensilios.tsx). */
+export type Utensilio =
+  | "colher_cafe"
+  | "colher_cha"
+  | "colher_sobremesa"
+  | "colher_sopa"
+  | "colher_servir"
+  | "escumadeira"
+  | "concha"
+  | "pegador"
+  | "copo_americano"
+  | "xicara"
+  | "fatia"
+  | "unidade"
+  | "file"
+  | "pedaco";
+
+export interface MedidaCaseira {
+  utensilio: Utensilio;
+  /** "2 colheres de sopa" — escrito por ela. */
+  texto: string;
+  /** Só quando ela quiser dizer. Vazio = não diz. */
+  nivel?: "rasa" | "cheia";
+  /** O outro jeito de medir a mesma quantidade ("ou 10 colheres de sopa"). */
+  ou?: { utensilio: Utensilio; texto: string };
 }
 
 /**
@@ -60,6 +93,11 @@ export interface ConteudoProtocolo {
   orientacoes: string[];
   refeicoes: RefeicaoProtocolo[];
   secoes: SecaoProtocolo[];
+  /**
+   * Plano em medidas caseiras: a paciente vê a medida com o desenho do
+   * utensílio no lugar dos gramas. Ligado por paciente, no protocolo dela.
+   */
+  medidasCaseiras?: boolean;
 }
 
 export interface Protocolo {

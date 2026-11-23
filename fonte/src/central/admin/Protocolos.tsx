@@ -20,6 +20,7 @@ import { DocumentoProtocolo } from "@/central/components/DocumentoProtocolo";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { dataBonita } from "@/central/utils/situacao";
 import { AreaDeLinhas, AreaTexto, Campo, NumeroDecimal, Selecao, Texto } from "./componentes/Campos";
+import { EditorDaMedidaCaseira } from "./EditorDaMedidaCaseira";
 import { numeroDeTexto, textoDeNumero } from "@/central/utils/numero";
 import { conferirAvaliacao } from "@/central/utils/conferenciaAvaliacao";
 import {
@@ -377,6 +378,24 @@ function EditorDoProtocolo({
         <Texto valor={titulo} aoMudar={definirTitulo} placeholder="Protocolo de emagrecimento" />
       </Campo>
 
+      <section className="c-mde-modo">
+        <div>
+          <strong>Plano em medidas caseiras</strong>
+          <span>
+            {conteudo.medidasCaseiras
+              ? "Ligado: ela vê a medida com o desenho do utensílio no lugar dos gramas. Os gramas ficam só para você."
+              : "Desligado: ela vê a quantidade como você escreveu (gramas)."}
+          </span>
+        </div>
+        <button
+          type="button"
+          className={`c-botao c-botao-pequeno ${conteudo.medidasCaseiras ? "c-botao-secundario" : ""}`}
+          onClick={() => definirConteudo({ ...conteudo, medidasCaseiras: !conteudo.medidasCaseiras })}
+        >
+          {conteudo.medidasCaseiras ? "Voltar para gramas" : "Usar medidas caseiras"}
+        </button>
+      </section>
+
       <Campo
         rotulo="Ajustes desta semana"
         dica="Aparece em destaque no topo da tela dela. Serve para trocar uma coisa sem refazer o protocolo."
@@ -468,6 +487,7 @@ function EditorDoProtocolo({
           grupos={grupos}
           receitas={receitas}
           pacienteId={paciente.id}
+          caseiras={conteudo.medidasCaseiras === true}
           primeira={iRefeicao === 0}
           ultima={iRefeicao === conteudo.refeicoes.length - 1}
           recolhida={recolhidas.has(iRefeicao)}
@@ -687,6 +707,7 @@ function BlocoDaRefeicao({
   grupos,
   receitas,
   pacienteId,
+  caseiras,
   primeira,
   ultima,
   recolhida,
@@ -699,6 +720,7 @@ function BlocoDaRefeicao({
   grupos: GrupoDoProtocolo[];
   receitas: ReceitaDaNutri[];
   pacienteId: string;
+  caseiras: boolean;
   primeira: boolean;
   ultima: boolean;
   recolhida: boolean;
@@ -815,6 +837,17 @@ function BlocoDaRefeicao({
                     placeholder="3 fatias - 75g"
                   />
                 </Campo>
+                {caseiras && (
+                  <EditorDaMedidaCaseira
+                    medida={item.medida}
+                    aoMudar={(m) =>
+                      trocarOpcao(iOpcao, {
+                        ...opcao,
+                        itens: opcao.itens.map((x, j) => (j === iItem ? { ...x, medida: m } : x)),
+                      })
+                    }
+                  />
+                )}
                 <Campo rotulo="Substituições" dica="Uma por linha. Pode não ter nenhuma.">
                   <AreaDeLinhas
                     valor={item.substituicoes}
