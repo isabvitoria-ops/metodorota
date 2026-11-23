@@ -213,8 +213,6 @@ export function Home() {
 
         <CardDeInstalar />
 
-        {(acesso.viagem || areaLigada(acesso, "aviso_viagem")) && <CardDeViagem temGuia={acesso.viagem} />}
-
         {(acesso.papel === "admin" || acesso.desafio !== false) && <CardDoDesafio />}
 
         {/* A Rastreabilidade é para quem faz o acompanhamento intestinal.
@@ -262,6 +260,10 @@ export function Home() {
             </section>
           );
         })}
+
+        {/* Pedido dela (23/11): a viagem sai do topo e fica no fim, junto de
+            Meus documentos — é de vez em quando, não do dia a dia. */}
+        {(acesso.viagem || areaLigada(acesso, "aviso_viagem")) && <CardDeViagem temGuia={acesso.viagem} />}
 
         {acesso.papel === "admin" && (
           <button type="button" className="c-link" style={{ marginTop: 20 }} onClick={() => navegar(rotas.admin)}>
