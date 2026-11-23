@@ -2,8 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Icone, type NomeIcone } from "@/central/components/Icone";
 import { Marca } from "@/central/components/Marca";
 import { TourDoApp } from "@/central/components/TourDoApp";
-import { MinhaMetaDeHoje } from "@/central/components/MinhaMetaDeHoje";
-import { CheckinPendente } from "@/central/components/CheckinPendente";
+import { BlocoHoje } from "@/central/components/BlocoHoje";
 import { BarraBusca } from "@/central/components/BarraBusca";
 import { useState } from "react";
 import { rotas } from "@/central/rotas";
@@ -178,6 +177,8 @@ export function Home() {
       </header>
 
       <div className="c-conteudo">
+        <BlocoHoje />
+
         {areaLigada(acesso, "busca") && (
           <>
             <div style={{ marginTop: 22 }}>
@@ -213,10 +214,6 @@ export function Home() {
         <CardDeInstalar />
 
         {(acesso.viagem || areaLigada(acesso, "aviso_viagem")) && <CardDeViagem temGuia={acesso.viagem} />}
-
-        {areaLigada(acesso, "checkin") && <CheckinPendente />}
-
-        {areaLigada(acesso, "metas") && <MinhaMetaDeHoje />}
 
         {(acesso.papel === "admin" || acesso.desafio !== false) && <CardDoDesafio />}
 

@@ -12844,3 +12844,12 @@ textarea.c-campo-input,
 .central details.c-tour-adm { border-top: 1px solid var(--border); padding: 10px 0; }
 .central details.c-tour-adm summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
 .central details.c-tour-adm[open] { display: flex; flex-direction: column; gap: 10px; }
+/* Bloco "Hoje" no topo do Início (N30) */
+.central .c-hoje { margin-top: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 6px 14px; }
+.central .c-hoje-rotulo { margin: 10px 0 2px; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #38546C; }
+.central button.c-hoje-linha { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 0; border: 0; border-bottom: 1px solid var(--border); background: none; text-align: left; font: inherit; color: #263D52; cursor: pointer; }
+.central button.c-hoje-linha:last-child { border-bottom: 0; }
+.central button.c-hoje-linha:disabled { cursor: default; opacity: 1; }
+.central .c-hoje-icone { width: 36px; height: 36px; border-radius: 50%; background: #C8DAE4; color: #38546C; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.central .c-hoje-texto { display: flex; flex-direction: column; gap: 1px; flex: 1; min-width: 0; font-size: 15px; }
+.central .c-hoje-texto small { font-size: 13px; color: var(--text-muted); }
