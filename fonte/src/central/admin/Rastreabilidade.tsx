@@ -47,6 +47,10 @@ import { RastreioAlimentar } from "@/central/components/RastreioAlimentar";
 import { DocumentoRastreio } from "@/central/components/DocumentoRastreio";
 import { PadroesDoRastreio } from "@/central/components/PadroesDoRastreio";
 import { Esqueleto } from "@/central/components/Esqueleto";
+import { AlimentosDaTroca } from "./AlimentosDaTroca";
+import { catalogo } from "@/central/dados/catalogo";
+import { normalizar } from "@/central/utils/texto";
+import type { GravidadeRestricao, TipoRestricao } from "@/central/types/restricao";
 
 /**
  * Rastreabilidade alimentar — área da nutricionista.
@@ -1238,6 +1242,17 @@ function ListaDaPaciente({
   const [classificando, definirClassificando] = useState<ItemDeReintroducao | null>(null);
   const [ligando, definirLigando] = useState<ItemDeReintroducao | null>(null);
   const [marcando, definirMarcando] = useState<ItemDeReintroducao | null>(null);
+  // "Virar restrição" (0105): só com a confirmação dela, num formulário.
+  const [virando, definirVirando] = useState<ItemDeReintroducao | null>(null);
+  const [jaRestricao, definirJaRestricao] = useState<Set<string>>(new Set());
+  const [recadoRestricao, definirRecadoRestricao] = useState<string | null>(null);
+  const carregarRestricoes = useCallback(() => {
+    repositorio
+      .restricoesDoPaciente(paciente.id)
+      .then((l) => definirJaRestricao(new Set(l.map((r) => normalizar(r.alimento)))))
+      .catch(() => undefined);
+  }, [paciente.id]);
+  useEffect(() => carregarRestricoes(), [carregarRestricoes]);
   const semLigacao = itens.filter((i) => !i.doCatalogo);
 
   return (
@@ -1427,6 +1442,19 @@ function ListaDaPaciente({
                     Ligar ao Mapa
                   </button>
                 )}
+                {linha && linha.comSintoma > 0 &&
+                  (jaRestricao.has(normalizar(item.nome)) ? (
+                    <span className="c-acao-descricao">Já está nas restrições</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="c-botao c-botao-secundario c-botao-pequeno"
+                      disabled={ocupado}
+                      onClick={() => definirVirando(item)}
+                    >
+                      Virar restrição
+                    </button>
+                  ))}
                 <button
                   type="button"
                   className="c-link"
@@ -1460,6 +1488,26 @@ function ListaDaPaciente({
           aoFechar={() => definirAdicionando(false)}
           aoSalvar={aoMudar}
           aoLancar={aoLancar}
+        />
+      )}
+
+      {recadoRestricao && (
+        <div className="c-aviso c-aviso-ok" role="status">
+          {recadoRestricao}
+        </div>
+      )}
+
+      {virando && (
+        <ModalVirarRestricao
+          paciente={paciente}
+          item={virando}
+          linha={resumo.get(virando.id) ?? null}
+          aoFechar={() => definirVirando(null)}
+          aoSalvar={(nome) => {
+            definirVirando(null);
+            definirRecadoRestricao(`${nome} virou restrição. Está na ficha, aba Resumo.`);
+            carregarRestricoes();
+          }}
         />
       )}
 
@@ -1664,6 +1712,93 @@ function ModalAdicionar({
 }
 
 /** A classificação é dela. Nenhum destes valores sai de uma conta automática. */
+/**
+ * "Virar restrição" (0105): leva um alimento com sintoma do rastreio para as
+ * restrições, só quando ela confirma. Ela escolhe o tipo, a gravidade e os
+ * alimentos da lista de trocas que ficam ligados. O aviso que a paciente vê
+ * na troca é "Você não se sentiu bem no teste".
+ */
+function ModalVirarRestricao({
+  paciente,
+  item,
+  linha,
+  aoFechar,
+  aoSalvar,
+}: {
+  paciente: Paciente;
+  item: ItemDeReintroducao;
+  linha: { testes: number; comSintoma: number } | null;
+  aoFechar: () => void;
+  aoSalvar: (nome: string) => void;
+}) {
+  const doCatalogo = catalogo.alimentos().find((a) => normalizar(a.nome) === normalizar(item.nome));
+  const [tipo, definirTipo] = useState<TipoRestricao>("intolerancia");
+  const [gravidade, definirGravidade] = useState<GravidadeRestricao>("moderada");
+  const [ids, definirIds] = useState<string[]>(doCatalogo ? [doCatalogo.id] : []);
+  const [notas, definirNotas] = useState(
+    linha ? `Do rastreio: ${linha.comSintoma} de ${linha.testes} ${linha.testes === 1 ? "teste" : "testes"} com sintoma.` : "",
+  );
+  const [salvando, definirSalvando] = useState(false);
+  const [falha, definirFalha] = useState<string | null>(null);
+
+  async function salvar() {
+    definirSalvando(true);
+    try {
+      await repositorio.salvarRestricao(paciente.id, null, tipo, item.nome, gravidade, notas.trim() || null, ids, "rastreio");
+      aoSalvar(item.nome);
+    } catch (e) {
+      definirFalha(e instanceof Error ? e.message : "Não consegui salvar.");
+      definirSalvando(false);
+    }
+  }
+
+  return (
+    <Modal titulo={`${item.nome} vira restrição?`} aoFechar={aoFechar}>
+      <p className="c-dica">Nada muda sem você salvar. Depois dá para editar ou apagar na ficha, aba Resumo.</p>
+      <Campo rotulo="Tipo">
+        <Selecao<TipoRestricao>
+          valor={tipo}
+          aoMudar={definirTipo}
+          opcoes={[
+            { valor: "alergia", rotulo: "Alergia (some da troca)" },
+            { valor: "intolerancia", rotulo: "Intolerância (aviso na troca)" },
+            { valor: "sensibilidade", rotulo: "Sensibilidade (aviso na troca)" },
+            { valor: "preferencia", rotulo: "Preferência (vai para o fim da troca)" },
+          ]}
+        />
+      </Campo>
+      <Campo rotulo="Gravidade">
+        <Selecao<GravidadeRestricao>
+          valor={gravidade}
+          aoMudar={definirGravidade}
+          opcoes={[
+            { valor: "grave", rotulo: "Grave" },
+            { valor: "moderada", rotulo: "Moderada" },
+            { valor: "leve", rotulo: "Leve" },
+          ]}
+        />
+      </Campo>
+      <AlimentosDaTroca ids={ids} aoMudar={definirIds} />
+      <Campo rotulo="Notas (só você vê)">
+        <AreaTexto valor={notas} aoMudar={definirNotas} linhas={2} />
+      </Campo>
+      {falha && (
+        <p className="c-aviso c-aviso-erro" role="alert">
+          {falha}
+        </p>
+      )}
+      <div className="c-modal-acoes">
+        <button type="button" className="c-botao c-botao-secundario" onClick={aoFechar}>
+          Cancelar
+        </button>
+        <button type="button" className="c-botao" disabled={salvando} onClick={() => void salvar()}>
+          {salvando ? "Salvando…" : "Virar restrição"}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
 function ModalClassificar({
   item,
   linha,

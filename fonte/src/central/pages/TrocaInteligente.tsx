@@ -12,6 +12,9 @@ import { Icone } from "@/central/components/Icone";
 import { useHistorico } from "@/central/hooks/useHistorico";
 import { rotas } from "@/central/rotas";
 import { numeroDeTexto } from "@/central/utils/numero";
+import { repositorio } from "@/central/dados/repositorio";
+import type { AlimentoRestrito } from "@/central/types/restricao";
+import { aplicarRestricoes, avisoDaRestricao, fraseDasEscondidas, restricaoPorAlimento } from "@/central/utils/restricoesNaTroca";
 
 /**
  * Troca Inteligente (§4 a §7) — a tela central do produto.
@@ -45,6 +48,22 @@ export function TrocaInteligente() {
   const [semGluten, definirSemGluten] = useState(false);
   const [semLactose, definirSemLactose] = useState(false);
 
+  // As restrições dela (0105): alergia some, intolerância e sensibilidade
+  // ganham aviso, preferência vai para o fim. Sem resposta, a troca segue
+  // como antes (nunca trava a tela por causa disto).
+  const [restritos, definirRestritos] = useState<AlimentoRestrito[]>([]);
+  useEffect(() => {
+    let vivo = true;
+    repositorio
+      .meusAlimentosRestritos()
+      .then((r) => vivo && definirRestritos(r))
+      .catch(() => undefined);
+    return () => {
+      vivo = false;
+    };
+  }, []);
+  const restricoes = useMemo(() => restricaoPorAlimento(restritos), [restritos]);
+
   const unidades = useMemo(() => (origem ? unidadesDoAlimento(origem) : []), [origem]);
   const candidatos = useMemo(() => (origem ? destinosPossiveis(origem) : []), [origem]);
 
@@ -58,16 +77,19 @@ export function TrocaInteligente() {
   // Na busca do novo alimento, o mesmo grupo vem primeiro: quem troca arroz
   // quer ver macarrão antes de abacaxi. A lista alfabética de tudo abria em
   // "Abacaxi" para qualquer alimento.
-  const destinos = useMemo(
+  const { lista: destinos, escondidas } = useMemo(
     () =>
-      candidatos
-        .filter(
-          (a) =>
-            (!semGluten || a.atributos.semGluten === true) &&
-            (!semLactose || a.atributos.semLactose === true),
-        )
-        .sort((a, b) => Number(b.grupoId === origem?.grupoId) - Number(a.grupoId === origem?.grupoId)),
-    [candidatos, semGluten, semLactose, origem],
+      aplicarRestricoes(
+        candidatos
+          .filter(
+            (a) =>
+              (!semGluten || a.atributos.semGluten === true) &&
+              (!semLactose || a.atributos.semLactose === true),
+          )
+          .sort((a, b) => Number(b.grupoId === origem?.grupoId) - Number(a.grupoId === origem?.grupoId)),
+        restricoes,
+      ),
+    [candidatos, semGluten, semLactose, origem, restricoes],
   );
 
   const valor = numeroDeTexto(quantidade) ?? Number.NaN;
@@ -78,11 +100,14 @@ export function TrocaInteligente() {
   const opcoes = useMemo(
     () =>
       origem && !destino
-        ? opcoesDeTroca(origem, { quantidade: valor, unidadeId }, destinos).filter(
-            (o) => o.cadastrada || o.mesmoGrupo,
-          )
+        ? aplicarRestricoes(
+            opcoesDeTroca(origem, { quantidade: valor, unidadeId }, destinos)
+              .filter((o) => o.cadastrada || o.mesmoGrupo)
+              .map((o) => ({ ...o, id: o.alimento.id })),
+            restricoes,
+          ).lista
         : [],
-    [origem, destino, destinos, valor, unidadeId],
+    [origem, destino, destinos, valor, unidadeId, restricoes],
   );
   const opcoesVisiveis = todasAsOpcoes ? opcoes : opcoes.slice(0, OPCOES_DE_INICIO);
   const resultado = useMemo(() => {
@@ -263,7 +288,12 @@ export function TrocaInteligente() {
               {opcoesVisiveis.map((opcao) => (
                 <li key={opcao.alimento.id}>
                   <button type="button" className="c-troca-opcao" onClick={() => definirDestino(opcao.alimento)}>
-                    <span className="c-troca-opcao-nome">{opcao.alimento.nome}</span>
+                    <span className="c-troca-opcao-nome">
+                      {opcao.alimento.nome}
+                      {avisoDaRestricao(restricoes.get(opcao.alimento.id)) && (
+                        <span className="c-troca-aviso">{avisoDaRestricao(restricoes.get(opcao.alimento.id))}</span>
+                      )}
+                    </span>
                     <span className="c-troca-opcao-qtd">
                       {numero(opcao.saida.quantidade)}{" "}
                       {rotuloUnidade(
@@ -277,6 +307,7 @@ export function TrocaInteligente() {
                 </li>
               ))}
             </ul>
+            {fraseDasEscondidas(escondidas) && <p className="c-troca-escondidas">{fraseDasEscondidas(escondidas)}</p>}
             {opcoes.length > OPCOES_DE_INICIO && (
               <button
                 type="button"
@@ -298,6 +329,9 @@ export function TrocaInteligente() {
               <span>{rotuloUnidade(resultado.saida.quantidade, catalogo.unidade(resultado.saida.unidadeId), resultado.saida.unidadeId)}</span>
             </p>
             <p className="c-resultado-alimento">de {destino.nome}</p>
+            {avisoDaRestricao(restricoes.get(destino.id)) && (
+              <p className="c-troca-aviso c-troca-aviso--resultado">{avisoDaRestricao(restricoes.get(destino.id))}</p>
+            )}
             {(() => {
               const caseiras = medidasCaseirasDoResultado(
                 destino,

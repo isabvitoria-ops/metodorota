@@ -6,6 +6,7 @@ import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
 import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
+import type { AlimentoRestrito, GravidadeRestricao, RestricaoAlimentar, TipoRestricao } from "@/central/types/restricao";
 import type { ItemDaLixeira, TipoNaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
 import { RECEITAS_DEMO } from "./sementes/receitasDemo";
@@ -2252,15 +2253,50 @@ export const repositorioLocal: Repositorio = {
     return { metaMl: null, dias: [] };
   },
 
-  async salvarRestricao() {
-    return { id: crypto.randomUUID() };
+  // -- Restrições (0079/0105): só na memória, dados fictícios --
+  async salvarRestricao(
+    pacienteId: string,
+    id: string | null,
+    tipo: TipoRestricao,
+    alimento: string,
+    gravidade: GravidadeRestricao,
+    notas: string | null,
+    alimentoIds: string[] | null = null,
+    origem: "consulta" | "rastreio" | null = null,
+  ) {
+    const agora = new Date().toISOString();
+    const antes = RESTRICOES_DEMO.find((r) => r.id === id);
+    const gravada: RestricaoAlimentar = {
+      id: id ?? crypto.randomUUID(),
+      tipo,
+      alimento,
+      gravidade,
+      notas,
+      alimentoIds: alimentoIds ?? antes?.alimentoIds ?? [],
+      origem: origem ?? antes?.origem ?? "consulta",
+      criadoEm: antes?.criadoEm ?? agora,
+      atualizadoEm: agora,
+    };
+    const i = RESTRICOES_DEMO.findIndex((r) => r.id === gravada.id);
+    if (i >= 0) RESTRICOES_DEMO[i] = gravada;
+    else RESTRICOES_DEMO.push(gravada);
+    void pacienteId;
+    return { id: gravada.id };
   },
-  async excluirRestricao() {},
+  async excluirRestricao(id: string) {
+    const i = RESTRICOES_DEMO.findIndex((r) => r.id === id);
+    if (i >= 0) RESTRICOES_DEMO.splice(i, 1);
+  },
   async restricoesDoPaciente() {
-    return [];
+    return RESTRICOES_DEMO.map((r) => ({ ...r }));
   },
   async minhasRestricoes() {
-    return [];
+    return RESTRICOES_DEMO.map((r) => ({ ...r }));
+  },
+  async meusAlimentosRestritos(): Promise<AlimentoRestrito[]> {
+    return RESTRICOES_DEMO.flatMap((r) =>
+      (r.alimentoIds ?? []).map((alimentoId) => ({ alimentoId, tipo: r.tipo, origem: r.origem ?? "consulta" })),
+    );
   },
   async meuGuiaDeViagem() {
     const meu = VIAGEM_DEMO.get(PACIENTE_DA_DEMONSTRACAO);
@@ -2871,6 +2907,13 @@ function guardarNaLixeiraDemo(registroId: string, tipo: TipoNaLixeira, titulo: s
     restaurar,
   });
 }
+
+// Restrições fictícias da demonstração, já ligadas a alimentos da troca.
+const RESTRICOES_DEMO: RestricaoAlimentar[] = [
+  { id: "res-milho", tipo: "alergia", alimento: "Milho", gravidade: "grave", notas: null, alimentoIds: ["milho-cozido", "milho-cru"], origem: "consulta", criadoEm: "2026-11-01T12:00:00Z", atualizadoEm: "2026-11-01T12:00:00Z" },
+  { id: "res-tapioca", tipo: "intolerancia", alimento: "Tapioca", gravidade: "moderada", notas: null, alimentoIds: ["tapioca"], origem: "rastreio", criadoEm: "2026-11-10T12:00:00Z", atualizadoEm: "2026-11-10T12:00:00Z" },
+  { id: "res-mandioca", tipo: "preferencia", alimento: "Mandioca", gravidade: "leve", notas: null, alimentoIds: ["mandioca-cozida"], origem: "consulta", criadoEm: "2026-11-12T12:00:00Z", atualizadoEm: "2026-11-12T12:00:00Z" },
+];
 
 const CONSULTAS_DEMO: Consulta[] = [
   {
