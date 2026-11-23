@@ -306,3 +306,13 @@ export interface AlertaPendente {
   criadoEm: string;
   descricao: string;
 }
+
+/** Prazo do check-in semanal (0099). */
+export interface PrazoDoCheckin {
+  questionarioId: string;
+  prazoDias: number | null;
+  /** Último dia para responder ("2026-11-24"), às 23:59 de Brasília. */
+  venceEm: string | null;
+  /** As semanas (segunda-feira) em que ela respondeu fora do prazo. */
+  atrasados: string[];
+}

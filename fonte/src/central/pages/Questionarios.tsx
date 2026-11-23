@@ -14,6 +14,9 @@ import { Esqueleto } from "@/central/components/Esqueleto";
 import { perguntasDestaSemana } from "@/central/utils/filtroPerguntasCheckin";
 import { chaveDoRascunho, lerRascunho } from "@/central/utils/rascunhoDoCheckin";
 import { useSessao } from "@/central/autenticacao/SessaoContexto";
+import { textoDoPrazo } from "@/central/utils/prazoCheckin";
+import { hojeSaoPaulo } from "@/central/utils/situacao";
+import type { PrazoDoCheckin } from "@/central/types/questionario";
 
 /**
  * Onde a paciente responde o check-in da semana e os questionários.
@@ -46,6 +49,11 @@ export function Questionarios() {
   const [respondendo, definirRespondendo] = useState<string | null>(null);
   const [aviso, definirAviso] = useState<string | null>(null);
   const [alertas, definirAlertas] = useState<AlertaParaPaciente[]>([]);
+  const [prazos, definirPrazos] = useState<PrazoDoCheckin[]>([]);
+  useEffect(() => {
+    // Sem a 0099 ou sem rede, simplesmente não mostra prazo.
+    void repositorio.meusPrazos().then(definirPrazos).catch(() => definirPrazos([]));
+  }, []);
 
   const carregar = useCallback(async () => {
     definirCarregando(true);
@@ -171,6 +179,10 @@ export function Questionarios() {
                   {q.perguntas.length} {q.perguntas.length === 1 ? "pergunta" : "perguntas"}
                   {q.periodicidade === "semanal" && " · check-in desta semana"}
                 </p>
+                {(() => {
+                  const p = textoDoPrazo(prazos.find((x) => x.questionarioId === q.id)?.venceEm ?? null, hojeSaoPaulo());
+                  return p ? <p className={`c-prazo-checkin${p.passou ? " c-prazo-passou" : ""}`}>{p.texto}</p> : null;
+                })()}
                 <button
                   type="button"
                   className="c-botao"

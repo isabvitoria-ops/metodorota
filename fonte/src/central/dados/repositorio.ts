@@ -1,6 +1,8 @@
 import type { EstadoDoTermo, PedidoLgpd, SituacaoDosAceites, TermoDeUso } from "@/central/types";
 import type { MinhaCozinha, ReceitaDaNutri, ReceitaParaSalvar } from "@/central/types/receita";
 import type { AgendaDoPeriodo, EventoParaSalvar } from "@/central/types/agenda";
+import type { PrazoDoCheckin } from "@/central/types/questionario";
+import type { PassoDoTour } from "@/central/types/tour";
 import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
 import type {
   AcaoAdmin,
@@ -961,6 +963,23 @@ export interface Repositorio {
   salvarEventoDaAgenda(evento: EventoParaSalvar): Promise<{ id: string }>;
   /** Nutricionista: apaga um compromisso. */
   apagarEventoDaAgenda(id: string): Promise<void>;
+
+  // Prazo do check-in (0099)
+  /** Nutricionista: o prazo (em dias) de cada questionário. Nulo = sem prazo. */
+  prazosDosQuestionarios(): Promise<Record<string, number | null>>;
+  definirPrazoQuestionario(questionarioId: string, dias: number | null): Promise<void>;
+  /** Nutricionista: as semanas que a paciente respondeu fora do prazo. */
+  atrasosDoPaciente(pacienteId: string): Promise<{ questionarioId: string; periodo: string }[]>;
+  /** Paciente: até quando responder cada check-in desta semana. */
+  meusPrazos(): Promise<PrazoDoCheckin[]>;
+
+  // Tour do app (0099)
+  /** Paciente: os passos ativos e se ela já viu o tour. */
+  meuTour(): Promise<{ visto: boolean; passos: PassoDoTour[] }>;
+  concluirTour(): Promise<void>;
+  /** Nutricionista: todos os passos, ligados e desligados. */
+  passosDoTour(): Promise<PassoDoTour[]>;
+  salvarPassoDoTour(passo: PassoDoTour): Promise<void>;
 
   // ---------------------------------------------------------------------
   // Feed de fotos e notificações (0098)

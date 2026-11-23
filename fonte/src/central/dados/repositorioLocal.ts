@@ -2,6 +2,8 @@ import { TERMO_PADRAO } from "./sementes/termo";
 import type { ReceitaDaNutri, ReceitaParaSalvar } from "@/central/types/receita";
 import type { EventoAgenda, EventoParaSalvar } from "@/central/types/agenda";
 import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
+import type { PrazoDoCheckin } from "@/central/types/questionario";
+import type { PassoDoTour } from "@/central/types/tour";
 import { RECEITAS_DEMO } from "./sementes/receitasDemo";
 import type {
   MesDaMinhaEvolucao,
@@ -2382,6 +2384,41 @@ export const repositorioLocal: Repositorio = {
     NOTIFICACOES_VISTAS_EM.valor = new Date().toISOString();
   },
 
+  // -- Tour do app (0099): só na memória --
+  async meuTour() {
+    return { visto: TOUR_DEMO.visto, passos: TOUR_DEMO.passos.filter((p) => p.ativo).map((p) => ({ ...p })) };
+  },
+  async concluirTour() {
+    TOUR_DEMO.visto = true;
+  },
+  async passosDoTour() {
+    return TOUR_DEMO.passos.map((p) => ({ ...p }));
+  },
+  async salvarPassoDoTour(passo: PassoDoTour) {
+    TOUR_DEMO.passos = TOUR_DEMO.passos.map((p) => (p.id === passo.id ? { ...passo } : p));
+  },
+
+  // -- Prazo do check-in (0099): só na memória --
+  async prazosDosQuestionarios() {
+    return Object.fromEntries(PRAZOS_DEMO);
+  },
+  async definirPrazoQuestionario(questionarioId: string, dias: number | null) {
+    PRAZOS_DEMO.set(questionarioId, dias);
+  },
+  async atrasosDoPaciente() {
+    return [];
+  },
+  async meusPrazos(): Promise<PrazoDoCheckin[]> {
+    const segunda = segundaDaSemana(hojeLocal());
+    return [...PRAZOS_DEMO.entries()]
+      .filter(([, dias]) => dias !== null)
+      .map(([questionarioId, dias]) => {
+        const d = new Date(`${segunda}T12:00:00Z`);
+        d.setUTCDate(d.getUTCDate() + (dias as number) - 1);
+        return { questionarioId, prazoDias: dias, venceEm: d.toISOString().slice(0, 10), atrasados: [] };
+      });
+  },
+
   // -- Agenda (0097) --
   async agendaDoPeriodo(de: string, ate: string) {
     const noPeriodo = (d: string) => d >= de && d <= ate;
@@ -2484,6 +2521,23 @@ function notificacoesDeExemplo(): Notificacao[] {
     n(3, "desafio", 3000, "Foto do prato colorido"),
   ];
 }
+
+/** Os mesmos passos de partida da 0099. */
+const TOUR_DEMO: { visto: boolean; passos: PassoDoTour[] } = {
+  visto: false,
+  passos: (
+    [
+      [null, "Boas-vindas", "Este é o app do seu acompanhamento. Em um minuto eu te mostro onde fica cada coisa."],
+      [null, "Seu plano", "Em Protocolo Alimentar está o seu plano, refeição por refeição, com as trocas de cada alimento."],
+      ["trocas", "Trocas", "Quer trocar um alimento? Na Troca inteligente você escolhe o alimento e vê pelo que dá para trocar, na quantidade certa."],
+      ["rastreio", "Rastreabilidade", "Aqui você registra o alimento que testou e como se sentiu depois. Um toque já vale como registro."],
+      ["checkin", "Check-in", "Toda semana chega um check-in curto. Ele me ajuda a ver como foi a sua semana."],
+      ["diario", "Diário de fotos", "Fotografe o prato e eu acompanho por aqui."],
+    ] as [string | null, string, string][]
+  ).map(([area, titulo, texto], i) => ({ id: `tour-${i + 1}`, ordem: i + 1, area, titulo, texto, videoUrl: null, ativo: true })),
+};
+
+const PRAZOS_DEMO = new Map<string, number | null>();
 
 /** Compromissos da demonstração, em volta de hoje. Só na memória. */
 const AGENDA_DEMO = new Map<string, EventoAgenda>(

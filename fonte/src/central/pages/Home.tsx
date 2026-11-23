@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Icone, type NomeIcone } from "@/central/components/Icone";
 import { Marca } from "@/central/components/Marca";
+import { TourDoApp } from "@/central/components/TourDoApp";
 import { MinhaMetaDeHoje } from "@/central/components/MinhaMetaDeHoje";
 import { CheckinPendente } from "@/central/components/CheckinPendente";
 import { BarraBusca } from "@/central/components/BarraBusca";
@@ -150,6 +151,7 @@ const ATALHOS: { rota: string; icone: NomeIcone; titulo: string; descricao: stri
 export function Home() {
   const navegar = useNavigate();
   const [consulta, definirConsulta] = useState("");
+  const [reverTour, definirReverTour] = useState(false);
   const { acesso, configuracoes, sair } = useSessao();
   const { cozinha } = useMinhaCozinha();
 
@@ -276,7 +278,11 @@ export function Home() {
           <button type="button" className="c-link c-link-discreto" onClick={() => navegar(rotas.privacidade)}>
             Privacidade e meus dados
           </button>
+          <button type="button" className="c-link c-link-discreto" onClick={() => definirReverTour(true)}>
+            Ver o tour de novo
+          </button>
         </div>
+        <TourDoApp rever={reverTour} aoFechar={() => definirReverTour(false)} />
       </div>
     </>
   );

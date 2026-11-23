@@ -1,3 +1,4 @@
+import { TourDoAppAdmin } from "./TourDoAppAdmin";
 import { useState } from "react";
 import { repositorio } from "@/central/dados/repositorio";
 import { useCatalogo } from "@/central/hooks/useCatalogo";
@@ -162,6 +163,8 @@ export function ConfiguracoesAdmin() {
           {salvando ? "Salvando…" : "Salvar configurações"}
         </button>
       </div>
+
+      <TourDoAppAdmin />
 
       <TermoELgpd />
 
