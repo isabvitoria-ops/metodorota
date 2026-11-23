@@ -4,6 +4,7 @@ import type { FotoDoFeed, Notificacao, TipoDeNotificacao } from "@/central/types
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
+import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
 import type { ItemDaLixeira, TipoNaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
 import type { ConsultaNaAgenda, EventoAgenda, EventoParaSalvar, Repeticao, TipoDeEvento } from "@/central/types/agenda";
@@ -3010,6 +3011,34 @@ export const repositorioSupabase: Repositorio = {
     const { error } = await sb.from("paciente_medicamentos").delete().eq("id", id);
     erro("apagar o medicamento", error);
   },
+  async quemEsfriou(): Promise<PacienteQueEsfriou[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("quem_esfriou");
+    erro("carregar quem esfriou", error);
+    return ((data ?? []) as Linha[]).map((l) => {
+      const r = l.reintroducao as Linha | null;
+      return {
+        id: texto(l.id),
+        nome: texto(l.nome),
+        telefone: textoOuNulo(l.telefone),
+        comAcesso: l.comAcesso === true,
+        ultimoRegistro: textoOuNulo(l.ultimoRegistro),
+        checkins: ((l.checkins ?? []) as Linha[]).map((c) => ({ titulo: texto(c.titulo), venceuEm: texto(c.venceuEm) })),
+        reintroducao: r
+          ? { emTeste: Array.isArray(r.emTeste) ? r.emTeste.map(texto) : [], ultimoRastreio: textoOuNulo(r.ultimoRastreio) }
+          : null,
+        cobrancas: ((l.cobrancas ?? []) as Linha[]).map((c) => ({
+          id: texto(c.id),
+          competencia: texto(c.competencia),
+          valor: numero(c.valor),
+          vencimento: texto(c.vencimento),
+        })),
+        semRetorno: l.semRetorno === true,
+        ultimaConsulta: textoOuNulo(l.ultimaConsulta),
+      };
+    });
+  },
+
   // -- Lixeira de 30 dias (0102) --
   async lixeiraDoRegistro(registroId: string) {
     const sb = exigirSupabase();

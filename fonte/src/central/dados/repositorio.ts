@@ -4,6 +4,7 @@ import type { AgendaDoPeriodo, EventoParaSalvar } from "@/central/types/agenda";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
+import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
 import type { ItemDaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
 import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
@@ -999,6 +1000,9 @@ export interface Repositorio {
   apagarDaLixeiraDeVez(id: string): Promise<void>;
   /** Precisa de `confirmacao === "EXCLUIR"`. */
   esvaziarLixeira(confirmacao: string): Promise<void>;
+
+  /** Quem esfriou (0103): quem parou, com o motivo. Só da nutricionista. */
+  quemEsfriou(): Promise<PacienteQueEsfriou[]>;
 
   // Tour do app (0099)
   /** Paciente: os passos ativos e se ela já viu o tour. */
