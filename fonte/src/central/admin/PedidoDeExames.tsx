@@ -16,6 +16,10 @@ import { DocumentoExames, type GrupoDeExames } from "@/central/components/Docume
 import type { Paciente } from "@/central/types";
 
 const LISTA: GrupoDeExames[] = [
+  // Intestino primeiro: é o foco do método. Os três vieram da auditoria do
+  // DietSystem (o catálogo de lá não tem nenhum deles) e foram aprovados por
+  // ela na maquete; o que ela quiser a mais, ela acrescenta em "outro exame".
+  { grupo: "Intestino", exames: ["Teste respiratório (H2 e CH4)", "Pesquisa de Helicobacter pylori", "Sorologia para doença celíaca"] },
   { grupo: "Hemograma e ferro", exames: ["Hemograma completo", "Ferritina", "Ferro sérico", "Transferrina", "Índice de saturação de transferrina"] },
   { grupo: "Glicemia", exames: ["Glicemia de jejum", "Insulina de jejum", "Hemoglobina glicada (HbA1c)"] },
   { grupo: "Perfil lipídico", exames: ["Colesterol total e frações", "Triglicerídeos"] },

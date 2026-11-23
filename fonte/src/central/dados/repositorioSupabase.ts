@@ -1,7 +1,9 @@
 import type { EstadoDoTermo, PedidoLgpd } from "@/central/types";
 import type { CategoriaReceita, NumerosDaReceita, Receita, ReceitaParaSalvar } from "@/central/types/receita";
 import type { FotoDoFeed, Notificacao, TipoDeNotificacao } from "@/central/types/notificacao";
-import type { ConsultaNaAgenda, EventoAgenda, EventoParaSalvar, TipoDeEvento } from "@/central/types/agenda";
+import type { PrazoDoCheckin } from "@/central/types/questionario";
+import type { PassoDoTour } from "@/central/types/tour";
+import type { ConsultaNaAgenda, EventoAgenda, EventoParaSalvar, Repeticao, TipoDeEvento } from "@/central/types/agenda";
 import { TERMO_PADRAO } from "./sementes/termo";
 import type {
   MesDaMinhaEvolucao,
@@ -2866,10 +2868,82 @@ export const repositorioSupabase: Repositorio = {
     erro("marcar as notificações como vistas", error);
   },
 
+  // -- Tour do app (0099) --
+  async meuTour() {
+    const sb = exigirSupabase();
+    const [passos, visto] = await Promise.all([
+      sb.from("tour_passos").select("*").eq("ativo", true).order("ordem"),
+      sb.from("tour_vistos").select("perfil_id").limit(1),
+    ]);
+    erro("carregar o tour", passos.error);
+    // Sem conseguir saber se ela viu, não abre: melhor não mostrar do que
+    // mostrar toda vez.
+    return { visto: visto.error ? true : (visto.data ?? []).length > 0, passos: ((passos.data ?? []) as Linha[]).map(paraPassoDoTour) };
+  },
+  async concluirTour() {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("concluir_tour");
+    erro("marcar o tour como visto", error);
+  },
+  async passosDoTour() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.from("tour_passos").select("*").order("ordem");
+    erro("carregar os passos do tour", error);
+    return ((data ?? []) as Linha[]).map(paraPassoDoTour);
+  },
+  async salvarPassoDoTour(passo: PassoDoTour) {
+    const sb = exigirSupabase();
+    const { error } = await sb
+      .from("tour_passos")
+      .update({ titulo: passo.titulo.trim(), texto: passo.texto.trim(), video_url: passo.videoUrl?.trim() || null, ativo: passo.ativo })
+      .eq("id", passo.id);
+    erro("salvar o passo do tour", error);
+  },
+
+  // -- Prazo do check-in (0099) --
+  async prazosDosQuestionarios() {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("prazos_dos_questionarios");
+    erro("carregar os prazos", error);
+    return Object.fromEntries(
+      ((data ?? []) as Linha[]).map((l) => [texto(l.questionarioId), l.prazoDias == null ? null : Number(l.prazoDias)]),
+    );
+  },
+  async definirPrazoQuestionario(questionarioId: string, dias: number | null) {
+    const sb = exigirSupabase();
+    const { error } = await sb.rpc("definir_prazo_questionario", { p_questionario: questionarioId, p_dias: dias });
+    erro("salvar o prazo", error);
+  },
+  async atrasosDoPaciente(pacienteId: string) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("atrasos_do_paciente", { p_paciente: pacienteId });
+    erro("carregar as respostas atrasadas", error);
+    return ((data ?? []) as Linha[]).map((l) => ({ questionarioId: texto(l.questionarioId), periodo: texto(l.periodo) }));
+  },
+  async meusPrazos(): Promise<PrazoDoCheckin[]> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("meus_prazos");
+    erro("carregar o prazo do check-in", error);
+    return ((data ?? []) as Linha[]).map((l) => ({
+      questionarioId: texto(l.questionarioId),
+      prazoDias: l.prazoDias == null ? null : Number(l.prazoDias),
+      venceEm: textoOuNulo(l.venceEm),
+      atrasados: Array.isArray(l.atrasados) ? (l.atrasados as unknown[]).map(String) : [],
+    }));
+  },
+
   async agendaDoPeriodo(de: string, ate: string) {
     const sb = exigirSupabase();
     const [eventos, consultas] = await Promise.all([
-      sb.from("agenda_eventos").select("*").gte("data", de).lte("data", ate).order("data").order("hora_inicio"),
+      // Os que caem no período e os que se repetem e começaram antes (0099):
+      // a grade de dezembro tem de mostrar o treino criado em novembro.
+      sb
+        .from("agenda_eventos")
+        .select("*")
+        .lte("data", ate)
+        .or(`data.gte.${de},and(repete.neq.nao,or(repete_ate.is.null,repete_ate.gte.${de}))`)
+        .order("data")
+        .order("hora_inicio"),
       sb
         .from("consultas")
         .select("id, paciente_id, data, hora, tipo, status, pacientes(nome)")
@@ -2891,6 +2965,10 @@ export const repositorioSupabase: Repositorio = {
           local: (l.local as string | null) || null,
           observacao: (l.observacao as string | null) || null,
           pacienteId: (l.paciente_id as string | null) || null,
+          repete: (["semanal", "quinzenal", "mensal"].includes(texto(l.repete)) ? texto(l.repete) : "nao") as Repeticao,
+          diasSemana: Array.isArray(l.dias_semana) ? (l.dias_semana as unknown[]).map(Number) : [],
+          repeteAte: textoOuNulo(l.repete_ate),
+          excecoes: Array.isArray(l.excecoes) ? (l.excecoes as unknown[]).map(String) : [],
         }),
       ),
       consultas: ((consultas.data ?? []) as Linha[]).map((l): ConsultaNaAgenda => {
@@ -2921,6 +2999,10 @@ export const repositorioSupabase: Repositorio = {
       local: evento.local?.trim() || null,
       observacao: evento.observacao?.trim() || null,
       paciente_id: evento.pacienteId || null,
+      repete: evento.repete,
+      dias_semana: evento.repete === "semanal" ? evento.diasSemana : [],
+      repete_ate: evento.repete === "nao" ? null : evento.repeteAte || null,
+      excecoes: evento.repete === "nao" ? [] : evento.excecoes,
     };
     const { data, error } = evento.id
       ? await sb.from("agenda_eventos").update(linha).eq("id", evento.id).select("id").single()
@@ -2975,6 +3057,18 @@ const REFEICOES_VALIDAS: RefeicaoDoDiario[] = [
 const TIPOS_DE_NOTIFICACAO: TipoDeNotificacao[] = [
   "rastreio", "foto", "checkin", "treino", "cardio", "meta", "mensagem", "desafio", "exame", "viagem",
 ];
+
+function paraPassoDoTour(l: Linha): PassoDoTour {
+  return {
+    id: texto(l.id),
+    ordem: numero(l.ordem),
+    area: textoOuNulo(l.area),
+    titulo: texto(l.titulo),
+    texto: texto(l.texto),
+    videoUrl: textoOuNulo(l.video_url),
+    ativo: l.ativo !== false,
+  };
+}
 
 function paraFotoDoDiario(l: Linha): FotoDoDiario {
   const r = texto(l.refeicao) as RefeicaoDoDiario;

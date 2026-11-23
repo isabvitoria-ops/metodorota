@@ -21,6 +21,14 @@ function diaCurto(iso: string): string {
 export function CheckinDoPaciente({ pacienteId }: { pacienteId: string }) {
   const [lista, definirLista] = useState<QuestionarioDoPaciente[]>([]);
   const [carregando, definirCarregando] = useState(true);
+  // Semanas respondidas fora do prazo (0099): ficam na tabela, fora da conta.
+  const [atrasos, definirAtrasos] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    void repositorio
+      .atrasosDoPaciente(pacienteId)
+      .then((l) => definirAtrasos(new Set(l.map((a) => `${a.questionarioId}|${a.periodo}`))))
+      .catch(() => definirAtrasos(new Set()));
+  }, [pacienteId]);
 
   useEffect(() => {
     let vivo = true;
@@ -59,7 +67,7 @@ export function CheckinDoPaciente({ pacienteId }: { pacienteId: string }) {
         }
       />
       {comResposta.map((q) => (
-        <TabelaDoQuestionario key={q.id} questionario={q} />
+        <TabelaDoQuestionario key={q.id} questionario={q} atrasos={atrasos} />
       ))}
     </>
   );
@@ -263,7 +271,8 @@ function classeDaNota(nota: number): string {
    Tabela por semana (estilo DietSystem)
    ----------------------------------------------------------------------- */
 
-function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPaciente }) {
+function TabelaDoQuestionario({ questionario, atrasos }: { questionario: QuestionarioDoPaciente; atrasos: Set<string> }) {
+  const atrasado = (periodo: string) => atrasos.has(`${questionario.id}|${periodo}`);
   const [revisados, definirRevisados] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(questionario.envios.map((e) => [e.id, e.revisado])),
   );
@@ -279,7 +288,7 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
     a.periodo.localeCompare(b.periodo),
   );
   const notas = new Map(
-    cronologica.map((e) => [e.id, pontuacaoDoEnvio(questionario.perguntas, e)]),
+    cronologica.map((e) => [e.id, atrasado(e.periodo) ? null : pontuacaoDoEnvio(questionario.perguntas, e)]),
   );
   const variacoes = new Map<string, number | null>();
   let anterior: number | null = null;
@@ -397,7 +406,10 @@ function TabelaDoQuestionario({ questionario }: { questionario: QuestionarioDoPa
 
                 return (
                   <tr key={envio.id}>
-                    <td className="c-checkin-td-fixo">{diaCurto(envio.periodo)}</td>
+                    <td className="c-checkin-td-fixo">
+                      {diaCurto(envio.periodo)}
+                      {atrasado(envio.periodo) && <small className="c-checkin-atrasada">atrasada · fora da conta</small>}
+                    </td>
                     {temNota && (
                       <td
                         className={`c-checkin-td-nota${nota !== null ? ` ${classeDaNota(nota)}` : ""}`}

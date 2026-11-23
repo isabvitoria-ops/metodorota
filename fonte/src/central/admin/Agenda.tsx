@@ -6,10 +6,13 @@ import { Esqueleto } from "@/central/components/Esqueleto";
 import { hojeSaoPaulo } from "@/central/utils/situacao";
 import type { Paciente } from "@/central/types";
 import type { AgendaDoPeriodo, EventoParaSalvar, TipoDeEvento } from "@/central/types/agenda";
-import { TIPOS_DE_EVENTO } from "@/central/types/agenda";
+import { REPETICOES, TIPOS_DE_EVENTO } from "@/central/types/agenda";
+import type { OcorrenciaDaAgenda, Repeticao } from "@/central/types/agenda";
 import {
   diaPorExtenso,
   itensDoDia,
+  ocorrenciasNoPeriodo,
+  rotuloDaRepeticao,
   nomeDoMes,
   periodoDaGrade,
   problemasDoEvento,
@@ -37,6 +40,10 @@ const novo = (data: string): EventoParaSalvar => ({
   local: null,
   observacao: null,
   pacienteId: null,
+  repete: "nao",
+  diasSemana: [],
+  repeteAte: null,
+  excecoes: [],
 });
 
 export function Agenda() {
@@ -50,13 +57,18 @@ export function Agenda() {
   const [rascunho, definirRascunho] = useState<EventoParaSalvar | null>(null);
   const [salvando, definirSalvando] = useState(false);
   const [recado, definirRecado] = useState<string | null>(null);
+  // O dia da grade em que ela tocou, quando o compromisso se repete: é o dia
+  // que "Apagar só este dia" tira.
+  const [diaDaOcorrencia, definirDiaDaOcorrencia] = useState<string | null>(null);
 
   const semanas = useMemo(() => semanasDoMes(ano, mes), [ano, mes]);
 
   const carregar = useCallback(async () => {
     const { de, ate } = periodoDaGrade(ano, mes);
     try {
-      definirAgenda(await repositorio.agendaDoPeriodo(de, ate));
+      const bruta = await repositorio.agendaDoPeriodo(de, ate);
+      // Os que se repetem viram um item por dia (0099).
+      definirAgenda({ ...bruta, eventos: ocorrenciasNoPeriodo(bruta.eventos, de, ate) });
       definirErroCarga(false);
     } catch {
       definirErroCarga(true);
@@ -127,6 +139,21 @@ export function Agenda() {
     try {
       await repositorio.apagarEventoDaAgenda(rascunho.id);
       definirRecado("Compromisso apagado.");
+      definirRascunho(null);
+      await carregar();
+    } catch (e) {
+      definirRecado(e instanceof Error ? e.message : "Não consegui apagar.");
+    } finally {
+      definirSalvando(false);
+    }
+  }
+
+  async function apagarSoEsteDia() {
+    if (!rascunho?.id || !diaDaOcorrencia) return;
+    definirSalvando(true);
+    try {
+      await repositorio.salvarEventoDaAgenda({ ...rascunho, excecoes: [...rascunho.excecoes, diaDaOcorrencia] });
+      definirRecado("Apagado só neste dia. Os outros continuam.");
       definirRascunho(null);
       await carregar();
     } catch (e) {
@@ -213,7 +240,10 @@ export function Agenda() {
           <div className="c-ag-dia-topo">
             <h2 className="c-ag-dia-nome">{diaPorExtenso(dia)}</h2>
             {!rascunho && (
-              <button type="button" className="c-botao c-botao-pequeno" onClick={() => definirRascunho(novo(dia))}>
+              <button type="button" className="c-botao c-botao-pequeno" onClick={() => {
+                  definirDiaDaOcorrencia(null);
+                  definirRascunho(novo(dia));
+                }}>
                 + Novo
               </button>
             )}
@@ -247,11 +277,21 @@ export function Agenda() {
                     <span className="c-ag-hora">
                       {it.evento.horaInicio ? `${it.evento.horaInicio}${it.evento.horaFim ? `–${it.evento.horaFim}` : ""}` : "dia todo"}
                     </span>
-                    <button type="button" className="c-ag-texto c-ag-editar" onClick={() => definirRascunho({ ...it.evento })}>
+                    <button
+                      type="button"
+                      className="c-ag-texto c-ag-editar"
+                      onClick={() => {
+                        const { origem, ...ev } = it.evento as OcorrenciaDaAgenda;
+                        definirDiaDaOcorrencia(ev.repete !== "nao" ? ev.data : null);
+                        // A edição vale para o compromisso inteiro: volta para o primeiro dia.
+                        definirRascunho({ ...ev, data: origem ?? ev.data });
+                      }}
+                    >
                       <strong>{it.evento.titulo}</strong>
                       <small>
                         {[rotuloDoTipo(it.evento.tipo), it.evento.local, nomeDaPaciente(it.evento.pacienteId)].filter(Boolean).join(" · ")}
                       </small>
+                      {rotuloDaRepeticao(it.evento) && <small>Repete {rotuloDaRepeticao(it.evento)}</small>}
                       {it.evento.observacao && <small className="c-ag-obs">{it.evento.observacao}</small>}
                     </button>
                   </li>
@@ -294,9 +334,61 @@ export function Agenda() {
                   ))}
                 </div>
               </div>
+              <div className="c-campo">
+                <span className="c-rotulo">Repete</span>
+                <div className="c-ag-tipos">
+                  {REPETICOES.map((r) => (
+                    <button
+                      key={r.valor}
+                      type="button"
+                      className="c-chip"
+                      aria-pressed={rascunho.repete === r.valor}
+                      onClick={() => mudar({ repete: r.valor as Repeticao })}
+                    >
+                      {r.rotulo}
+                    </button>
+                  ))}
+                </div>
+                {rascunho.repete === "semanal" && (
+                  <div className="c-ag-semana-escolha" role="group" aria-label="Dias da semana">
+                    {["D", "S", "T", "Q", "Q", "S", "S"].map((l, i) => {
+                      const marcados = rascunho.diasSemana.length
+                        ? rascunho.diasSemana
+                        : [new Date(`${rascunho.data}T12:00:00Z`).getUTCDay()];
+                      const ligado = marcados.includes(i);
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          className="c-chip c-ag-dia-semana"
+                          aria-pressed={ligado}
+                          aria-label={["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][i]}
+                          onClick={() => {
+                            const novos = ligado ? marcados.filter((d) => d !== i) : [...marcados, i];
+                            if (novos.length) mudar({ diasSemana: novos.sort() });
+                          }}
+                        >
+                          {l}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {rascunho.repete !== "nao" && (
+                  <label className="c-campo" style={{ marginTop: 8 }}>
+                    <span className="c-rotulo">Até (opcional)</span>
+                    <input
+                      className="c-input"
+                      type="date"
+                      value={rascunho.repeteAte ?? ""}
+                      onChange={(e) => mudar({ repeteAte: e.target.value || null })}
+                    />
+                  </label>
+                )}
+              </div>
               <div className="c-ag-linha">
                 <label className="c-campo">
-                  <span className="c-rotulo">Dia</span>
+                  <span className="c-rotulo">{rascunho.repete === "nao" ? "Dia" : "Primeiro dia"}</span>
                   <input className="c-input" type="date" value={rascunho.data} onChange={(e) => mudar({ data: e.target.value })} />
                 </label>
                 <label className="c-campo">
@@ -364,9 +456,14 @@ export function Agenda() {
                 <button type="button" className="c-botao c-botao-secundario" onClick={() => definirRascunho(null)}>
                   Cancelar
                 </button>
+                {rascunho.id && rascunho.repete !== "nao" && diaDaOcorrencia && (
+                  <button type="button" className="c-link c-ag-apagar" onClick={() => void apagarSoEsteDia()} disabled={salvando}>
+                    Apagar só este dia
+                  </button>
+                )}
                 {rascunho.id && (
                   <button type="button" className="c-link c-ag-apagar" onClick={() => void apagar()} disabled={salvando}>
-                    Apagar
+                    {rascunho.repete !== "nao" ? "Apagar todos os dias" : "Apagar"}
                   </button>
                 )}
               </div>

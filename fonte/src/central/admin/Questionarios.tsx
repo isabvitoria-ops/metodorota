@@ -831,6 +831,55 @@ export function Questionarios() {
   );
 }
 
+/**
+ * Prazo para responder o check-in (0099). Grava na hora, à parte do
+ * "Salvar" do modelo: é um ajuste do modelo, não das perguntas.
+ */
+function PrazoDoModelo({ questionarioId }: { questionarioId: string }) {
+  const [prazo, definirPrazo] = useState<number | null | undefined>(undefined);
+  const [recado, definirRecado] = useState<string | null>(null);
+  useEffect(() => {
+    let vivo = true;
+    void repositorio
+      .prazosDosQuestionarios()
+      .then((m) => vivo && definirPrazo(m[questionarioId] ?? null))
+      .catch(() => vivo && definirPrazo(null));
+    return () => {
+      vivo = false;
+    };
+  }, [questionarioId]);
+  async function escolher(dias: number | null) {
+    const antes = prazo;
+    definirPrazo(dias);
+    try {
+      await repositorio.definirPrazoQuestionario(questionarioId, dias);
+      definirRecado(dias === null ? "Sem prazo." : `Prazo de ${dias} ${dias === 1 ? "dia" : "dias"} salvo.`);
+    } catch (e) {
+      definirPrazo(antes);
+      definirRecado(e instanceof Error ? e.message : "Não consegui salvar o prazo.");
+    }
+  }
+  return (
+    <section className="c-bloco" style={{ marginTop: 16 }}>
+      <h2 className="c-secao-titulo" style={{ marginTop: 0 }}>
+        Prazo para responder
+      </h2>
+      <div className="c-chips" role="group" aria-label="Prazo para responder">
+        {([null, 1, 2, 3] as const).map((d) => (
+          <button key={String(d)} type="button" className="c-chip" aria-pressed={prazo === d} disabled={prazo === undefined} onClick={() => void escolher(d)}>
+            {d === null ? "Sem prazo" : `${d} ${d === 1 ? "dia" : "dias"}`}
+          </button>
+        ))}
+      </div>
+      <p className="c-dica" style={{ marginBottom: 0 }}>
+        O check-in abre na segunda e fecha às 23:59 do último dia do prazo. Se ela responder depois, a resposta fica guardada,
+        marcada como atrasada, e não entra na conta da semana.
+        {recado ? ` ${recado}` : ""}
+      </p>
+    </section>
+  );
+}
+
 function EditorDeQuestionario({
   questionario,
   pacientes,
@@ -1023,6 +1072,8 @@ function EditorDeQuestionario({
           </span>
         </span>
       </label>
+
+      {questionario.periodicidade === "semanal" && !novoQuestionario && <PrazoDoModelo questionarioId={questionario.id} />}
 
       <GerenciadorDeEixos eixos={eixos} aoMudar={definirEixos} />
 

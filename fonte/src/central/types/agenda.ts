@@ -26,6 +26,28 @@ export interface EventoAgenda {
   local: string | null;
   observacao: string | null;
   pacienteId: string | null;
+  /** Repetição (0099). "nao" = só aquele dia. */
+  repete: Repeticao;
+  /** 0 = domingo … 6 = sábado. Só vale em "semanal"; vazio = o dia da semana da data. */
+  diasSemana: number[];
+  /** Último dia em que repete. Nulo = sem fim. */
+  repeteAte: string | null;
+  /** Dias em que ela apagou só aquele. */
+  excecoes: string[];
+}
+
+export type Repeticao = "nao" | "semanal" | "quinzenal" | "mensal";
+
+export const REPETICOES: { valor: Repeticao; rotulo: string }[] = [
+  { valor: "nao", rotulo: "Não" },
+  { valor: "semanal", rotulo: "Toda semana" },
+  { valor: "quinzenal", rotulo: "A cada 15 dias" },
+  { valor: "mensal", rotulo: "Todo mês" },
+];
+
+/** Um dia do compromisso na grade. `origem` é a data em que ele foi criado. */
+export interface OcorrenciaDaAgenda extends EventoAgenda {
+  origem: string;
 }
 
 export type EventoParaSalvar = Omit<EventoAgenda, "id"> & { id: string | null };

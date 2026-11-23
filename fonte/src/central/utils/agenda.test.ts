@@ -24,7 +24,7 @@ test("dia por extenso, sem erro de fuso", () => {
 });
 
 test("o dia junta compromissos e consultas, por hora, sem as canceladas", () => {
-  const ev = (id: string, h: string | null) => ({ id, titulo: id, tipo: "pessoal" as const, data: "2026-11-18", horaInicio: h, horaFim: null, local: null, observacao: null, pacienteId: null });
+  const ev = (id: string, h: string | null) => ({ id, titulo: id, tipo: "pessoal" as const, data: "2026-11-18", horaInicio: h, horaFim: null, local: null, observacao: null, pacienteId: null, repete: "nao" as const, diasSemana: [], repeteAte: null, excecoes: [] });
   const itens = itensDoDia(
     {
       eventos: [ev("academia", "07:00"), ev("aniversário", null), ev("outro dia", "08:00")].map((e, i) => (i === 2 ? { ...e, data: "2026-11-19" } : e)),
@@ -39,10 +39,46 @@ test("o dia junta compromissos e consultas, por hora, sem as canceladas", () => 
 });
 
 test("não salva sem nome, sem dia ou com o fim antes do início", () => {
-  const base: EventoParaSalvar = { id: null, titulo: "Visita", tipo: "visita", data: "2026-11-20", horaInicio: "10:00", horaFim: "11:00", local: null, observacao: null, pacienteId: null };
+  const base: EventoParaSalvar = { id: null, titulo: "Visita", tipo: "visita", data: "2026-11-20", horaInicio: "10:00", horaFim: "11:00", local: null, observacao: null, pacienteId: null, repete: "nao", diasSemana: [], repeteAte: null, excecoes: [] };
   assert.deepEqual(problemasDoEvento(base), []);
   assert.equal(problemasDoEvento({ ...base, titulo: "  " }).length, 1);
   assert.equal(problemasDoEvento({ ...base, data: "" }).length, 1);
   assert.equal(problemasDoEvento({ ...base, horaFim: "09:00" }).length, 1);
   assert.equal(problemasDoEvento({ ...base, horaInicio: null }).length, 1);
+});
+
+import { ocorrenciasNoPeriodo, rotuloDaRepeticao } from "./agenda.ts";
+import type { EventoAgenda } from "../types/agenda.ts";
+
+const base = (p: Partial<EventoAgenda>): EventoAgenda => ({
+  id: "e", titulo: "Treino", tipo: "pessoal", data: "2026-11-02", horaInicio: null, horaFim: null,
+  local: null, observacao: null, pacienteId: null, repete: "nao", diasSemana: [], repeteAte: null, excecoes: [], ...p,
+});
+
+test("sem repetir: só o próprio dia", () => {
+  assert.deepEqual(ocorrenciasNoPeriodo([base({})], "2026-11-01", "2026-11-30").map((o) => o.data), ["2026-11-02"]);
+});
+
+test("toda semana em seg, qua e sex, com um dia apagado e um fim", () => {
+  const o = ocorrenciasNoPeriodo(
+    [base({ repete: "semanal", diasSemana: [1, 3, 5], excecoes: ["2026-11-04"], repeteAte: "2026-11-13" })],
+    "2026-11-01", "2026-11-30",
+  ).map((x) => x.data);
+  assert.deepEqual(o, ["2026-11-02", "2026-11-06", "2026-11-09", "2026-11-11", "2026-11-13"]);
+});
+
+test("a grade de dezembro pega o que começou em novembro", () => {
+  const o = ocorrenciasNoPeriodo([base({ repete: "quinzenal" })], "2026-12-01", "2026-12-31").map((x) => x.data);
+  assert.deepEqual(o, ["2026-12-14", "2026-12-28"]);
+});
+
+test("todo mês no dia 31 pula o mês que não tem 31", () => {
+  const o = ocorrenciasNoPeriodo([base({ repete: "mensal", data: "2026-10-31" })], "2026-10-01", "2027-01-31").map((x) => x.data);
+  assert.deepEqual(o, ["2026-10-31", "2026-12-31", "2027-01-31"]);
+});
+
+test("o rótulo diz como repete", () => {
+  assert.equal(rotuloDaRepeticao(base({ repete: "semanal", diasSemana: [5, 1] })), "toda semana (seg, sex)");
+  assert.equal(rotuloDaRepeticao(base({ repete: "mensal", repeteAte: "2026-12-20" })), "todo mês, até 20/12");
+  assert.equal(rotuloDaRepeticao(base({})), null);
 });

@@ -12825,3 +12825,22 @@ textarea.c-campo-input,
 .central .c-mde-modo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; background: #C8DAE4; border-radius: 16px; padding: 12px 14px; margin: 0 0 16px; }
 .central .c-mde-modo > div { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 200px; color: #263D52; }
 .central .c-mde-modo span { font-size: 13.5px; }
+.central .c-ag-semana-escolha { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.central button.c-ag-dia-semana { width: 40px; height: 40px; padding: 0; justify-content: center; }
+/* Prazo do check-in (0099) */
+.central .c-prazo-checkin { margin: 0 0 10px; display: inline-block; background: #E9C94A; color: #263D52; border-radius: 999px; padding: 4px 12px; font-size: 13px; font-weight: 700; }
+.central .c-prazo-checkin.c-prazo-passou { background: #F7EEE7; font-weight: 400; border-radius: 12px; }
+.central .c-checkin-atrasada { display: block; font-size: 11px; color: #A82B3C; white-space: nowrap; }
+/* Tour do app (0099) */
+.central .c-tour-veu { position: fixed; inset: 0; z-index: 85; background: rgba(38, 61, 82, 0.55); display: flex; align-items: flex-end; justify-content: center; padding: 0 14px calc(92px + env(safe-area-inset-bottom, 0px)); }
+.central .c-tour { width: 100%; max-width: 480px; background: #fff; border-radius: 18px; padding: 18px 18px 16px; box-shadow: var(--shadow-forte); display: flex; flex-direction: column; gap: 6px; }
+.central .c-tour-conta { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #38546C; }
+.central .c-tour-titulo { margin: 0; font-family: var(--font-display); font-weight: 500; font-size: 22px; color: #263D52; }
+.central .c-tour-texto { margin: 0; font-size: 15px; line-height: 1.5; color: #263D52; }
+.central .c-tour-pontos { display: flex; gap: 6px; margin: 10px 0 6px; }
+.central .c-tour-pontos span { width: 8px; height: 8px; border-radius: 99px; background: #C9BCAC; }
+.central .c-tour-pontos span.ativo { width: 22px; background: #38546C; }
+.central .c-tour-acoes { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.central details.c-tour-adm { border-top: 1px solid var(--border); padding: 10px 0; }
+.central details.c-tour-adm summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
+.central details.c-tour-adm[open] { display: flex; flex-direction: column; gap: 10px; }
