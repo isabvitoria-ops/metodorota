@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql, 0095_cozinha.sql, 0096_areas_por_paciente.sql, 0097_agenda.sql, 0098_feed_e_notificacoes.sql, 0099_tour_prazo_checkin_agenda_repete.sql, 0100_resumo_pre_retorno.sql, 0101_medicamentos_nutrientes.sql, 0102_lixeira.sql, 0103_quem_esfriou.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql, 0095_cozinha.sql, 0096_areas_por_paciente.sql, 0097_agenda.sql, 0098_feed_e_notificacoes.sql, 0099_tour_prazo_checkin_agenda_repete.sql, 0100_resumo_pre_retorno.sql, 0101_medicamentos_nutrientes.sql, 0102_lixeira.sql, 0103_quem_esfriou.sql, 0104_carimbo_sem_ultimo_acesso.sql
 -- =============================================================================
 
 
@@ -24752,3 +24752,53 @@ $$;
 
 revoke all on function public.quem_esfriou() from public, anon;
 grant execute on function public.quem_esfriou() to authenticated;
+
+
+-- ###########################################################################
+-- 0104_carimbo_sem_ultimo_acesso.sql
+-- ###########################################################################
+
+-- 0104 — o carimbo do conteúdo deixa de mudar sozinho (pedido dela, 23/11/2026:
+-- "toda hora fica aparecendo atualização disponível até quando não tem").
+--
+-- A causa: o carimbo resumia a linha INTEIRA da paciente, e `ultimo_acesso`
+-- muda toda vez que ela abre o app (registrar_acesso). Um minuto depois de
+-- abrir, o carimbo era outro e a faixa "Atualização disponível" aparecia sem
+-- nada novo. Agora ficam de fora os campos que mudam sem a nutricionista
+-- mexer: ultimo_acesso, atualizado_em e perfil_id (o vínculo da conta).
+
+create or replace function meu_carimbo_de_conteudo()
+returns text
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  pid uuid := meu_paciente_id();
+  partes text[] := '{}';
+begin
+  partes := partes || (select count(*)::text || coalesce(max(atualizado_em)::text, '') from alimentos);
+  partes := partes || (select count(*)::text || coalesce(max(atualizado_em)::text, '') from equivalencias);
+  partes := partes || (select count(*)::text || coalesce(max(atualizado_em)::text, '') from grupos_alimentares);
+  partes := partes || (select count(*)::text || coalesce(max(atualizado_em)::text, '') from grupos_protocolo);
+  partes := partes || (select count(*)::text || coalesce(max(atualizado_em)::text, '') from conteudos);
+  partes := partes || (select count(*)::text || coalesce(max(atualizado_em)::text, '') from configuracoes);
+  partes := partes || (select count(*)::text || coalesce(max(atualizado_em)::text, '') from desafios);
+  partes := partes || (select count(*)::text || coalesce(max(atualizado_em)::text, '') from desafio_acoes);
+
+  partes := partes || coalesce((select md5(string_agg(t::text, '|' order by t::text)) from protocolos t where t.paciente_id = pid), '');
+  partes := partes || coalesce((select md5(string_agg(t::text, '|' order by t::text)) from metas t where t.paciente_id = pid), '');
+  partes := partes || coalesce((select md5(string_agg(t::text, '|' order by t::text)) from metas_semanais t where t.paciente_id = pid), '');
+  partes := partes || coalesce((select md5(string_agg(t::text, '|' order by t::text)) from avaliacoes_fisicas t where t.paciente_id = pid), '');
+  partes := partes || coalesce((select md5(string_agg(t::text, '|' order by t::text)) from paciente_fases t where t.paciente_id = pid), '');
+  partes := partes || coalesce((select md5((to_jsonb(t) - 'ultimo_acesso' - 'atualizado_em' - 'perfil_id')::text)
+                                  from pacientes t where t.id = pid), '');
+  partes := partes || coalesce((select md5(t::text) from hotslim_participantes t where t.id = auth.uid()), '');
+
+  return md5(array_to_string(partes, '#'));
+end;
+$$;
+
+revoke all on function meu_carimbo_de_conteudo() from public, anon;
+grant execute on function meu_carimbo_de_conteudo() to authenticated;

@@ -65,7 +65,10 @@ self.addEventListener("fetch", function (e) {
   }
 
   if (pedido.mode === "navigate") {
-    var daRede = fetch(pedido).then(function (r) { guardar(pedido, r, true); return r; });
+    // "no-cache": sempre confere com o servidor (barato quando não mudou).
+    // Sem isso, o navegador podia devolver a cópia velha por até 10 minutos
+    // depois de publicar, e o "Atualizar" reabria a versão anterior.
+    var daRede = fetch(new Request(pedido, { cache: "no-cache" })).then(function (r) { guardar(pedido, r, true); return r; });
     var prazo = new Promise(function (resolve) { setTimeout(function () { resolve(null); }, PRAZO_MS); });
     e.respondWith(
       Promise.race([daRede.catch(function () { return null; }), prazo]).then(function (rapida) {

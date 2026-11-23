@@ -5,6 +5,7 @@ import { repositorio } from "@/central/dados/repositorio";
 import { rotas } from "@/central/rotas";
 import { versaoDoSite } from "@/central/utils/versaoDoSite";
 import { versaoPublicada } from "@/central/utils/versaoPublicada";
+import { buscarVersaoNovaERecarregar, ehMaisNova } from "@/central/utils/atualizacao";
 
 const A_CADA_MS = 60_000;
 const SEM_CARIMBO = "versão de desenvolvimento";
@@ -21,14 +22,21 @@ export function AvisoAtualizacao() {
   const { acesso, modoDemonstracao } = useSessao();
   const { pathname } = useLocation();
   const [disponivel, definirDisponivel] = useState(false);
+  const [atualizando, definirAtualizando] = useState(false);
   const carimboInicial = useRef<string | null>(null);
   const versaoInicial = useRef(versaoDoSite());
+  // A versão nova só vale quando aparece em duas conferências seguidas: logo
+  // depois de publicar, o servidor alterna entre a cópia velha e a nova.
+  const vistaAntes = useRef<string | null>(null);
 
   const ativo = acesso.autenticado && !modoDemonstracao;
   // Na área da nutricionista o resumo do conteúdo muda a cada coisa que ELA
   // edita, e a faixa avisaria sobre o que ela mesma acabou de fazer. Lá só
   // vale o aviso de versão nova do aplicativo.
   const naAreaDaNutri = pathname.startsWith(rotas.admin);
+  // A nutricionista vendo o lado da paciente: o que muda ali é o que ELA
+  // mesma acabou de editar. Para ela, só o aviso de versão nova do app.
+  const conferirConteudo = !naAreaDaNutri && acesso.papel !== "admin";
 
   useEffect(() => {
     if (!ativo || disponivel) return;
@@ -37,7 +45,7 @@ export function AvisoAtualizacao() {
     async function verificar() {
       if (document.visibilityState === "hidden") return;
 
-      if (!naAreaDaNutri) {
+      if (conferirConteudo) {
         const carimbo = await repositorio.carimboDoConteudo();
         if (cancelado) return;
         if (carimbo !== null) {
@@ -49,7 +57,12 @@ export function AvisoAtualizacao() {
       if (versaoInicial.current === SEM_CARIMBO) return;
       const publicada = await versaoPublicada(import.meta.env.BASE_URL);
       if (cancelado) return;
-      if (publicada && publicada !== versaoInicial.current) definirDisponivel(true);
+      if (!ehMaisNova(publicada, versaoInicial.current)) {
+        vistaAntes.current = null;
+        return;
+      }
+      if (vistaAntes.current === publicada) definirDisponivel(true);
+      else vistaAntes.current = publicada;
     }
 
     void verificar();
@@ -63,15 +76,22 @@ export function AvisoAtualizacao() {
       document.removeEventListener("visibilitychange", aoVoltar);
       window.removeEventListener("online", aoVoltar);
     };
-  }, [ativo, disponivel, naAreaDaNutri]);
+  }, [ativo, disponivel, conferirConteudo]);
 
   if (!ativo || !disponivel) return null;
 
   return (
     <div className="c-aviso-atualizacao" role="status">
       <span>Atualização disponível</span>
-      <button type="button" onClick={() => window.location.reload()}>
-        Atualizar
+      <button
+        type="button"
+        disabled={atualizando}
+        onClick={() => {
+          definirAtualizando(true);
+          void buscarVersaoNovaERecarregar(import.meta.env.BASE_URL);
+        }}
+      >
+        {atualizando ? "Atualizando…" : "Atualizar"}
       </button>
     </div>
   );
