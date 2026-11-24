@@ -12970,3 +12970,13 @@ textarea.c-campo-input,
 .central .c-mde-cabeca { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .central .c-colinha-link { font-size: 13px; }
 .c-calculos-cabeca > .c-calculos-cabeca-acoes { display: flex; flex-direction: row; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+/* ------------------------------------------------ panorama da ficha (nutri) */
+.central .c-pano-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 12px; margin-top: 10px; }
+.central .c-pano-bloco { background: #F7EEE7; border-radius: 16px; padding: 14px 16px; min-width: 0; display: flex; flex-direction: column; }
+.central .c-pano-bloco h3 { margin: 0 0 4px; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #38546C; }
+.central .c-pano-linha { display: flex; flex-direction: column; gap: 2px; padding: 9px 0; border-top: 1px solid #C9BCAC; min-width: 0; }
+.central .c-pano-bloco h3 + .c-pano-linha { border-top: 0; }
+.central .c-pano-linha strong { color: #263D52; font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; }
+.central .c-pano-origem { align-self: flex-start; background: none; border: 0; padding: 0; font: inherit; font-size: 13px; color: #38546C; text-decoration: none; cursor: pointer; }
+.central .c-pano-origem:hover { text-decoration: underline; }
