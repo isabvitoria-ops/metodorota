@@ -14,7 +14,7 @@
 -- dados iniciais são inseridos com "on conflict do nothing", então nada que
 -- você já tiver cadastrado é apagado ou duplicado.
 --
--- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql, 0095_cozinha.sql, 0096_areas_por_paciente.sql, 0097_agenda.sql, 0098_feed_e_notificacoes.sql, 0099_tour_prazo_checkin_agenda_repete.sql, 0100_resumo_pre_retorno.sql, 0101_medicamentos_nutrientes.sql, 0102_lixeira.sql, 0103_quem_esfriou.sql, 0104_carimbo_sem_ultimo_acesso.sql, 0105_restricoes_nas_trocas.sql, 0106_relatorios_medico.sql
+-- Contém: 0001_esquema.sql, 0002_funcoes.sql, 0003_rls.sql, 0004_dados_iniciais.sql, 0005_permissoes.sql, 0006_desafio.sql, 0007_desafio_funcoes.sql, 0008_desafio_rls.sql, 0009_desafio_tela.sql, 0010_desafio_fechaduras.sql, 0011_desafio_dados.sql, 0012_desafio_criacao.sql, 0013_desafio_ajustes.sql, 0014_reintroducao.sql, 0015_reintroducao_catalogo.sql, 0016_reintroducao_funcoes.sql, 0017_reintroducao_admin.sql, 0018_marcadores.sql, 0019_marcadores_tabela.sql, 0020_marcadores_ligacao.sql, 0021_rastreio_por_paciente.sql, 0022_protocolo.sql, 0023_grupos_protocolo.sql, 0024_avaliacao_fisica.sql, 0025_registro_retroativo.sql, 0026_ligar_ao_mapa.sql, 0027_retroativo_do_mapa.sql, 0028_marcacao_da_nutri.sql, 0029_avaliacao_historico.sql, 0030_treino.sql, 0031_cardio_metas.sql, 0032_treino_escrito_pela_paciente.sql, 0033_treino_liberado_por_paciente.sql, 0034_metas_do_acompanhamento.sql, 0035_consultas_e_panorama.sql, 0036_backup.sql, 0037_o_que_mudou.sql, 0038_desafio_por_paciente.sql, 0039_segmentacao.sql, 0040_condicao_no_panorama.sql, 0041_questionarios_e_checkin.sql, 0042_checkin_revisado.sql, 0043_financeiro.sql, 0044_fases_do_metodo.sql, 0045_guardar_exames.sql, 0046_recebimentos_e_balanco.sql, 0047_lembrete_de_cobranca.sql, 0048_cupons_da_nutri.sql, 0049_admin_como_propria_paciente.sql, 0050_so_ela_pode_ser_admin.sql, 0051_fechar_funcoes_abertas.sql, 0052_desafio_sem_diario.sql, 0053_cerebro_do_nutri.sql, 0054_score_e_eixos_checkin.sql, 0055_condutas_kanban.sql, 0056_metricas_acompanhamento.sql, 0057_diario_de_fotos.sql, 0058_conversas_por_refeicao.sql, 0059_historico_de_pontos.sql, 0060_desafio_do_mes_automatico.sql, 0061_indicacao_pela_nutri_e_pontos_antigos.sql, 0062_ajustes_da_varredura.sql, 0063_termo_de_uso_e_lgpd.sql, 0064_checkin_v2_estrutura.sql, 0065_checkin_v2_seed.sql, 0066_motor_alertas_checkin.sql, 0067_lembrete_checkin_wpp.sql, 0068_perguntas_ocultas_por_paciente.sql, 0069_reduzir_perguntas_por_versao.sql, 0070_marcadores_de_exame.sql, 0071_modelos_checkin_especializados.sql, 0072_fundir_ao_ligar.sql, 0073_fotos_protocolo.sql, 0074_treino_v2.sql, 0075_treino_faixas.sql, 0076_treino_multiplo.sql, 0077_checkin_respondidos_e_lembrete_retorno.sql, 0078_hidratacao.sql, 0079_restricoes_alimentares.sql, 0080_interruptores_restricoes_fodmap.sql, 0081_corrige_minhas_restricoes.sql, 0082_fotos_evolucao.sql, 0082a_hotslim_tabelas_e_funcoes.sql, 0083_hotslim_fases_automaticas.sql, 0084_carimbo_de_conteudo.sql, 0085_ranking_geral_e_limpeza_6_meses.sql, 0086_viagem.sql, 0087_diario_de_viagem.sql, 0088_guia_de_viagem_por_paciente.sql, 0089_fechar_auxiliares_e_funcoes_abertas.sql, 0090_registro_sem_data_futura.sql, 0091_search_path_nas_funcoes.sql, 0092_sobras_do_treino.sql, 0093_treino_protecoes_de_volta.sql, 0094_status_nao_tolerado.sql, 0095_cozinha.sql, 0096_areas_por_paciente.sql, 0097_agenda.sql, 0098_feed_e_notificacoes.sql, 0099_tour_prazo_checkin_agenda_repete.sql, 0100_resumo_pre_retorno.sql, 0101_medicamentos_nutrientes.sql, 0102_lixeira.sql, 0103_quem_esfriou.sql, 0104_carimbo_sem_ultimo_acesso.sql, 0105_restricoes_nas_trocas.sql, 0106_relatorios_medico.sql, 0107_realinhar_funcoes.sql
 -- =============================================================================
 
 
@@ -24969,3 +24969,123 @@ grant select, insert, delete on public.relatorios_medico to authenticated;
 drop policy if exists relatorios_medico_admin on public.relatorios_medico;
 create policy relatorios_medico_admin on public.relatorios_medico
   for all to authenticated using (e_admin()) with check (e_admin());
+
+
+-- ###########################################################################
+-- 0107_realinhar_funcoes.sql
+-- ###########################################################################
+
+-- 0107 — Realinhar duas funções de produção com o código testado
+-- (auditoria pós-atualização, 24/11/2026).
+--
+-- A comparação função por função entre o banco de produção e as migrações
+-- achou duas que nunca receberam a versão certa:
+--
+-- 1. apagar_marcadores_da_data: em produção estava uma versão feita à parte,
+--    com o parâmetro `p_paciente_id` (o app chama `p_paciente`, então o botão
+--    de apagar marcadores de uma data dava erro) e SEM a conferência "só a
+--    nutricionista" (qualquer conta logada podia apagar marcadores de outra
+--    paciente). Volta a versão da 0070.
+-- 2. ligar_item_ao_mapa: em produção estava a versão antiga, que recusava
+--    ligar quando a paciente já tinha o alimento na lista ("já foi
+--    relacionado"). Volta a versão da 0072, que junta os registros.
+--
+-- Só troca funções. Nenhuma tabela, coluna ou dado muda.
+
+-- A assinatura de produção tem os mesmos tipos, mas outro nome de parâmetro
+-- e outro retorno: precisa sair antes.
+drop function if exists public.apagar_marcadores_da_data(uuid, date);
+
+create or replace function apagar_marcadores_da_data(
+  p_paciente uuid,
+  p_data date
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_n integer;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista apaga marcadores.' using errcode = '42501';
+  end if;
+
+  delete from marcadores_exame
+   where paciente_id = p_paciente and data = p_data;
+  get diagnostics v_n = row_count;
+
+  if v_n = 0 then
+    raise exception 'Nenhum marcador nesta data.' using errcode = '22023';
+  end if;
+
+  return v_n;
+end;
+$$;
+
+revoke all on function apagar_marcadores_da_data(uuid, date) from anon, public;
+grant execute on function apagar_marcadores_da_data(uuid, date) to authenticated;
+
+create or replace function ligar_item_ao_mapa(p_item uuid, p_alimento text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_outro uuid;
+  v_paciente uuid;
+begin
+  if not e_admin() then
+    raise exception 'Só a nutricionista liga um alimento ao Mapa.' using errcode = '42501';
+  end if;
+
+  if not exists (select 1 from reintroducao_alimentos where id = p_alimento) then
+    raise exception 'Este alimento não está no Mapa.' using errcode = 'P0002';
+  end if;
+
+  select paciente_id into v_paciente from reintroducao_itens where id = p_item;
+  if v_paciente is null then
+    raise exception 'Alimento não encontrado na lista.' using errcode = 'P0002';
+  end if;
+
+  -- Outro item da mesma paciente já aponta para este alimento do Mapa?
+  select id into v_outro
+    from reintroducao_itens
+   where paciente_id = v_paciente
+     and alimento_id = p_alimento
+     and id <> p_item;
+
+  if v_outro is not null then
+    -- FUNDIR: os registros do item digitado migram para o existente.
+    update reintroducao_registros
+       set item_id = v_outro
+     where item_id = p_item;
+
+    -- A nota e o status que ela escreveu não se perdem: se o item que vai
+    -- embora tem informação que o que fica não tem, copia.
+    update reintroducao_itens destino
+       set nota_nutri = coalesce(destino.nota_nutri, origem.nota_nutri),
+           status = case
+             when destino.status = 'nao_iniciado' and origem.status <> 'nao_iniciado'
+             then origem.status
+             else destino.status
+           end,
+           marcacao_nutri = coalesce(destino.marcacao_nutri, origem.marcacao_nutri)
+      from reintroducao_itens origem
+     where destino.id = v_outro
+       and origem.id = p_item;
+
+    delete from reintroducao_itens where id = p_item;
+    return;
+  end if;
+
+  -- Caso normal: nenhum conflito, é só apontar.
+  update reintroducao_itens
+     set alimento_id = p_alimento,
+         nome_livre = coalesce(nome_livre, (select nome from reintroducao_alimentos
+                                             where id = p_alimento))
+   where id = p_item;
+end;
+$$;
