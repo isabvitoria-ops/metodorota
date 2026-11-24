@@ -126,6 +126,23 @@ Cada medida leva `ref` com o código SR28 e a porção original — na tela,
 aparece ao parar o mouse sobre a opção. Para conferir: FoodData Central,
 tipo SR Legacy, buscar pelo código.
 
+**Lote 2 — auditoria de medidas de 23/11/2026** (`medidas_caseiras_lote2.xlsx`):
+108 medidas de 80 alimentos, conferidas no IBGE POF 2008-09 (Tabela de Medidas
+Referidas) e na tabela de medidas caseiras da UFG. A coluna "Fonte" diz qual;
+"DietSystem · tabela (sem pesagem publicada)" quando não havia referência
+para conferir. Regras do lote 2:
+
+* medida de alimento **cozido só vai para alimento cozido** (o erro mais
+  grave que a auditoria achou no DietSystem foi medida do cozido no cru);
+* os lotes **somam**: mesma medida com o mesmo peso entra uma vez; com peso
+  diferente, o gerador para;
+* ficou de fora, até ela decidir, o que contradiz o lote 1, o que a própria
+  auditoria marcou como dúvida e o que não tem alimento nesta base.
+
+Dieta salva com uma medida que saiu da tabela **não muda**: a medida fica
+na lista como "saiu da tabela", com o peso de quando foi escolhida (antes,
+caía calada para "g").
+
 A medida que ela cria vence a da tabela quando têm o mesmo nome.
 
 ```
