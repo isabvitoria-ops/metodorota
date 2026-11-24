@@ -5,6 +5,7 @@
 import type { MedidaCaseira, Utensilio } from "@/central/types/protocolo";
 import { IconeUtensilio } from "@/central/components/Utensilios";
 import { UTENSILIOS, nomeDoUtensilio } from "@/central/utils/utensilios";
+import { ColinhaDeMedidas } from "./ColinhaDeMedidas";
 
 /** "1 colher de sopa" — ponto de partida, ela edita para "2 colheres de sopa". */
 const textoInicial = (u: Utensilio) => `1 ${nomeDoUtensilio(u).toLowerCase()}`;
@@ -32,13 +33,19 @@ function Escolha({ valor, aoMudar }: { valor: Utensilio | ""; aoMudar: (u: Utens
 export function EditorDaMedidaCaseira({
   medida,
   aoMudar,
+  alimento = "",
 }: {
   medida: MedidaCaseira | undefined;
   aoMudar: (m: MedidaCaseira | undefined) => void;
+  /** O nome do alimento da linha: a colinha já abre buscando ele. */
+  alimento?: string;
 }) {
   return (
     <div className="c-mde">
-      <span className="c-rotulo">Medida caseira (ela vê no lugar dos gramas)</span>
+      <div className="c-mde-cabeca">
+        <span className="c-rotulo">Medida caseira (ela vê no lugar dos gramas)</span>
+        <ColinhaDeMedidas comoLink rotulo="Quanto pesa?" buscaInicial={alimento} />
+      </div>
       <div className="c-mde-linha">
         <Escolha
           valor={medida?.utensilio ?? ""}

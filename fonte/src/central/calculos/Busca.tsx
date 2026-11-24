@@ -12,15 +12,18 @@ export function Busca({
   aoEscolher,
   placeholder = "Buscar alimento",
   compacta,
+  textoInicial = "",
 }: {
   aoEscolher: (a: Alimento) => void;
   placeholder?: string;
   compacta?: boolean;
+  /** Já abre buscando este texto (ex.: o nome do alimento da linha). */
+  textoInicial?: string;
 }) {
   const id = useId();
-  const [texto, definirTexto] = useState("");
-  const [achados, definirAchados] = useState<Alimento[]>([]);
-  const [aberta, definirAberta] = useState(false);
+  const [texto, definirTexto] = useState(textoInicial);
+  const [achados, definirAchados] = useState<Alimento[]>(() => (textoInicial ? buscar(textoInicial) : []));
+  const [aberta, definirAberta] = useState(() => semAcento(textoInicial).replace(/[^a-z0-9]/g, "").length >= 2);
   const [marcado, definirMarcado] = useState(0);
 
   function procurar(t: string) {

@@ -15,6 +15,7 @@ import { AbaDieta } from "@/central/calculos/AbaDieta";
 import { AbaCorpo } from "@/central/calculos/AbaCorpo";
 import { AbaMacros } from "@/central/calculos/AbaMacros";
 import { BotaoConfirmar } from "@/central/calculos/ui";
+import { ColinhaDeMedidas } from "./ColinhaDeMedidas";
 
 type Aba = "dieta" | "corpo" | "macros";
 const ABAS: { chave: Aba; rotulo: string }[] = [
@@ -42,9 +43,12 @@ export function Calculos() {
         </div>
         {/* A ferramenta antiga continua no ar, lendo as mesmas fichas, enquanto
             esta é conferida no dia a dia. Sai quando ela aprovar. */}
-        <a className="c-link" href={`${import.meta.env.BASE_URL}nutri/`} target="_blank" rel="noreferrer">
-          Versão anterior
-        </a>
+        <div className="c-calculos-cabeca-acoes">
+          <ColinhaDeMedidas />
+          <a className="c-link" href={`${import.meta.env.BASE_URL}nutri/`} target="_blank" rel="noreferrer">
+            Versão anterior
+          </a>
+        </div>
       </div>
 
       <section className="c-calc-secao c-cx-fichas" aria-label="Ficha da paciente">
