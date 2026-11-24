@@ -21,6 +21,7 @@ import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { dataBonita } from "@/central/utils/situacao";
 import { AreaDeLinhas, AreaTexto, Campo, NumeroDecimal, Selecao, Texto } from "./componentes/Campos";
 import { EditorDaMedidaCaseira } from "./EditorDaMedidaCaseira";
+import { ColinhaDeMedidas } from "./ColinhaDeMedidas";
 import { numeroDeTexto, textoDeNumero } from "@/central/utils/numero";
 import { conferirAvaliacao } from "@/central/utils/conferenciaAvaliacao";
 import {
@@ -387,13 +388,16 @@ function EditorDoProtocolo({
               : "Desligado: ela vê a quantidade como você escreveu (gramas)."}
           </span>
         </div>
-        <button
-          type="button"
-          className={`c-botao c-botao-pequeno ${conteudo.medidasCaseiras ? "c-botao-secundario" : ""}`}
-          onClick={() => definirConteudo({ ...conteudo, medidasCaseiras: !conteudo.medidasCaseiras })}
-        >
-          {conteudo.medidasCaseiras ? "Voltar para gramas" : "Usar medidas caseiras"}
-        </button>
+        <div className="c-mde-modo-botoes">
+          <button
+            type="button"
+            className={`c-botao c-botao-pequeno ${conteudo.medidasCaseiras ? "c-botao-secundario" : ""}`}
+            onClick={() => definirConteudo({ ...conteudo, medidasCaseiras: !conteudo.medidasCaseiras })}
+          >
+            {conteudo.medidasCaseiras ? "Voltar para gramas" : "Usar medidas caseiras"}
+          </button>
+          <ColinhaDeMedidas />
+        </div>
       </section>
 
       <Campo
@@ -840,6 +844,7 @@ function BlocoDaRefeicao({
                 {caseiras && (
                   <EditorDaMedidaCaseira
                     medida={item.medida}
+                    alimento={item.alimento}
                     aoMudar={(m) =>
                       trocarOpcao(iOpcao, {
                         ...opcao,
