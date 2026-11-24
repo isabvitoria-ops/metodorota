@@ -38,6 +38,7 @@ import { HidratacaoDoProntuario } from "./HidratacaoDoProntuario";
 import { MedicamentosDoProntuario } from "./MedicamentosDoProntuario";
 import { RelatorioParaOMedico } from "./RelatorioParaOMedico";
 import { RestricoesDoProntuario } from "./RestricoesDoProntuario";
+import { PanoramaDoCaso } from "./PanoramaDoCaso";
 import { EvolucaoCorpoDoProntuario } from "./EvolucaoCorpoDoProntuario";
 
 /**
@@ -58,7 +59,7 @@ type Aba = "consulta" | "resumo" | "medicamentos" | "diario" | "conversas" | "ch
 /** As abas à vista. Carta e acessos entram pelo ⋯, porque são de vez em quando. */
 const ABAS_DA_FICHA: [Aba, string][] = [
   ["consulta", "Consulta"],
-  ["resumo", "Resumo"],
+  ["resumo", "Panorama"],
   ["medicamentos", "Medicamentos"],
   ["diario", "Diário"],
   ["conversas", "Conversas"],
@@ -309,6 +310,17 @@ export function Prontuario() {
       </div>
 
       <div hidden={aba !== "resumo"}>
+        {aba === "resumo" && (
+          <PanoramaDoCaso
+            pacienteId={pacienteId}
+            avaliacoes={avaliacoes}
+            metas={paciente.metas}
+            pesoAtual={paciente.pesoAtual}
+            pesoInicial={paciente.pesoInicial}
+            hoje={hoje}
+          />
+        )}
+
         {peso !== null && peso !== 0 && (
           <p className="c-dica">
             {/* O sinal é explícito e a tela não diz se é bom ou ruim: perder
@@ -343,7 +355,9 @@ export function Prontuario() {
         )}
 
         <HidratacaoDoProntuario pacienteId={pacienteId} pesoAtual={paciente.pesoAtual} />
-        <RestricoesDoProntuario pacienteId={pacienteId} />
+        <div id="restricoes">
+          <RestricoesDoProntuario pacienteId={pacienteId} />
+        </div>
       </div>
 
       <div hidden={aba !== "medicamentos"}>

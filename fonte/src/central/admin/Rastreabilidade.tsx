@@ -1505,7 +1505,7 @@ function ListaDaPaciente({
           aoFechar={() => definirVirando(null)}
           aoSalvar={(nome) => {
             definirVirando(null);
-            definirRecadoRestricao(`${nome} virou restrição. Está na ficha, aba Resumo.`);
+            definirRecadoRestricao(`${nome} virou restrição. Está na ficha, aba Panorama.`);
             carregarRestricoes();
           }}
         />
@@ -1754,7 +1754,7 @@ function ModalVirarRestricao({
 
   return (
     <Modal titulo={`${item.nome} vira restrição?`} aoFechar={aoFechar}>
-      <p className="c-dica">Nada muda sem você salvar. Depois dá para editar ou apagar na ficha, aba Resumo.</p>
+      <p className="c-dica">Nada muda sem você salvar. Depois dá para editar ou apagar na ficha, aba Panorama.</p>
       <Campo rotulo="Tipo">
         <Selecao<TipoRestricao>
           valor={tipo}
