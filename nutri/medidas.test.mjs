@@ -62,19 +62,37 @@ test("a tapioca da TBCA importada ganha a unidade pelo código", () => {
   assert.deepEqual(medidas["imp:BRC0906B"].map((m) => [m.n, m.g]), [["unidade média", 60]]);
 });
 
-test("o kiwi pesa o que o USDA diz: 69 g", () => {
+test("o kiwi pesa o que o IBGE POF diz (auditoria de 23/11): 94 g, e não os 69 g do USDA", () => {
   assert.deepEqual(
     medidas["taco:207"].map((m) => [m.n, m.g]),
-    [["unidade", 69]],
+    [["unidade média", 94]],
   );
+  assert.match(medidas["taco:207"][0].ref, /IBGE POF 2008-09.*medidas_caseiras_lote2\.xlsx/);
 });
 
 test("variedade diferente não ganha peso americano", () => {
-  // Laranja-pera e goiaba brasileira não são as do USDA: sem medida.
-  const ids = [...taco].filter((id) => !medidas[id]);
-  const nomes = new Map(ler("taco.json").alimentos.map((a) => [`taco:${a.c}`, a.n]));
-  const semMedida = ids.map((id) => nomes.get(id));
-  assert.ok(semMedida.includes("Laranja, pêra, crua"));
-  assert.ok(semMedida.includes("Goiaba, vermelha, com casca, crua"));
-  assert.ok(semMedida.includes("Abacate, cru"));
+  // Laranja-pera, goiaba e abacate não são os do USDA. Hoje têm medida
+  // brasileira (IBGE POF, auditoria de 23/11) — nunca uma do USDA.
+  const nomes = new Map(ler("taco.json").alimentos.map((a) => [a.n, `taco:${a.c}`]));
+  for (const nome of ["Laranja, pêra, crua", "Goiaba, vermelha, com casca, crua", "Abacate, cru"]) {
+    for (const m of medidas[nomes.get(nome)] ?? []) assert.doesNotMatch(m.ref, /USDA/, nome);
+  }
+});
+
+test("lote 2: medida de cozido nunca vai para o cru", () => {
+  const nomes = new Map(ler("taco.json").alimentos.map((a) => [a.n, `taco:${a.c}`]));
+  for (const cru of ["Arroz, tipo 1, cru", "Arroz, integral, cru", "Lentilha, crua", "Grão-de-bico, cru", "Feijão, carioca, cru", "Macarrão, trigo, cru"]) {
+    for (const m of medidas[nomes.get(cru)] ?? []) assert.doesNotMatch(m.ref, /lote2/, cru);
+  }
+  assert.deepEqual(
+    medidas[nomes.get("Arroz, tipo 1, cozido")].map((m) => [m.n, m.g]),
+    [["escumadeira média cheia", 85], ["colher de servir cheia", 45], ["colher de sopa cheia", 25], ["colher de sopa rasa", 18], ["concha média cheia", 100]],
+  );
+});
+
+test("os lotes somam: o lote 2 não apaga o que o lote 1 já tinha", () => {
+  // Requeijão: "colher de sopa" do lote 1 e "colher de sopa cheia" do lote 2.
+  assert.deepEqual(medidas["taco:468"].map((m) => [m.n, m.g]), [["colher de sopa", 30], ["colher de sopa cheia", 30]]);
+  // Filé de frango: o lote 1 continua valendo (o "filé pequeno 60 g" da auditoria espera a decisão dela).
+  assert.deepEqual(medidas["taco:410"].slice(0, 3).map((m) => m.g), [70, 100, 120]);
 });

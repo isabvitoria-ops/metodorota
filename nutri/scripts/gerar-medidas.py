@@ -226,6 +226,93 @@ PLANILHA = {
     "Requeijão": {"taco": ["Queijo, requeijão, cremoso"], "ibge": [("Requeijão", CRU)]},
 }
 
+
+# Lote 2: a auditoria de medidas de 23/11/2026 (IBGE POF 2008-09 e UFG,
+# conferidas contra o DietSystem). Medida de alimento COZIDO só vai para
+# alimento cozido: o erro mais grave que a auditoria achou no DietSystem foi
+# medida do cozido em alimento cru. O que a auditoria marcou como dúvida, ou
+# que contradiz o lote 1, ficou de fora até ela decidir.
+PLANILHA.update({
+    "Abacate": {"taco": ["Abacate, cru"], "ibge": [("Abacate", {"99"})]},
+    "Abacaxi": {"taco": ["Abacaxi, cru"], "ibge": [("Abacaxi", {"99"})]},
+    "Abobrinha, cozida": {"taco": ["Abobrinha, italiana, cozida", "Abobrinha, italiana, refogada"], "ibge": [("Abobrinha", {"2", "7"})]},
+    "Abóbora, cozida": {"taco": ["Abóbora, cabotian, cozida", "Abóbora, moranga, refogada"], "ibge": [("Abóbora", {"2", "7"})]},
+    "Alface": {"taco": ["Alface, americana, crua", "Alface, crespa, crua", "Alface, lisa, crua", "Alface, roxa, crua"], "ibge": [("Alface", {"99"})]},
+    "Ameixa": {"taco": ["Ameixa, crua"], "ibge": [("Ameixa", {"99"})]},
+    "Arroz branco, cozido": {"taco": ["Arroz, tipo 1, cozido", "Arroz, tipo 2, cozido"], "ibge": [("Arroz (polido, parboilizado, agulha, agulhinha, etc.)", {"99"})]},
+    "Arroz integral, cozido": {"taco": ["Arroz, integral, cozido"], "ibge": [("Arroz integral", {"99"})]},
+    "Atum em conserva": {"taco": ["Atum, conserva em óleo"], "ibge": [("Atum em conserva", {"99"})]},
+    "Aveia em flocos": {"taco": ["Aveia, flocos, crua"], "ibge": [("Aveia em flocos", {"99"})]},
+    "Açúcar": {"taco": ["Açúcar, refinado", "Açúcar, cristal"], "ibge": [("Açúcar", {"99"})]},
+    "Banana nanica": {"taco": ["Banana, nanica, crua"]},
+    "Batata doce, cozida": {"taco": ["Batata, doce, cozida"], "ibge": [("Batata-doce", {"2"})]},
+    "Batata inglesa, cozida": {"taco": ["Batata, inglesa, cozida"], "ibge": [("Batata-inglesa", {"2"})]},
+    "Beterraba, cozida": {"taco": ["Beterraba, cozida"], "ibge": [("Beterraba", {"2"})]},
+    "Biscoito cream cracker": {"taco": ["Biscoito, salgado, cream cracker"]},
+    "Brócolis, cozido": {"taco": ["Brócolis, cozido"], "ibge": [("Brócolis", {"2"})]},
+    "Café, infusão": {"taco": ["Café, infusão 10%"], "ibge": [("Café", {"99"})]},
+    "Camarão, cozido": {"taco": ["Camarão, Rio Grande, grande, cozido"], "ibge": [("Camarão", {"2"})]},
+    "Carne moída": {"ibge": [("Carne moída", {"2", "7"})]},
+    "Castanha de caju": {"taco": ["Castanha-de-caju, torrada, salgada"], "ibge": [("Castanha de caju", {"99"})]},
+    "Cenoura": {"taco": ["Cenoura, crua"], "ibge": [("Cenoura", CRU)]},
+    "Cenoura, cozida": {"taco": ["Cenoura, cozida"], "ibge": [("Cenoura", {"2"})]},
+    "Chuchu, cozido": {"taco": ["Chuchu, cozido"], "ibge": [("Chuchu", {"2"})]},
+    "Clara de ovo": {"taco": ["Ovo, de galinha, clara, cozida/10minutos"]},
+    "Couve, refogada/cozida": {"taco": ["Couve, manteiga, refogada"], "ibge": [("Couve", {"2", "7"})]},
+    "Coxa de frango": {"taco": ["Frango, coxa, com pele, assada", "Frango, coxa, sem pele, cozida"]},
+    "Creme de leite": {"taco": ["Creme de Leite"], "ibge": [("Creme de leite", {"99"})]},
+    "Cuscuz de milho": {"taco": ["Cuscuz, de milho, cozido com sal"], "ibge": [("Cuscuz", {"99"})]},
+    "Espinafre, cozido": {"taco": ["Espinafre, Nova Zelândia, refogado"], "ibge": [("Espinafre", {"2", "7"})]},
+    "Estrogonofe de carne": {"taco": ["Estrogonofe de carne"]},
+    "Farinha de aveia": {"ibge": [("Farinha de aveia", {"99"})]},
+    "Feijoada": {"ibge": [("Feijoada", {"99"})]},
+    "Feijão carioca, cozido": {"taco": ["Feijão, carioca, cozido", "Feijão, preto, cozido"], "ibge": [("Feijão (preto, mulatinho, roxo, rosinha, etc.)", {"99"})]},
+    "Filé de peixe (merluza)": {"taco": ["Merluza, filé, assado", "Merluza, filé, frito"]},
+    "Fígado bovino": {"taco": ["Carne, bovina, fígado, grelhado"], "ibge": [("Fígado bovino", {"3", "5"})]},
+    "Goiaba": {"taco": ["Goiaba, branca, com casca, crua", "Goiaba, vermelha, com casca, crua"], "ibge": [("Goiaba", {"99"})]},
+    "Granola": {"ibge": [("Granola", {"99"})]},
+    "Grão de bico, cozido": {"ibge": [("Grão de bico", {"99"})]},
+    "Kiwi": {"taco": ["Kiwi, cru"], "ibge": [("Kiwi", {"99"})]},
+    "Laranja": {"taco": ["Laranja, baía, crua", "Laranja, da terra, crua", "Laranja, lima, crua", "Laranja, pêra, crua", "Laranja, valência, crua"], "ibge": [("Laranja (pera, seleta, lima, da terra, etc.)", {"99"})]},
+    "Leite (integral/desnatado)": {"taco": ["Leite, de vaca, integral", "Leite, de vaca, desnatado, UHT"], "ibge": [("Leite de vaca integral", {"99"}), ("Leite de vaca desnatado", {"99"}), ("Leite de vaca semidesnatado", {"99"})]},
+    "Leite integral": {"taco": ["Leite, de vaca, integral"], "ibge": [("Leite de vaca integral", {"99"})]},
+    "Lentilha, cozida": {"taco": ["Lentilha, cozida"], "ibge": [("Lentilha", {"99"})]},
+    "Lombo de porco": {"taco": ["Porco, lombo, assado"], "ibge": [("Lombo suíno", {"4"})]},
+    "Macarrão, cozido": {"ibge": [("Macarrão", {"2"})]},
+    "Mamão formosa": {"taco": ["Mamão, Formosa, cru"], "ibge": [("Mamão", {"99"})]},
+    "Mandioca, cozida": {"taco": ["Mandioca, cozida"], "ibge": [("Mandioca", {"2"}), ("Aipim", {"2"})]},
+    "Manga": {"ibge": [("Manga", {"99"})]},
+    "Manteiga": {"taco": ["Manteiga, com sal", "Manteiga, sem sal"], "ibge": [("Manteiga com ou sem sal", {"99"})]},
+    "Mel": {"taco": ["Mel, de abelha"], "ibge": [("Mel", {"99"})]},
+    "Melancia": {"taco": ["Melancia, crua"], "ibge": [("Melancia", {"99"})]},
+    "Melão": {"taco": ["Melão, cru"], "ibge": [("Melão", {"99"})]},
+    "Morango": {"taco": ["Morango, cru"], "ibge": [("Morango", {"99"})]},
+    "Patinho/alcatra (bife)": {"taco": ["Carne, bovina, patinho, sem gordura, grelhado", "Carne, bovina, miolo de alcatra, sem gordura, grelhado"], "ibge": [("Patinho", {"3"}), ("Alcatra", {"3"})]},
+    "Peito de frango inteiro, assado": {"taco": ["Frango, peito, com pele, assado"], "ibge": [("Peito de galinha ou frango", {"4"})]},
+    "Peito de peru": {"ibge": [("Peito de peru", {"99"})]},
+    "Peixe (posta)": {"ibge": [("Peixe de mar (inteiro, em posta, em filé, etc.)", {"2", "3", "4", "5"}), ("Peixe de água doce (inteiro, em posta, em filé, etc.)", {"2", "3", "4", "5"}), ("Peixe não especificado (inteiro, em posta, em filé, etc.)", {"2", "3", "4", "5"})]},
+    "Pera": {"taco": ["Pêra, Park, crua", "Pêra, Williams, crua"], "ibge": [("pera", {"99"})]},
+    "Polenta": {"ibge": [("Polenta", {"99"})]},
+    "Presunto": {"taco": ["Presunto, com capa de gordura", "Presunto, sem capa de gordura"], "ibge": [("Presunto", {"99"})]},
+    "Purê de batata": {"ibge": [("Purê de batata", {"99"})]},
+    "Pão de queijo": {"taco": ["Pão, de queijo, assado"], "ibge": [("Pão de queijo", {"99"})]},
+    "Queijo muçarela": {"taco": ["Queijo, mozarela"], "ibge": [("Queijo muçarela", {"99"})]},
+    "Queijo parmesão ralado": {"ibge": [("Queijo ralado", {"99"})]},
+    "Queijo prato": {"taco": ["Queijo, prato"], "ibge": [("Queijo prato", {"99"})]},
+    "Repolho, cru": {"taco": ["Repolho, branco, cru", "Repolho, roxo, cru"], "ibge": [("Repolho", CRU)]},
+    "Requeijão cremoso": {"taco": ["Queijo, requeijão, cremoso"], "ibge": [("Requeijão", CRU)]},
+    "Salmão": {"taco": ["Salmão, filé, com pele, fresco,  grelhado", "Salmão, sem pele, fresco, grelhado"]},
+    "Salsicha": {"ibge": [("Salsicha no varejo", {"1", "2", "3", "4", "5", "99"})]},
+    "Sardinha em conserva": {"taco": ["Sardinha, conserva em óleo"], "ibge": [("Sardinha em conserva", {"99"})]},
+    "Sobrecoxa de frango": {"taco": ["Frango, sobrecoxa, com pele, assada", "Frango, sobrecoxa, sem pele, assada"]},
+    "Suco de laranja": {"taco": ["Laranja, baía, suco", "Laranja, da terra, suco", "Laranja, lima, suco", "Laranja, pêra, suco", "Laranja, valência, suco"], "ibge": [("Suco de laranja", {"99"})]},
+    "Tangerina": {"taco": ["Tangerina, Poncã, crua"], "ibge": [("Tangerina", {"99"})]},
+    "Tomate": {"taco": ["Tomate, com semente, cru"], "ibge": [("Tomate", {"99"})]},
+    "Uva": {"taco": ["Uva, Itália, crua", "Uva, Rubi, crua"], "ibge": [("Uva", {"99"})]},
+    "Vagem": {"ibge": [("Vagem", {"2", "7"})]},
+    "Óleo de soja": {"taco": ["Óleo, de soja"], "ibge": [("Óleo de soja", {"99"})]},
+})
+
 # Como a medida vai escrita na dieta. O texto original fica na `ref`.
 RENOMEAR = {
     "pedaço/unidade/fatia (M)": "unidade média",
@@ -283,7 +370,26 @@ for nome, preparos, medidas in IBGE:
     for a in achados:
         alimentos[f"ibge:{a['codigo']}:{a['preparo_codigo']}"] = medidas
 
-# A planilha dela por cima: substitui, não soma.
+# A planilha dela por cima: substitui o USDA daquele alimento, não soma com
+# ele. Entre os lotes, SOMA: dois nomes da planilha podem cair no mesmo
+# alimento (lote 1 "Requeijão" e lote 2 "Requeijão cremoso"). Mesma medida
+# com o mesmo peso entra uma vez; com peso diferente, o gerador PARA.
+de_planilha = set()
+
+
+def por_cima(chave, medidas, origem):
+    if chave not in de_planilha:
+        alimentos[chave] = []
+        de_planilha.add(chave)
+    lista = alimentos[chave]
+    for m in medidas:
+        igual = next((x for x in lista if x["n"] == m["n"]), None)
+        if igual is None:
+            lista.append(m)
+        elif igual["g"] != m["g"]:
+            raise SystemExit(f"{chave}: '{m['n']}' {igual['g']:g} g × {m['g']:g} g ({origem})")
+
+
 planilha = ler_planilhas()
 sem_destino = sorted(set(planilha) - set(PLANILHA))
 if sem_destino:
@@ -296,15 +402,15 @@ for nome_planilha, destinos in PLANILHA.items():
         achados = [a for a in taco if a["n"] == nome]
         if len(achados) != 1:
             raise SystemExit(f"TACO: '{nome}' casou {len(achados)} vezes")
-        alimentos[f"taco:{achados[0]['c']}"] = medidas
+        por_cima(f"taco:{achados[0]['c']}", medidas, nome_planilha)
     for nome, preparos in destinos.get("ibge", []):
         achados = [a for a in ibge if a["nome"] == nome and a["preparo_codigo"] in preparos]
         if not achados:
             raise SystemExit(f"IBGE: '{nome}' {sorted(preparos)} não existe")
         for a in achados:
-            alimentos[f"ibge:{a['codigo']}:{a['preparo_codigo']}"] = medidas
+            por_cima(f"ibge:{a['codigo']}:{a['preparo_codigo']}", medidas, nome_planilha)
     for codigo in destinos.get("importada", []):
-        alimentos[f"imp:{codigo}"] = medidas
+        por_cima(f"imp:{codigo}", medidas, nome_planilha)
 
 # USDA: as porções do próprio código. "NLEA serving" fica de fora — é a
 # porção de rótulo americana, não uma medida que se sirva no prato.

@@ -14,7 +14,7 @@ import { MeusAlimentos } from "./MeusAlimentos";
 import {
   alimentoPorId,
   base,
-  medidasDoAlimento,
+  medidasComAGuardada,
   mostrar,
   num,
   porcaoDoSubstituto,
@@ -199,7 +199,7 @@ function RascunhoParaImprimir({
  */
 function comMedidasAtuais(d: Dieta): Dieta {
   const ajustar = (codigo: string, medida: { nome: string; gramas: number }) => {
-    const lista = medidasDoAlimento(codigo);
+    const lista = medidasComAGuardada(codigo, medida);
     const achada: Medida = lista.find((m) => m.nome.toLowerCase() === String(medida?.nome ?? "").toLowerCase()) ?? lista[0] ?? (MEDIDA_GRAMA as Medida);
     return { nome: achada.nome, gramas: achada.gramas, ...(achada.ref ? { ref: achada.ref } : {}) };
   };

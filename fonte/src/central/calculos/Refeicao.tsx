@@ -14,7 +14,8 @@ import { Busca } from "./Busca";
 import {
   alimentoPorId,
   etiquetaDaFonte,
-  medidasDoAlimento,
+  medidasComAGuardada,
+  NOTA_GUARDADA,
   mostrar,
   num,
   porcaoDoSubstituto,
@@ -59,7 +60,7 @@ function MedidaSelecao({
   aoMudar: (m: Medida) => void;
   aoCriar?: () => void;
 }) {
-  const medidas = medidasDoAlimento(codigo);
+  const medidas = medidasComAGuardada(codigo, medida);
   // A medida guardada é reencontrada PELO NOME: se ela editar o scoop de 30
   // para 32 g, a dieta passa a contar 32 g (ver nutri/app.mjs).
   const achada = medidas.findIndex((m) => m.nome.toLowerCase() === String(medida?.nome ?? "").toLowerCase());
@@ -79,6 +80,7 @@ function MedidaSelecao({
       {medidas.map((m, i) => (
         <option key={`${m.nome}-${i}`} value={String(i)} title={m.ref}>
           {rotuloDaMedida(m)}
+          {m.ref === NOTA_GUARDADA ? " · saiu da tabela" : ""}
         </option>
       ))}
       {aoCriar && <option value="nova">＋ criar medida…</option>}

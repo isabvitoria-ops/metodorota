@@ -297,6 +297,21 @@ export function medidasDoAlimento(codigo: string): Medida[] {
   return saida;
 }
 
+export const NOTA_GUARDADA = "Guardada na ficha: esta medida não está mais na tabela. Vale o peso de quando você escolheu.";
+
+/**
+ * As medidas do alimento e, se a medida guardada na ficha saiu da tabela,
+ * ela também, com o peso de quando foi escolhida. Sem isso, a dieta salva
+ * caía calada para "g": "1 tomate grande (182 g)" virava 1 g.
+ */
+export function medidasComAGuardada(codigo: string, guardada: { nome?: unknown; gramas?: unknown } | null | undefined): Medida[] {
+  const lista = medidasDoAlimento(codigo);
+  const nome = String(guardada?.nome ?? "").trim();
+  const gramas = Number(guardada?.gramas);
+  if (!nome || !(gramas > 0) || lista.some((m) => m.nome.toLowerCase() === nome.toLowerCase())) return lista;
+  return [...lista, { nome, gramas, ref: NOTA_GUARDADA }];
+}
+
 /** "unidade (69 g)"; medida miúda leva uma casa. */
 export function rotuloDaMedida(m: Medida) {
   if (m.nome === "g") return "g";

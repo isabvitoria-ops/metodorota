@@ -758,14 +758,14 @@ function desenharDieta() {
 
         const medidaTd = document.createElement("td");
         const medidaSel = document.createElement("select");
-        const medidas = medidasDoAlimento(item.codigo);
+        const medidas = comAGuardada(medidasDoAlimento(item.codigo), item.medida);
         medidas.forEach((m, mI) => {
           const op = document.createElement("option");
           // A posição na lista, e não "nome|gramas": um nome com barra
           // vertical quebraria a leitura de volta, e o par inteiro deixaria
           // de casar assim que as gramas mudassem.
           op.value = String(mI);
-          op.textContent = rotuloDaMedida(m);
+          op.textContent = rotuloDaMedida(m) + (m.ref === NOTA_GUARDADA ? " · saiu da tabela" : "");
           if (m.ref) op.title = m.ref;
           medidaSel.append(op);
         });
@@ -874,13 +874,13 @@ function desenharDieta() {
 
           const qtdTd = document.createElement("td");
           const medidaTd = document.createElement("td");
-          const medidas = medidasDoAlimento(sub.codigo);
+          const medidas = comAGuardada(medidasDoAlimento(sub.codigo), sub.medida);
           const sel = document.createElement("select");
           sel.setAttribute("aria-label", `Medida de ${troca ? troca.nome : sub.nome}`);
           medidas.forEach((m, mI) => {
             const op = document.createElement("option");
             op.value = String(mI);
-            op.textContent = rotuloDaMedida(m);
+            op.textContent = rotuloDaMedida(m) + (m.ref === NOTA_GUARDADA ? " · saiu da tabela" : "");
             if (m.ref) op.title = m.ref;
             sel.append(op);
           });
@@ -1068,6 +1068,18 @@ function desenharDieta() {
  * duas vezes, com gramas diferentes, sem ela saber qual é qual. Vence a de
  * cima, e "g" nunca é sobrescrita.
  */
+const NOTA_GUARDADA = "Guardada na ficha: esta medida não está mais na tabela. Vale o peso de quando você escolheu.";
+
+// A medida guardada que saiu da tabela continua na lista, com o peso de quando
+// foi escolhida. Sem isso, a dieta salva caía calada para "g": "1 tomate
+// grande (182 g)" virava 1 g. (A versão nova faz o mesmo: medidasComAGuardada.)
+function comAGuardada(medidas, guardada) {
+  const nome = String(guardada?.nome ?? "").trim();
+  const gramas = Number(guardada?.gramas);
+  if (!nome || !(gramas > 0) || medidas.some((m) => m.nome.toLowerCase() === nome.toLowerCase())) return medidas;
+  return [...medidas, { nome, gramas, ref: NOTA_GUARDADA }];
+}
+
 function medidasDoAlimento(codigo) {
   const alimento = alimentoPorId(codigo);
   const proprias =
