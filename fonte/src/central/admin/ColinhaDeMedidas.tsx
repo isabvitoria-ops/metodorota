@@ -1,21 +1,141 @@
 /**
  * Colinha das medidas caseiras — só para a nutricionista, enquanto monta o
- * plano. Ela busca o alimento e vê quanto pesa cada medida caseira dele
- * ("1 colher de sopa = 25 g").
+ * plano. Abre por utensílio (escolhe a colher de sopa e vê quanto ela pesa em
+ * cada alimento da base). A busca por alimento continua na segunda aba.
  *
  * Nenhum número é daqui: vem da mesma base da página Cálculos
  * (nutri/dados/medidas.json — pesos oficiais do USDA SR28 e a planilha de
  * medidas dela) e das medidas que ela mesma criou em Cálculos. Cada linha
  * mostra de onde veio. Peso de medida depende do alimento (a colher de sopa
- * de arroz não pesa o que pesa a de azeite), por isso a colinha é por
- * alimento, e não uma tabela única de utensílios.
+ * de arroz não pesa o que pesa a de azeite), por isso cada utensílio lista
+ * alimento por alimento, e não um peso único.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Modal } from "./componentes/Modal";
 import { Busca } from "@/central/calculos/Busca";
+import { colinhaPorUtensilio, type GrupoDoUtensilio } from "@/central/utils/colinhaPorUtensilio";
 import { alimentoPorId, base, etiquetaDaFonte, medidasDoAlimento, mostrar, type Alimento, type Medida } from "@/central/calculos/tabela";
 
 const CHAVE = "marvia-colinha-medidas";
+const CHAVE_UTENSILIO = "marvia-colinha-utensilio";
+
+function lerTexto(chave: string): string {
+  try {
+    return localStorage.getItem(chave) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+function guardarTexto(chave: string, valor: string) {
+  try {
+    localStorage.setItem(chave, valor);
+  } catch {
+    /* sem armazenamento, só não lembra da última vez */
+  }
+}
+
+const semAcento = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+function montarGrupos(): GrupoDoUtensilio[] {
+  const ids = new Set<string>(Object.keys(base.medidasPadrao));
+  for (const a of base.alimentos) if (a.fonte === "meu" || a.fonte === "importada") ids.add(a.id);
+  const entradas = [];
+  for (const id of ids) {
+    const a = alimentoPorId(id);
+    if (a) entradas.push({ id: a.id, nome: a.nome, medidas: medidasDoAlimento(a.id) });
+  }
+  return colinhaPorUtensilio(entradas);
+}
+
+function PorUtensilio() {
+  const grupos = useMemo(montarGrupos, []);
+  const [chave, definirChave] = useState(() => {
+    const guardada = lerTexto(CHAVE_UTENSILIO);
+    return grupos.some((g) => g.chave === guardada) ? guardada : grupos[0]?.chave ?? "";
+  });
+  const [filtro, definirFiltro] = useState("");
+  const grupo = grupos.find((g) => g.chave === chave) ?? null;
+  const termo = semAcento(filtro.trim());
+  const linhas = grupo ? grupo.linhas.filter((l) => !termo || semAcento(l.alimento).includes(termo)) : [];
+
+  function escolher(c: string) {
+    definirChave(c);
+    guardarTexto(CHAVE_UTENSILIO, c);
+  }
+
+  if (grupos.length === 0) {
+    return <p className="c-dica">A base não traz nenhuma medida de utensílio agora.</p>;
+  }
+  const chips = (eua: boolean) =>
+    grupos
+      .filter((g) => g.eua === eua)
+      .map((g) => (
+        <button
+          key={g.chave}
+          type="button"
+          className={`c-chip c-chip-pequeno ${g.chave === chave ? "c-chip-ativo" : ""}`}
+          aria-pressed={g.chave === chave}
+          onClick={() => escolher(g.chave)}
+        >
+          {g.nome} · {g.linhas.length}
+        </button>
+      ));
+  return (
+    <>
+      <div className="c-chips c-colinha-utensilios" aria-label="Utensílios do Brasil">
+        {chips(false)}
+      </div>
+      {grupos.some((g) => g.eua) && (
+        <>
+          <p className="c-colinha-subtitulo">Utensílios dos EUA (pesos do USDA, em inglês)</p>
+          <div className="c-chips c-colinha-utensilios" aria-label="Utensílios dos EUA">
+            {chips(true)}
+          </div>
+        </>
+      )}
+      <p className="c-dica c-colinha-ml">
+        O volume em ml de cada utensílio ainda está em aberto: falta uma fonte que eu consiga conferir. O peso
+        muda com o alimento, por isso a colinha mostra alimento por alimento.
+      </p>
+      {grupo && (
+        <article className="c-colinha-cartao">
+          <header>
+            <div>
+              <strong>{grupo.nome}</strong>
+              <small>
+                {grupo.linhas.length} {grupo.linhas.length === 1 ? "alimento" : "alimentos"} com peso na base
+              </small>
+            </div>
+          </header>
+          <input
+            type="search"
+            className="c-input c-colinha-filtro"
+            placeholder="Filtrar alimento (ex.: arroz)"
+            aria-label={`Filtrar alimento em ${grupo.nome}`}
+            value={filtro}
+            onChange={(e) => definirFiltro(e.target.value)}
+          />
+          {linhas.length === 0 ? (
+            <p className="c-dica">Nenhum alimento com esse nome neste utensílio.</p>
+          ) : (
+            <ul>
+              {linhas.map((l) => (
+                <li key={`${l.alimentoId}|${l.medida}`}>
+                  <span className="c-colinha-medida">
+                    {l.alimento} <span className="c-colinha-qual">· 1 {l.medida}</span>
+                  </span>
+                  <span className="c-colinha-peso">{gramas(l.gramas)}</span>
+                  <small className="c-colinha-origem">{l.origem}</small>
+                </li>
+              ))}
+            </ul>
+          )}
+        </article>
+      )}
+    </>
+  );
+}
 const MAXIMO = 15;
 
 function lerGuardados(): string[] {
@@ -104,6 +224,7 @@ function JanelaDaColinha({ aoFechar, buscaInicial }: { aoFechar: () => void; bus
   const [pronta, definirPronta] = useState(base.alimentos.length > 0);
   const [erro, definirErro] = useState<string | null>(null);
   const [ids, definirIds] = useState<string[]>(lerGuardados);
+  const [aba, definirAba] = useState<"utensilio" | "alimento">("utensilio");
 
   useEffect(() => {
     let vivo = true;
@@ -125,15 +246,23 @@ function JanelaDaColinha({ aoFechar, buscaInicial }: { aoFechar: () => void; bus
 
   return (
     <Modal titulo="Colinha das medidas" aoFechar={aoFechar}>
-      <p className="c-dica">
-        Quanto pesa cada medida caseira, por alimento. Só você vê. Cada número diz de onde veio.
-      </p>
+      <div className="c-chips" role="tablist" aria-label="Ver a colinha">
+        <button type="button" role="tab" aria-selected={aba === "utensilio"} className={`c-chip ${aba === "utensilio" ? "c-chip-ativo" : ""}`} onClick={() => definirAba("utensilio")}>
+          Por utensílio
+        </button>
+        <button type="button" role="tab" aria-selected={aba === "alimento"} className={`c-chip ${aba === "alimento" ? "c-chip-ativo" : ""}`} onClick={() => definirAba("alimento")}>
+          Por alimento
+        </button>
+      </div>
+      <p className="c-dica">Só você vê. Cada número diz de onde veio.</p>
       {erro ? (
         <div className="c-aviso c-aviso-erro" role="alert">
           <span>{erro}</span>
         </div>
       ) : !pronta ? (
         <p className="c-dica">Carregando a tabela de alimentos…</p>
+      ) : aba === "utensilio" ? (
+        <PorUtensilio />
       ) : (
         <>
           <Busca
