@@ -12,6 +12,8 @@ export interface RascunhoDoCheckin {
   valores: Record<string, string>;
   explicacoes: Record<string, string>;
   indice: number;
+  /** Leve, moderado ou forte de cada item marcado, por pergunta (0111). */
+  gravidades?: Record<string, Record<string, string>>;
 }
 
 export const PREFIXO_DO_RASCUNHO = "central:checkin-rascunho:v1:";
@@ -40,7 +42,14 @@ export function lerRascunho(bruto: string | null): RascunhoDoCheckin | null {
     const explicacoes = textos(d.explicacoes);
     if (!Object.values(valores).some((v) => v.trim() !== "")) return null;
     const indice = typeof d.indice === "number" && Number.isInteger(d.indice) && d.indice >= 0 ? d.indice : 0;
-    return { valores, explicacoes, indice };
+    const gravidades: Record<string, Record<string, string>> = {};
+    if (d.gravidades && typeof d.gravidades === "object" && !Array.isArray(d.gravidades)) {
+      for (const [pergunta, mapa] of Object.entries(d.gravidades as Record<string, unknown>)) {
+        const t = textos(mapa);
+        if (Object.keys(t).length > 0) gravidades[pergunta] = t;
+      }
+    }
+    return Object.keys(gravidades).length > 0 ? { valores, explicacoes, indice, gravidades } : { valores, explicacoes, indice };
   } catch {
     return null;
   }

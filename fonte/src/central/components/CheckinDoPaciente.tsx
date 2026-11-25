@@ -1,3 +1,4 @@
+import { textoComGravidade } from "@/central/utils/gravidadeDosSintomas";
 import { Fragment, useEffect, useState } from "react";
 import type { QuestionarioDoPaciente } from "@/central/types/questionario";
 import { Link } from "react-router-dom";
@@ -432,7 +433,11 @@ function TabelaDoQuestionario({ questionario, atrasos }: { questionario: Questio
                     )}
                     {colunas.map((p) => {
                       const r = porId.get(p.id);
-                      const texto = respostaTexto(p.tipo, r);
+                      // Na pergunta de marcar, a intensidade de cada item (0111).
+                      const texto =
+                        p.tipo === "multipla_escolha" && r
+                          ? textoComGravidade(r.texto, p.opcoes, r.json) || "—"
+                          : respostaTexto(p.tipo, r);
                       const vazio = texto === "—";
                       return (
                         <td

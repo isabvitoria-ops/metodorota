@@ -12992,6 +12992,12 @@ textarea.c-campo-input,
 .c-trocas-do-exercicio-titulo { display: block; color: #38546C; font-size: 13px; font-weight: 700; }
 .c-trocas-do-exercicio ul { margin: 4px 0 0; padding-left: 18px; }
 .c-trocas-do-exercicio li { margin: 2px 0; overflow-wrap: anywhere; }
+/* Check-in: leve, moderado ou forte em cada sintoma marcado (0111). */
+.c-passo-marcado { display: flex; flex-direction: column; gap: 6px; }
+.c-gravidade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 0 4px 4px; }
+.c-gravidade-op { min-height: 40px; border-radius: 999px; border: 1px solid #C9BCAC; background: #fff; color: #263D52; font: inherit; font-size: 14px; cursor: pointer; }
+.c-gravidade-op[aria-pressed="true"] { background: #38546C; border-color: #38546C; color: #F7EEE7; font-weight: 700; }
+.c-gravidade-forte[aria-pressed="true"] { background: #A82B3C; border-color: #A82B3C; }
 /* Acesso por código (0110), na ficha da paciente. */
 .central .c-codigo-acesso { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: 14px; background: #F7EEE7; border: 1px solid #C9BCAC; }
 .central .c-codigo-acesso-rotulo { color: #38546C; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }

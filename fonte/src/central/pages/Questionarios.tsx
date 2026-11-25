@@ -7,6 +7,16 @@ import type {
   RespostaEnviada,
 } from "@/central/types/questionario";
 import { repositorio } from "@/central/dados/repositorio";
+import {
+  GRAVIDADES,
+  alternarOpcao,
+  ehNenhum,
+  gravidadesDoJson,
+  jsonDaMultipla,
+  pedeGravidade,
+  semGravidade,
+  type Gravidade,
+} from "@/central/utils/gravidadeDosSintomas";
 import { CabecalhoPagina } from "@/central/components/CabecalhoPagina";
 import { rotas } from "@/central/rotas";
 import { naoEntendido, numeroDeTexto } from "@/central/utils/numero";
@@ -390,6 +400,16 @@ function FormularioPassoAPasso({
     return inicial;
   });
   const [explicacoes, definirExplicacoes] = useState<Record<string, string>>(() => rascunho?.explicacoes ?? {});
+  // Leve, moderado ou forte de cada sintoma marcado (0111).
+  const [gravidades, definirGravidades] = useState<Record<string, Record<string, Gravidade>>>(() => {
+    if (rascunho?.gravidades) return rascunho.gravidades as Record<string, Record<string, Gravidade>>;
+    const inicial: Record<string, Record<string, Gravidade>> = {};
+    for (const r of jaEnviado?.respostas ?? []) {
+      const p = todasPerguntas.find((x) => x.id === r.perguntaId);
+      if (p && pedeGravidade(p)) inicial[r.perguntaId] = gravidadesDoJson(p.opcoes, r.json);
+    }
+    return inicial;
+  });
   const [indice, definirIndice] = useState(() => rascunho?.indice ?? 0);
   const [retomado, definirRetomado] = useState(rascunho !== null);
   const [enviando, definirEnviando] = useState(false);
@@ -410,14 +430,14 @@ function FormularioPassoAPasso({
     if (jaEnviado) return;
     try {
       if (Object.values(valores).some((v) => v.trim() !== "")) {
-        window.localStorage.setItem(chave, JSON.stringify({ valores, explicacoes, indice }));
+        window.localStorage.setItem(chave, JSON.stringify({ valores, explicacoes, indice, gravidades }));
       } else {
         window.localStorage.removeItem(chave);
       }
     } catch {
       /* armazenamento bloqueado */
     }
-  }, [chave, jaEnviado, valores, explicacoes, indice]);
+  }, [chave, jaEnviado, valores, explicacoes, indice, gravidades]);
 
   useEffect(
     () => () => {
@@ -481,6 +501,18 @@ function FormularioPassoAPasso({
     }
     // Pergunta de número com texto que não é número: antes ia ao banco vazia,
     // sem aviso ("72,5 kg" sumia). Agora a tela para nela e pede de novo.
+    // Sintoma marcado sem "leve, moderado ou forte": a pergunta pede, e o
+    // alerta de sintoma forte depende disso.
+    const semIntensidade = perguntas.findIndex(
+      (p) =>
+        pedeGravidade(p) &&
+        semGravidade((valores[p.id] ?? "").split("\n").filter(Boolean), gravidades[p.id] ?? {}).length > 0,
+    );
+    if (semIntensidade >= 0) {
+      definirIndice(semIntensidade);
+      definirErro("Para cada sintoma marcado, toque em leve, moderado ou forte.");
+      return;
+    }
     const ilegivel = perguntas.findIndex(
       (p) => (p.tipo === "numero" || p.tipo === "metrica") && naoEntendido(valores[p.id] ?? ""),
     );
@@ -497,11 +529,16 @@ function FormularioPassoAPasso({
         const numerico = p.tipo === "escala" || p.tipo === "sim_nao"
           || p.tipo === "numero" || p.tipo === "estrelas" || p.tipo === "metrica";
         const explicacao = explicacoes[p.id]?.trim() || null;
+        const marcados = p.tipo === "multipla_escolha" ? bruto.split("\n").filter(Boolean) : [];
+        const json: Record<string, unknown> = {
+          ...(explicacao ? { explicacao } : {}),
+          ...(marcados.length > 0 ? jsonDaMultipla(p.opcoes, marcados, pedeGravidade(p) ? gravidades[p.id] ?? {} : {}) : {}),
+        };
         return {
           perguntaId: p.id,
           numero: numerico && bruto !== "" ? numeroDeTexto(bruto) : null,
           texto: numerico ? null : bruto || null,
-          json: explicacao ? { explicacao } : null,
+          json: Object.keys(json).length > 0 ? json : null,
         };
       });
       const alertasRecebidos = await repositorio.responderQuestionario(questionario.id, respostas);
@@ -685,22 +722,41 @@ function FormularioPassoAPasso({
             {atual.opcoes.map((o) => {
               const marcados = (valor ?? "").split("\n").filter(Boolean);
               const marcado = marcados.includes(o);
+              const comIntensidade = marcado && pedeGravidade(atual) && !ehNenhum(o);
+              const escolhida = gravidades[atual.id]?.[o];
               return (
-                <button
-                  key={o}
-                  type="button"
-                  className="c-passo-opcao"
-                  aria-pressed={marcado}
-                  onClick={() => {
-                    const novos = marcado
-                      ? marcados.filter((m) => m !== o)
-                      : [...marcados, o];
-                    escrever(novos.join("\n"));
-                  }}
-                >
-                  <span style={{ marginRight: "0.5rem" }}>{marcado ? "☑" : "☐"}</span>
-                  {o}
-                </button>
+                <div key={o} className={comIntensidade ? "c-passo-marcado" : undefined}>
+                  <button
+                    type="button"
+                    className="c-passo-opcao"
+                    aria-pressed={marcado}
+                    onClick={() => escrever(alternarOpcao(marcados, o).join("\n"))}
+                  >
+                    <span style={{ marginRight: "0.5rem" }}>{marcado ? "☑" : "☐"}</span>
+                    {o}
+                  </button>
+                  {comIntensidade && (
+                    <div className="c-gravidade" role="group" aria-label={`Como foi: ${o}`}>
+                      {GRAVIDADES.map((g) => (
+                        <button
+                          key={g.valor}
+                          type="button"
+                          className={`c-gravidade-op c-gravidade-${g.valor}`}
+                          aria-pressed={escolhida === g.valor}
+                          onClick={() => {
+                            definirErro(null);
+                            definirGravidades((antes) => ({
+                              ...antes,
+                              [atual.id]: { ...(antes[atual.id] ?? {}), [o]: g.valor },
+                            }));
+                          }}
+                        >
+                          {g.rotulo}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>
