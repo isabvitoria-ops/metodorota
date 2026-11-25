@@ -12974,6 +12974,12 @@ textarea.c-campo-input,
 .central .c-colinha-ml { margin: 12px 0; }
 .central .c-colinha-filtro { width: 100%; margin-top: 10px; }
 .central .c-colinha-qual { color: #38546C; font-size: 13px; }
+/* Protocolo no celular: com ↑ ↓ Duplicar Remover, as ações descem para a
+   linha de baixo em vez de empurrar a tela para o lado. */
+@media (max-width: 639px) {
+  .central .c-bloco-topo:has(> .c-acoes-refeicao) { flex-wrap: wrap; }
+  .central .c-bloco-topo > .c-acoes-refeicao { flex: 1 0 100%; justify-content: flex-end; }
+}
 .c-calculos-cabeca > .c-calculos-cabeca-acoes { display: flex; flex-direction: row; align-items: center; gap: 14px; flex-wrap: wrap; }
 
 /* ------------------------------------------------ panorama da ficha (nutri) */

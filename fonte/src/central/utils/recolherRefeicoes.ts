@@ -96,3 +96,14 @@ export function resumoDaRefeicao(refeicao: RefeicaoProtocolo): string {
   if (opcoes > 1) partes.unshift(`${opcoes} opções`);
   return partes.join(" · ");
 }
+
+/**
+ * Quando uma refeição nova entra na posição `indice` (a cópia de uma
+ * duplicada), as de depois andam um para a frente. Sem isto, duplicar o café
+ * da manhã abriria o lanche que ela tinha fechado.
+ */
+export function inserirRecolhida(recolhidas: ReadonlySet<number>, indice: number): Set<number> {
+  const proximo = new Set<number>();
+  for (const i of recolhidas) proximo.add(i >= indice ? i + 1 : i);
+  return proximo;
+}
