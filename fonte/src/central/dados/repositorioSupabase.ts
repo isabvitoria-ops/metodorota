@@ -365,6 +365,15 @@ export const repositorioSupabase: Repositorio = {
     erro("registrar convite", error);
   },
 
+  async gerarCodigoDeAcesso(pacienteId) {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.rpc("gerar_codigo_de_acesso", { p_paciente: pacienteId });
+    erro("gerar o código de acesso", error);
+    const l = (data ?? {}) as Linha;
+    if (!l.codigo) throw new Error("O servidor não devolveu o código.");
+    return { codigo: texto(l.codigo), expiraEm: texto(l.expiraEm) };
+  },
+
   async gerarLinkConvite(pacienteId, email) {
     const sb = exigirSupabase();
     const { data, error } = await sb.functions.invoke("gerar-link-convite", {
