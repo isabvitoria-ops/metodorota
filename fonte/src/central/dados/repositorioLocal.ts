@@ -455,6 +455,10 @@ export const repositorioLocal: Repositorio = {
     registrar(pacienteId, "convite_enviado");
   },
 
+  async gerarCodigoDeAcesso() {
+    throw new Error("Gerar código de acesso precisa do banco. Configure o Supabase.");
+  },
+
   async gerarLinkConvite(_pacienteId) {
     return `${window.location.origin}${import.meta.env.BASE_URL || "/"}`;
   },

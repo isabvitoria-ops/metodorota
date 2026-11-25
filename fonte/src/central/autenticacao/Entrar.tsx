@@ -13,7 +13,7 @@ import { CampoTexto, TelaConta } from "./TelaConta";
  * prévia do WhatsApp, verificadores de e-mail); o código não é aberto por ninguém.
  */
 export function Entrar() {
-  const { acesso, entrarComSenha, enviarLink, entrarComCodigo, pronto } = useSessao();
+  const { acesso, entrarComSenha, enviarLink, entrarComCodigo, entrarComCodigoDeAcesso, pronto } = useSessao();
   const navegar = useNavigate();
   const [email, definirEmail] = useState("");
   const [senha, definirSenha] = useState("");
@@ -22,6 +22,11 @@ export function Entrar() {
   const [enviando, definirEnviando] = useState(false);
   const [codigoPedido, definirCodigoPedido] = useState(false);
   const [codigo, definirCodigo] = useState("");
+  // Acesso pelo código que a nutricionista gerou (0110): sem e-mail.
+  const [comCodigoDaNutri, definirComCodigoDaNutri] = useState(false);
+  const [codigoDaNutri, definirCodigoDaNutri] = useState("");
+  const [senhaNova, definirSenhaNova] = useState("");
+  const [senhaDeNovo, definirSenhaDeNovo] = useState("");
 
   if (pronto && acesso.autenticado) return <Navigate to={rotas.home} replace />;
 
@@ -84,6 +89,91 @@ export function Entrar() {
     }
   }
 
+  async function entrarPeloCodigoDaNutri(evento: FormEvent) {
+    evento.preventDefault();
+    definirErro(null);
+    definirAviso(null);
+    if (codigoDaNutri.replace(/[^A-Za-z0-9]/g, "").length < 8) {
+      definirErro("Digite o código inteiro que a sua nutricionista mandou (8 letras e números).");
+      return;
+    }
+    if (!email.trim()) {
+      definirErro("Escreva o e-mail que você quer usar para entrar.");
+      return;
+    }
+    if (senhaNova.length < 6) {
+      definirErro("A senha precisa ter pelo menos 6 caracteres.");
+      return;
+    }
+    if (senhaNova !== senhaDeNovo) {
+      definirErro("As duas senhas não estão iguais.");
+      return;
+    }
+    definirEnviando(true);
+    try {
+      await entrarComCodigoDeAcesso(codigoDaNutri, email, senhaNova);
+      navegar(rotas.home, { replace: true });
+    } catch (e) {
+      definirErro(e instanceof Error ? e.message : "Não foi possível entrar com o código.");
+    } finally {
+      definirEnviando(false);
+    }
+  }
+
+  if (comCodigoDaNutri) {
+    return (
+      <TelaConta
+        titulo="Entrar com código"
+        descricao="Digite o código que a sua nutricionista mandou. Depois escolha o e-mail e a senha que você vai usar para entrar das próximas vezes."
+        aoEnviar={entrarPeloCodigoDaNutri}
+        erro={erro}
+        aviso={aviso}
+        rodape={
+          <button type="button" className="c-link" onClick={() => definirComCodigoDaNutri(false)}>
+            Voltar
+          </button>
+        }
+      >
+        <CampoTexto
+          id="codigo-da-nutri"
+          rotulo="Código"
+          valor={codigoDaNutri}
+          aoMudar={(v) => definirCodigoDaNutri(v.toUpperCase())}
+          placeholder="XXXX-XXXX"
+          autoComplete="off"
+        />
+        <CampoTexto
+          id="email-novo"
+          rotulo="Seu e-mail"
+          tipo="email"
+          valor={email}
+          aoMudar={definirEmail}
+          placeholder="voce@email.com"
+          autoComplete="email"
+        />
+        <CampoTexto
+          id="senha-nova"
+          rotulo="Crie uma senha"
+          tipo="password"
+          valor={senhaNova}
+          aoMudar={definirSenhaNova}
+          autoComplete="new-password"
+        />
+        <CampoTexto
+          id="senha-de-novo"
+          rotulo="Repita a senha"
+          tipo="password"
+          valor={senhaDeNovo}
+          aoMudar={definirSenhaDeNovo}
+          autoComplete="new-password"
+        />
+        <button type="submit" className="c-botao" disabled={enviando}>
+          {enviando ? "Entrando…" : "Entrar"}
+        </button>
+      </TelaConta>
+    );
+  }
+
   if (codigoPedido) {
     return (
       <TelaConta
@@ -128,6 +218,17 @@ export function Entrar() {
       aviso={aviso}
       rodape={
         <>
+          <button
+            type="button"
+            className="c-link"
+            onClick={() => {
+              definirErro(null);
+              definirAviso(null);
+              definirComCodigoDaNutri(true);
+            }}
+          >
+            Tenho um código da minha nutricionista
+          </button>
           <button type="button" className="c-link" onClick={porLink} disabled={enviando}>
             Entrar com código por e-mail
           </button>

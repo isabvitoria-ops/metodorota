@@ -101,6 +101,12 @@ interface ValorSessao {
   enviarLink(email: string): Promise<void>;
   /** Entra com o código de 6 números que veio no e-mail. */
   entrarComCodigo(email: string, codigo: string): Promise<void>;
+  /**
+   * Acesso por código da nutricionista (0110): sem e-mail nenhum. A função
+   * do servidor confere o código, cria a conta com o e-mail e a senha que a
+   * paciente escolheu e liga à ficha; depois entra com a senha.
+   */
+  entrarComCodigoDeAcesso(codigo: string, email: string, senha: string): Promise<void>;
   definirSenha(senha: string): Promise<void>;
   enviarRecuperacao(email: string): Promise<void>;
   sair(): Promise<void>;
@@ -305,6 +311,28 @@ export function ProvedorSessao({ children }: { children: ReactNode }) {
           options: { emailRedirectTo: urlDaRota("/definir-senha") },
         });
         if (error) throw new Error(traduzir(error.message));
+      },
+
+      async entrarComCodigoDeAcesso(codigo, email, senha) {
+        if (!supabase) throw new Error("O acesso por código precisa do banco.");
+        const emailLimpo = email.trim().toLowerCase();
+        const { data, error } = await supabase.functions.invoke("entrar-com-codigo", {
+          body: { codigo, email: emailLimpo, senha },
+        });
+        // Erro 4xx da função chega como `error` com o corpo em `context`.
+        if (error) {
+          let mensagem = "Não consegui conferir o código agora. Tente de novo.";
+          try {
+            const corpo = await (error as { context?: Response }).context?.json();
+            if (corpo?.error) mensagem = String(corpo.error);
+          } catch {
+            /* fica a mensagem padrão */
+          }
+          throw new Error(mensagem);
+        }
+        if (data?.error) throw new Error(String(data.error));
+        const { error: erroEntrar } = await supabase.auth.signInWithPassword({ email: emailLimpo, password: senha });
+        if (erroEntrar) throw new Error(traduzir(erroEntrar.message));
       },
 
       async entrarComCodigo(email, codigo) {

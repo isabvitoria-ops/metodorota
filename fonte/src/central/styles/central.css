@@ -12992,6 +12992,11 @@ textarea.c-campo-input,
 .c-trocas-do-exercicio-titulo { display: block; color: #38546C; font-size: 13px; font-weight: 700; }
 .c-trocas-do-exercicio ul { margin: 4px 0 0; padding-left: 18px; }
 .c-trocas-do-exercicio li { margin: 2px 0; overflow-wrap: anywhere; }
+/* Acesso por código (0110), na ficha da paciente. */
+.central .c-codigo-acesso { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border-radius: 14px; background: #F7EEE7; border: 1px solid #C9BCAC; }
+.central .c-codigo-acesso-rotulo { color: #38546C; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.central .c-codigo-acesso-codigo { color: #263D52; font-size: 30px; letter-spacing: .12em; font-variant-numeric: tabular-nums; user-select: all; }
+.central .c-codigo-acesso-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
 /* Protocolo no celular: com ↑ ↓ Duplicar Remover, as ações descem para a
    linha de baixo em vez de empurrar a tela para o lado. */
 @media (max-width: 639px) {

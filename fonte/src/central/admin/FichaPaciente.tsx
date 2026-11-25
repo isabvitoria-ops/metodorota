@@ -48,6 +48,7 @@ export function FichaPaciente({
   const [confirmandoExclusao, definirConfirmando] = useState(false);
   const [aviso, definirAviso] = useState<string | null>(null);
   const [ocupado, definirOcupado] = useState(false);
+  const [codigoDeAcesso, definirCodigoDeAcesso] = useState<{ codigo: string; expiraEm: string } | null>(null);
   const [linkWpp, definirLinkWpp] = useState<string | null>(null);
 
   useEffect(() => {
@@ -180,6 +181,23 @@ export function FichaPaciente({
                 </button>
               )
             )}
+
+            {/* Acesso por código (0110): não depende de e-mail. O código pode
+                ir pelo WhatsApp, porque a prévia do WhatsApp não gasta código
+                (gasta link). */}
+            <button
+              type="button"
+              className="c-botao c-botao-secundario"
+              disabled={ocupado}
+              onClick={() =>
+                void executar(async () => {
+                  definirCodigoDeAcesso(await repositorio.gerarCodigoDeAcesso(paciente.id));
+                }, "Código gerado. Mande para a paciente.")
+              }
+            >
+              {codigoDeAcesso ? "Gerar outro código de acesso" : "Gerar código de acesso"}
+            </button>
+            {codigoDeAcesso && <CodigoDeAcesso {...codigoDeAcesso} />}
 
             {suspenso ? (
               <button
@@ -468,5 +486,42 @@ function AbaEditar({ paciente, aoConcluir }: { paciente: Paciente; aoConcluir: (
         {salvando ? "Salvando…" : "Salvar alterações"}
       </button>
     </>
+  );
+}
+
+/** O código na tela da nutricionista, com o que ela manda para a paciente. */
+function CodigoDeAcesso({ codigo, expiraEm }: { codigo: string; expiraEm: string }) {
+  const [copiado, definirCopiado] = useState<string | null>(null);
+  const validade = new Date(expiraEm).toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  const mensagem = `Seu código de acesso ao app: ${codigo}\n\nNo app, toque em "Tenho um código da minha nutricionista", digite o código, escolha seu e-mail e crie sua senha. O código vale uma vez só, até ${validade}.`;
+  async function copiar(texto: string, qual: string) {
+    try {
+      await navigator.clipboard.writeText(texto);
+      definirCopiado(qual);
+    } catch {
+      definirCopiado("erro");
+    }
+  }
+  return (
+    <div className="c-codigo-acesso" role="status">
+      <span className="c-codigo-acesso-rotulo">Código de acesso</span>
+      <strong className="c-codigo-acesso-codigo">{codigo}</strong>
+      <span className="c-dica">Vale uma vez só, até {validade}. Gerar outro cancela este.</span>
+      <div className="c-codigo-acesso-acoes">
+        <button type="button" className="c-botao c-botao-pequeno" onClick={() => void copiar(mensagem, "mensagem")}>
+          {copiado === "mensagem" ? "Mensagem copiada" : "Copiar mensagem para ela"}
+        </button>
+        <button type="button" className="c-botao c-botao-pequeno c-botao-secundario" onClick={() => void copiar(codigo, "codigo")}>
+          {copiado === "codigo" ? "Código copiado" : "Copiar só o código"}
+        </button>
+      </div>
+      {copiado === "erro" && <span className="c-dica">Não consegui copiar. Selecione o código e copie à mão.</span>}
+    </div>
   );
 }

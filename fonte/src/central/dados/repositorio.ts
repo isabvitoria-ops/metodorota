@@ -163,6 +163,11 @@ export interface Repositorio {
   excluirPaciente(id: string): Promise<void>;
   registrarConvite(pacienteId: string, email: string): Promise<void>;
   gerarLinkConvite(pacienteId: string, email: string): Promise<string>;
+  /**
+   * Acesso por código (0110): só a nutricionista. Devolve o código (uma vez
+   * só; o banco guarda só o sha256) e até quando ele vale.
+   */
+  gerarCodigoDeAcesso(pacienteId: string): Promise<{ codigo: string; expiraEm: string }>;
   historicoDoPaciente(pacienteId: string): Promise<EventoHistorico[]>;
 
   salvarAlimento(alimento: Alimento, ativo: boolean): Promise<void>;
