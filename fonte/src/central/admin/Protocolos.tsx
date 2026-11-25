@@ -34,8 +34,10 @@ import {
   todas,
   moverRecolhidas,
   removerRecolhida,
+  inserirRecolhida,
   resumoDaRefeicao,
 } from "@/central/utils/recolherRefeicoes";
+import { duplicarRefeicao } from "@/central/utils/duplicarRefeicao";
 import {
   CIRCUNFERENCIAS,
   DIAMETROS,
@@ -497,6 +499,11 @@ function EditorDoProtocolo({
           recolhida={recolhidas.has(iRefeicao)}
           aoRecolher={() => definirRecolhidas(alternar(recolhidas, iRefeicao))}
           aoTrocar={(nova) => definirConteudo(trocarRefeicao(conteudo, iRefeicao, nova))}
+          aoDuplicar={() => {
+            definirRecolhidas(inserirRecolhida(recolhidas, iRefeicao + 1));
+            definirConteudo(duplicarRefeicao(conteudo, iRefeicao));
+            definirAviso(`"${refeicao.nome}" duplicada logo abaixo. Troque o nome e o horário da cópia.`);
+          }}
           aoRemover={() => {
             definirRecolhidas(removerRecolhida(recolhidas, iRefeicao));
             definirConteudo(removerRefeicao(conteudo, iRefeicao));
@@ -717,6 +724,7 @@ function BlocoDaRefeicao({
   recolhida,
   aoRecolher,
   aoTrocar,
+  aoDuplicar,
   aoRemover,
   aoMover,
 }: {
@@ -730,6 +738,7 @@ function BlocoDaRefeicao({
   recolhida: boolean;
   aoRecolher: () => void;
   aoTrocar: (nova: RefeicaoProtocolo) => void;
+  aoDuplicar: () => void;
   aoRemover: () => void;
   aoMover: (passo: -1 | 1) => void;
 }) {
@@ -771,6 +780,14 @@ function BlocoDaRefeicao({
           </button>
           <button type="button" className="c-link" disabled={ultima} onClick={() => aoMover(1)}>
             ↓
+          </button>
+          <button
+            type="button"
+            className="c-link"
+            onClick={aoDuplicar}
+            title="Cria uma cópia igual logo abaixo, para quando duas refeições são iguais"
+          >
+            Duplicar
           </button>
           <button type="button" className="c-link" onClick={aoRemover}>
             Remover
