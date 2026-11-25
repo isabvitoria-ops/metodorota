@@ -10,6 +10,7 @@ import { ConversaDaRefeicao } from "@/central/components/ConversaDaRefeicao";
 import { pedirPdf } from "@/central/utils/pedidoDePdf";
 import { Icone } from "@/central/components/Icone";
 import { LinhaDaMedida } from "@/central/components/MedidaCaseira";
+import { medidaDoTexto } from "@/central/utils/medidaDoTexto";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { TextoComLinks } from "@/central/components/TextoComLinks";
 import type { ResumoDaConversa } from "@/central/types/conversaDaRefeicao";
@@ -493,6 +494,9 @@ function Item({ item, caseiras }: { item: ItemProtocolo; caseiras: boolean }) {
   const [aberto, definirAberto] = useState(false);
   const trocas = item.substituicoes.filter((t) => t.trim() !== "");
   const visiveis = aberto ? trocas : trocas.slice(0, TROCAS_A_VISTA);
+  // A medida escolhida no seletor (plano em medidas caseiras) ou, se ela só
+  // escreveu "1 colher sopa" na quantidade, o utensílio lido do texto.
+  const medida = caseiras && item.medida ? item.medida : medidaDoTexto(item.quantidade);
 
   return (
     <li className="c-prot-item">
@@ -500,9 +504,9 @@ function Item({ item, caseiras }: { item: ItemProtocolo; caseiras: boolean }) {
         <span className="c-prot-item-nome">{item.alimento}</span>
         {/* Em medidas caseiras, a medida com o desenho substitui os gramas.
             Item sem medida caseira continua mostrando a quantidade. */}
-        {item.quantidade && !(caseiras && item.medida) && <span className="c-prot-item-qtd">{item.quantidade}</span>}
+        {item.quantidade && !medida && <span className="c-prot-item-qtd">{item.quantidade}</span>}
       </div>
-      {caseiras && item.medida && <LinhaDaMedida medida={item.medida} />}
+      {medida && <LinhaDaMedida medida={medida} />}
 
       {item.imagem && <FotoInline item={item} />}
 
