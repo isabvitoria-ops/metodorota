@@ -247,7 +247,20 @@ export { PADROES as CONFIGURACOES_PADRAO };
 // Questionários e check-in semanal
 // ---------------------------------------------------------------------------
 
-const TIPOS_DE_PERGUNTA = ["escala", "sim_nao", "numero", "texto", "escolha"] as const;
+// Todos os tipos que a tela sabe desenhar. Faltavam quatro: a pergunta de
+// marcar (multipla_escolha) do GLP-1 chegava para a paciente como caixa de
+// texto, sem as opções (relato dela em 25/11/2026).
+const TIPOS_DE_PERGUNTA = [
+  "escala",
+  "sim_nao",
+  "numero",
+  "texto",
+  "escolha",
+  "emoji",
+  "estrelas",
+  "multipla_escolha",
+  "metrica",
+] as const satisfies readonly TipoDePergunta[];
 
 /**
  * O tipo vindo do banco, conferido contra a lista.
