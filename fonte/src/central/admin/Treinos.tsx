@@ -17,6 +17,7 @@ import { PainelDeTreino } from "@/central/components/PainelDeTreino";
 import { hojeSaoPaulo, dataBonita } from "@/central/utils/situacao";
 import { domingoDaSemana, segundaDaSemana } from "@/central/utils/metasSemanais";
 import { Esqueleto } from "@/central/components/Esqueleto";
+import { posicaoNoBiset } from "@/central/utils/bisetDoTreino";
 
 /**
  * Treino — área da nutricionista.
@@ -259,6 +260,8 @@ const EXERCICIO_VAZIO: ExercicioParaSalvar = {
   observacao: "",
   videoUrl: "",
   faixas: [],
+  trocas: [],
+  bisetComProximo: false,
 };
 
 function EditorDoPlano({
@@ -300,6 +303,17 @@ function EditorDoPlano({
       antes.map((e, j) => (j === exI ? { ...e, faixas: [...e.faixas, { ...FAIXA_VAZIA }] } : e)),
     );
 
+  const mudarTrocas = (exI: number, trocas: { nome: string; videoUrl: string }[]) =>
+    definirExercicios((antes) => antes.map((e, j) => (j === exI ? { ...e, trocas } : e)));
+
+  // Marcar o biset no exercício `i` desmarca o seguinte: só pares.
+  const marcarBiset = (exI: number, sim: boolean) =>
+    definirExercicios((antes) =>
+      antes.map((e, j) =>
+        j === exI ? { ...e, bisetComProximo: sim } : j === exI + 1 && sim ? { ...e, bisetComProximo: false } : e,
+      ),
+    );
+
   const tirarFaixa = (exI: number, fxI: number) =>
     definirExercicios((antes) =>
       antes.map((e, j) =>
@@ -310,11 +324,17 @@ function EditorDoPlano({
   const salvar = async () => {
     // Exercício sem nome não vira exercício: é o que sobra de uma linha em
     // branco, e viraria um exercício fantasma no treino dela.
-    const limpos = exercicios.filter((e) => e.nome.trim() !== "");
-    if (limpos.length === 0) {
+    const comNome = exercicios.filter((e) => e.nome.trim() !== "");
+    if (comNome.length === 0) {
       definirErro("Escreva pelo menos um exercício.");
       return;
     }
+    // O último não tem com quem fazer biset; troca sem nome não vai.
+    const limpos = comNome.map((e, i) => ({
+      ...e,
+      bisetComProximo: i < comNome.length - 1 && posicaoNoBiset(comNome.map((x) => x.bisetComProximo), i) === 1,
+      trocas: (e.trocas ?? []).filter((t) => t.nome.trim() !== ""),
+    }));
     definirSalvando(true);
     definirErro(null);
     try {
@@ -386,8 +406,17 @@ function EditorDoPlano({
         não houver — sem faixa, o aplicativo não avisa sobre topo de faixa.
       </p>
 
-      {exercicios.map((e, i) => (
-        <div className="c-bloco" key={i}>
+      {exercicios.map((e, i) => {
+        const posicao = posicaoNoBiset(exercicios.map((x) => x.bisetComProximo), i);
+        const outro = posicao === 1 ? exercicios[i + 1] : posicao === 2 ? exercicios[i - 1] : null;
+        const trocas = e.trocas ?? [];
+        return (
+        <div className={`c-bloco${posicao ? ` c-bloco-biset c-bloco-biset-${posicao}` : ""}`} key={i}>
+          {posicao > 0 && (
+            <p className="c-biset-etiqueta">
+              Biset {posicao}/2 · junto com {outro?.nome.trim() || `o exercício ${posicao === 1 ? i + 2 : i}`}
+            </p>
+          )}
           <div className="c-bloco-topo">
             <strong>{e.nome.trim() || `Exercício ${i + 1}`}</strong>
             <button
@@ -467,8 +496,61 @@ function EditorDoPlano({
           >
             + faixa de série
           </button>
+
+          <div className="c-trocas-exercicio">
+            <p className="c-dica" style={{ fontSize: 12, marginBottom: 4 }}>
+              Trocas (se a academia estiver cheia ou não tiver o aparelho)
+            </p>
+            {trocas.map((t, ti) => (
+              <div className="c-faixa-bloco" key={ti}>
+                <div className="c-bloco-topo">
+                  <strong style={{ fontSize: 13 }}>{t.nome.trim() || `Troca ${ti + 1}`}</strong>
+                  <button
+                    type="button"
+                    className="c-botao c-botao-pequeno c-botao-perigo"
+                    onClick={() => mudarTrocas(i, trocas.filter((_, k) => k !== ti))}
+                  >
+                    Tirar
+                  </button>
+                </div>
+                <Campo rotulo="Trocar por">
+                  <Texto
+                    valor={t.nome}
+                    aoMudar={(v) => mudarTrocas(i, trocas.map((x, k) => (k === ti ? { ...x, nome: v } : x)))}
+                    placeholder="Glúteo com caneleira no solo"
+                  />
+                </Campo>
+                <Campo rotulo="Vídeo de execução (opcional)">
+                  <Texto
+                    valor={t.videoUrl}
+                    aoMudar={(v) => mudarTrocas(i, trocas.map((x, k) => (k === ti ? { ...x, videoUrl: v } : x)))}
+                    placeholder="https://youtube.com/watch?v=..."
+                  />
+                </Campo>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="c-botao-texto"
+              onClick={() => mudarTrocas(i, [...trocas, { nome: "", videoUrl: "" }])}
+            >
+              + troca
+            </button>
+          </div>
+
+          {posicao !== 2 && i < exercicios.length - 1 && (
+            <label className="c-check c-biset-marcar">
+              <input
+                type="checkbox"
+                checked={posicao === 1}
+                onChange={(ev) => marcarBiset(i, ev.target.checked)}
+              />
+              <span>Fazer em biset com o próximo exercício ({exercicios[i + 1]?.nome.trim() || `exercício ${i + 2}`})</span>
+            </label>
+          )}
         </div>
-      ))}
+        );
+      })}
 
       <button
         type="button"
@@ -532,6 +614,8 @@ function deTreino(t: Treino): ExercicioParaSalvar[] {
       repMax: texto(f.repMax),
       metodo: f.metodo ?? "",
     })),
+    trocas: (e.trocas ?? []).map((t) => ({ nome: t.nome, videoUrl: t.videoUrl ?? "" })),
+    bisetComProximo: e.bisetComProximo === true,
   }));
 }
 

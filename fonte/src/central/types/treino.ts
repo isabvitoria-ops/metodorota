@@ -41,6 +41,18 @@ export interface ExercicioPlanejado {
   observacao: string | null;
   videoUrl: string | null;
   faixas: FaixaPlanejada[];
+  /**
+   * Trocas para quando a academia está cheia ou não tem o aparelho (0109).
+   * Escritas por ela; o aplicativo não sugere troca nenhuma.
+   */
+  trocas: TrocaDeExercicio[];
+  /** Feito em biset com o exercício seguinte, no mesmo cartão (0109). */
+  bisetComProximo: boolean;
+}
+
+export interface TrocaDeExercicio {
+  nome: string;
+  videoUrl: string | null;
 }
 
 /**
@@ -127,6 +139,9 @@ export interface ExercicioParaSalvar {
   observacao: string;
   videoUrl: string;
   faixas: FaixaParaSalvar[];
+  /** Opcionais: o treino escrito pela paciente não usa. */
+  trocas?: { nome: string; videoUrl: string }[];
+  bisetComProximo?: boolean;
 }
 
 export interface SerieParaSalvar {

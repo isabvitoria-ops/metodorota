@@ -232,6 +232,10 @@ function Editor({
             repMax: f.repMax === null ? "" : String(f.repMax),
             metodo: f.metodo ?? "",
           })),
+          // O que a nutricionista tenha posto (trocas, biset) não se perde
+          // quando a paciente edita o treino dela.
+          trocas: (e.trocas ?? []).map((t) => ({ nome: t.nome, videoUrl: t.videoUrl ?? "" })),
+          bisetComProximo: e.bisetComProximo === true,
         }))
       : [{ ...EXERCICIO_VAZIO }],
   );
