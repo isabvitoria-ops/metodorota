@@ -4,7 +4,7 @@ import type { AgendaDoPeriodo, EventoParaSalvar } from "@/central/types/agenda";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
-import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
+import type { MarcaDoOi, PacienteQueEsfriou } from "@/central/types/quemEsfriou";
 import type { DadosDoRelatorio, RelatorioGuardado } from "@/central/types/relatorioMedico";
 import type { ItemDaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
@@ -1007,6 +1007,10 @@ export interface Repositorio {
 
   /** Quem esfriou (0103): quem parou, com o motivo. Só da nutricionista. */
   quemEsfriou(): Promise<PacienteQueEsfriou[]>;
+  /** "Feito" e "Ignorar" (0108), por paciente. Só da nutricionista. */
+  marcasQuemEsfriou(): Promise<Record<string, MarcaDoOi>>;
+  /** Marca (ou, com `null`, desmarca) a paciente. */
+  marcarQuemEsfriou(pacienteId: string, marca: MarcaDoOi | null): Promise<void>;
 
   /** Relatório para o médico (0106): guarda a cópia do que saiu no PDF. */
   salvarRelatorioMedico(pacienteId: string, dados: DadosDoRelatorio): Promise<RelatorioGuardado>;

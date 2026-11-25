@@ -30,36 +30,45 @@ import { hojeSaoPaulo } from "@/central/utils/situacao";
 const ddmm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
 
 /**
- * As marcas de "Feito" e "Ignorar" ficam neste aparelho (localStorage). A
- * tabela de configurações do banco é lida também pelas pacientes, então não
- * é lugar para isso; levar para o banco pede uma tabela nova, e mudança no
- * banco só com o aval dela.
+ * As marcas de "Feito" e "Ignorar" moram no banco (0108, só dela), para
+ * valerem no computador e no celular. Na primeira versão elas ficavam no
+ * navegador, nesta chave: o que estiver aqui sobe para o banco uma vez e
+ * sai do navegador.
  */
-const CHAVE_DAS_MARCAS = "marvia-quem-esfriou-marcas";
+const CHAVE_ANTIGA = "marvia-quem-esfriou-marcas";
 
-function lerMarcas(): Record<string, MarcaDoOi> {
+function marcasAntigas(): Record<string, MarcaDoOi> {
   try {
-    const v = JSON.parse(localStorage.getItem(CHAVE_DAS_MARCAS) ?? "{}");
+    const v = JSON.parse(localStorage.getItem(CHAVE_ANTIGA) ?? "{}");
     return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, MarcaDoOi>) : {};
   } catch {
     return {};
   }
 }
 
-function guardarMarcas(marcas: Record<string, MarcaDoOi>) {
-  try {
-    localStorage.setItem(CHAVE_DAS_MARCAS, JSON.stringify(marcas));
-  } catch {
-    /* sem armazenamento: a marca vale só até fechar a página */
+async function carregarMarcas(): Promise<Record<string, MarcaDoOi>> {
+  const doBanco = await repositorio.marcasQuemEsfriou();
+  const antigas = marcasAntigas();
+  const faltam = Object.entries(antigas).filter(([id]) => !doBanco[id]);
+  for (const [id, marca] of faltam) {
+    await repositorio.marcarQuemEsfriou(id, marca);
+    doBanco[id] = marca;
   }
+  try {
+    localStorage.removeItem(CHAVE_ANTIGA);
+  } catch {
+    /* nada a limpar */
+  }
+  return doBanco;
 }
 
 export function QuemEsfriou() {
   const { configuracoes } = useSessao();
   const [lista, definirLista] = useState<PacienteQueEsfriou[] | null>(null);
   const [verSemRetorno, definirVerSemRetorno] = useState(false);
-  const [marcas, definirMarcas] = useState<Record<string, MarcaDoOi>>(lerMarcas);
+  const [marcas, definirMarcas] = useState<Record<string, MarcaDoOi>>({});
   const [verResolvidos, definirVerResolvidos] = useState(false);
+  const [avisoDaMarca, definirAvisoDaMarca] = useState<string | null>(null);
 
   useEffect(() => {
     let vivo = true;
@@ -67,6 +76,9 @@ export function QuemEsfriou() {
       .quemEsfriou()
       .then((l) => vivo && definirLista(l))
       .catch(() => vivo && definirLista([]));
+    carregarMarcas()
+      .then((m) => vivo && definirMarcas(m))
+      .catch(() => vivo && definirAvisoDaMarca("Não consegui carregar o que você marcou como feito ou ignorado."));
     return () => {
       vivo = false;
     };
@@ -78,18 +90,23 @@ export function QuemEsfriou() {
   const semRetorno = lista.filter((p) => p.semRetorno);
   if (oi.length === 0 && resolvidos.length === 0 && semRetorno.length === 0) return null;
 
-  function marcar(p: PacienteQueEsfriou, como: ComoResolveu) {
-    const novas = { ...marcas, [p.id]: { assinatura: assinaturaDoOi(p), como, em: hoje } };
+  // A tela muda na hora; se o banco recusar, volta como estava e avisa.
+  function trocar(id: string, marca: MarcaDoOi | null) {
+    const antes = marcas;
+    const novas = { ...marcas };
+    if (marca) novas[id] = marca;
+    else delete novas[id];
     definirMarcas(novas);
-    guardarMarcas(novas);
+    definirAvisoDaMarca(null);
+    repositorio.marcarQuemEsfriou(id, marca).catch(() => {
+      definirMarcas(antes);
+      definirAvisoDaMarca("Não consegui guardar. Confira a internet e tente de novo.");
+    });
   }
 
-  function desfazer(id: string) {
-    const novas = { ...marcas };
-    delete novas[id];
-    definirMarcas(novas);
-    guardarMarcas(novas);
-  }
+  const marcar = (p: PacienteQueEsfriou, como: ComoResolveu) =>
+    trocar(p.id, { assinatura: assinaturaDoOi(p), como, em: hoje });
+  const desfazer = (id: string) => trocar(id, null);
 
   const linkDaCobranca = (p: PacienteQueEsfriou) => {
     const c = p.cobrancas[0];
@@ -103,6 +120,11 @@ export function QuemEsfriou() {
 
   return (
     <section className="c-esfriou" aria-label="Quem esfriou">
+      {avisoDaMarca && (
+        <div className="c-aviso c-aviso-erro" role="alert">
+          <span>{avisoDaMarca}</span>
+        </div>
+      )}
       {oi.length > 0 && (
         <>
           <h2 className="c-esfriou-titulo">Precisa de um oi · {oi.length}</h2>

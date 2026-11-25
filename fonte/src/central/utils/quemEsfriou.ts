@@ -2,7 +2,7 @@
  * Quem esfriou (0103): as frases de cada motivo e o que abre no WhatsApp.
  * Puras e testadas. As regras de quem entra estão no banco (quem_esfriou).
  */
-import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
+import type { MarcaDoOi, PacienteQueEsfriou } from "@/central/types/quemEsfriou";
 
 const ddmm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
 
@@ -49,14 +49,7 @@ export function textoDoUltimoRegistro(ultimo: string | null, hoje: string): stri
  * cobrança, um rastreio novo que muda a data), a paciente volta para a
  * lista sozinha — marcar não silencia a paciente para sempre.
  */
-export type ComoResolveu = "feito" | "ignorado";
-
-export interface MarcaDoOi {
-  assinatura: string;
-  como: ComoResolveu;
-  /** AAAA-MM-DD do dia em que ela marcou. */
-  em: string;
-}
+export type { ComoResolveu, MarcaDoOi } from "@/central/types/quemEsfriou";
 
 export function assinaturaDoOi(p: PacienteQueEsfriou): string {
   return motivos(p).join(" | ");

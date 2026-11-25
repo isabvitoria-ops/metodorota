@@ -5,7 +5,7 @@ import type { FotoDoFeed, Notificacao } from "@/central/types/notificacao";
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
-import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
+import type { MarcaDoOi, PacienteQueEsfriou } from "@/central/types/quemEsfriou";
 import type { DadosDoRelatorio, RelatorioGuardado } from "@/central/types/relatorioMedico";
 import type { AlimentoRestrito, GravidadeRestricao, RestricaoAlimentar, TipoRestricao } from "@/central/types/restricao";
 import type { ItemDaLixeira, TipoNaLixeira } from "@/central/types/lixeira";
@@ -2529,6 +2529,27 @@ export const repositorioLocal: Repositorio = {
   },
 
   // -- Quem esfriou (0103): fictício, com pacientes da demonstração --
+  // Na demonstração as marcas ficam no navegador (não há banco).
+  async marcasQuemEsfriou(): Promise<Record<string, MarcaDoOi>> {
+    try {
+      const v = JSON.parse(localStorage.getItem("marvia-demo-quem-esfriou-marcas") ?? "{}");
+      return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, MarcaDoOi>) : {};
+    } catch {
+      return {};
+    }
+  },
+
+  async marcarQuemEsfriou(pacienteId: string, marca: MarcaDoOi | null) {
+    const todas = await repositorioLocal.marcasQuemEsfriou();
+    if (marca) todas[pacienteId] = marca;
+    else delete todas[pacienteId];
+    try {
+      localStorage.setItem("marvia-demo-quem-esfriou-marcas", JSON.stringify(todas));
+    } catch {
+      /* sem armazenamento: vale até fechar a página */
+    }
+  },
+
   async quemEsfriou(): Promise<PacienteQueEsfriou[]> {
     return [
       {
