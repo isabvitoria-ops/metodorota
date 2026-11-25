@@ -14,3 +14,14 @@ export interface PacienteQueEsfriou {
   semRetorno: boolean;
   ultimaConsulta: string | null;
 }
+
+/** "Feito" e "Ignorar" do Precisa de um oi (0108). */
+export type ComoResolveu = "feito" | "ignorado";
+
+export interface MarcaDoOi {
+  /** Os motivos do dia em que ela marcou; mudou, a paciente volta. */
+  assinatura: string;
+  como: ComoResolveu;
+  /** AAAA-MM-DD do dia em que ela marcou. */
+  em: string;
+}

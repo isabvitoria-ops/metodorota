@@ -4,7 +4,7 @@ import type { FotoDoFeed, Notificacao, TipoDeNotificacao } from "@/central/types
 import type { PrazoDoCheckin } from "@/central/types/questionario";
 import type { ResumoPreRetorno } from "@/central/types/resumoPreRetorno";
 import type { EntradaDaBase, MedicamentoDaPaciente } from "@/central/types/medicamentos";
-import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
+import type { MarcaDoOi, PacienteQueEsfriou } from "@/central/types/quemEsfriou";
 import type { DadosDoRelatorio, RelatorioGuardado } from "@/central/types/relatorioMedico";
 import type { ItemDaLixeira, TipoNaLixeira } from "@/central/types/lixeira";
 import type { PassoDoTour } from "@/central/types/tour";
@@ -3050,6 +3050,32 @@ export const repositorioSupabase: Repositorio = {
       .order("criado_em", { ascending: false });
     erro("carregar os relatórios", error);
     return ((data ?? []) as Linha[]).map((l) => ({ id: texto(l.id), criadoEm: texto(l.criado_em), dados: l.dados as DadosDoRelatorio }));
+  },
+
+  async marcasQuemEsfriou(): Promise<Record<string, MarcaDoOi>> {
+    const sb = exigirSupabase();
+    const { data, error } = await sb.from("marcas_quem_esfriou").select("paciente_id, como, assinatura, em");
+    erro("carregar as marcas de quem esfriou", error);
+    const saida: Record<string, MarcaDoOi> = {};
+    for (const l of (data ?? []) as { paciente_id: string; como: string; assinatura: string; em: string }[]) {
+      if (l.como !== "feito" && l.como !== "ignorado") continue;
+      saida[l.paciente_id] = { como: l.como, assinatura: l.assinatura, em: l.em };
+    }
+    return saida;
+  },
+
+  async marcarQuemEsfriou(pacienteId: string, marca: MarcaDoOi | null) {
+    const sb = exigirSupabase();
+    if (!marca) {
+      const { error } = await sb.from("marcas_quem_esfriou").delete().eq("paciente_id", pacienteId);
+      erro("desmarcar", error);
+      return;
+    }
+    const { error } = await sb.from("marcas_quem_esfriou").upsert(
+      { paciente_id: pacienteId, como: marca.como, assinatura: marca.assinatura, em: marca.em, atualizado_em: new Date().toISOString() },
+      { onConflict: "paciente_id" },
+    );
+    erro("marcar", error);
   },
 
   async quemEsfriou(): Promise<PacienteQueEsfriou[]> {
