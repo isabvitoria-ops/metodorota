@@ -12969,6 +12969,11 @@ textarea.c-campo-input,
 .central .c-mde-modo > .c-mde-modo-botoes { flex-direction: row; flex: 0 1 auto; min-width: 0; max-width: 100%; flex-wrap: wrap; gap: 8px; }
 .central .c-mde-cabeca { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .central .c-colinha-link { font-size: 13px; }
+.central .c-colinha-utensilios { margin-top: 10px; }
+.central .c-colinha-subtitulo { margin: 12px 0 0; color: #38546C; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.central .c-colinha-ml { margin: 12px 0; }
+.central .c-colinha-filtro { width: 100%; margin-top: 10px; }
+.central .c-colinha-qual { color: #38546C; font-size: 13px; }
 .c-calculos-cabeca > .c-calculos-cabeca-acoes { display: flex; flex-direction: row; align-items: center; gap: 14px; flex-wrap: wrap; }
 
 /* ------------------------------------------------ panorama da ficha (nutri) */
