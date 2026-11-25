@@ -3488,6 +3488,10 @@ function lerTreino(linha: Linha): Treino {
         repMax: numeroOuNulo(f.repMax),
         metodo: textoOuNulo(f.metodo),
       })),
+      trocas: (Array.isArray(e.trocas) ? e.trocas : [])
+        .map((t: Linha) => ({ nome: texto(t.nome).trim(), videoUrl: textoOuNulo(t.videoUrl) }))
+        .filter((t: { nome: string }) => t.nome !== ""),
+      bisetComProximo: e.bisetComProximo === true,
     })),
   };
 }

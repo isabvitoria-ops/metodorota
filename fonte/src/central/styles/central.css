@@ -12978,6 +12978,20 @@ textarea.c-campo-input,
 /* Treino escrito pela primeira vez: a carga de hoje dentro do exercício. */
 .c-hoje-treino { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border); }
 .c-hoje-treino-titulo { display: block; margin-bottom: 6px; color: #38546C; font-size: 13px; font-weight: 700; }
+/* Treino: biset (dois exercícios no mesmo cartão) e trocas (0109). */
+.c-biset { border: 1px solid #C9BCAC; border-left: 4px solid #38546C; border-radius: 12px; padding: 4px 12px 8px; margin: 10px 0; background: #F7EEE7; }
+.c-biset .c-card-exercicio { margin-top: 8px; }
+.c-biset-etiqueta { margin: 6px 0 0; color: #38546C; font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.c-bloco-biset { border-left: 4px solid #38546C; }
+.c-bloco-biset-1 { margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.c-bloco-biset-2 { margin-top: 0; border-top-left-radius: 0; border-top-right-radius: 0; border-top: 1px dashed #C9BCAC; }
+.c-biset-marcar { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-size: 14px; color: #263D52; cursor: pointer; }
+.c-biset-marcar input { width: 18px; height: 18px; flex: none; }
+.c-trocas-exercicio { margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--border); }
+.c-trocas-do-exercicio { margin-top: 6px; font-size: 14px; color: #263D52; }
+.c-trocas-do-exercicio-titulo { display: block; color: #38546C; font-size: 13px; font-weight: 700; }
+.c-trocas-do-exercicio ul { margin: 4px 0 0; padding-left: 18px; }
+.c-trocas-do-exercicio li { margin: 2px 0; overflow-wrap: anywhere; }
 /* Protocolo no celular: com ↑ ↓ Duplicar Remover, as ações descem para a
    linha de baixo em vez de empurrar a tela para o lado. */
 @media (max-width: 639px) {

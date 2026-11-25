@@ -21,6 +21,7 @@ import {
   recordesDe,
 } from "@/central/utils/progressaoTreino";
 import { Esqueleto } from "@/central/components/Esqueleto";
+import { emBlocos } from "@/central/utils/bisetDoTreino";
 
 /**
  * A evolução de treino da paciente.
@@ -257,8 +258,30 @@ function PlanoDoTreino({
       <h2 className="c-secao-titulo">{treino.nome}</h2>
       {treino.observacao && <p className="c-dica">{treino.observacao}</p>}
       <div className="c-bloco">
-        {treino.exercicios.map((e) => (
-          <div className="c-item-protocolo" key={e.id}>
+        {emBlocos(treino.exercicios, (e) => e.bisetComProximo === true).map((bloco) =>
+          bloco.length === 2 ? (
+            <div className="c-biset" key={bloco[0]!.id}>
+              <p className="c-biset-etiqueta">Biset · faça um seguido do outro</p>
+              {bloco.map((e) => (
+                <ExercicioDoPlano key={e.id} e={e} />
+              ))}
+            </div>
+          ) : (
+            <ExercicioDoPlano key={bloco[0]!.id} e={bloco[0]!} />
+          ),
+        )}
+      </div>
+      <button type="button" className="c-botao" style={{ marginTop: 12 }} onClick={aoRegistrar}>
+        Registrar treino de hoje
+      </button>
+    </section>
+  );
+}
+
+/** Um exercício do plano, com as faixas, o vídeo e as trocas. */
+function ExercicioDoPlano({ e }: { e: ExercicioPlanejado }) {
+  return (
+          <div className="c-item-protocolo">
             <div className="c-item-protocolo-linha">
               <span className="c-item-protocolo-nome">{e.nome}</span>
               {(!e.faixas || e.faixas.length === 0) && (
@@ -283,13 +306,33 @@ function PlanoDoTreino({
                 ▶ Ver demonstração
               </a>
             )}
+            <TrocasDoExercicio trocas={e.trocas ?? []} />
           </div>
+  );
+}
+
+/** "Sem o aparelho ou academia cheia? Troque por…" — só o que ela escreveu. */
+function TrocasDoExercicio({ trocas }: { trocas: ExercicioPlanejado["trocas"] }) {
+  if (trocas.length === 0) return null;
+  return (
+    <div className="c-trocas-do-exercicio">
+      <span className="c-trocas-do-exercicio-titulo">Sem o aparelho ou academia cheia? Troque por:</span>
+      <ul>
+        {trocas.map((t, i) => (
+          <li key={i}>
+            {t.nome}
+            {t.videoUrl && (
+              <>
+                {" "}
+                <a href={t.videoUrl} target="_blank" rel="noopener noreferrer" className="c-link-video">
+                  ▶ Ver execução
+                </a>
+              </>
+            )}
+          </li>
         ))}
-      </div>
-      <button type="button" className="c-botao" style={{ marginTop: 12 }} onClick={aoRegistrar}>
-        Registrar treino de hoje
-      </button>
-    </section>
+      </ul>
+    </div>
   );
 }
 
@@ -581,7 +624,12 @@ function RegistrarSessao({
         </div>
       </div>
 
-      {exerciciosAgrupados.map((grupo) => {
+      {emBlocos(exerciciosAgrupados, (grupo, proximo) => {
+        // Biset do plano: os dois cartões ficam juntos, como no treino dela.
+        const k = treino.exercicios.findIndex((e) => e.nome === grupo.nome);
+        return k >= 0 && treino.exercicios[k]!.bisetComProximo === true && treino.exercicios[k + 1]?.nome === proximo.nome;
+      }).map((bloco) => {
+        const cartao = (grupo: (typeof exerciciosAgrupados)[number]) => {
         const exercicioPlano = treino.exercicios.find((e) => e.nome === grupo.nome);
         return (
           <div className="c-bloco c-card-exercicio" key={grupo.nome}>
@@ -601,6 +649,7 @@ function RegistrarSessao({
                 ▶ Ver demonstração
               </a>
             )}
+            <TrocasDoExercicio trocas={exercicioPlano?.trocas ?? []} />
             {grupo.series.map((s) => (
               <div className="c-serie-linha" key={s.indiceGlobal}>
                 <span className="c-serie-numero">{s.numeroDentro}</span>
@@ -645,6 +694,15 @@ function RegistrarSessao({
               + série
             </button>
           </div>
+        );
+        };
+        return bloco.length === 2 ? (
+          <div className="c-biset" key={bloco[0]!.nome}>
+            <p className="c-biset-etiqueta">Biset · faça um seguido do outro</p>
+            {bloco.map(cartao)}
+          </div>
+        ) : (
+          cartao(bloco[0]!)
         );
       })}
 

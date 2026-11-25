@@ -3048,6 +3048,8 @@ const TREINO_DEMO: Treino = {
       observacao: null,
       videoUrl: null,
       faixas: [],
+      trocas: [],
+      bisetComProximo: false,
     },
     {
       id: "ex-leg",
@@ -3059,6 +3061,8 @@ const TREINO_DEMO: Treino = {
       observacao: null,
       videoUrl: null,
       faixas: [],
+      trocas: [{ nome: "Agachamento búlgaro", videoUrl: null }],
+      bisetComProximo: true,
     },
     {
       id: "ex-prancha",
@@ -3070,6 +3074,8 @@ const TREINO_DEMO: Treino = {
       observacao: "Segundos, não repetições.",
       videoUrl: null,
       faixas: [],
+      trocas: [],
+      bisetComProximo: false,
     },
   ],
 };
