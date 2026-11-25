@@ -6,6 +6,13 @@ import type {
   Treino,
 } from "@/central/types/treino";
 import { repositorio } from "@/central/dados/repositorio";
+import { hojeSaoPaulo } from "@/central/utils/situacao";
+import {
+  conferirHoje,
+  linhasIniciais,
+  seriesDeHoje,
+  type SerieDeHoje,
+} from "@/central/utils/primeiroTreino";
 
 /**
  * O treino escrito PELA PACIENTE.
@@ -230,6 +237,41 @@ function Editor({
   );
   const [salvando, definirSalvando] = useState(false);
   const [aviso, definirAviso] = useState<string | null>(null);
+  // Primeira vez (sem treino ainda): cada exercício já traz a carga de hoje,
+  // porque ela costuma estar na academia escrevendo enquanto treina. Da
+  // segunda vez em diante a carga é lançada em "Registrar treino", como antes.
+  const primeiraVez = !treino;
+  const [hoje, definirHoje] = useState<(SerieDeHoje[] | null)[]>(() => exercicios.map(() => null));
+  // Treino já gravado nesta tela, se as cargas falharem depois: tentar de
+  // novo atualiza ESTE treino em vez de criar um segundo igual.
+  const [idSalvo, definirIdSalvo] = useState<string | null>(null);
+
+  const linhasDe = (i: number): SerieDeHoje[] =>
+    hoje[i] ?? Array.from({ length: linhasIniciais(exercicios[i]?.seriesPlanejadas ?? "") }, () => ({ carga: "", repeticoes: "" }));
+
+  const mudarHoje = (i: number, k: number, campo: keyof SerieDeHoje, valor: string) =>
+    definirHoje((antes) => {
+      const novo = [...antes];
+      while (novo.length <= i) novo.push(null);
+      novo[i] = linhasDe(i).map((l, j) => (j === k ? { ...l, [campo]: valor } : l));
+      return novo;
+    });
+
+  const maisSerieHoje = (i: number) =>
+    definirHoje((antes) => {
+      const novo = [...antes];
+      while (novo.length <= i) novo.push(null);
+      novo[i] = [...linhasDe(i), { carga: "", repeticoes: "" }];
+      return novo;
+    });
+
+  const tirarSerieHoje = (i: number, k: number) =>
+    definirHoje((antes) => {
+      const novo = [...antes];
+      while (novo.length <= i) novo.push(null);
+      novo[i] = linhasDe(i).filter((_, j) => j !== k);
+      return novo;
+    });
 
   const mudar = (i: number, campo: keyof ExercicioParaSalvar, valor: string) =>
     definirExercicios((antes) => antes.map((e, j) => (i === j ? { ...e, [campo]: valor } : e)));
@@ -263,18 +305,43 @@ function Editor({
       definirAviso("Escreva pelo menos um exercício.");
       return;
     }
+    const comHoje = primeiraVez ? exercicios.map((e, i) => ({ nome: e.nome, hoje: linhasDe(i) })) : [];
+    const problema = conferirHoje(comHoje);
+    if (problema) {
+      definirAviso(problema);
+      return;
+    }
     definirSalvando(true);
     definirAviso(null);
+    let id: string;
     try {
       // `null` no lugar do paciente: é sempre o treino de quem está logado.
       // O banco ignora esse campo para a paciente de qualquer forma — mandar
       // um id aqui não escreveria na ficha de ninguém.
-      await repositorio.salvarTreino(treino?.id ?? null, null, nome, observacao, true, limpos);
-      await aoSalvar();
+      id = await repositorio.salvarTreino(treino?.id ?? idSalvo, null, nome, observacao, true, limpos);
+      definirIdSalvo(id);
     } catch (e) {
       definirAviso(e instanceof Error ? e.message : "Não consegui salvar.");
       definirSalvando(false);
+      return;
     }
+    if (primeiraVez && comHoje.some((e) => e.hoje.some((s) => s.repeticoes.trim() !== ""))) {
+      try {
+        const salvo = (await repositorio.meusTreinos()).find((t) => t.id === id);
+        if (!salvo) throw new Error("treino não encontrado");
+        const series = seriesDeHoje(comHoje, salvo);
+        if (series.length > 0) {
+          await repositorio.registrarSessaoTreino(null, null, id, hojeSaoPaulo(), "", series, null);
+        }
+      } catch {
+        definirAviso(
+          "Seu treino foi salvo, mas as cargas de hoje não. Toque em Salvar de novo para tentar só as cargas.",
+        );
+        definirSalvando(false);
+        return;
+      }
+    }
+    await aoSalvar();
   }
 
   return (
@@ -284,6 +351,12 @@ function Editor({
         Escreva só o que você já sabe. Séries e repetições podem ficar em branco — sem eles o
         aplicativo continua registrando a sua evolução, só não avisa sobre topo de faixa.
       </p>
+      {primeiraVez && (
+        <p className="c-dica">
+          Está treinando agora? Em cada exercício, preencha a carga e as repetições de hoje. Elas
+          ficam guardadas junto com o treino.
+        </p>
+      )}
 
       <div className="c-bloco" style={{ marginTop: 12 }}>
         <label className="c-campo">
@@ -315,7 +388,10 @@ function Editor({
               <button
                 type="button"
                 className="c-botao c-botao-pequeno c-botao-secundario"
-                onClick={() => definirExercicios((antes) => antes.filter((_, j) => j !== i))}
+                onClick={() => {
+                  definirExercicios((antes) => antes.filter((_, j) => j !== i));
+                  definirHoje((antes) => antes.filter((_, j) => j !== i));
+                }}
               >
                 Tirar
               </button>
@@ -438,6 +514,51 @@ function Editor({
           >
             + faixa de série
           </button>
+
+          {primeiraVez && (
+            <div className="c-hoje-treino">
+              <span className="c-hoje-treino-titulo">Hoje (opcional): carga × repetições</span>
+              {linhasDe(i).map((l, k, todas) => (
+                <div className="c-serie-linha" key={k}>
+                  <span className="c-serie-numero">{k + 1}</span>
+                  <label className="c-serie-campo">
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={l.carga}
+                      placeholder="kg"
+                      aria-label={`${e.nome.trim() || `Exercício ${i + 1}`}, série ${k + 1}, carga de hoje`}
+                      onChange={(ev) => mudarHoje(i, k, "carga", ev.target.value)}
+                    />
+                  </label>
+                  <span className="c-serie-x" aria-hidden="true">×</span>
+                  <label className="c-serie-campo">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={l.repeticoes}
+                      placeholder="reps"
+                      aria-label={`${e.nome.trim() || `Exercício ${i + 1}`}, série ${k + 1}, repetições de hoje`}
+                      onChange={(ev) => mudarHoje(i, k, "repeticoes", ev.target.value)}
+                    />
+                  </label>
+                  {todas.length > 1 && (
+                    <button
+                      type="button"
+                      className="c-serie-tirar"
+                      aria-label={`Tirar série ${k + 1} de hoje`}
+                      onClick={() => tirarSerieHoje(i, k)}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button type="button" className="c-botao-texto" onClick={() => maisSerieHoje(i)}>
+                + série
+              </button>
+            </div>
+          )}
         </div>
       ))}
 
@@ -445,7 +566,10 @@ function Editor({
         type="button"
         className="c-botao c-botao-secundario"
         style={{ marginTop: 10 }}
-        onClick={() => definirExercicios((antes) => [...antes, { ...EXERCICIO_VAZIO }])}
+        onClick={() => {
+          definirExercicios((antes) => [...antes, { ...EXERCICIO_VAZIO }]);
+          definirHoje((antes) => [...antes, null]);
+        }}
       >
         + Outro exercício
       </button>
@@ -454,7 +578,7 @@ function Editor({
 
       <div className="c-linha-botoes-treino" style={{ marginTop: 14 }}>
         <button type="button" className="c-botao" disabled={salvando} onClick={() => void salvar()}>
-          {salvando ? "Salvando…" : "Salvar meu treino"}
+          {salvando ? "Salvando…" : primeiraVez ? "Salvar meu treino e as cargas" : "Salvar meu treino"}
         </button>
         <button type="button" className="c-botao c-botao-secundario" onClick={aoFechar}>
           Cancelar

@@ -12974,6 +12974,9 @@ textarea.c-campo-input,
 .central .c-colinha-ml { margin: 12px 0; }
 .central .c-colinha-filtro { width: 100%; margin-top: 10px; }
 .central .c-colinha-qual { color: #38546C; font-size: 13px; }
+/* Treino escrito pela primeira vez: a carga de hoje dentro do exercício. */
+.c-hoje-treino { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.c-hoje-treino-titulo { display: block; margin-bottom: 6px; color: #38546C; font-size: 13px; font-weight: 700; }
 /* Protocolo no celular: com ↑ ↓ Duplicar Remover, as ações descem para a
    linha de baixo em vez de empurrar a tela para o lado. */
 @media (max-width: 639px) {
