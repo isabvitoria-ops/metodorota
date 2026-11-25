@@ -6,7 +6,16 @@ import { rotas } from "@/central/rotas";
 import type { Cobranca } from "@/central/types/financeiro";
 import type { PacienteQueEsfriou } from "@/central/types/quemEsfriou";
 import { linkDoWhatsapp, mensagemDeCobranca } from "@/central/utils/cobranca";
-import { mensagemDeOi, motivos, precisaDeOi, textoDoUltimoRegistro } from "@/central/utils/quemEsfriou";
+import {
+  assinaturaDoOi,
+  mensagemDeOi,
+  motivos,
+  precisaDeOi,
+  separarResolvidos,
+  textoDoUltimoRegistro,
+  type ComoResolveu,
+  type MarcaDoOi,
+} from "@/central/utils/quemEsfriou";
 import { hojeSaoPaulo } from "@/central/utils/situacao";
 
 /**
@@ -20,10 +29,37 @@ import { hojeSaoPaulo } from "@/central/utils/situacao";
  */
 const ddmm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
 
+/**
+ * As marcas de "Feito" e "Ignorar" ficam neste aparelho (localStorage). A
+ * tabela de configurações do banco é lida também pelas pacientes, então não
+ * é lugar para isso; levar para o banco pede uma tabela nova, e mudança no
+ * banco só com o aval dela.
+ */
+const CHAVE_DAS_MARCAS = "marvia-quem-esfriou-marcas";
+
+function lerMarcas(): Record<string, MarcaDoOi> {
+  try {
+    const v = JSON.parse(localStorage.getItem(CHAVE_DAS_MARCAS) ?? "{}");
+    return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, MarcaDoOi>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function guardarMarcas(marcas: Record<string, MarcaDoOi>) {
+  try {
+    localStorage.setItem(CHAVE_DAS_MARCAS, JSON.stringify(marcas));
+  } catch {
+    /* sem armazenamento: a marca vale só até fechar a página */
+  }
+}
+
 export function QuemEsfriou() {
   const { configuracoes } = useSessao();
   const [lista, definirLista] = useState<PacienteQueEsfriou[] | null>(null);
   const [verSemRetorno, definirVerSemRetorno] = useState(false);
+  const [marcas, definirMarcas] = useState<Record<string, MarcaDoOi>>(lerMarcas);
+  const [verResolvidos, definirVerResolvidos] = useState(false);
 
   useEffect(() => {
     let vivo = true;
@@ -38,9 +74,22 @@ export function QuemEsfriou() {
 
   if (!lista) return null;
   const hoje = hojeSaoPaulo();
-  const oi = lista.filter(precisaDeOi);
+  const { pendentes: oi, resolvidos } = separarResolvidos(lista.filter(precisaDeOi), marcas);
   const semRetorno = lista.filter((p) => p.semRetorno);
-  if (oi.length === 0 && semRetorno.length === 0) return null;
+  if (oi.length === 0 && resolvidos.length === 0 && semRetorno.length === 0) return null;
+
+  function marcar(p: PacienteQueEsfriou, como: ComoResolveu) {
+    const novas = { ...marcas, [p.id]: { assinatura: assinaturaDoOi(p), como, em: hoje } };
+    definirMarcas(novas);
+    guardarMarcas(novas);
+  }
+
+  function desfazer(id: string) {
+    const novas = { ...marcas };
+    delete novas[id];
+    definirMarcas(novas);
+    guardarMarcas(novas);
+  }
 
   const linkDaCobranca = (p: PacienteQueEsfriou) => {
     const c = p.cobrancas[0];
@@ -84,12 +133,44 @@ export function QuemEsfriou() {
                     <Link className="c-chip" to={rotas.adminProntuario(p.id)}>
                       Abrir ficha
                     </Link>
+                    <button type="button" className="c-chip" onClick={() => marcar(p, "feito")} title="Já cuidei disso">
+                      Feito
+                    </button>
+                    <button type="button" className="c-chip" onClick={() => marcar(p, "ignorado")} title="Deixar para depois">
+                      Ignorar
+                    </button>
                   </div>
                 </li>
               );
             })}
           </ul>
         </>
+      )}
+
+      {oi.length === 0 && resolvidos.length > 0 && (
+        <h2 className="c-esfriou-titulo">Precisa de um oi · 0</h2>
+      )}
+
+      {resolvidos.length > 0 && (
+        <div className="c-esfriou-retorno">
+          <button type="button" className="c-link" aria-expanded={verResolvidos} onClick={() => definirVerResolvidos((v) => !v)}>
+            Feitos e ignorados · {resolvidos.length} {verResolvidos ? "(esconder)" : "(ver quem)"}
+          </button>
+          <p className="c-dica">Voltam para a lista sozinhos se aparecer um motivo novo.</p>
+          {verResolvidos && (
+            <ul className="c-esfriou-nomes">
+              {resolvidos.map(({ paciente: p, marca }) => (
+                <li key={p.id}>
+                  <Link to={rotas.adminProntuario(p.id)}>{p.nome}</Link>
+                  <small> · {marca.como === "feito" ? "feito" : "ignorado"} em {ddmm(marca.em)} </small>
+                  <button type="button" className="c-link" onClick={() => desfazer(p.id)}>
+                    Voltar para a lista
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
 
       {semRetorno.length > 0 && (
