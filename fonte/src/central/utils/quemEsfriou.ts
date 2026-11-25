@@ -40,3 +40,38 @@ export function textoDoUltimoRegistro(ultimo: string | null, hoje: string): stri
   if (dias === 1) return "ontem";
   return `há ${dias} dias`;
 }
+
+/**
+ * "Feito" e "Ignorar" (pedido dela em 25/11/2026).
+ *
+ * A marca vale para AQUELA situação: guarda a assinatura dos motivos do dia
+ * em que ela marcou. Se aparece motivo novo (outro check-in vencido, outra
+ * cobrança, um rastreio novo que muda a data), a paciente volta para a
+ * lista sozinha — marcar não silencia a paciente para sempre.
+ */
+export type ComoResolveu = "feito" | "ignorado";
+
+export interface MarcaDoOi {
+  assinatura: string;
+  como: ComoResolveu;
+  /** AAAA-MM-DD do dia em que ela marcou. */
+  em: string;
+}
+
+export function assinaturaDoOi(p: PacienteQueEsfriou): string {
+  return motivos(p).join(" | ");
+}
+
+export function separarResolvidos(
+  lista: PacienteQueEsfriou[],
+  marcas: Record<string, MarcaDoOi | undefined>,
+): { pendentes: PacienteQueEsfriou[]; resolvidos: { paciente: PacienteQueEsfriou; marca: MarcaDoOi }[] } {
+  const pendentes: PacienteQueEsfriou[] = [];
+  const resolvidos: { paciente: PacienteQueEsfriou; marca: MarcaDoOi }[] = [];
+  for (const p of lista) {
+    const marca = marcas[p.id];
+    if (marca && marca.assinatura === assinaturaDoOi(p)) resolvidos.push({ paciente: p, marca });
+    else pendentes.push(p);
+  }
+  return { pendentes, resolvidos };
+}

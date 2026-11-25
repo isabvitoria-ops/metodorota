@@ -12933,6 +12933,7 @@ textarea.c-campo-input,
 .central .c-esfriou-lista small { font-size: 13px; color: var(--text-muted); }
 .central .c-esfriou-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
 .central .c-esfriou-acoes .c-chip { text-decoration: none; }
+.central .c-esfriou-acoes button.c-chip { font-size: 13.5px; }
 .central .c-esfriou-falta { color: #A82B3C !important; }
 .central .c-esfriou-retorno { margin-top: 8px; }
 .central .c-esfriou-nomes { margin: 6px 0 0; padding-left: 18px; font-size: 14px; }
