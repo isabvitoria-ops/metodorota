@@ -9,6 +9,9 @@ import type {
   Treino,
 } from "@/central/types/treino";
 import { MeuTreino } from "@/central/components/MeuTreino";
+import { BotaoPdf } from "@/central/components/BotaoPdf";
+import { DocumentoTreino } from "@/central/components/DocumentoTreino";
+import { useSessao } from "@/central/autenticacao/SessaoContexto";
 import { PainelDaSemana } from "@/central/components/PainelDaSemana";
 import { RegistroDeCardio } from "@/central/components/RegistroDeCardio";
 import { repositorio } from "@/central/dados/repositorio";
@@ -22,6 +25,7 @@ import {
 } from "@/central/utils/progressaoTreino";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { emBlocos } from "@/central/utils/bisetDoTreino";
+import { faixaEmTexto, faixaUnicaEmTexto } from "@/central/utils/textoDoTreino";
 
 /**
  * A evolução de treino da paciente.
@@ -52,6 +56,7 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
   const [treinoAberto, definirTreinoAberto] = useState<string | null>(null);
 
   const daNutri = Boolean(pacienteId);
+  const { acesso } = useSessao();
 
   const carregar = useMemo(
     () => async () => {
@@ -111,6 +116,15 @@ export function EvolucaoTreino({ pacienteId }: { pacienteId?: string }) {
             aoVoltar={treinos.length > 1 ? () => definirTreinoAberto(null) : undefined}
           />
         </>
+      )}
+
+      {!daNutri && treinos.some((t) => t.exercicios.length > 0) && (
+        <BotaoPdf
+          titulo={`Plano de Treino — ${acesso.nome ?? "Meu treino"}`}
+          rotulo={treinos.length > 1 ? "Baixar meus treinos em PDF" : "Baixar meu treino em PDF"}
+          classe="c-botao c-botao-secundario"
+          documento={<DocumentoTreino paciente={acesso.nome ?? ""} treinos={treinos} />}
+        />
       )}
 
       {!daNutri && <MeuTreino treino={treino} permissao={permissao} aoMudar={carregar} />}
@@ -334,37 +348,6 @@ function TrocasDoExercicio({ trocas }: { trocas: ExercicioPlanejado["trocas"] })
       </ul>
     </div>
   );
-}
-
-function faixaUnicaEmTexto(f: {
-  series: number;
-  repMin: number | null;
-  repMax: number | null;
-  tipo?: string;
-  metodo?: string | null;
-}): string {
-  const partes: string[] = [];
-  if (f.tipo) partes.push(f.tipo);
-  const rep =
-    f.repMin && f.repMax ? `${f.repMin}–${f.repMax}`
-    : f.repMax ? `até ${f.repMax}`
-    : f.repMin ? `${f.repMin}+`
-    : null;
-  partes.push(rep ? `${f.series}×${rep}` : `${f.series} séries`);
-  if (f.metodo) partes.push(f.metodo);
-  return partes.join(" ");
-}
-
-function faixaEmTexto(e: ExercicioPlanejado): string {
-  if (e.faixas && e.faixas.length > 0) {
-    return e.faixas.map(faixaUnicaEmTexto).join(", ");
-  }
-  const partes: string[] = [];
-  if (e.seriesPlanejadas) partes.push(`${e.seriesPlanejadas} séries`);
-  if (e.repeticoesMin && e.repeticoesMax) partes.push(`${e.repeticoesMin}–${e.repeticoesMax} rep.`);
-  else if (e.repeticoesMax) partes.push(`até ${e.repeticoesMax} rep.`);
-  else if (e.repeticoesMin) partes.push(`${e.repeticoesMin}+ rep.`);
-  return partes.join(" · ");
 }
 
 function numero(v: number | null): string {

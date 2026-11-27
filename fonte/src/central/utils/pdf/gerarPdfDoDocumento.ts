@@ -2,6 +2,7 @@ import html2canvas from "html2canvas";
 import logoUrl from "@/central/marca/isabela-marcal.svg";
 import { cortesDePagina, type FatiaDePagina } from "./cortesDePagina";
 import { escreverPdf, type PaginaDoPdf } from "./escreverPdf";
+import { linksDasFolhas, type CaixaDeLink } from "./linksDasFolhas";
 
 /**
  * Transforma o documento que está montado na página (`.folha-documento`) num
@@ -16,6 +17,10 @@ import { escreverPdf, type PaginaDoPdf } from "./escreverPdf";
  * A4, 15 mm nas laterais, 26 mm em cima (15 mm na capa) e 27 mm embaixo.
  * No iPhone a impressão nunca desenhou a logo e o rodapé da margem; aqui
  * eles saem em todo aparelho, porque quem desenha é o aplicativo.
+ *
+ * LINKS: a folha é imagem, mas cada `<a href>` da web ganha uma área
+ * clicável por cima, no mesmo lugar (o vídeo da execução no treino, o
+ * link do produto na dieta).
  */
 const MM = 96 / 25.4; // pixels por milímetro
 const FOLHA = { largura: 210 * MM, altura: 297 * MM };
@@ -167,6 +172,24 @@ function medir(corpo: HTMLElement): { inteiros: [number, number][]; quebrasForca
   return { inteiros, quebrasForcadas };
 }
 
+/**
+ * Os links da web do documento, com o lugar de cada linha deles. A folha
+ * vira imagem; o lugar é o que permite pôr a área clicável por cima.
+ */
+function caixasDosLinks(corpo: HTMLElement): CaixaDeLink[] {
+  const origem = corpo.getBoundingClientRect();
+  const caixas: CaixaDeLink[] = [];
+  for (const a of Array.from(corpo.querySelectorAll<HTMLAnchorElement>("a[href]"))) {
+    if (!/^https?:/i.test(a.href)) continue;
+    // Um retângulo por linha: link que quebra linha não vira um bloco largo.
+    for (const r of Array.from(a.getClientRects())) {
+      if (r.width === 0 || r.height === 0) continue;
+      caixas.push({ esquerda: r.left - origem.left, topo: r.top - origem.top, largura: r.width, altura: r.height, url: a.href });
+    }
+  }
+  return caixas;
+}
+
 function paraJpeg(tela: HTMLCanvasElement): Promise<Uint8Array> {
   return new Promise((resolver, rejeitar) => {
     tela.toBlob(
@@ -264,6 +287,13 @@ export async function gerarPdfDoDocumento(pedido: PedidoDePdf): Promise<Blob> {
       ...medir(corpo),
     });
 
+    const links = linksDasFolhas(caixasDosLinks(corpo), fatias, {
+      largura: FOLHA.largura,
+      altura: FOLHA.altura,
+      lateral: MARGEM.lateral,
+      topo: MARGEM.topo,
+      topoDaCapa: MARGEM.topoDaCapa,
+    });
     const logo = await carregarImagem(logoUrl);
     const paginas: PaginaDoPdf[] = [];
     for (let i = 0; i < fatias.length; i += 1) {
@@ -284,7 +314,7 @@ export async function gerarPdfDoDocumento(pedido: PedidoDePdf): Promise<Blob> {
         logging: false,
       });
       const folha = comporFolha(trecho, fatia, i + 1, fatias.length, pedido, logo);
-      paginas.push({ jpeg: await paraJpeg(folha), largura: folha.width, altura: folha.height });
+      paginas.push({ jpeg: await paraJpeg(folha), largura: folha.width, altura: folha.height, links: links[i] });
       // Devolve a memória já: no celular, cinco folhas guardadas pesam.
       trecho.width = trecho.height = 0;
       folha.width = folha.height = 0;

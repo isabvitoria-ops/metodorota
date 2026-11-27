@@ -897,6 +897,156 @@
 }
 
 /* =========================================================================
+   PLANO DE TREINO (DocumentoTreino) — o mesmo papel do plano alimentar.
+   Um bloco por treino; um exercício por linha; o vídeo da execução é um
+   link que abre (no PDF baixado também: gerarPdfDoDocumento põe a área
+   clicável por cima). Biset: as duas linhas juntas, com fio Cereja.
+   ========================================================================= */
+@media print {
+  .doc-tn-treino {
+    margin-top: 8mm;
+  }
+
+  .doc-tn-observacao {
+    margin: 0 0 3mm;
+  }
+
+  .doc-tn-tabela {
+    table-layout: fixed;
+    width: 100%;
+  }
+
+  .doc-tn-tabela th:nth-child(1),
+  .doc-tn-tabela td:nth-child(1) {
+    width: 56%;
+  }
+
+  .doc-tn-tabela th:nth-child(2),
+  .doc-tn-tabela td:nth-child(2) {
+    width: 24%;
+  }
+
+  .doc-tn-tabela th:nth-child(3),
+  .doc-tn-tabela td:nth-child(3) {
+    width: 20%;
+    text-align: right;
+  }
+
+  .doc-tn-tabela tbody tr {
+    break-inside: avoid;
+  }
+
+  .doc-tn-tabela tbody th,
+  .doc-tn-tabela tbody td {
+    vertical-align: top;
+  }
+
+  /* O nome do exercício é linha, não cabeçalho: sem faixa azul e sem caixa
+     alta (a regra geral de .doc-tabela th é para o cabeçalho de tabela). */
+  .doc-tn-tabela tbody th {
+    background: none;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: inherit;
+    padding-left: 0;
+  }
+
+  /* Cada treino numa folha: dá para imprimir só o B, e a tabela nunca
+     começa no pé de uma folha e termina na outra. */
+  .doc-tn-treino + .doc-tn-treino {
+    break-before: page;
+    margin-top: 0;
+  }
+
+  .doc-tn-nome {
+    display: block;
+    font-size: 10pt;
+    font-weight: 700;
+    color: #38546c;
+  }
+
+  .doc-tn-ordem {
+    color: #5a7a8f;
+  }
+
+  .doc-tn-obs {
+    display: block;
+    margin-top: 1mm;
+    font-size: 8.5pt;
+    font-weight: 400;
+    color: #263d52;
+  }
+
+  .doc-tn-trocas {
+    display: block;
+    margin-top: 1.2mm;
+    font-size: 8.5pt;
+    font-weight: 400;
+    color: #263d52;
+  }
+
+  .doc-tn-trocas-titulo {
+    font-weight: 700;
+    color: #38546c;
+  }
+
+  .doc-tn-trocas a {
+    color: #38546c;
+  }
+
+  .doc-tn-series {
+    font-size: 9pt;
+    color: #263d52;
+  }
+
+  .doc-tn-faixa {
+    display: block;
+  }
+
+  .doc-tn-faixa + .doc-tn-faixa {
+    margin-top: 0.8mm;
+  }
+
+  .doc-tn-link {
+    display: inline-block;
+    padding: 1.2mm 3mm;
+    border-radius: 999px;
+    background: #c8dae4;
+    color: #263d52;
+    font-size: 8pt;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  /* Biset: a etiqueta e as duas linhas, presas por um fio Cereja. */
+  .doc-tn-biset {
+    break-inside: avoid;
+  }
+
+  .doc-tn-biset-etiqueta td {
+    padding: 2.4mm 0 0 !important;
+    border-bottom: 0 !important;
+    font-size: 7.5pt;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #a82b3c;
+  }
+
+  .doc-tn-biset tr:not(.doc-tn-biset-etiqueta) th {
+    border-left: 0.6mm solid #a82b3c;
+    padding-left: 3mm;
+  }
+
+  .doc-tn-biset tr:not(.doc-tn-biset-etiqueta):not(:last-child) th,
+  .doc-tn-biset tr:not(.doc-tn-biset-etiqueta):not(:last-child) td {
+    border-bottom-style: dashed;
+  }
+}
+
+/* =========================================================================
    DOCUMENTOS NOVOS (receita, pedido de exames, mercado da semana, trocas).
    O topo é o mesmo do plano (doc-pa-topo); estas regras são do miolo.
    ========================================================================= */
@@ -949,9 +1099,14 @@
   /* Minhas trocas */
   .doc-tr-refeicao { margin-top: 5mm; }
   .doc-tabela { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 9.5pt; color: #263d52; }
-  .doc-tabela th { text-align: left; padding: 2mm 2.5mm; background: #c8dae4; font-size: 8pt; letter-spacing: 0.06em; text-transform: uppercase; color: #263d52; }
-  .doc-tabela th:nth-child(1) { width: 38%; }
-  .doc-tabela th:nth-child(2) { width: 22%; }
+  /* Só o CABEÇALHO: escrita como ".doc-tabela th", a regra pegava também a
+     primeira coluna das linhas (o alimento no plano alimentar, a medida na
+     avaliação) e a pintava de azul, em caixa alta miúda. E fica fora do
+     plano alimentar e do treino (.doc-pa-tabela), que têm cabeçalho leve,
+     sem faixa de cor, e larguras próprias. */
+  .doc-tabela:not(.doc-pa-tabela) thead th { text-align: left; padding: 2mm 2.5mm; background: #c8dae4; font-size: 8pt; letter-spacing: 0.06em; text-transform: uppercase; color: #263d52; }
+  .doc-tabela:not(.doc-pa-tabela) thead th:nth-child(1) { width: 38%; }
+  .doc-tabela:not(.doc-pa-tabela) thead th:nth-child(2) { width: 22%; }
   .doc-tabela td { padding: 2.2mm 2.5mm; border-bottom: 0.2mm solid #c9bcac; vertical-align: top; }
   .doc-tabela tr { break-inside: avoid; }
   .doc-tr-opcao { display: block; font-size: 8pt; color: #5a7a8f; }

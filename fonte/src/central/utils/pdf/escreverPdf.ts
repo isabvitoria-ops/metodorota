@@ -21,6 +21,20 @@ export interface PaginaDoPdf {
   /** Tamanho da imagem, em pixels. */
   largura: number;
   altura: number;
+  /**
+   * Os links da folha (o vídeo da execução, o link do produto), em pontos
+   * do PDF, com a origem no canto de BAIXO à esquerda, como o PDF conta.
+   * A página é uma imagem: sem isto, o "Ver execução" seria só desenho.
+   */
+  links?: LinkDoPdf[];
+}
+
+export interface LinkDoPdf {
+  x: number;
+  y: number;
+  largura: number;
+  altura: number;
+  url: string;
 }
 
 /** A4 em pontos (1 pt = 1/72 pol). */
@@ -39,6 +53,24 @@ function textoPdf(texto: string): string {
   for (let i = 0; i < texto.length; i += 1) hex += texto.charCodeAt(i).toString(16).toUpperCase().padStart(4, "0");
   return `<${hex}>`;
 }
+
+/**
+ * O endereço como texto do PDF. Só vai link da web (http/https); fora do
+ * ASCII vai em %XX, e parênteses e barra invertida ganham a barra do formato.
+ */
+export function enderecoDoLink(url: string): string | null {
+  let endereco: URL;
+  try {
+    endereco = new URL(url);
+  } catch {
+    return null;
+  }
+  if (endereco.protocol !== "http:" && endereco.protocol !== "https:") return null;
+  const ascii = endereco.href.replace(/[^\x20-\x7e]/g, (c) => encodeURIComponent(c));
+  return `(${ascii.replace(/[\\()]/g, (c) => `\\${c}`)})`;
+}
+
+const pt = (n: number) => String(Math.round(n * 100) / 100);
 
 export function escreverPdf(paginas: PaginaDoPdf[], titulo: string): Uint8Array {
   if (paginas.length === 0) throw new Error("PDF sem páginas.");
@@ -59,7 +91,19 @@ export function escreverPdf(paginas: PaginaDoPdf[], titulo: string): Uint8Array 
   // Numeração: 1 catálogo, 2 páginas, 3 informações; depois três por página
   // (a página, o conteúdo dela, a imagem).
   const numeroDaPagina = (i: number) => 4 + i * 3;
-  const total = 3 + paginas.length * 3;
+  // Os links vêm depois de todas as páginas, um objeto cada.
+  const linksDe = paginas.map((p) =>
+    (p.links ?? [])
+      .map((l) => ({ ...l, texto: enderecoDoLink(l.url) }))
+      .filter((l) => l.texto !== null && l.largura > 0 && l.altura > 0),
+  );
+  const primeiroLinkDe: number[] = [];
+  let proximo = 4 + paginas.length * 3;
+  for (const links of linksDe) {
+    primeiroLinkDe.push(proximo);
+    proximo += links.length;
+  }
+  const total = proximo - 1;
 
   // O comentário binário avisa aos leitores que o arquivo tem bytes "altos".
   escrever("%PDF-1.4\n");
@@ -80,10 +124,14 @@ export function escreverPdf(paginas: PaginaDoPdf[], titulo: string): Uint8Array 
     const n = numeroDaPagina(i);
     const desenho = `q ${A4_PT.largura} 0 0 ${A4_PT.altura} 0 0 cm /Im0 Do Q\n`;
 
+    const links = linksDe[i]!;
+    const anotacoes =
+      links.length > 0 ? ` /Annots [${links.map((_, k) => `${primeiroLinkDe[i]! + k} 0 R`).join(" ")}]` : "";
+
     abrir(n);
     escrever(
       `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${A4_PT.largura} ${A4_PT.altura}] ` +
-        `/Resources << /XObject << /Im0 ${n + 2} 0 R >> >> /Contents ${n + 1} 0 R >>\nendobj\n`,
+        `/Resources << /XObject << /Im0 ${n + 2} 0 R >> >> /Contents ${n + 1} 0 R${anotacoes} >>\nendobj\n`,
     );
 
     abrir(n + 1);
@@ -96,6 +144,16 @@ export function escreverPdf(paginas: PaginaDoPdf[], titulo: string): Uint8Array 
     );
     escrever(pagina.jpeg);
     escrever("\nendstream\nendobj\n");
+  });
+
+  linksDe.forEach((links, i) => {
+    links.forEach((l, k) => {
+      abrir(primeiroLinkDe[i]! + k);
+      escrever(
+        `<< /Type /Annot /Subtype /Link /Rect [${pt(l.x)} ${pt(l.y)} ${pt(l.x + l.largura)} ${pt(l.y + l.altura)}] ` +
+          `/Border [0 0 0] /A << /S /URI /URI ${l.texto} >> >>\nendobj\n`,
+      );
+    });
   });
 
   // A tabela de endereços: cada linha tem exatamente 20 bytes.

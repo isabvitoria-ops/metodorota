@@ -8243,6 +8243,11 @@ textarea.c-campo:focus {
   margin-top: 14px;
 }
 
+/* O "Baixar treino em PDF" ocupa a linha, como os outros botões dela. */
+.c-linha-botoes-treino > .c-pdf {
+  flex: 1 1 100%;
+}
+
 /* "de [ 8 ] – [ 12 ]": dois campos pequenos que continuam pequenos.
    Sem o `minmax(0, 1fr)`, um item de grid não encolhe abaixo do tamanho
    natural do <input>, e a dupla estourava a largura do celular. */
