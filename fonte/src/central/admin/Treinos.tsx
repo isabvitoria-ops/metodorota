@@ -18,6 +18,8 @@ import { hojeSaoPaulo, dataBonita } from "@/central/utils/situacao";
 import { domingoDaSemana, segundaDaSemana } from "@/central/utils/metasSemanais";
 import { Esqueleto } from "@/central/components/Esqueleto";
 import { posicaoNoBiset } from "@/central/utils/bisetDoTreino";
+import { BotaoPdf } from "@/central/components/BotaoPdf";
+import { DocumentoTreino } from "@/central/components/DocumentoTreino";
 
 /**
  * Treino — área da nutricionista.
@@ -576,6 +578,15 @@ function EditorDoPlano({
         <button type="button" className="c-botao" disabled={salvando} onClick={() => void salvar()}>
           {salvando ? "Salvando…" : "Salvar e ativar"}
         </button>
+        {/* O PDF sai do que está SALVO (o que ela vê no app): os treinos
+            ativos, com o vídeo de cada exercício clicável. */}
+        <BotaoPdf
+          titulo={`Plano de Treino — ${paciente.nome}`}
+          rotulo="Baixar treino em PDF"
+          classe="c-botao c-botao-secundario"
+          desligado={!treinos.some((t) => t.ativo && t.exercicios.length > 0)}
+          documento={<DocumentoTreino paciente={paciente.nome} treinos={treinos.filter((t) => t.ativo)} />}
+        />
         {id && (
           <button
             type="button"
